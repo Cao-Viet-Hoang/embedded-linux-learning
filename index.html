@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Học Embedded Linux — Từ số 0 đến đi làm</title>
+<meta name="description" content="Khoá học Embedded Linux tiếng Việt, thực hành hoàn toàn bằng WSL2 và QEMU, không cần phần cứng.">
+
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+
+<!-- Đặt theme trước khi vẽ để tránh nhấp nháy trắng khi đang ở dark mode -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('elx.theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main">Bỏ qua, tới nội dung chính</a>
+
+<!-- ═══════════════ THANH TRÊN CÙNG ═══════════════ -->
+<header class="topbar">
+  <button class="icon-btn topbar__menu" id="btnSidebar" aria-label="Mở danh sách bài học" aria-expanded="false">
+    <span data-icon="menu"></span>
+  </button>
+
+  <a class="brand" href="#/" aria-label="Về trang chủ">
+    <span class="brand__mark" data-icon="tux" aria-hidden="true"></span>
+    <span class="brand__text">
+      <strong>Embedded&nbsp;Linux</strong>
+      <em>Từ số 0 đến đi làm</em>
+    </span>
+  </a>
+
+  <div class="search" role="search">
+    <span class="search__icon" data-icon="search" aria-hidden="true"></span>
+    <input type="search" id="searchInput" class="search__input"
+           placeholder="Tìm bài học, lệnh, khái niệm…"
+           autocomplete="off" spellcheck="false"
+           aria-label="Tìm kiếm trong toàn bộ bài học">
+    <kbd class="search__kbd">/</kbd>
+    <div class="search__results" id="searchResults" hidden></div>
+  </div>
+
+  <div class="topbar__right">
+    <div class="progress-pill" id="progressPill" title="Tiến độ học tập">
+      <svg class="progress-ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="progress-ring__bg" cx="18" cy="18" r="15.5"></circle>
+        <circle class="progress-ring__fg" cx="18" cy="18" r="15.5" id="progressRing"></circle>
+      </svg>
+      <span id="progressText">0%</span>
+    </div>
+
+    <button class="icon-btn" id="btnTheme" aria-label="Đổi giao diện sáng/tối">
+      <span data-icon="sun" class="only-light"></span>
+      <span data-icon="moon" class="only-dark"></span>
+    </button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ═══════════════ SIDEBAR TRÁI ═══════════════ -->
+  <aside class="sidebar" id="sidebar" aria-label="Danh sách bài học">
+    <div class="sidebar__head">
+      <span class="sidebar__title">Nội dung khoá học</span>
+      <button class="btn-ghost btn-ghost--sm" id="btnCollapseAll" title="Thu gọn tất cả các chặng">Thu gọn</button>
+    </div>
+    <nav class="sidebar__nav" id="sidebarNav"></nav>
+    <div class="sidebar__foot">
+      <a class="sidebar__link" href="#/" data-icon-before="map">Lộ trình tổng quan</a>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <!-- ═══════════════ NỘI DUNG ═══════════════ -->
+  <main class="main" id="main" tabindex="-1">
+    <div class="content" id="content"></div>
+  </main>
+
+  <!-- ═══════════════ MỤC LỤC BÀI ═══════════════ -->
+  <aside class="toc" id="toc" aria-label="Mục lục trong bài">
+    <div class="toc__title">Trong bài này</div>
+    <nav class="toc__nav" id="tocNav"></nav>
+  </aside>
+
+</div>
+
+<!-- ═══════════════ CORE ═══════════════ -->
+<script src="js/icons.js"></script>
+<script src="js/store.js"></script>
+<script src="js/registry.js"></script>
+<script src="js/render.js"></script>
+<script src="js/search.js"></script>
+
+<!-- ═══════════════ BÀI HỌC ═══════════════ -->
+<!-- Thêm bài mới: viết file lessons/bai-XX.js rồi thêm 1 dòng script ở đây -->
+<script src="lessons/bai-01.js"></script>
+<script src="lessons/bai-02.js"></script>
+<script src="lessons/bai-03.js"></script>
+
+<!-- ═══════════════ KHỞI ĐỘNG ═══════════════ -->
+<script src="js/app.js"></script>
+
+</body>
+</html>

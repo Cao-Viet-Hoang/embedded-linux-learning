@@ -1,0 +1,204 @@
+/* ============================================================
+   TOKENS — nguồn chân lý duy nhất cho màu, font, khoảng cách.
+   Mọi file CSS khác chỉ được dùng biến khai báo ở đây.
+   ============================================================ */
+
+:root {
+  /* ---------- Font ---------- */
+  /* Ưu tiên font hệ thống: hiển thị tiếng Việt chuẩn, không cần tải mạng */
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system,
+               BlinkMacSystemFont, "Inter", Roboto, "Helvetica Neue",
+               Arial, "Noto Sans", sans-serif;
+  --font-mono: "Cascadia Mono", "Cascadia Code", "JetBrains Mono",
+               "Fira Code", "SF Mono", Consolas, "Liberation Mono",
+               Menlo, monospace;
+
+  /* ---------- Cỡ chữ ----------
+     Thang 1.2 quanh cỡ nền 16px. Nội dung bài đọc dùng --fs-body (17px)
+     vì đọc dài trên màn hình cần lớn hơn UI một bậc.                   */
+  --fs-xs:    0.75rem;    /* 12px — badge, chú thích nhỏ  */
+  --fs-sm:    0.8125rem;  /* 13px — nhãn, meta            */
+  --fs-ui:    0.875rem;   /* 14px — sidebar, nút, code    */
+  --fs-base:  0.9375rem;  /* 15px — bảng, danh sách phụ   */
+  --fs-body:  1.0625rem;  /* 17px — đoạn văn bài học      */
+  --fs-lg:    1.1875rem;  /* 19px — h4 / lead             */
+  --fs-xl:    1.375rem;   /* 22px — h3                    */
+  --fs-2xl:   1.75rem;    /* 28px — h2                    */
+  --fs-3xl:   2.25rem;    /* 36px — h1                    */
+
+  /* ---------- Chiều cao dòng ---------- */
+  --lh-tight:   1.25;
+  --lh-snug:    1.4;
+  --lh-normal:  1.6;
+  --lh-relaxed: 1.78;   /* văn bản dài — quan trọng cho tiếng Việt có dấu */
+
+  /* ---------- Độ đậm ---------- */
+  --fw-normal:   400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* ---------- Khoảng cách (thang 4px) ---------- */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ---------- Bo góc ---------- */
+  --r-sm:   6px;
+  --r-md:   9px;
+  --r-lg:   13px;
+  --r-full: 999px;
+
+  /* ---------- Kích thước khung ---------- */
+  --header-h:    58px;
+  --sidebar-w:   304px;
+  --toc-w:       236px;
+  --content-max: 792px;
+
+  /* ---------- Chuyển động ---------- */
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: 120ms var(--ease);
+  --t-mid:  200ms var(--ease);
+
+  /* ---------- Lớp phủ ---------- */
+  --z-topbar:   100;
+  --z-sidebar:  90;
+  --z-backdrop: 80;
+  --z-popover:  200;
+
+  /* ============================================================
+     MÀU — TERMINAL
+     Khối lệnh luôn tối ở cả hai giao diện. Chủ ý: người học nhận ra
+     ngay "đây là terminal", và màu code không đổi khi chuyển theme.
+     ============================================================ */
+  --term-bg:       #0d1117;
+  --term-bg-head:  #161b22;
+  --term-border:   #30363d;
+  --term-text:     #c9d1d9;
+  --term-dim:      #8b949e;
+  --term-cmd:      #79c0ff;   /* tên lệnh          */
+  --term-str:      #a5d6ff;   /* chuỗi trong nháy  */
+  --term-flag:     #ffa657;   /* tuỳ chọn -x --xx  */
+  --term-var:      #d2a8ff;   /* biến $VAR         */
+  --term-comment:  #6e7681;   /* # ghi chú         */
+  --term-ok:       #7ee787;
+}
+
+/* ============================================================
+   GIAO DIỆN SÁNG
+   ============================================================ */
+:root, [data-theme="light"] {
+  color-scheme: light;
+
+  --bg:          #ffffff;
+  --bg-sunken:   #f6f8fa;
+  --surface:     #ffffff;
+  --surface-2:   #f6f8fa;
+  --surface-3:   #eef1f4;
+
+  --border:        #d5dbe2;
+  --border-subtle: #e6eaef;
+  --border-strong: #b9c2cc;
+
+  --text:        #1f2328;
+  --text-muted:  #59636e;
+  --text-faint:  #838d97;
+  --text-invert: #ffffff;
+
+  --primary:      #0b62d6;
+  --primary-hover:#0a52b3;
+  --primary-soft: #ddeeff;
+  --primary-line: #a9d1ff;
+
+  --accent:       #b0470a;   /* cam đất — nhấn phụ, gợi Tux */
+  --accent-soft:  #ffefe0;
+
+  --ok:        #1a7f37;
+  --ok-soft:   #dcfce4;
+  --ok-line:   #9ae0ae;
+
+  --warn:      #8a6100;
+  --warn-soft: #fff5cd;
+  --warn-line: #e8d178;
+
+  --danger:      #c0202d;
+  --danger-soft: #ffe9e7;
+  --danger-line: #f5b3ae;
+
+  --info:      #0b62d6;
+  --info-soft: #ddeeff;
+  --info-line: #a9d1ff;
+
+  --why:       #7534cf;      /* callout "Tại sao lại thế?" */
+  --why-soft:  #f6edff;
+  --why-line:  #d9bdf7;
+
+  --shadow-sm: 0 1px 2px rgba(27, 31, 36, .07);
+  --shadow-md: 0 4px 14px rgba(27, 31, 36, .10);
+  --shadow-lg: 0 14px 38px rgba(27, 31, 36, .16);
+
+  --selection: #cfe6ff;
+}
+
+/* ============================================================
+   GIAO DIỆN TỐI
+   ============================================================ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:          #0d1117;
+  --bg-sunken:   #010409;
+  --surface:     #161b22;
+  --surface-2:   #1c2129;
+  --surface-3:   #242b34;
+
+  --border:        #2d333b;
+  --border-subtle: #21262d;
+  --border-strong: #444c56;
+
+  --text:        #e6edf3;
+  --text-muted:  #9198a1;
+  --text-faint:  #6e7681;
+  --text-invert: #0d1117;
+
+  --primary:      #59a6ff;
+  --primary-hover:#7cb9ff;
+  --primary-soft: #10243e;
+  --primary-line: #1f4b82;
+
+  --accent:       #f0883e;
+  --accent-soft:  #331c0e;
+
+  --ok:        #57cc78;
+  --ok-soft:   #0f2a17;
+  --ok-line:   #23663a;
+
+  --warn:      #e3b341;
+  --warn-soft: #2e2510;
+  --warn-line: #6b551a;
+
+  --danger:      #ff7b72;
+  --danger-soft: #331416;
+  --danger-line: #7a2c2c;
+
+  --info:      #59a6ff;
+  --info-soft: #10243e;
+  --info-line: #1f4b82;
+
+  --why:       #c297ff;
+  --why-soft:  #211533;
+  --why-line:  #4b3070;
+
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, .5);
+  --shadow-md: 0 4px 14px rgba(1, 4, 9, .6);
+  --shadow-lg: 0 14px 38px rgba(1, 4, 9, .75);
+
+  --selection: #1c3d63;
+}
