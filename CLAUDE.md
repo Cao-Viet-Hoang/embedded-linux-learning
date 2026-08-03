@@ -336,7 +336,10 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 |---|---|
 | Windows | 11 Home Single Language, 10.0.22631 |
 | WSL | 2.7.11.0, kernel `6.18.33.2-microsoft-standard-WSL2` |
-| Distro | Ubuntu, WSL version 2 |
+| Distro | Ubuntu **26.04 "resolute"**, WSL version 2. Login user **`shinarus`**, `$HOME` = `/home/shinarus` |
+| Shells | `bash` **5.3.9(1)-release**; `/bin/sh` → **`dash`** |
+| Coreutils | **uutils** (Rust) — `/bin/ls` and `/usr/bin/[` symlink into `/usr/lib/cargo/bin/coreutils/`, package `coreutils-from-uutils` |
+| Packages | 776 installed, 2524.9 MB; `dpkg --print-architecture` = `amd64` |
 | CPUs / RAM | 6 CPUs via `.wslconfig` (`nr_cpus=6` in cmdline), 8 GB RAM |
 | `/proc/cmdline` | `initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=6 … console=hvc0 debug …` |
 | Kernel boot time | `Freeing unused kernel image (initmem) memory: 4852K` at **0.376880 s** |
@@ -346,10 +349,15 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 | Filesystem penalty | 500 × `touch`: `~` = **0.017 s**, `/mnt/c` = **0.882 s** → **52×** |
 | `/dev/kvm` | exists (`crw-rw---- 1 root kvm 10, 232`) |
 | `qemu-system-aarch64 -accel help` | lists **`tcg` only** — ARM64 on x86 is always emulation |
-| Cross compiler | `aarch64-linux-gnu-gcc` 15.2.0 |
-| Static vs dynamic hello | x86 dynamic **15,952 B**; ARM64 `-static` **705,328 B** |
-| Installed | `qemu-system-arm`, `qemu-user`, `gcc-aarch64-linux-gnu`, `gdb-multiarch`, `device-tree-compiler`, `u-boot-tools` |
-| Not installed | `qemu-system-x86_64` |
+| Cross compiler | `aarch64-linux-gnu-gcc` 15.2.0; `arm-linux-gnueabihf-gcc` also installed |
+| Toolchain versions | GCC **15.2.0** (`Ubuntu 15.2.0-16ubuntu1`), defaults to **C23**; GNU Make **4.4.1**; glibc **2.43** |
+| Static vs dynamic hello | x86 dynamic **15,952 B**; x86 `-static` **816,912 B** (**51.2×**); ARM64 `-static` **705,328 B** |
+| Shared-library facts | `libc.so.6` = **2,186,512 B**; `ldconfig -p` lists **485** libraries; static-vs-dynamic break-even ≈ **3** programs |
+| ELF sample (lesson 18) | dynamic **16,184 B**; `.bss` **16,424 B** = `MemSiz − FileSiz` (0x4298 − 0x270); same program with a 1 MB *initialised* array → **1,064,584 B** (**65.8×**) |
+| `strip` gain | static binary 817,000 → **735,512 B** = **10.0 %**; `-ffunction-sections -Wl,--gc-sections` on a 5-function program: 16,112 → 15,856 B = only **1.6 %** |
+| Parallel make | `-j6` on 6 cores is **2.6×**, not 6× — link step is serial and gcc processes contend for header reads |
+| Installed | `qemu-system-arm`, `gcc-aarch64-linux-gnu`, `gdb-multiarch`, `device-tree-compiler`, `u-boot-tools`, `tree`, `gpiod` + `libgpiod3` |
+| Not installed | `qemu-system-x86_64`, **`qemu-user`** (no `qemu-aarch64` binary — re-verified 2026-08-01, `apt policy qemu-user` → `Installed: (none)`), `shellcheck`, `pahole` |
 | QEMU `virt` | has **no I2C/SPI bus** (`No 'i2c-bus' bus found`). Lesson 58 must use `i2c-stub` / `gpio-sim` / SPI loopback, or switch machine to `raspi3b` / `mcimx7d-sabre` |
 
 ---
@@ -372,8 +380,36 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Module 00 (`Chặng 00 — Nhập môn`, "Introduction") is complete**: lessons 1, 2 and 3
-  are written and rendering.
-- Next lesson to write, when asked: lesson 4, `Shell và cấu trúc một câu lệnh`
-  ("The shell and the anatomy of a command") — it opens module 01, Linux basics.
-- `node tools/check.js` → `14 modules · 70 lessons · 3 written · OK`.
+- **Modules 00, 01 and 02 are complete**: `Chặng 00 — Nhập môn` ("Introduction", lessons 1–3),
+  `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13) and `Chặng 02 — C và công cụ build`
+  ("C and the build toolchain", lessons 14–18) are written and rendering.
+- Next lesson to write, when asked: lesson 19, `Syscall và File I/O` — it opens module 03,
+  `Lập trình hệ thống Linux` ("Linux systems programming").
+- `node tools/check.js` → `14 modules · 70 lessons · 18 written · OK`.
+- Lesson 13 ends with a capstone `build.sh` (cross-compiles `hello.c` for x86 or ARM64 using
+  `set -euo pipefail` + `mktemp -d` + `trap … EXIT`). Verified numbers reused from Bài 3:
+  x86 dynamic **15 952 B**, ARM64 `-static` **705 328 B**, ratio **44.2×**; running the ARM64
+  binary directly gives `Exec format error`, exit **126**.
+- Module 02 runs one continuous thread: `gcc` → four compilation stages → `make` → `.a`/`.so`
+  → ELF internals. It opens (lesson 14 intro) and closes (lesson 18 recap) on the same
+  question — why static `hello` is **816 912 B** and dynamic is **15 952 B**, a **51.2×**
+  gap — so do not restate that pair as a fresh discovery in module 03.
+- Lesson 18 is the reference lesson for `readelf` / `objdump` / `nm` / `size` / `strip`.
+  Later modules should point back to it rather than re-teaching the tools: `vmlinux` is
+  ELF `EXEC` (Chặng 07), `.ko` is ELF `REL` (Chặng 10).
+
+### Cross-reference map (grep this before writing `Chặng NN` in prose)
+
+Module numbers are the easiest thing to get wrong, because the topic name and the module
+number do not resemble each other. Verified against `js/registry.js`:
+
+| Topic named in prose | Correct module |
+|---|---|
+| cross-compiler, target triplet, musl/uClibc-ng | `Chặng 04` |
+| QEMU, booting a kernel image | `Chặng 05` |
+| U-Boot | `Chặng 06` |
+| building the kernel, Kbuild, `vmlinux`, vDSO | `Chặng 07` |
+| Device Tree, `.dtb` | `Chặng 08` |
+| rootfs, BusyBox `CONFIG_STATIC`, size-shrinking an image | `Chặng 09` |
+| kernel modules, drivers, `.ko` | `Chặng 10` |
+| Buildroot, **Yocto**, reproducible builds | `Chặng 11` |

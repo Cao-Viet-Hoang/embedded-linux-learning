@@ -382,9 +382,24 @@ Cài thêm khi tới chặng tương ứng:
 | 1 | Embedded Linux là gì và tại sao nó ở khắp mọi nơi | ✅ Đã có |
 | 2 | Toàn cảnh luồng khởi động | ✅ Đã có |
 | 3 | Môi trường học: WSL2 và QEMU | ✅ Đã có |
-| 4 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 4 | Shell và cấu trúc một câu lệnh | ✅ Đã có |
+| 5 | Hệ thống file Linux (FHS) | ✅ Đã có |
+| 6 | Điều hướng, thao tác và xem file | ✅ Đã có |
+| 7 | Soạn thảo trong terminal: nano và vim | ✅ Đã có |
+| 8 | Người dùng, nhóm, quyền và sudo | ✅ Đã có |
+| 9 | Tiến trình, job và tín hiệu | ✅ Đã có |
+| 10 | Pipe, redirect và triết lý Unix | ✅ Đã có |
+| 11 | Tìm kiếm và xử lý văn bản | ✅ Đã có |
+| 12 | Quản lý gói | ✅ Đã có |
+| 13 | Bash script | ✅ Đã có |
+| 14 | C cho embedded — ôn tập trọng tâm | ✅ Đã có |
+| 15 | Bốn giai đoạn biên dịch | ✅ Đã có |
+| 16 | Make và Makefile | ✅ Đã có |
+| 17 | Thư viện tĩnh và động | ✅ Đã có |
+| 18 | Giải phẫu file ELF | ✅ Đã có |
+| 19 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đã hoàn tất.** Bài kế tiếp sẽ viết: Bài 4 — *Shell và cấu trúc một câu lệnh* (mở đầu Chặng 1).
+**Chặng 0, Chặng 1 và Chặng 2 đã hoàn tất (18 / 70 bài).** Bài kế tiếp sẽ viết: Bài 19 — *Syscall và File I/O* (mở đầu Chặng 3).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

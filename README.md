@@ -12,10 +12,26 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 
 - [`LO-TRINH.md`](LO-TRINH.md) — lộ trình đầy đủ **70 bài / 14 chặng**, mốc năng lực M1–M11,
   thời lượng dự kiến 8–11 tháng.
-- Bài đã viết: **3 / 70** — trọn vẹn **Chặng 0 · Nhập môn**:
+- Bài đã viết: **18 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**
+  và **Chặng 2 · C và công cụ build**:
   1. Embedded Linux là gì và tại sao nó ở khắp mọi nơi
   2. Toàn cảnh luồng khởi động
   3. Môi trường học: WSL2 và QEMU
+  4. Shell và cấu trúc một câu lệnh
+  5. Hệ thống file Linux (FHS)
+  6. Điều hướng, thao tác và xem file
+  7. Soạn thảo trong terminal: nano và vim
+  8. Người dùng, nhóm, quyền và sudo
+  9. Tiến trình, job và tín hiệu
+  10. Pipe, redirect và triết lý Unix
+  11. Tìm kiếm và xử lý văn bản
+  12. Quản lý gói
+  13. Bash script
+  14. C cho embedded — ôn tập trọng tâm
+  15. Bốn giai đoạn biên dịch
+  16. Make và Makefile
+  17. Thư viện tĩnh và động
+  18. Giải phẫu file ELF
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
 
 ## Tính năng
