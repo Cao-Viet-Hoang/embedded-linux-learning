@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FAVICON — bản sao đúng tỉ lệ của ô .brand__mark trên topbar.
+
+  Ba thứ phải khớp, nếu sửa một bên thì sửa cả hai rồi dựng lại favicon.ico:
+    · nền     = linear-gradient(140deg, var(--primary), var(--accent)) trong css/layout.css
+    · bo góc  = var(--r-md) = 9px trên ô 32px
+    · glyph   = icon "logo" trong js/icons.js, toạ độ nhân 32/24
+
+  File .svg độc lập không đọc được css/tokens.css nên màu buộc phải viết thẳng.
+  Đây là cặp token của giao diện sáng — giao diện mặc định:
+    #0b62d6 = --primary   #b0470a = --accent   #ffffff = --text-invert
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"
+     role="img" aria-label="Học Embedded Linux">
+  <title>Học Embedded Linux</title>
+
+  <!-- Trục chuyển màu tính từ góc 140deg của CSS: dài 45.08, đi chéo xuống phải -->
+  <linearGradient id="g" gradientUnits="userSpaceOnUse"
+                  x1="1.51" y1="-1.27" x2="30.49" y2="33.27">
+    <stop offset="0" stop-color="#0b62d6"/>
+    <stop offset="1" stop-color="#b0470a"/>
+  </linearGradient>
+
+  <rect width="32" height="32" rx="9" fill="url(#g)"/>
+
+  <!-- Nét 4.16 để ở 16px còn ~2px: vẫn sắc sau khi thu nhỏ -->
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8.32 9.28 15.36 16 8.32 22.72" stroke-width="4.16"/>
+    <path d="M17.6 23.04H24.64" stroke-width="3.52"/>
+  </g>
+</svg>

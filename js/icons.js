@@ -58,8 +58,13 @@
     hardDrive: '<path d="M2 12h20"/><path d="M5.5 5h13l3.5 7v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6Z"/><path d="M6 16h.01M10 16h.01"/>',
     file:      '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
 
-    /* ---- logo ---- */
-    tux: '<path d="M12 2.6c-2.2 0-3.6 1.7-3.6 4.1 0 1.2-.2 2-.8 2.8-1.3 1.7-2.4 3.3-2.4 5.3 0 .8.4 1.3 1 1.5-.5.9-1 1.9-1 2.6 0 1.6 2.8 2.5 6.8 2.5s6.8-.9 6.8-2.5c0-.7-.5-1.7-1-2.6.6-.2 1-.7 1-1.5 0-2-1.1-3.6-2.4-5.3-.6-.8-.8-1.6-.8-2.8 0-2.4-1.4-4.1-3.6-4.1Z"/><path d="M10.3 7.1h.01M13.7 7.1h.01"/><path d="M12 8.6c-.6 0-1.1.4-1.1.8s.5.7 1.1.7 1.1-.3 1.1-.7-.5-.8-1.1-.8Z"/>'
+    /* ---- logo ----
+       Dấu nhắc ">_": mark duy nhất của sản phẩm, dùng ở topbar và ở favicon.
+       Nét dày hơn các icon khác (3.12 / 2.64 thay vì 2) vì logo phải còn đọc
+       được khi thu xuống 16px trong tab trình duyệt.
+       assets/favicon.svg vẽ lại đúng toạ độ này, nhân 32/24. Sửa ở đây thì
+       phải sửa cả ở đó rồi dựng lại assets/favicon.ico. */
+    logo: '<path d="M6.24 6.96 11.52 12 6.24 17.04" stroke-width="3.12"/><path d="M13.2 17.28h5.28" stroke-width="2.64"/>'
   };
 
   function ICON(name, extra) {

@@ -40,7 +40,9 @@
   flex: 0 0 auto;
   box-shadow: var(--shadow-sm);
 }
-.brand__mark svg { width: 19px; height: 19px; }
+/* Icon phủ kín ô 32px: phần lề đã nằm sẵn trong toạ độ của icon "logo",
+   nhờ vậy tỉ lệ glyph/nền ở đây trùng khít với assets/favicon.svg */
+.brand__mark svg { width: 32px; height: 32px; }
 
 .brand__text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
 .brand__text strong { font-size: var(--fs-ui); font-weight: var(--fw-semibold); white-space: nowrap; }
