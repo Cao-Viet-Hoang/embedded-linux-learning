@@ -52,10 +52,19 @@
            autocomplete="off" spellcheck="false"
            aria-label="Tìm kiếm trong toàn bộ bài học">
     <kbd class="search__kbd">/</kbd>
+    <button class="icon-btn search__close" id="btnSearchClose" type="button" aria-label="Đóng ô tìm kiếm">
+      <span data-icon="close"></span>
+    </button>
     <div class="search__results" id="searchResults" hidden></div>
   </div>
 
   <div class="topbar__right">
+    <!-- Chỉ hiện trên màn hình hẹp: mở ô tìm kiếm phủ hết thanh trên -->
+    <button class="icon-btn topbar__search" id="btnSearch" type="button"
+            aria-label="Mở ô tìm kiếm" aria-expanded="false">
+      <span data-icon="search"></span>
+    </button>
+
     <div class="progress-pill" id="progressPill" title="Tiến độ học tập">
       <svg class="progress-ring" viewBox="0 0 36 36" aria-hidden="true">
         <circle class="progress-ring__bg" cx="18" cy="18" r="15.5"></circle>
@@ -129,6 +138,9 @@
 <script src="lessons/bai-19.js"></script>
 <script src="lessons/bai-20.js"></script>
 <script src="lessons/bai-21.js"></script>
+<script src="lessons/bai-22.js"></script>
+<script src="lessons/bai-23.js"></script>
+<script src="lessons/bai-24.js"></script>
 
 <!-- ═══════════════ KHỞI ĐỘNG ═══════════════ -->
 <script src="js/app.js"></script>

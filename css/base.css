@@ -153,3 +153,17 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 
 [data-theme="light"] .only-dark  { display: none; }
 [data-theme="dark"]  .only-light { display: none; }
+
+/* ---------- Màn hình hẹp ----------
+   Trên desktop, code trong câu văn được giữ nguyên một dòng để đọc lệnh
+   không bị ngắt giữa chừng. Trên điện thoại thì một đường dẫn dài như
+   /usr/lib/cargo/bin/coreutils/ dài hơn cả bề ngang màn hình: giữ nowrap
+   là chữ bị cắt cụt mất. Cho phép xuống dòng, chấp nhận lệnh bị ngắt.  */
+@media (max-width: 700px) {
+  :not(pre) > code {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+  h1, h2, h3, h4 { overflow-wrap: break-word; }
+}

@@ -275,6 +275,7 @@
   font-weight: var(--fw-bold);
   letter-spacing: .015em;
   white-space: nowrap;
+  flex: 0 0 auto;   /* huy hiệu "chạy ở đâu" không bao giờ được co lại */
 }
 .where svg { width: 12px; height: 12px; }
 .where--ps    { background: #0b3a6b; color: #9ccdff; }   /* PowerShell  */
@@ -289,6 +290,7 @@
   font-size: var(--fs-xs);
   color: var(--term-dim);
   margin-left: 2px;
+  flex: 0 1 auto; min-width: 0;   /* chật chỗ thì tên file rút ngắn, không đẩy nút Sao chép */
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -388,6 +390,16 @@
   font-size: var(--fs-ui);
   color: var(--accent);
   word-break: break-all;
+}
+/* Cả cột đã là mono + màu accent rồi, nên <code> lồng bên trong chỉ cần
+   nhả lại nền và viền — nếu không sẽ thành chip nằm trong chip, và trên
+   hàng chẵn thì nền chip trùng luôn nền hàng. */
+.cmdx__tok code {
+  font-size: 1em;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
 }
 .cmdx__desc { color: var(--text); }
 .cmdx__desc em {
@@ -525,6 +537,16 @@
   line-height: var(--lh-normal);
 }
 .term__k { font-weight: var(--fw-bold); color: var(--accent); }
+/* Giữ chữ mono để phân biệt định danh với thuật ngữ thường, nhưng bỏ nền và
+   viền: nền của .term vốn đã là --surface-2, đúng bằng nền chip, nên để
+   nguyên thì chỉ còn thấy một cái khung trống. */
+.term__k code {
+  font-size: .92em;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+}
 .term__k small { display: block; font-weight: var(--fw-normal); color: var(--text-faint); font-size: var(--fs-xs); margin-top: 2px; }
 
 /* ══════════════ QUIZ ══════════════ */
@@ -715,12 +737,14 @@
   font-size: var(--fs-ui); font-weight: var(--fw-bold);
 }
 .map__b { flex: 1 1 auto; min-width: 0; }
-.map__t { font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--text); }
-.map__d { font-size: var(--fs-sm); color: var(--text-muted); margin-top: 2px; }
-.map__c { flex: 0 0 auto; font-size: var(--fs-sm); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+/* Ba phần tử này là <span>, phải ép về block: nếu không, tên chặng và mô tả
+   dính liền nhau trên một dòng còn thanh tiến độ mất hẳn (inline bỏ height). */
+.map__t { display: block; font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--text); }
+.map__d { display: block; font-size: var(--fs-sm); color: var(--text-muted); margin-top: 2px; }
+.map__c { flex: 0 0 auto; font-size: var(--fs-sm); color: var(--text-faint); font-variant-numeric: tabular-nums; text-align: right; }
 
-.bar { height: 5px; border-radius: var(--r-full); background: var(--surface-3); overflow: hidden; margin-top: var(--sp-2); }
-.bar__f { height: 100%; background: var(--ok); border-radius: var(--r-full); transition: width 500ms var(--ease); }
+.bar { display: block; height: 5px; border-radius: var(--r-full); background: var(--surface-3); overflow: hidden; margin-top: var(--sp-2); }
+.bar__f { display: block; height: 100%; background: var(--ok); border-radius: var(--r-full); transition: width 500ms var(--ease); }
 
 /* ══════════════ TRẠNG THÁI CHƯA CÓ BÀI ══════════════ */
 .empty {
@@ -732,6 +756,38 @@
 .empty p { color: var(--text-muted); font-size: var(--fs-body); max-width: 46ch; margin: 0 auto var(--sp-6); line-height: var(--lh-relaxed); }
 
 /* ══════════════ MÀN HÌNH NHỎ ══════════════ */
+
+/* ---------- Gợi ý còn nội dung bị khuất khi cuộn ngang ----------
+   Bốn lớp nền: hai lớp "local" trôi theo nội dung, hai lớp "scroll" đứng yên
+   ở mép. Khi chưa cuộn, lớp local nằm đúng trên lớp scroll và che mất bóng;
+   vừa cuộn một chút là lớp local trôi đi, bóng lộ ra. Người học biết ngay
+   bên phải còn chữ. Không cần một dòng JS nào.                          */
+@media (max-width: 900px) {
+  .fig__canvas {
+    background:
+      linear-gradient(to right, var(--surface), rgba(0,0,0,0))  left  / 32px 100% no-repeat local,
+      linear-gradient(to left,  var(--surface), rgba(0,0,0,0))  right / 32px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%,    var(--shadow-edge), rgba(0,0,0,0)) left  / 12px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, var(--shadow-edge), rgba(0,0,0,0)) right / 12px 100% no-repeat scroll;
+  }
+  /* Khối lệnh luôn nền tối ở cả hai giao diện nên vệt mép cũng cố định — và
+     phải là vệt SÁNG: bóng đen trên nền #0d1117 thì không ai nhìn thấy. */
+  .code__body {
+    background:
+      linear-gradient(to right, var(--term-bg), rgba(0,0,0,0)) left  / 28px 100% no-repeat local,
+      linear-gradient(to left,  var(--term-bg), rgba(0,0,0,0)) right / 28px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%,    rgba(255,255,255,.20), rgba(0,0,0,0)) left  / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(255,255,255,.20), rgba(0,0,0,0)) right / 14px 100% no-repeat scroll;
+  }
+  .tbl-wrap, .code__body, .cmdx__cmd, .fig__canvas { -webkit-overflow-scrolling: touch; }
+}
+
+/* Trên thiết bị chạm không có con trỏ để rê ra chỗ khác, nên hiệu ứng hover
+   sẽ dính lại sau khi bấm. Tắt phần hover có chuyển động. */
+@media (hover: none) {
+  .map__row:hover { transform: none; }
+}
+
 @media (max-width: 700px) {
   .cmdx__row { grid-template-columns: 1fr; gap: var(--sp-1); }
   .term { grid-template-columns: 1fr; gap: var(--sp-1); }
@@ -740,4 +796,33 @@
   .code__note { flex-direction: column; gap: 2px; }
   .code__note b { min-width: 0; }
   .step { padding-left: var(--sp-10); }
+
+  /* Sơ đồ giữ nguyên cỡ thật 720px và cho vuốt ngang.
+     Nếu ép vừa màn hình 360px thì chữ 13px trong sơ đồ chỉ còn ~6px —
+     không đọc được, tức là mất luôn cái sơ đồ. Vuốt ngang vẫn hơn. */
+  .fig__canvas { padding: var(--sp-5) var(--sp-4); }
+  .fig__canvas svg { max-width: none; width: 720px; margin: 0; }
+
+  /* Đệm của các hộp lớn: 24px viền mỗi bên ăn mất 15% bề ngang màn hình */
+  .goals    { padding: var(--sp-4); }
+  .cal      { padding: var(--sp-4); gap: var(--sp-3); }
+  .quiz__head { padding: var(--sp-3) var(--sp-4); }
+  .q        { padding: var(--sp-4); }
+  .recap    { padding: var(--sp-5) var(--sp-4); }
+  .done-bar { padding: var(--sp-4); }
+  .hero     { padding: var(--sp-6) 0 var(--sp-8); }
+  .map__row { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); }
+  .tbl th, .tbl td { padding: var(--sp-2) var(--sp-3); }
+
+  /* Vùng chạm trong ngăn kéo: mỗi dòng bài cao ~44px */
+  .mod__head, .les { padding-top: var(--sp-3); padding-bottom: var(--sp-3); }
+  .mod__list { padding-left: var(--sp-4); }
+}
+
+@media (max-width: 480px) {
+  .step::before { width: 28px; height: 28px; font-size: var(--fs-sm); }
+  .step:not(:last-child)::after { left: 13px; top: 30px; }
+  .lead-meta { gap: var(--sp-2) var(--sp-3); }
+  .q__opt { padding: var(--sp-3); }
+  .map__n { width: 34px; height: 34px; }
 }

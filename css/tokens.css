@@ -143,6 +143,7 @@
   --shadow-sm: 0 1px 2px rgba(27, 31, 36, .07);
   --shadow-md: 0 4px 14px rgba(27, 31, 36, .10);
   --shadow-lg: 0 14px 38px rgba(27, 31, 36, .16);
+  --shadow-edge: rgba(27, 31, 36, .16);   /* bóng mép khi còn nội dung cuộn ngang */
 
   --selection: #cfe6ff;
 }
@@ -199,6 +200,27 @@
   --shadow-sm: 0 1px 2px rgba(1, 4, 9, .5);
   --shadow-md: 0 4px 14px rgba(1, 4, 9, .6);
   --shadow-lg: 0 14px 38px rgba(1, 4, 9, .75);
+  --shadow-edge: rgba(1, 4, 9, .65);
 
   --selection: #1c3d63;
+}
+
+/* ============================================================
+   MÀN HÌNH HẸP — điều chỉnh thang cỡ chữ
+
+   Thang tiêu đề ở trên được chọn cho cột nội dung rộng 792px. Trên điện
+   thoại, cột chỉ còn khoảng 330px: một tiêu đề h1 36px sẽ ngốn ba dòng và
+   đẩy nội dung thật xuống dưới màn hình đầu tiên.
+
+   Chỉ thu nhỏ TIÊU ĐỀ. --fs-body giữ nguyên 17px: lý do chọn 17px (đọc dài
+   bằng tiếng Việt có dấu) không hề thay đổi khi màn hình nhỏ đi — thậm chí
+   còn đúng hơn.
+   ============================================================ */
+@media (max-width: 600px) {
+  :root {
+    --fs-3xl: 1.875rem;   /* 36px → 30px — h1 tên bài  */
+    --fs-2xl: 1.5rem;     /* 28px → 24px — h2          */
+    --fs-xl:  1.25rem;    /* 22px → 20px — h3          */
+    --fs-lg:  1.125rem;   /* 19px → 18px — h4 / lead   */
+  }
 }

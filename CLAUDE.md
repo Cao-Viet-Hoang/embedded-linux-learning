@@ -149,9 +149,17 @@ Therefore:
   style to `components.css`** so every future lesson can use it too. Never one-off it.
 - Colours, sizes and spacing live in `css/tokens.css`. Never hard-code a hex value.
 
-Rich text *inside* text fields (`x`, `items`, table cells, `notes`, `cmdx` descriptions)
-may use `<b>`, `<i>`, `<code>`, `<kbd>`, `<ul>`, `<p>`. The `code` field of a `code` block
-and the token column of `cmdx` are HTML-escaped automatically — write commands verbatim.
+Rich text *inside* text fields (`x`, `items`, table cells, `notes`, and **both** columns of
+`cmdx`) may use `<b>`, `<i>`, `<code>`, `<kbd>`, `<ul>`, `<p>`. The `code` field of a `code`
+block is HTML-escaped automatically — write commands verbatim there.
+
+The `cmdx` token column is rich text too, so a literal `<` or `&` in a token must be written
+`&lt;` / `&amp;` (a literal `>` is fine). `tools/check.js` fails the build on an unescaped
+one. It used to be escaped automatically, but every lesson from 8 onward was written against
+the opposite assumption — 411 tokens wrapped in `<code>` — so the renderer was changed to
+match the lessons rather than the other way round. `.cmdx__tok code` deliberately strips its
+own background and border: the whole column is already mono + accent, so a nested `<code>`
+must not draw a second chip.
 
 ### Design system — the other half of the consistency rule
 

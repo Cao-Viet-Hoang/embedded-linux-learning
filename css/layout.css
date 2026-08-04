@@ -18,7 +18,12 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.topbar__menu { display: none; }
+/* Hai nút chỉ tồn tại trên màn hình hẹp — xem §ĐÁP ỨNG MÀN HÌNH cuối file.
+   Bắt buộc hai lớp: .icon-btn { display: grid } khai báo sau trong file này,
+   cùng độ ưu tiên thì luật đứng sau thắng, nên .topbar__menu một mình sẽ
+   không ẩn được gì cả. */
+.icon-btn.topbar__menu,
+.icon-btn.topbar__search { display: none; }
 
 .brand {
   display: flex;
@@ -92,10 +97,14 @@
 }
 .search__input:focus ~ .search__kbd { opacity: 0; }
 
+/* Hai lớp: phải thắng được .icon-btn { display: grid } khai báo bên dưới */
+.icon-btn.search__close { display: none; }
+
 .search__results {
   position: absolute;
   top: calc(100% + 8px); left: 0; right: 0;
   max-height: 60vh; overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -149,6 +158,7 @@
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
   padding-top: var(--header-h);
   min-height: 100vh;
+  min-height: 100dvh;   /* trình duyệt di động: trừ đi thanh công cụ co giãn */
 }
 
 /* ══════════════ SIDEBAR TRÁI ══════════════ */
@@ -156,6 +166,7 @@
   position: sticky;
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
+  height: calc(100dvh - var(--header-h));
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border-subtle);
@@ -178,6 +189,7 @@
 .sidebar__nav {
   flex: 1 1 auto;
   overflow-y: auto;
+  overscroll-behavior: contain;   /* cuộn hết danh sách không kéo theo trang nền */
   padding: 0 var(--sp-2) var(--sp-4);
 }
 
@@ -215,6 +227,7 @@
   position: sticky;
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
+  height: calc(100dvh - var(--header-h));
   overflow-y: auto;
   padding: var(--sp-10) var(--sp-4) var(--sp-8) 0;
 }
@@ -246,7 +259,15 @@
   font-weight: var(--fw-medium);
 }
 
-/* ══════════════ ĐÁP ỨNG MÀN HÌNH ══════════════ */
+/* ══════════════ ĐÁP ỨNG MÀN HÌNH ══════════════
+
+   Bốn mốc, mỗi mốc bỏ đi đúng một thứ:
+     1180px  mục lục phải  → biến mất (nội dung cần bề ngang hơn)
+      900px  sidebar       → thành ngăn kéo trượt ra
+      700px  ô tìm kiếm    → thu về một nút, bấm mới mở
+      480px  nhãn phụ      → rút gọn, vùng chạm phóng to
+   ══════════════════════════════════════════════ */
+
 @media (max-width: 1180px) {
   .shell { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); }
   .toc { display: none; }
@@ -254,7 +275,7 @@
 
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
-  .topbar__menu { display: grid; }
+  .icon-btn.topbar__menu { display: grid; }
   .brand__text { display: none; }
 
   .sidebar {
@@ -267,12 +288,58 @@
   }
   .sidebar.is-open { transform: translateX(0); }
 
+  /* Ngăn kéo mở ra thì khoá cuộn trang nền, nếu không người học vuốt
+     danh sách bài lại thấy nội dung phía sau chạy theo. */
+  body.is-locked { overflow: hidden; }
+
   .content { padding: var(--sp-6) var(--sp-4) var(--sp-12); }
   .search { max-width: none; }
+
+  /* Vùng chạm: 34px là đủ cho con trỏ chuột, không đủ cho đầu ngón tay */
+  .icon-btn { width: 40px; height: 40px; }
+  .sidebar__link { padding: var(--sp-3); }
 }
 
-@media (max-width: 560px) {
+/* ---------- Điện thoại: ô tìm kiếm bung ra khi cần ---------- */
+@media (max-width: 700px) {
+  .topbar { padding: 0 var(--sp-3); gap: var(--sp-2); }
+  .icon-btn.topbar__search { display: grid; }
+
+  /* Ô tìm kiếm rút về một nút nên giữa thanh trên trống ra — trả lại tên sản
+     phẩm (đã bị giấu từ mốc 900px), bỏ dòng phụ. Máy quá hẹp thì cắt bằng "…"
+     chứ không đẩy vòng tiến độ ra ngoài màn hình. */
+  .brand { flex: 0 1 auto; }
+  .brand__text { display: flex; overflow: hidden; }
+  .brand__text em { display: none; }
+  .brand__text strong { overflow: hidden; text-overflow: ellipsis; }
+
+  /* Bình thường ẩn hẳn. Bấm nút kính lúp → phủ kín thanh trên, nhờ vậy ô
+     nhập vẫn rộng bằng cả màn hình thay vì bị ép còn hơn trăm pixel. */
+  .search {
+    position: absolute;
+    inset: 0;            /* khối chứa là padding-box của .topbar */
+    /* Vòng tiến độ có transform nên nó cũng nằm ở lớp vẽ của phần tử được
+       định vị; không có z-index thì nó vẽ đè lên ô tìm kiếm (đứng sau
+       trong DOM). Một bậc là đủ. */
+    z-index: 1;
+    margin: 0;
+    display: none;
+    align-items: center;
+    gap: var(--sp-2);
+    background: var(--bg);
+  }
+  .topbar.is-searching .search { display: flex; }
+
+  .search__input { flex: 1 1 auto; width: auto; height: 40px; }
+  .search__kbd { display: none; }          /* không có phím "/" trên điện thoại */
+  .icon-btn.search__close { display: grid; flex: 0 0 auto; }
+  /* .search cao bằng cả thanh trên, nên 100% chính là mép dưới thanh trên */
+  .search__results { top: calc(100% + var(--sp-1)); max-height: 70dvh; }
+}
+
+@media (max-width: 480px) {
+  .topbar { gap: var(--sp-1); }
   .progress-pill { padding-right: var(--sp-1); }
   .progress-pill span { display: none; }
-  .search__kbd { display: none; }
+  .content { padding: var(--sp-5) var(--sp-3) var(--sp-10); }
 }

@@ -211,9 +211,12 @@
   };
 
   B.cmdx = function (b) {
+    /* Cột token nhận rich text như mọi trường văn bản khác (<code>, <i>, <b>…).
+       Ký tự  <  và  &  trong một token thật phải viết &lt; và &amp; — xem
+       CLAUDE.md §4. tools/check.js bắt các token quên escape. */
     var rows = (b.rows || []).map(function (r) {
       return '<div class="cmdx__row">' +
-        '<div class="cmdx__tok">' + esc(r[0]) + '</div>' +
+        '<div class="cmdx__tok">' + r[0] + '</div>' +
         '<div class="cmdx__desc">' + r[1] + (r[2] ? '<em>' + r[2] + '</em>' : '') + '</div>' +
       '</div>';
     }).join('');
@@ -273,7 +276,7 @@
   B.terms = function (b) {
     var items = (b.items || []).map(function (t) {
       return '<div class="term">' +
-        '<div class="term__k">' + esc(t[0]) + (t[1] ? '<small>' + t[1] + '</small>' : '') + '</div>' +
+        '<div class="term__k">' + t[0] + (t[1] ? '<small>' + t[1] + '</small>' : '') + '</div>' +
         '<div class="term__v">' + t[2] + '</div>' +
       '</div>';
     }).join('');

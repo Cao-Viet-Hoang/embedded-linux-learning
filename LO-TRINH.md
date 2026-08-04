@@ -400,9 +400,12 @@ Cài thêm khi tới chặng tương ứng:
 | 19 | Syscall và File I/O | ✅ Đã có |
 | 20 | Tiến trình: fork, exec, wait | ✅ Đã có |
 | 21 | Tín hiệu và tắt máy êm | ✅ Đã có |
-| 22 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 22 | Luồng và đồng bộ với pthread | ✅ Đã có |
+| 23 | Giao tiếp liên tiến trình (IPC) | ✅ Đã có |
+| 24 | Socket và I/O đa kênh | ✅ Đã có |
+| 25 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1 và Chặng 2 đã hoàn tất; Chặng 3 đang viết dở (21 / 70 bài).** Bài kế tiếp sẽ viết: Bài 22 — *Luồng và đồng bộ với pthread*.
+**Chặng 0, Chặng 1, Chặng 2 và Chặng 3 đã hoàn tất (24 / 70 bài).** Bài kế tiếp sẽ viết: Bài 25 — *Vì sao phải cross-compile*, mở Chặng 4.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

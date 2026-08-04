@@ -701,7 +701,7 @@ Lesson.register({
             title: 'Mổ xẻ câu lệnh',
             rows: [
               ['sleep 30', 'Không làm gì trong 30 giây. Một "chương trình bận" tiện lợi để thí nghiệm.', ''],
-              ['&', 'Đẩy lệnh xuống chạy nền, trả dấu nhắc lại cho bạn ngay lập tức.',
+              ['&amp;', 'Đẩy lệnh xuống chạy nền, trả dấu nhắc lại cho bạn ngay lập tức.',
                'Bài 9 sẽ mổ xẻ đầy đủ cơ chế job.'],
               ['%1', 'Cách gọi tên job nền số 1.', 'Có thể thay bằng PID thật.'],
               ['wait %1', 'Chờ job kết thúc rồi <b>lấy mã thoát của nó</b>.',

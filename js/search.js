@@ -45,7 +45,7 @@
           break;
         case 'cmdx':
           out.push(plain(b.cmd));
-          (b.rows || []).forEach(function (r) { out.push(r[0] + ' ' + plain(r[1])); });
+          (b.rows || []).forEach(function (r) { out.push(plain(r[0]) + ' ' + plain(r[1])); });
           break;
         case 'cal':
           out.push(plain(b.title) + ' ' + plain(b.x)); break;
@@ -60,7 +60,7 @@
           });
           break;
         case 'terms':
-          (b.items || []).forEach(function (t) { out.push(t[0] + ' ' + plain(t[2])); }); break;
+          (b.items || []).forEach(function (t) { out.push(plain(t[0]) + ' ' + plain(t[2])); }); break;
         case 'fig':
           if (b.cap) { out.push(plain(b.cap)); } break;
       }

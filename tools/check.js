@@ -21,6 +21,16 @@ var BLOCK = ['h2', 'h3', 'h4', 'p', 'list', 'code', 'cmdx', 'cal',
 var errs = [];
 function err(m) { errs.push(m); }
 
+/* Cột token của cmdx và cột khoá của terms là rich text (xem CLAUDE.md §4),
+   nên "<" hoặc "&" của một giá trị thật phải viết &lt; / &amp; — nếu không
+   trình duyệt nuốt mất. Riêng ">" trong text HTML là hợp lệ, bỏ qua. */
+var INLINE = /<\/?(code|i|b|em|strong|kbd|small|sub|sup)>/g;
+var ENTITY = /&(lt|gt|amp|quot|nbsp|#\d+);/g;
+function richText(s, at) {
+  var rest = String(s == null ? '' : s).replace(INLINE, '').replace(ENTITY, '');
+  if (/[<&]/.test(rest)) { err(at + ': unescaped < or & — "' + s + '"'); }
+}
+
 /* ---------- sandbox ---------- */
 var ctx = { console: console };
 ctx.window = ctx;
@@ -123,8 +133,14 @@ written.forEach(function (meta) {
       if (b.t === 'table' && b.rows.some(function (r) { return r.length !== b.head.length; })) {
         err(at + ': table row width differs from head');
       }
-      if (b.t === 'cmdx' && (!b.rows || !b.rows.length)) { err(at + ': cmdx without rows'); }
-      if (b.t === 'terms' && (!b.items || !b.items.length)) { err(at + ': terms without items'); }
+      if (b.t === 'cmdx') {
+        if (!b.rows || !b.rows.length) { err(at + ': cmdx without rows'); }
+        (b.rows || []).forEach(function (r, j) { richText(r[0], at + ' row#' + j + ' token'); });
+      }
+      if (b.t === 'terms') {
+        if (!b.items || !b.items.length) { err(at + ': terms without items'); }
+        (b.items || []).forEach(function (t, j) { richText(t[0], at + ' item#' + j + ' key'); });
+      }
     });
   }
   walk(d.blocks, 'block');

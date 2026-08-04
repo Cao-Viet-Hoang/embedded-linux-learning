@@ -8,6 +8,7 @@
   var $  = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+  var elTopbar    = $('.topbar');
   var elContent   = $('#content');
   var elSidebar   = $('#sidebar');
   var elSideNav   = $('#sidebarNav');
@@ -22,6 +23,12 @@
 
   var RING_C = 97.4;          // chu vi vòng tiến độ, khớp với CSS
   var spy = null;             // IntersectionObserver của mục lục
+
+  /* Hai mốc màn hình dưới đây phải khớp với css/layout.css:
+     900px = sidebar thành ngăn kéo, 700px = ô tìm kiếm thu về một nút. */
+  var BP_DRAWER = 900;
+  var BP_SEARCH = 700;
+  function isDrawer() { return window.innerWidth <= BP_DRAWER; }
 
   /* ══════════════════════════════════════════════════
      TIẾN ĐỘ
@@ -82,7 +89,7 @@
         e.preventDefault();
         return;
       }
-      if (link && window.innerWidth <= 900) { closeSidebar(); }
+      if (link && isDrawer()) { closeSidebar(); }
     });
   }
 
@@ -106,8 +113,40 @@
     }
   }
 
-  function openSidebar()  { elSidebar.classList.add('is-open');  elBackdrop.hidden = false; $('#btnSidebar').setAttribute('aria-expanded', 'true'); }
-  function closeSidebar() { elSidebar.classList.remove('is-open'); elBackdrop.hidden = true;  $('#btnSidebar').setAttribute('aria-expanded', 'false'); }
+  /* Khi ngăn kéo mở, khoá cuộn trang nền (class .is-locked ở layout.css) —
+     nếu không, vuốt trong danh sách bài sẽ kéo luôn nội dung phía sau. */
+  function openSidebar() {
+    elSidebar.classList.add('is-open');
+    elBackdrop.hidden = false;
+    document.body.classList.add('is-locked');
+    $('#btnSidebar').setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar() {
+    elSidebar.classList.remove('is-open');
+    elBackdrop.hidden = true;
+    document.body.classList.remove('is-locked');
+    $('#btnSidebar').setAttribute('aria-expanded', 'false');
+  }
+
+  /* ══════════════════════════════════════════════════
+     Ô TÌM KIẾM TRÊN MÀN HÌNH HẸP
+     Dưới 700px ô nhập bị ẩn, chỉ còn nút kính lúp. Bấm nút thì ô bung ra
+     phủ kín thanh trên — rộng bằng cả màn hình thay vì bị ép còn hơn
+     trăm pixel giữa logo và vòng tiến độ.
+     ══════════════════════════════════════════════════ */
+  function openSearch() {
+    elTopbar.classList.add('is-searching');
+    $('#btnSearch').setAttribute('aria-expanded', 'true');
+    elSearch.focus();
+    elSearch.select();
+  }
+  function closeSearch() {
+    elTopbar.classList.remove('is-searching');
+    $('#btnSearch').setAttribute('aria-expanded', 'false');
+    elResults.hidden = true;
+    elSearch.value = '';
+    elSearch.blur();
+  }
 
   /* ══════════════════════════════════════════════════
      MỤC LỤC TRONG BÀI
@@ -433,27 +472,32 @@
       } else if (e.key === 'Enter') {
         if (idx >= 0) { e.preventDefault(); items[idx].click(); }
       } else if (e.key === 'Escape') {
-        this.value = '';
-        elResults.hidden = true;
-        this.blur();
+        closeSearch();
       }
     });
 
-    elResults.addEventListener('click', function () {
-      elResults.hidden = true;
-      elSearch.value = '';
+    elResults.addEventListener('click', closeSearch);
+
+    $('#btnSearch').addEventListener('click', function () {
+      elTopbar.classList.contains('is-searching') ? closeSearch() : openSearch();
     });
+    $('#btnSearchClose').addEventListener('click', closeSearch);
 
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.search')) { elResults.hidden = true; }
+      if (e.target.closest('.search') || e.target.closest('#btnSearch')) { return; }
+      // Bấm ra ngoài: trên desktop chỉ cần giấu danh sách kết quả,
+      // trên điện thoại thì thu luôn ô nhập lại thành nút.
+      if (elTopbar.classList.contains('is-searching')) { closeSearch(); }
+      else { elResults.hidden = true; }
     });
 
-    // Phím "/" để nhảy vào ô tìm kiếm
+    // Phím "/" để nhảy vào ô tìm kiếm — dưới 700px phải bung ô ra trước,
+    // vì lúc đó ô nhập đang display:none nên không nhận được focus.
     document.addEventListener('keydown', function (e) {
       if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) {
         e.preventDefault();
-        elSearch.focus();
-        elSearch.select();
+        if (window.innerWidth <= BP_SEARCH) { openSearch(); }
+        else { elSearch.focus(); elSearch.select(); }
       }
     });
   }
@@ -508,6 +552,24 @@
         Store.setModuleOpen(m.dataset.mod, !anyOpen);
       });
       this.textContent = anyOpen ? 'Mở rộng' : 'Thu gọn';
+    });
+
+    // Esc: đóng ngăn kéo bài học (ô tìm kiếm đã tự lo phím Esc của nó)
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && elSidebar.classList.contains('is-open')) {
+        closeSidebar();
+        $('#btnSidebar').focus();
+      }
+    });
+
+    // Xoay ngang máy / phóng to cửa sổ: trả giao diện về trạng thái desktop,
+    // nếu không thì trang nền vẫn bị khoá cuộn hoặc ô tìm kiếm vẫn phủ ngang.
+    window.addEventListener('resize', function () {
+      if (!isDrawer() && elSidebar.classList.contains('is-open')) { closeSidebar(); }
+      if (window.innerWidth > BP_SEARCH && elTopbar.classList.contains('is-searching')) {
+        elTopbar.classList.remove('is-searching');
+        $('#btnSearch').setAttribute('aria-expanded', 'false');
+      }
     });
 
     buildSidebar();
