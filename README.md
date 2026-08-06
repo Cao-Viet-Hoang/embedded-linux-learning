@@ -12,8 +12,9 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 
 - [`LO-TRINH.md`](LO-TRINH.md) — lộ trình đầy đủ **70 bài / 14 chặng**, mốc năng lực M1–M11,
   thời lượng dự kiến 8–11 tháng.
-- Bài đã viết: **24 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
-  **Chặng 2 · C và công cụ build** và **Chặng 3 · Lập trình hệ thống Linux**:
+- Bài đã viết: **26 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
+  **Chặng 2 · C và công cụ build**, **Chặng 3 · Lập trình hệ thống Linux**, và hai bài đầu
+  của **Chặng 4 · Biên dịch chéo**:
   1. Embedded Linux là gì và tại sao nó ở khắp mọi nơi
   2. Toàn cảnh luồng khởi động
   3. Môi trường học: WSL2 và QEMU
@@ -38,6 +39,8 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   22. Luồng và đồng bộ với pthread
   23. Giao tiếp liên tiến trình (IPC)
   24. Socket và I/O đa kênh
+  25. Vì sao phải cross-compile
+  26. Giải phẫu một toolchain
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
 
 ## Tính năng

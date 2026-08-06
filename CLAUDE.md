@@ -78,6 +78,14 @@ Follow-up decisions the user made when asked:
     into one large file, and never introduce a bundler to do it.
 11. Do **not** run `wsl --manage Ubuntu --set-sparse true --allow-unsafe` — risk of ext4
     corruption in the user's build tree.
+12. **All code is English — always, no exceptions.** Variable names, function names,
+    filenames, comments, and printed string literals (`printf`/`echo`/log messages) inside
+    every `code`/`cmdx` block must be English, in every lesson, including all future ones.
+    This is independent of the surrounding lesson prose, which stays Vietnamese as always.
+    A Vietnamese identifier like `chuong_trinh` or a Vietnamese `printf("Xin chao")` is a
+    defect of the same severity as an unverified command. See §7 "Writing rules" for the
+    exact scope (what counts as code vs. what stays Vietnamese) and §9 for what to do when
+    renaming something an earlier lesson also references.
 
 ---
 
@@ -297,6 +305,25 @@ Every lesson follows this arc. Keep the order.
   ("we") for an action only the learner performs.
 - No filler, no hype, no emoji in lesson content.
 - Prefer a table over three paragraphs when comparing things.
+- **Code is English, prose is Vietnamese — never mix the two inside an identifier.** Inside
+  a `code`/`cmdx` block's `code`/`cmd`/`cmd`-column fields: every variable, function,
+  filename, comment, and printed string literal must be English (`counter`, `read_sensor.c`,
+  `printf("done\n")`), never a Vietnamese word written with or without diacritics
+  (`bo_dem`, `doc_cam_bien.c`, `printf("xong\n")`). This applies retroactively too — if you
+  touch a lesson that predates this rule, fix any Vietnamese identifiers you encounter in
+  the blocks you're editing rather than leaving them.
+  - **Exception — meta-syntax placeholders stay Vietnamese.** A generic stand-in used only
+    in prose/table/`cmdx`-explanation text to mean "a command" or "a filename" in the
+    abstract (`<lệnh>`, `$đường_dẫn`, `TÊN_FILE` used as a syntax template, e.g.
+    `chmod [tuỳ chọn] CHẾ_ĐỘ FILE...`) is documentation, not an identifier a learner will
+    actually type into a real, executed program — leave it Vietnamese like the rest of the
+    prose. The line: if it's inside a string that gets written to a file and compiled/run,
+    it's code (English); if it's inside a sentence explaining syntax in the abstract, it's
+    prose (Vietnamese).
+  - **When you rename something across lessons**, grep the *other* lesson files for the old
+    name too — lessons cross-reference each other's example files/output by name (e.g.
+    "như `cong.o` ở Bài 15"), and a rename in one lesson without updating the others'
+    mentions is a stale cross-reference, not a finished rename.
 
 ---
 
