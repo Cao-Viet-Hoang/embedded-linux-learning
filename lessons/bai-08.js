@@ -12,7 +12,7 @@ Lesson.register({
 
   intro:
     'Bạn đã gặp <code>Permission denied</code> ít nhất bốn lần trong bảy bài vừa rồi: khi chạy ' +
-    '<code>./chao.sh</code> chưa có quyền thực thi, khi ghi vào <code>/sys</code>, khi đọc ' +
+    '<code>./hello.sh</code> chưa có quyền thực thi, khi ghi vào <code>/sys</code>, khi đọc ' +
     '<code>/proc</code> của tiến trình người khác. Mỗi lần bạn được bảo "Bài 8 sẽ giải thích". ' +
     'Đây là Bài 8. Sau bài này, chín ký tự <code>rwxr-xr-x</code> sẽ không còn là bùa chú mà là ' +
     'một câu tiếng Việt bạn đọc trôi chảy — và bạn sẽ hiểu vì sao con số <b>755</b> lại nói cùng ' +
@@ -241,7 +241,7 @@ Lesson.register({
     { t: 'cal', kind: 'tip', title: 'Vì sao thư mục hầu như luôn là 755 chứ không phải 644', x:
       '<p>Vì thiếu bit <code>x</code> thì thư mục coi như vô dụng — không vào được, không mở được ' +
       'file nào bên trong.</p>' +
-      '<p>Đây cũng là lý do <code>chmod -R 644 thu-muc</code> là một trong những lệnh phá hoại phổ ' +
+      '<p>Đây cũng là lý do <code>chmod -R 644 folder</code> là một trong những lệnh phá hoại phổ ' +
       'biến nhất: nó gỡ bit <code>x</code> khỏi <b>mọi thư mục con</b> và bạn mất luôn lối vào. ' +
       'Muốn đặt hàng loạt thì dùng <code>chmod -R u=rwX,go=rX</code> — chữ <code>X</code> viết hoa ' +
       'nghĩa là "chỉ đặt <code>x</code> cho thư mục và cho file vốn đã thực thi được".</p>' },
@@ -544,24 +544,24 @@ Lesson.register({
             'Tạo ba thứ, không đặt quyền gì cả, rồi xem hệ thống tự chọn giúp bạn cái gì. Con số ' +
             'bạn sắp thấy là kết quả trực tiếp của <code>umask</code> ở bước 5.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            "echo 'echo xin chao' > chao.sh\n" +
-            'echo "day la ghi chu" > ghichu.txt\n' +
-            'mkdir kho\n' +
+            "echo 'echo hello' > greet.sh\n" +
+            'echo "this is a note" > notes.txt\n' +
+            'mkdir store\n' +
             'ls -l' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'total 12\n' +
-            '-rw-r--r-- 1 shinarus shinarus   14 Aug  1 16:27 chao.sh\n' +
-            '-rw-r--r-- 1 shinarus shinarus   15 Aug  1 16:27 ghichu.txt\n' +
-            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  1 16:27 kho' },
+            '-rw-r--r-- 1 shinarus shinarus   11 Aug  6 08:05 greet.sh\n' +
+            '-rw-r--r-- 1 shinarus shinarus   15 Aug  6 08:05 notes.txt\n' +
+            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  6 08:05 store' },
           { t: 'p', x:
             '<code>ls -l</code> cho dạng chữ. Muốn thấy con số thì dùng <code>stat</code> — lệnh ' +
             'này in đúng những trường bạn yêu cầu, nên nó cũng là lệnh dùng trong script:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            "stat -c '%a %A %U %G %n' chao.sh ghichu.txt kho" },
+            "stat -c '%a %A %U %G %n' greet.sh notes.txt store" },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '644 -rw-r--r-- shinarus shinarus chao.sh\n' +
-            '644 -rw-r--r-- shinarus shinarus ghichu.txt\n' +
-            '755 drwxr-xr-x shinarus shinarus kho' },
+            '644 -rw-r--r-- shinarus shinarus greet.sh\n' +
+            '644 -rw-r--r-- shinarus shinarus notes.txt\n' +
+            '755 drwxr-xr-x shinarus shinarus store' },
           { t: 'cmdx', cmd: "stat -c '%a %A %U %G %n' FILE", title: 'Các ký hiệu định dạng hay dùng',
             rows: [
               ['<code>-c</code>', '<i>custom format</i> — in theo mẫu bạn viết, không in bảng dài mặc định', ''],
@@ -586,29 +586,29 @@ Lesson.register({
             'Bốn con số kinh điển trước. Sau mỗi lần đổi, <code>stat</code> xác nhận ngay — đây là ' +
             'thói quen tốt: đừng tin lệnh đã chạy, hãy kiểm chứng kết quả.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            "chmod 755 chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod 644 chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod 600 chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod 777 chao.sh; stat -c '%a %A %n' chao.sh" },
+            "chmod 755 greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod 644 greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod 600 greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod 777 greet.sh; stat -c '%a %A %n' greet.sh" },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '755 -rwxr-xr-x chao.sh\n' +
-            '644 -rw-r--r-- chao.sh\n' +
-            '600 -rw------- chao.sh\n' +
-            '777 -rwxrwxrwx chao.sh' },
+            '755 -rwxr-xr-x greet.sh\n' +
+            '644 -rw-r--r-- greet.sh\n' +
+            '600 -rw------- greet.sh\n' +
+            '777 -rwxrwxrwx greet.sh' },
           { t: 'p', x:
             'Bây giờ dạng chữ. Đưa file về <code>644</code> rồi cộng trừ từng chút một — và ' +
             '<b>để ý con số thay đổi thế nào sau mỗi lệnh</b>:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod 644 chao.sh\n' +
-            "chmod u+x  chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod go-r chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod a+r  chao.sh; stat -c '%a %A %n' chao.sh\n" +
-            "chmod u=rw,go=r chao.sh; stat -c '%a %A %n' chao.sh" },
+            'chmod 644 greet.sh\n' +
+            "chmod u+x  greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod go-r greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod a+r  greet.sh; stat -c '%a %A %n' greet.sh\n" +
+            "chmod u=rw,go=r greet.sh; stat -c '%a %A %n' greet.sh" },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '744 -rwxr--r-- chao.sh\n' +
-            '700 -rwx------ chao.sh\n' +
-            '744 -rwxr--r-- chao.sh\n' +
-            '644 -rw-r--r-- chao.sh' },
+            '744 -rwxr--r-- greet.sh\n' +
+            '700 -rwx------ greet.sh\n' +
+            '744 -rwxr--r-- greet.sh\n' +
+            '644 -rw-r--r-- greet.sh' },
           { t: 'cal', kind: 'info', title: 'Đọc lại bốn dòng trên như một câu chuyện', x:
             '<ol>' +
             '<li><code>u+x</code> từ <code>644</code> → <code>744</code>. Chỉ <b>một</b> bit đổi. ' +
@@ -632,40 +632,40 @@ Lesson.register({
       { title: 'Đâm vào mã thoát 126 rồi tự mở khoá',
         blocks: [
           { t: 'p', x:
-            'File <code>chao.sh</code> đang ở <code>644</code>. Nội dung là một script bash hoàn ' +
+            'File <code>greet.sh</code> đang ở <code>644</code>. Nội dung là một script bash hoàn ' +
             'toàn hợp lệ. Thử chạy nó:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            "stat -c '%a %A %n' chao.sh\n" +
-            './chao.sh\n' +
+            "stat -c '%a %A %n' greet.sh\n" +
+            './greet.sh\n' +
             'echo "rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '644 -rw-r--r-- chao.sh\n' +
-            'bash: ./chao.sh: Permission denied\n' +
+            '644 -rw-r--r-- greet.sh\n' +
+            'bash: ./greet.sh: Permission denied\n' +
             'rc=126' },
           { t: 'p', x: 'Thêm đúng một bit rồi chạy lại:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod u+x chao.sh\n' +
-            './chao.sh\n' +
+            'chmod u+x greet.sh\n' +
+            './greet.sh\n' +
             'echo "rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'xin chao\n' +
+            'hello\n' +
             'rc=0' },
           { t: 'p', x:
             'Còn một đường vòng đáng biết: gọi trình thông dịch một cách tường minh thì bit ' +
             '<code>x</code> không cần thiết nữa.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod 644 chao.sh\n' +
-            'bash chao.sh\n' +
+            'chmod 644 greet.sh\n' +
+            'bash greet.sh\n' +
             'echo "rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'xin chao\n' +
+            'hello\n' +
             'rc=0' },
-          { t: 'cal', kind: 'why', title: 'Vì sao bash chao.sh chạy được còn ./chao.sh thì không', x:
-            '<p><code>./chao.sh</code> nghĩa là "kernel ơi, <b>thực thi</b> file này". Kernel kiểm ' +
+          { t: 'cal', kind: 'why', title: 'Vì sao bash greet.sh chạy được còn ./greet.sh thì không', x:
+            '<p><code>./greet.sh</code> nghĩa là "kernel ơi, <b>thực thi</b> file này". Kernel kiểm ' +
             'tra bit <code>x</code> và từ chối.</p>' +
-            '<p><code>bash chao.sh</code> nghĩa là "kernel ơi, thực thi <code>/bin/bash</code>" — ' +
+            '<p><code>bash greet.sh</code> nghĩa là "kernel ơi, thực thi <code>/bin/bash</code>" — ' +
             'mà <code>/bin/bash</code> thì có <code>x</code>. Sau đó bash chỉ <b>đọc</b> ' +
-            '<code>chao.sh</code> như một file văn bản, và <code>r</code> thì file có.</p>' +
+            '<code>greet.sh</code> như một file văn bản, và <code>r</code> thì file có.</p>' +
             '<p>Hệ quả thực tế: bit <code>x</code> trên script <b>không phải</b> một cơ chế bảo ' +
             'mật. Ai đọc được file thì luôn chạy được nội dung nó. Muốn thật sự chặn thì phải gỡ ' +
             'quyền <code>r</code>.</p>' },
@@ -732,20 +732,20 @@ Lesson.register({
             'Đây là bước quan trọng nhất của bài. Hai thí nghiệm dưới đây phá tan ngộ nhận phổ ' +
             'biến nhất về phân quyền thư mục. Dựng sân khấu trước:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'mkdir -p thumuc\n' +
-            'echo "noi dung bi mat" > thumuc/bimat.txt' },
+            'mkdir -p vault\n' +
+            'echo "secret content" > vault/secret.txt' },
           { t: 'h4', x: 'Thí nghiệm A — có r, không có x (chế độ 644)' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod 644 thumuc\n' +
-            'ls thumuc;              echo "rc_ls=$?"\n' +
-            'cd thumuc;              echo "rc_cd=$?"\n' +
-            'cat thumuc/bimat.txt;   echo "rc_cat=$?"' },
+            'chmod 644 vault\n' +
+            'ls vault;              echo "rc_ls=$?"\n' +
+            'cd vault;              echo "rc_cd=$?"\n' +
+            'cat vault/secret.txt;   echo "rc_cat=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bimat.txt\n' +
+            'secret.txt\n' +
             'rc_ls=0\n' +
-            'bash: cd: thumuc: Permission denied\n' +
+            'bash: cd: vault: Permission denied\n' +
             'rc_cd=1\n' +
-            'cat: thumuc/bimat.txt: Permission denied\n' +
+            'cat: vault/secret.txt: Permission denied\n' +
             'rc_cat=1' },
           { t: 'cal', kind: 'info', title: 'Bạn thấy tên file nhưng không chạm được vào nó', x:
             '<p><code>ls</code> thành công vì bit <code>r</code> cho phép <b>đọc bảng tên</b> của ' +
@@ -758,13 +758,13 @@ Lesson.register({
             '<code>311</code> = <code>-wx</code> cho chủ sở hữu, <code>--x</code> cho nhóm và ' +
             'người khác. Không ai đọc được danh sách, nhưng ai cũng đi qua được.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod 311 thumuc\n' +
-            'ls thumuc;              echo "rc_ls=$?"\n' +
-            'cat thumuc/bimat.txt;   echo "rc_cat=$?"' },
+            'chmod 311 vault\n' +
+            'ls vault;              echo "rc_ls=$?"\n' +
+            'cat vault/secret.txt;   echo "rc_cat=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            "ls: cannot open directory 'thumuc': Permission denied\n" +
+            "ls: cannot open directory 'vault': Permission denied\n" +
             'rc_ls=2\n' +
-            'noi dung bi mat\n' +
+            'secret content\n' +
             'rc_cat=0' },
           { t: 'cal', kind: 'why', title: 'Đây chính là cách /home được bảo vệ trên máy chủ thật', x:
             '<p>Bạn <b>không liệt kê được</b> thư mục, nhưng nếu <b>biết chính xác tên file</b> ' +
@@ -776,7 +776,7 @@ Lesson.register({
             '<p>Rút ra: <b>đừng bao giờ coi thư mục không đọc được là một cách giấu bí mật.</b> ' +
             'Muốn bảo vệ nội dung thì đặt quyền lên chính file — hoặc mã hoá nó.</p>' },
           { t: 'p', x: 'Trả thư mục về bình thường trước khi đi tiếp:' },
-          { t: 'code', where: 'wsl', lang: 'bash', code: 'chmod 755 thumuc' },
+          { t: 'code', where: 'wsl', lang: 'bash', code: 'chmod 755 vault' },
           { t: 'cal', kind: 'warn', title: 'Nhớ trả quyền lại, nếu không rm -rf cũng thất bại', x:
             '<p>Bỏ quên một thư mục ở chế độ <code>311</code> hay <code>000</code> thì đến lúc dọn ' +
             'dẹp, <code>rm -rf</code> sẽ báo <code>Permission denied</code> cho từng file bên ' +
@@ -791,12 +791,12 @@ Lesson.register({
             'Bước cuối gom mọi giới hạn của người dùng thường vào một chỗ. Trước hết, thử cho đi ' +
             'file của chính mình:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chown root chao.sh; echo "rc=$?"\n' +
-            'chgrp kvm  chao.sh; echo "rc=$?"' },
+            'chown root greet.sh; echo "rc=$?"\n' +
+            'chgrp kvm  greet.sh; echo "rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            "chown: changing ownership of 'chao.sh': Operation not permitted (os error 1)\n" +
+            "chown: changing ownership of 'greet.sh': Operation not permitted (os error 1)\n" +
             'rc=1\n' +
-            "chgrp: changing group of 'chao.sh': Operation not permitted (os error 1)\n" +
+            "chgrp: changing group of 'greet.sh': Operation not permitted (os error 1)\n" +
             'rc=1' },
           { t: 'cal', kind: 'info', title: 'Operation not permitted khác Permission denied', x:
             '<p>Hai thông báo này tương ứng hai mã lỗi khác nhau của kernel: <code>EPERM</code> ' +
@@ -810,7 +810,7 @@ Lesson.register({
             'readlink -f /usr/bin/sudo\n' +
             'ls -l /usr/lib/cargo/bin/sudo' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '-rwsr-xr-x 1 root root 93640 Feb  3 03:45 /usr/bin/passwd\n' +
+            '-rwsr-xr-x 1 root root 93640 Feb  3  2026 /usr/bin/passwd\n' +
             '/usr/lib/cargo/bin/sudo\n' +
             '-rwsr-xr-x 1 root root 1082656 Mar 11 20:27 /usr/lib/cargo/bin/sudo' },
           { t: 'cal', kind: 'info', title: 'Chữ s ở vị trí thứ tư — đó là toàn bộ phép màu', x:
@@ -855,7 +855,7 @@ Lesson.register({
           { t: 'p', x: 'Sticky bit trên <code>/tmp</code> — thư mục ai cũng ghi được nhưng vẫn trật tự:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: "ls -ld /tmp\nstat -c '%a %A %n' /tmp" },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'drwxrwxrwt 8 root root 160 Aug  1 16:27 /tmp\n' +
+            'drwxrwxrwt 8 root root 160 Aug  6 08:05 /tmp\n' +
             '1777 drwxrwxrwt /tmp' },
           { t: 'p', x:
             'Cuối cùng, ba bức tường còn lại: ghi vào file hệ thống, dùng <code>sudo</code> trong ' +
@@ -880,9 +880,9 @@ Lesson.register({
             'ls -l /dev/kvm /dev/null /dev/sda\n' +
             'head -c 4 /dev/sda' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'crw-rw---- 1 root kvm  10, 232 Aug  1 16:27 /dev/kvm\n' +
-            'crw-rw-rw- 1 root root  1,   3 Aug  1 16:27 /dev/null\n' +
-            'brw-rw---- 1 root disk  8,   0 Aug  1 16:27 /dev/sda\n' +
+            'crw-rw---- 1 root kvm  10, 232 Aug  6 08:05 /dev/kvm\n' +
+            'crw-rw-rw- 1 root root  1,   3 Aug  6 08:05 /dev/null\n' +
+            'brw-rw---- 1 root disk  8,   0 Aug  6 08:05 /dev/sda\n' +
             "head: cannot open '/dev/sda' for reading: Permission denied" },
           { t: 'cal', kind: 'why', title: 'Ba dòng này là toàn bộ mô hình bảo mật phần cứng của Linux', x:
             '<p><code>/dev/null</code> là <code>666</code> — vô hại nên cho tất cả.</p>' +
@@ -898,7 +898,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'cd ~\nrm -rf ~/embedded/bai08\nls ~/embedded' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bai03\nbai04\nbai05\nbai07\nimages' }
+            'bai03\nbai04\nbai05\nbai10\nbai10perf\nbai19\nbai24\nimages' }
         ]}
     ]},
 
@@ -921,7 +921,7 @@ Lesson.register({
          '<code>stat -c \'%a %n\' . f</code> để xem cả hai. Thư mục hầu như luôn phải là <code>755</code>'],
         ['<code>ls: cannot open directory: Permission denied</code>',
          'Thư mục thiếu bit <code>r</code> (còn <code>x</code> thì vẫn đi qua được)',
-         '<code>chmod u+r thumuc</code>. Nếu là thư mục của người khác thì cần root'],
+         '<code>chmod u+r vault</code>. Nếu là thư mục của người khác thì cần root'],
         ['<code>chown: changing ownership: Operation not permitted</code>',
          'Người dùng thường không được cho đi file của mình',
          'Dùng <code>sudo chown</code>. Nếu chỉ muốn đổi nhóm sang một nhóm bạn đã thuộc thì <code>chgrp</code> được phép'],
@@ -933,7 +933,7 @@ Lesson.register({
          '<code>echo x | sudo tee -a /etc/xxx</code>. Bài 10 giải thích'],
         ['<code>rm: cannot remove ...: Permission denied</code> khi xoá cây thư mục',
          'Một thư mục con thiếu <code>r</code> hoặc <code>x</code> nên không duyệt vào được',
-         '<code>chmod -R u+rwX cay/</code> rồi xoá lại. Chú ý <code>X</code> viết hoa'],
+         '<code>chmod -R u+rwX dir/</code> rồi xoá lại. Chú ý <code>X</code> viết hoa'],
         ['<code>UNPROTECTED PRIVATE KEY FILE</code> khi dùng <code>ssh</code>',
          'Khoá riêng có quyền quá rộng, thường do vừa <code>chmod 777</code>',
          '<code>chmod 600 ~/.ssh/id_*</code> và <code>chmod 700 ~/.ssh</code>'],
@@ -994,10 +994,10 @@ Lesson.register({
            'cách đó chỉ cần quyền <b>đọc</b>. Phân biệt 126 với 127 tiết kiệm cho bạn rất nhiều ' +
            'thời gian đoán mò.' },
 
-    { q: 'Thư mục <code>duan</code> có chế độ <code>311</code>. Bạn biết bên trong có file <code>ghichu.txt</code>. Điều gì xảy ra?',
-      opts: ['Cả <code>ls duan</code> và <code>cat duan/ghichu.txt</code> đều thất bại',
-             '<code>ls duan</code> chạy được, <code>cat duan/ghichu.txt</code> thất bại',
-             '<code>ls duan</code> thất bại, <code>cat duan/ghichu.txt</code> chạy được',
+    { q: 'Thư mục <code>project</code> có chế độ <code>311</code>. Bạn biết bên trong có file <code>notes.txt</code>. Điều gì xảy ra?',
+      opts: ['Cả <code>ls project</code> và <code>cat project/notes.txt</code> đều thất bại',
+             '<code>ls project</code> chạy được, <code>cat project/notes.txt</code> thất bại',
+             '<code>ls project</code> thất bại, <code>cat project/notes.txt</code> chạy được',
              'Cả hai đều chạy được vì bạn là chủ sở hữu'],
       a: 2,
       why: '<code>311</code> cho chủ sở hữu <code>-wx</code>: có <code>x</code> nhưng <b>không</b> ' +

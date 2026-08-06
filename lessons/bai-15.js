@@ -11,7 +11,7 @@ Lesson.register({
   level: 'Trung cấp',
 
   intro:
-    'Ở Bài 14 bạn gõ <code>gcc -o kieu kieu.c</code> hàng chục lần và một file thực thi ' +
+    'Ở Bài 14 bạn gõ <code>gcc -o types types.c</code> hàng chục lần và một file thực thi ' +
     'xuất hiện. Bài này chứng minh rằng lệnh đó không phải một chương trình, mà là ' +
     '<b>bốn chương trình chạy nối tiếp</b>, mỗi cái nhận sản phẩm của cái trước. Bạn sẽ ' +
     'dừng lại sau từng giai đoạn để cầm sản phẩm trung gian lên xem: một file 11 dòng phình ' +
@@ -49,7 +49,7 @@ Lesson.register({
         '<svg viewBox="0 0 720 400" width="720" role="img" aria-label="Sơ đồ bốn giai đoạn biên dịch từ file .c tới file thực thi">' +
         '<rect class="d-box-p" x="20" y="16" width="130" height="46" rx="6"/>' +
         '<text class="d-tm" x="85" y="38" text-anchor="middle">hello.c</text>' +
-        '<text class="d-ts" x="85" y="54" text-anchor="middle">11 dong · 191 B</text>' +
+        '<text class="d-ts" x="85" y="54" text-anchor="middle">11 dong · 193 B</text>' +
 
         '<line class="d-line" x1="150" y1="39" x2="216" y2="39"/>' +
         '<path class="d-arrow" d="M216 39 l-8 -4 v8 z"/>' +
@@ -63,7 +63,7 @@ Lesson.register({
         '<path class="d-arrow" d="M312 84 l-4 -8 h8 z"/>' +
         '<rect class="d-box-p" x="222" y="90" width="180" height="46" rx="6"/>' +
         '<text class="d-tm" x="312" y="112" text-anchor="middle">hello.i</text>' +
-        '<text class="d-ts" x="312" y="128" text-anchor="middle">849 dong · 21 502 B</text>' +
+        '<text class="d-ts" x="312" y="128" text-anchor="middle">849 dong · 21 500 B</text>' +
         '<text class="d-ts" x="412" y="118">van la C, nhung khong</text>' +
         '<text class="d-ts" x="412" y="104">con mot dau # nao</text>' +
 
@@ -77,7 +77,7 @@ Lesson.register({
         '<path class="d-arrow" d="M85 158 l-4 -8 h8 z"/>' +
         '<rect class="d-box-p" x="20" y="164" width="180" height="46" rx="6"/>' +
         '<text class="d-tm" x="110" y="186" text-anchor="middle">hello.s</text>' +
-        '<text class="d-ts" x="110" y="202" text-anchor="middle">57 dong · 871 B</text>' +
+        '<text class="d-ts" x="110" y="202" text-anchor="middle">57 dong · 869 B</text>' +
         '<text class="d-ts" x="212" y="192">assembly — van la van ban doc duoc</text>' +
 
         '<line class="d-line" x1="200" y1="187" x2="266" y2="187"/>' +
@@ -150,16 +150,16 @@ Lesson.register({
       rows: [
         ['<code>#include &lt;file.h&gt;</code>', 'Chép <b>nguyên văn</b> nội dung file vào đúng vị trí dòng này', 'Ngoặc nhọn = tìm trong đường dẫn hệ thống'],
         ['<code>#include "file.h"</code>', 'Như trên', 'Nháy kép = tìm <b>cạnh file nguồn trước</b>, rồi mới tới đường dẫn hệ thống'],
-        ['<code>#define TEN gia_tri</code>', 'Thay mọi chỗ xuất hiện <code>TEN</code> bằng <code>gia_tri</code>', 'Thay <b>văn bản</b>, không phải gán giá trị'],
+        ['<code>#define NAME gia_tri</code>', 'Thay mọi chỗ xuất hiện <code>NAME</code> bằng <code>gia_tri</code>', 'Thay <b>văn bản</b>, không phải gán giá trị'],
         ['<code>#define HAM(x) …</code>', 'Macro có tham số — thay kèm ghép chuỗi', '<b>Nguồn của ba cái bẫy ở dưới</b>'],
         ['<code>#ifdef</code> / <code>#if</code> / <code>#endif</code>', 'Giữ hoặc <b>xoá hẳn</b> một khối mã', 'Mã bị xoá không tới được giai đoạn 2 — nên lỗi cú pháp trong đó cũng không bị phát hiện'],
-        ['<code>#undef TEN</code>', 'Huỷ một định nghĩa macro', 'Hiếm dùng, nhưng cứu bạn khi hai header đặt trùng tên'],
+        ['<code>#undef NAME</code>', 'Huỷ một định nghĩa macro', 'Hiếm dùng, nhưng cứu bạn khi hai header đặt trùng tên'],
         ['<code>#error "…"</code>', 'Ép dừng ngay với thông báo của bạn', 'Rất hữu ích để chặn cấu hình sai từ sớm']
       ]},
 
     { t: 'cal', kind: 'info', title: 'Con số làm nhiều người giật mình', x:
-      '<p>File <code>hello.c</code> của bạn có <b>11 dòng, 191 byte</b>. Sau giai đoạn 1 nó ' +
-      'thành <b>849 dòng, 21 502 byte</b> — dài gấp <b>77 lần</b>, nặng gấp <b>112 lần</b>.</p>' +
+      '<p>File <code>hello.c</code> của bạn có <b>11 dòng, 193 byte</b>. Sau giai đoạn 1 nó ' +
+      'thành <b>849 dòng, 21 500 byte</b> — dài gấp <b>77 lần</b>, nặng gấp <b>111 lần</b>.</p>' +
       '<p>Toàn bộ phần phình ra đến từ đúng một dòng: <code>#include &lt;stdio.h&gt;</code>. ' +
       'Header đó kéo theo <b>32 header khác</b> — bạn sẽ đếm được bằng <code>gcc -H</code> ở ' +
       'bước 3.</p>' +
@@ -169,14 +169,14 @@ Lesson.register({
 
     { t: 'cal', kind: 'danger', title: 'Ba cái bẫy của macro — bạn sẽ gặp cả ba ở bước 2', x:
       '<p><b>Bẫy 1 — thiếu ngoặc quanh tham số.</b> ' +
-      '<code>#define VUONG(x) x * x</code> rồi gọi <code>VUONG(2 + 3)</code> cho ra ' +
+      '<code>#define SQUARE(x) x * x</code> rồi gọi <code>SQUARE(2 + 3)</code> cho ra ' +
       '<b>11</b>, không phải 25. Vì sau khi thay văn bản nó là <code>2 + 3 * 2 + 3</code>.</p>' +
       '<p><b>Bẫy 2 — thiếu ngoặc quanh toàn bộ biểu thức.</b> ' +
-      '<code>#define TANG(x) x + 1</code> rồi viết <code>10 * TANG(2)</code> cho ra ' +
+      '<code>#define INCR(x) x + 1</code> rồi viết <code>10 * INCR(2)</code> cho ra ' +
       '<b>21</b>, không phải 30. Vì nó thành <code>10 * 2 + 1</code>.</p>' +
       '<p><b>Bẫy 3 — tham số bị tính nhiều lần.</b> ' +
-      '<code>#define LON_HON(a,b) ((a) &gt; (b) ? (a) : (b))</code> đã ngoặc đầy đủ, nhưng ' +
-      '<code>LON_HON(i++, j)</code> làm <code>i++</code> chạy <b>hai lần</b>: ' +
+      '<code>#define GREATER(a,b) ((a) &gt; (b) ? (a) : (b))</code> đã ngoặc đầy đủ, nhưng ' +
+      '<code>GREATER(i++, j)</code> làm <code>i++</code> chạy <b>hai lần</b>: ' +
       '<code>i</code> nhảy từ 5 lên <b>7</b>.</p>' +
       '<p>Bẫy 1 và 2 chữa được bằng <b>ngoặc mọi tham số và ngoặc cả biểu thức</b>. Bẫy 3 thì ' +
       '<b>không có cách chữa trong C thuần</b> — chỉ tránh được bằng cách không truyền biểu ' +
@@ -203,7 +203,7 @@ Lesson.register({
       'bị kéo vào nhiều lần là chuyện <b>bình thường</b>, không phải bất cẩn.' },
 
     { t: 'fig',
-      cap: 'A.h và B.h đều cần chung.h. Không có header guard, nội dung chung.h vào file .i hai lần. Guard biến lần thứ hai thành một khối rỗng.',
+      cap: 'A.h và B.h đều cần common.h. Không có header guard, nội dung common.h vào file .i hai lần. Guard biến lần thứ hai thành một khối rỗng.',
       svg:
         '<svg viewBox="0 0 720 300" width="720" role="img" aria-label="Sơ đồ header guard chặn việc chép nội dung header hai lần">' +
         '<rect class="d-box-p" x="280" y="16" width="160" height="40" rx="6"/>' +
@@ -225,32 +225,32 @@ Lesson.register({
         '<path class="d-arrow" d="M390 172 l6 -7 l3 8 z"/>' +
 
         '<rect class="d-box-g" x="280" y="178" width="160" height="40" rx="6"/>' +
-        '<text class="d-tm" x="360" y="203" text-anchor="middle">chung.h</text>' +
+        '<text class="d-tm" x="360" y="203" text-anchor="middle">common.h</text>' +
         '<text class="d-ts" x="452" y="196">bi yeu cau HAI lan</text>' +
         '<text class="d-ts" x="452" y="212">tu hai duong khac nhau</text>' +
 
         '<rect class="d-box-w" x="20" y="238" width="330" height="50" rx="4"/>' +
         '<text class="d-t" x="34" y="258">KHONG guard: noi dung vao file .i hai lan</text>' +
-        '<text class="d-ts" x="34" y="276">-> error: redefinition of ‘nhan_doi’</text>' +
+        '<text class="d-ts" x="34" y="276">-> error: redefinition of ‘twice’</text>' +
 
         '<rect class="d-box-g" x="370" y="238" width="330" height="50" rx="4"/>' +
         '<text class="d-t" x="384" y="258">CO guard: lan hai thay macro da dinh nghia</text>' +
         '<text class="d-ts" x="384" y="276">-> bo qua ca file, khong sinh ra dong nao</text>' +
         '</svg>' },
 
-    { t: 'code', where: 'file', name: 'tienich.h — mẫu header guard chuẩn', code:
-      '#ifndef TIENICH_H          /* neu TIENICH_H CHUA duoc dinh nghia thi... */\n' +
-      '#define TIENICH_H          /* ...dinh nghia no ngay, roi xu ly phan duoi */\n' +
+    { t: 'code', where: 'file', name: 'util.h — mẫu header guard chuẩn', code:
+      '#ifndef UTIL_H             /* if UTIL_H is NOT yet defined then... */\n' +
+      '#define UTIL_H             /* ...define it now, then process what follows */\n' +
       '\n' +
-      'static inline int nhan_doi(int x) { return x * 2; }\n' +
+      'static inline int twice(int x) { return x * 2; }\n' +
       '\n' +
-      '#endif /* TIENICH_H */    /* lan include thu hai se nhay thang toi day */' },
+      '#endif /* UTIL_H */    /* second include jumps straight here */' },
 
     { t: 'cal', kind: 'why', title: 'Cơ chế rất đơn giản, và bạn nên tự nghĩ ra được', x:
-      '<p>Lần <code>#include</code> đầu tiên: <code>TIENICH_H</code> chưa tồn tại, nên ' +
-      '<code>#ifndef</code> đúng, bộ tiền xử lý định nghĩa <code>TIENICH_H</code> rồi chép ' +
+      '<p>Lần <code>#include</code> đầu tiên: <code>UTIL_H</code> chưa tồn tại, nên ' +
+      '<code>#ifndef</code> đúng, bộ tiền xử lý định nghĩa <code>UTIL_H</code> rồi chép ' +
       'phần thân vào.</p>' +
-      '<p>Lần thứ hai: <code>TIENICH_H</code> <b>đã</b> tồn tại, <code>#ifndef</code> sai, ' +
+      '<p>Lần thứ hai: <code>UTIL_H</code> <b>đã</b> tồn tại, <code>#ifndef</code> sai, ' +
       'toàn bộ khối tới <code>#endif</code> bị xoá. Header vẫn được <i>đọc</i>, nhưng không ' +
       'sinh ra dòng nào.</p>' +
       '<p>Không có phép màu — chỉ là điều kiện tiền xử lý cộng với một cái cờ. Quy tắc đặt ' +
@@ -282,9 +282,9 @@ Lesson.register({
       '.LC0:\n' +
       '\t.string\t"Embedded Linux"\n' +
       '.LC1:\n' +
-      '\t.string\t"Xin chao %s\\n"\n' +
+      '\t.string\t"Hello %s\\n"\n' +
       '.LC2:\n' +
-      '\t.string\t"VUONG(7) = %d\\n"\n' +
+      '\t.string\t"SQUARE(7) = %d\\n"\n' +
       '\t.text\n' +
       '\t.globl\tmain\n' +
       'main:\n' +
@@ -303,7 +303,7 @@ Lesson.register({
       rows: [
         ['<code>.section .rodata</code>', 'Vùng <b>chỉ đọc</b>. Ba chuỗi ký tự của bạn nằm ở đây', 'Ghi vào vùng này lúc chạy sẽ gây <code>Segmentation fault</code> — đó là lý do sửa chuỗi hằng làm chương trình chết'],
         ['<code>.globl main</code>', 'Xuất ký hiệu <code>main</code> ra ngoài', 'Chính là chữ <code>T</code> hoa mà <code>nm</code> hiện ở Bài 14'],
-        ['<code>movl $49, %esi</code>', '<b>Số 49 đã có sẵn trong mã máy</b>', '<code>VUONG(7)</code> là <code>((7) * (7))</code> — toàn hằng số, nên trình biên dịch tính luôn lúc build. Chương trình lúc chạy <b>không nhân gì cả</b>'],
+        ['<code>movl $49, %esi</code>', '<b>Số 49 đã có sẵn trong mã máy</b>', '<code>SQUARE(7)</code> là <code>((7) * (7))</code> — toàn hằng số, nên trình biên dịch tính luôn lúc build. Chương trình lúc chạy <b>không nhân gì cả</b>'],
         ['<code>call printf@PLT</code>', 'Gọi <code>printf</code>, nhưng qua một bảng trung gian', '<code>PLT</code> = Procedure Linkage Table. Vì <code>printf</code> nằm trong thư viện động, địa chỉ thật chỉ biết lúc chạy — <b>Bài 17</b> sẽ mổ xẻ'],
         ['<code>.LC0</code>, <code>.LFB0</code>', 'Nhãn cục bộ do trình biên dịch tự đặt', 'Dấu chấm đầu tên là quy ước "đây là nhãn nội bộ, không xuất ra"']
       ]},
@@ -333,7 +333,7 @@ Lesson.register({
     { t: 'table',
       head: ['', 'Khai báo (declaration)', 'Định nghĩa (definition)'],
       rows: [
-        ['Trông thế nào', '<code>int cong(int a, int b);</code>', '<code>int cong(int a, int b) { return a + b; }</code>'],
+        ['Trông thế nào', '<code>int add(int a, int b);</code>', '<code>int add(int a, int b) { return a + b; }</code>'],
         ['Nói gì với trình biên dịch', '"Có một hàm tên như vậy, kiểu như vậy. Cứ gọi đi"', '"Đây là mã thật của hàm đó"'],
         ['Đặt ở đâu', 'Trong file <code>.h</code>', 'Trong file <code>.c</code>'],
         ['Được phép lặp lại', '<b>Có</b> — bao nhiêu lần cũng được', '<b>Không</b> — đúng một lần trong cả chương trình'],
@@ -350,16 +350,16 @@ Lesson.register({
         '<text class="d-tm" x="120" y="38" text-anchor="middle">main.o</text>' +
         '<text class="d-tm" x="34" y="62">T main</text>' +
         '<text class="d-ts" x="120" y="62">cung cap</text>' +
-        '<text class="d-tm" x="34" y="84">U cong</text>' +
+        '<text class="d-tm" x="34" y="84">U add</text>' +
         '<text class="d-ts" x="120" y="84">dang can</text>' +
-        '<text class="d-tm" x="34" y="106">U tru</text>' +
+        '<text class="d-tm" x="34" y="106">U sub</text>' +
         '<text class="d-ts" x="120" y="106">dang can</text>' +
         '<text class="d-tm" x="34" y="128">U printf</text>' +
         '<text class="d-ts" x="120" y="128">dang can</text>' +
 
         '<rect class="d-box-a" x="270" y="16" width="180" height="70" rx="6"/>' +
-        '<text class="d-tm" x="360" y="38" text-anchor="middle">phep.o</text>' +
-        '<text class="d-tm" x="284" y="62">T cong</text>' +
+        '<text class="d-tm" x="360" y="38" text-anchor="middle">ops.o</text>' +
+        '<text class="d-tm" x="284" y="62">T add</text>' +
         '<text class="d-ts" x="380" y="62">cung cap</text>' +
 
         '<rect class="d-box-g" x="270" y="106" width="180" height="70" rx="6"/>' +
@@ -375,20 +375,20 @@ Lesson.register({
         '<line class="d-line" x1="120" y1="100" x2="200" y2="204"/>' +
         '<path class="d-arrow" d="M200 204 l-1 -9 l-6 4 z"/>' +
         '<rect class="d-box-w" x="150" y="210" width="550" height="64" rx="4"/>' +
-        '<text class="d-t" x="166" y="232">U tru khong tim duoc ai cung cap</text>' +
-        '<text class="d-tm" x="166" y="252">main.c:(.text+0x3a): undefined reference to `tru\'</text>' +
+        '<text class="d-t" x="166" y="232">U sub khong tim duoc ai cung cap</text>' +
+        '<text class="d-tm" x="166" y="252">main.c:(.text+0x3a): undefined reference to `sub\'</text>' +
         '<text class="d-ts" x="166" y="268">-> loi cua ld, KHONG phai loi cua gcc. Bien dich da thanh cong hoan toan.</text>' +
         '</svg>' },
 
-    { t: 'cal', kind: 'why', title: 'Vì sao main.c biên dịch trót lọt dù hàm tru() chưa hề tồn tại', x:
+    { t: 'cal', kind: 'why', title: 'Vì sao main.c biên dịch trót lọt dù hàm sub() chưa hề tồn tại', x:
       '<p>Đây là câu hỏi làm người mới bối rối nhất, và câu trả lời rất gọn: ' +
       '<b>giai đoạn 2 chỉ nhìn thấy đúng một file</b>.</p>' +
       '<p>Khi biên dịch <code>main.c</code>, trình biên dịch thấy khai báo ' +
-      '<code>int tru(int, int);</code> trong header. Thế là đủ để nó biết cách gọi: truyền hai ' +
-      '<code>int</code>, nhận về một <code>int</code>. Nó sinh ra lệnh <code>call tru</code> ' +
+      '<code>int sub(int, int);</code> trong header. Thế là đủ để nó biết cách gọi: truyền hai ' +
+      '<code>int</code>, nhận về một <code>int</code>. Nó sinh ra lệnh <code>call sub</code> ' +
       'với địa chỉ để trống, ghi vào bảng ký hiệu chữ <code>U</code>, rồi <b>coi như xong ' +
       'việc</b>. Nó không có cách nào biết — và cũng không cần biết — file nào sẽ cung cấp ' +
-      '<code>tru</code>.</p>' +
+      '<code>sub</code>.</p>' +
       '<p>Chỉ tới giai đoạn 4, khi <code>ld</code> có trong tay <i>mọi</i> file ' +
       '<code>.o</code>, nó mới đối chiếu được và phát hiện không ai cung cấp. Đó là lý do ' +
       '<code>undefined reference</code> <b>luôn luôn</b> là lỗi liên kết, không bao giờ là ' +
@@ -436,13 +436,13 @@ Lesson.register({
           'cat > hello.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '\n' +
-          '#define TEN     "Embedded Linux"\n' +
-          '#define VUONG(x) ((x) * (x))\n' +
+          '#define NAME     "Embedded Linux"\n' +
+          '#define SQUARE(x) ((x) * (x))\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("Xin chao %s\\n", TEN);\n' +
-          '    printf("VUONG(7) = %d\\n", VUONG(7));\n' +
+          '    printf("Hello %s\\n", NAME);\n' +
+          '    printf("SQUARE(7) = %d\\n", SQUARE(7));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
@@ -491,12 +491,12 @@ Lesson.register({
           '   11 hello.c\n' +
           '  849 hello.i\n' +
           '  860 total\n' +
-          '191 hello.c\n' +
-          '21502 hello.i' },
+          '193 hello.c\n' +
+          '21500 hello.i' },
 
         { t: 'cal', kind: 'info', title: 'Ba con số cần ghi lại', x:
           '<p><b>11 → 849 dòng</b>, tức gấp <b>77 lần</b>.<br>' +
-          '<b>191 → 21 502 byte</b>, tức gấp <b>112 lần</b>.<br>' +
+          '<b>193 → 21 500 byte</b>, tức gấp <b>111 lần</b>.<br>' +
           'Toàn bộ do <b>một</b> dòng <code>#include &lt;stdio.h&gt;</code>.</p>' +
           '<p>Con số của bạn có thể lệch chút ít nếu phiên bản glibc khác — điều cần khớp là ' +
           '<i>bậc độ lớn</i>: hàng chục lần, không phải vài phần trăm.</p>' },
@@ -510,17 +510,17 @@ Lesson.register({
         { t: 'code', where: 'out', nocopy: true, code:
           'int main(void)\n' +
           '{\n' +
-          '    printf("Xin chao %s\\n", "Embedded Linux");\n' +
-          '    printf("VUONG(7) = %d\\n", ((7) * (7)));\n' +
+          '    printf("Hello %s\\n", "Embedded Linux");\n' +
+          '    printf("SQUARE(7) = %d\\n", ((7) * (7)));\n' +
           '    return 0;\n' +
           '}' },
 
         { t: 'cal', kind: 'why', title: 'Ba điều đọc được từ sáu dòng này', x:
-          '<p><b>Một:</b> <code>TEN</code> đã biến mất, thay bằng ' +
+          '<p><b>Một:</b> <code>NAME</code> đã biến mất, thay bằng ' +
           '<code>"Embedded Linux"</code>. Sau giai đoạn 1, <b>không còn macro nào tồn tại</b>. ' +
-          'Trình biên dịch chưa từng nghe tới cái tên <code>TEN</code> — đây là lý do trình gỡ ' +
+          'Trình biên dịch chưa từng nghe tới cái tên <code>NAME</code> — đây là lý do trình gỡ ' +
           'lỗi không cho bạn xem giá trị của macro.</p>' +
-          '<p><b>Hai:</b> <code>VUONG(7)</code> thành <code>((7) * (7))</code> — <b>phép nhân ' +
+          '<p><b>Hai:</b> <code>SQUARE(7)</code> thành <code>((7) * (7))</code> — <b>phép nhân ' +
           'vẫn còn đó</b>. Bộ tiền xử lý chỉ thay văn bản, nó không biết tính toán.</p>' +
           '<p><b>Ba:</b> ở bước 4 bạn sẽ thấy assembly chứa <code>movl $49, %esi</code>. Vậy ' +
           'phép nhân biến mất ở <b>giai đoạn 2</b>, khi trình biên dịch nhận ra cả hai toán ' +
@@ -537,9 +537,9 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           '117\n' +
+          '# 1 "/usr/include/stdc-predef.h" 1 3 4\n' +
           '# 1 "hello.c"\n' +
-          '# 1 "<built-in>"\n' +
-          '# 1 "<command-line>"' },
+          '# 1 "/usr/include/stdio.h" 1 3 4' },
 
         { t: 'cal', kind: 'tip', title: 'Những dòng # đó là lý do lỗi chỉ đúng file và dòng', x:
           '<p>Dạng <code># 12 "/usr/include/stdio.h"</code> nghĩa là "các dòng tiếp theo vốn ' +
@@ -562,28 +562,28 @@ Lesson.register({
           'cat > macro.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '\n' +
-          '#define VUONG_XAU(x)  x * x\n' +
-          '#define VUONG_TOT(x)  ((x) * (x))\n' +
+          '#define SQUARE_BAD(x)  x * x\n' +
+          '#define SQUARE_GOOD(x)  ((x) * (x))\n' +
           '\n' +
-          '#define TANG_XAU(x)   x + 1\n' +
-          '#define TANG_TOT(x)   ((x) + 1)\n' +
+          '#define INCR_BAD(x)   x + 1\n' +
+          '#define INCR_GOOD(x)   ((x) + 1)\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("VUONG_XAU(2 + 3) = %d\\n", VUONG_XAU(2 + 3));\n' +
-          '    printf("VUONG_TOT(2 + 3) = %d\\n", VUONG_TOT(2 + 3));\n' +
-          '    printf("10 * TANG_XAU(2)  = %d\\n", 10 * TANG_XAU(2));\n' +
-          '    printf("10 * TANG_TOT(2)  = %d\\n", 10 * TANG_TOT(2));\n' +
+          '    printf("SQUARE_BAD(2 + 3) = %d\\n", SQUARE_BAD(2 + 3));\n' +
+          '    printf("SQUARE_GOOD(2 + 3) = %d\\n", SQUARE_GOOD(2 + 3));\n' +
+          '    printf("10 * INCR_BAD(2)  = %d\\n", 10 * INCR_BAD(2));\n' +
+          '    printf("10 * INCR_GOOD(2)  = %d\\n", 10 * INCR_GOOD(2));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
           'gcc -o macro macro.c && ./macro' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'VUONG_XAU(2 + 3) = 11\n' +
-          'VUONG_TOT(2 + 3) = 25\n' +
-          '10 * TANG_XAU(2)  = 21\n' +
-          '10 * TANG_TOT(2)  = 30' },
+          'SQUARE_BAD(2 + 3) = 11\n' +
+          'SQUARE_GOOD(2 + 3) = 25\n' +
+          '10 * INCR_BAD(2)  = 21\n' +
+          '10 * INCR_GOOD(2)  = 30' },
 
         { t: 'p', x:
           'Hai kết quả sai lệch hoàn toàn, mà trình biên dịch <b>không hề cảnh báo</b> — với ' +
@@ -594,10 +594,10 @@ Lesson.register({
         { t: 'code', where: 'out', nocopy: true, code:
           'int main(void)\n' +
           '{\n' +
-          '    printf("VUONG_XAU(2 + 3) = %d\\n", 2 + 3 * 2 + 3);\n' +
-          '    printf("VUONG_TOT(2 + 3) = %d\\n", ((2 + 3) * (2 + 3)));\n' +
-          '    printf("10 * TANG_XAU(2)  = %d\\n", 10 * 2 + 1);\n' +
-          '    printf("10 * TANG_TOT(2)  = %d\\n", 10 * ((2) + 1));\n' +
+          '    printf("SQUARE_BAD(2 + 3) = %d\\n", 2 + 3 * 2 + 3);\n' +
+          '    printf("SQUARE_GOOD(2 + 3) = %d\\n", ((2 + 3) * (2 + 3)));\n' +
+          '    printf("10 * INCR_BAD(2)  = %d\\n", 10 * 2 + 1);\n' +
+          '    printf("10 * INCR_GOOD(2)  = %d\\n", 10 * ((2) + 1));\n' +
           '    return 0;\n' +
           '}' },
 
@@ -613,30 +613,30 @@ Lesson.register({
           'Bẫy thứ ba tinh vi hơn: macro có ngoặc <b>đầy đủ</b> mà vẫn sai.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > lon.c <<\'EOF\'\n' +
+          'cat > greater.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
-          '#define LON_HON(a, b) ((a) > (b) ? (a) : (b))\n' +
+          '#define GREATER(a, b) ((a) > (b) ? (a) : (b))\n' +
           'int main(void)\n' +
           '{\n' +
           '    int i = 5, j = 3;\n' +
-          '    int k = LON_HON(i++, j);\n' +
-          '    printf("i = %d (mong doi 6), k = %d\\n", i, k);\n' +
+          '    int k = GREATER(i++, j);\n' +
+          '    printf("i = %d (expected 6), k = %d\\n", i, k);\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -o lon lon.c && ./lon' },
+          'gcc -o greater greater.c && ./greater' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'i = 7 (mong doi 6), k = 6' },
+          'i = 7 (expected 6), k = 6' },
 
         { t: 'cal', kind: 'danger', title: 'i tăng hai lần — và không có dấu hiệu cảnh báo nào', x:
-          '<p>Thay văn bản biến <code>LON_HON(i++, j)</code> thành ' +
+          '<p>Thay văn bản biến <code>GREATER(i++, j)</code> thành ' +
           '<code>((i++) &gt; (j) ? (i++) : (j))</code>. Chữ <code>i++</code> xuất hiện ' +
           '<b>hai lần</b>, và cả hai đều chạy: một lần khi so sánh, một lần khi trả về giá ' +
           'trị. Nên <code>i</code> nhảy từ 5 lên <b>7</b>.</p>' +
           '<p>Đây là lỗi nguy hiểm nhất trong ba bẫy vì <b>ngoặc đã đầy đủ</b> — không có chỗ ' +
           'nào để "sửa cho đúng". Nếu <code>i++</code> là một lời gọi ' +
-          '<code>doc_cam_bien()</code>, bạn vừa đọc cảm biến hai lần và vứt đi một kết quả.</p>' +
+          '<code>read_sensor()</code>, bạn vừa đọc cảm biến hai lần và vứt đi một kết quả.</p>' +
           '<p><b>Hai cách phòng:</b> không bao giờ truyền biểu thức có tác dụng phụ vào macro; ' +
           'và tốt hơn nữa — dùng <code>static inline</code> thay macro. Hàm ' +
           '<code>static inline</code> tính mỗi tham số đúng một lần, vẫn nhanh y hệt vì trình ' +
@@ -686,8 +686,8 @@ Lesson.register({
           './hello' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'Xin chao Embedded Linux\n' +
-          'VUONG(7) = 49' },
+          'Hello Embedded Linux\n' +
+          'SQUARE(7) = 49' },
 
         { t: 'p', x:
           'Bốn giai đoạn, bốn lệnh riêng, kết quả y hệt như gõ một lệnh <code>gcc</code> duy ' +
@@ -700,9 +700,9 @@ Lesson.register({
           'wc -l hello.c hello.i hello.s' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'hello.c         191 byte\n' +
-          'hello.i       21502 byte\n' +
-          'hello.s         871 byte\n' +
+          'hello.c         193 byte\n' +
+          'hello.i       21500 byte\n' +
+          'hello.s         869 byte\n' +
           'hello.o        1632 byte\n' +
           'hello         15952 byte\n' +
           '   11 hello.c\n' +
@@ -711,11 +711,11 @@ Lesson.register({
           '  917 total' },
 
         { t: 'cal', kind: 'why', title: 'Đường cong kích thước kể trọn câu chuyện', x:
-          '<p><b>191 → 21 502:</b> phình 112 lần. Tiền xử lý chép cả một thư viện header vào.</p>' +
-          '<p><b>21 502 → 871:</b> co lại 25 lần. Vì <b>hầu hết nội dung header là khai báo, ' +
+          '<p><b>193 → 21 500:</b> phình 111 lần. Tiền xử lý chép cả một thư viện header vào.</p>' +
+          '<p><b>21 500 → 869:</b> co lại 25 lần. Vì <b>hầu hết nội dung header là khai báo, ' +
           'không sinh ra mã</b>. Trình biên dịch dùng chúng để kiểm tra kiểu rồi bỏ đi. Đây là ' +
           'điều quan trọng nhất trong bốn con số này.</p>' +
-          '<p><b>871 → 1 632:</b> gần gấp đôi. File <code>.o</code> ngoài mã máy còn mang bảng ' +
+          '<p><b>869 → 1 632:</b> gần gấp đôi. File <code>.o</code> ngoài mã máy còn mang bảng ' +
           'ký hiệu, bảng relocation và thông tin section.</p>' +
           '<p><b>1 632 → 15 952:</b> gấp gần 10. Trình liên kết thêm mã khởi động ' +
           '(<code>_start</code>, thứ thật sự chạy trước <code>main</code>), bảng liên kết động, ' +
@@ -733,7 +733,7 @@ Lesson.register({
           '.LC0:\n' +
           '\t.string\t"Embedded Linux"\n' +
           '.LC1:\n' +
-          '\t.string\t"Xin chao %s\\n"\n' +
+          '\t.string\t"Hello %s\\n"\n' +
           '.LC2:\n' +
           '\t.globl\tmain\n' +
           '\tmovl\t$0, %eax\n' +
@@ -744,12 +744,12 @@ Lesson.register({
           '\tmovl\t$0, %eax' },
 
         { t: 'cal', kind: 'info', title: 'movl $49 — bằng chứng trình biên dịch đã tính hộ bạn', x:
-          '<p>Trong mã C bạn viết <code>VUONG(7)</code>; trong file <code>.i</code> nó là ' +
+          '<p>Trong mã C bạn viết <code>SQUARE(7)</code>; trong file <code>.i</code> nó là ' +
           '<code>((7) * (7))</code>; trong assembly nó là hằng số <b>49</b>. Phép nhân đã ' +
           '<b>hoàn toàn biến mất</b> khỏi chương trình.</p>' +
           '<p>Kỹ thuật này gọi là <i>constant folding</i> — gấp hằng số. Nó chạy kể cả ở ' +
           '<code>-O0</code>. Ý nghĩa thực tế với nhúng rất lớn: bạn được phép viết ' +
-          '<code>#define TAN_SO (16 * 1000 * 1000)</code> cho dễ đọc mà <b>không tốn một chu ' +
+          '<code>#define FREQ_HZ (16 * 1000 * 1000)</code> cho dễ đọc mà <b>không tốn một chu ' +
           'kỳ CPU nào</b> lúc chạy — phép nhân đã xong từ lúc build.</p>' },
 
         { t: 'p', x:
@@ -794,77 +794,77 @@ Lesson.register({
           'tình để thiếu một định nghĩa để xem trình liên kết phản ứng thế nào.' },
 
         { t: 'code', where: 'wsl', name: 'tạo dự án hai file', code:
-          'mkdir -p lk && cd lk\n' +
-          'cat > phep.h <<\'EOF\'\n' +
-          '#ifndef PHEP_H\n' +
-          '#define PHEP_H\n' +
+          'mkdir -p link && cd link\n' +
+          'cat > ops.h <<\'EOF\'\n' +
+          '#ifndef OPS_H\n' +
+          '#define OPS_H\n' +
           '\n' +
-          'int cong(int a, int b);   /* khai bao — chua co than ham */\n' +
-          'int tru(int a, int b);    /* khai bao — se CO TINH khong dinh nghia */\n' +
+          'int add(int a, int b);   /* declaration -- no body yet */\n' +
+          'int sub(int a, int b);   /* declaration -- INTENTIONALLY left undefined */\n' +
           '\n' +
           '#endif\n' +
           'EOF\n' +
-          'cat > phep.c <<\'EOF\'\n' +
-          '#include "phep.h"\n' +
-          'int cong(int a, int b) { return a + b; }\n' +
+          'cat > ops.c <<\'EOF\'\n' +
+          '#include "ops.h"\n' +
+          'int add(int a, int b) { return a + b; }\n' +
           'EOF\n' +
           'cat > main.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
-          '#include "phep.h"\n' +
+          '#include "ops.h"\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("cong(2,3) = %d\\n", cong(2, 3));\n' +
-          '    printf("tru(9,4)  = %d\\n", tru(9, 4));\n' +
+          '    printf("add(2,3) = %d\\n", add(2, 3));\n' +
+          '    printf("sub(9,4)  = %d\\n", sub(9, 4));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF' },
 
         { t: 'p', x:
-          'Trước hết chạy <b>ba giai đoạn đầu</b> trên từng file. Chú ý: <code>tru()</code> ' +
+          'Trước hết chạy <b>ba giai đoạn đầu</b> trên từng file. Chú ý: <code>sub()</code> ' +
           'không tồn tại ở đâu cả, nhưng hãy đoán xem điều gì xảy ra.' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -Wall -c phep.c && echo "phep.o OK"\n' +
+          'gcc -Wall -c ops.c && echo "ops.o OK"\n' +
           'gcc -Wall -c main.c && echo "main.o OK"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'phep.o OK\n' +
+          'ops.o OK\n' +
           'main.o OK' },
 
         { t: 'cal', kind: 'why', title: 'Cả hai thành công — kể cả file gọi một hàm không tồn tại', x:
-          '<p>Đây là chỗ then chốt của cả bài. <code>main.c</code> gọi <code>tru()</code>, mà ' +
-          '<code>tru()</code> chưa được viết ở bất kỳ đâu. Vậy mà biên dịch <b>thành công ' +
+          '<p>Đây là chỗ then chốt của cả bài. <code>main.c</code> gọi <code>sub()</code>, mà ' +
+          '<code>sub()</code> chưa được viết ở bất kỳ đâu. Vậy mà biên dịch <b>thành công ' +
           'hoàn toàn</b>, không một cảnh báo, kể cả với <code>-Wall</code>.</p>' +
           '<p>Vì trình biên dịch chỉ nhìn <b>một file duy nhất</b>. Nó thấy khai báo trong ' +
-          '<code>phep.h</code>, thế là đủ để biết cách gọi. Nó sinh lệnh gọi với địa chỉ để ' +
-          'trống rồi ghi vào bảng ký hiệu rằng "tôi đang cần <code>tru</code>".</p>' +
+          '<code>ops.h</code>, thế là đủ để biết cách gọi. Nó sinh lệnh gọi với địa chỉ để ' +
+          'trống rồi ghi vào bảng ký hiệu rằng "tôi đang cần <code>sub</code>".</p>' +
           '<p><b>Đây chính là điều làm cho biên dịch riêng lẻ khả thi</b> — và cũng là điều ' +
           'làm cho <code>make</code> ở Bài 16 có tác dụng.</p>' },
 
         { t: 'code', where: 'wsl', code:
           'nm main.o\n' +
           'echo \'---\'\n' +
-          'nm phep.o' },
+          'nm ops.o' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '                 U cong\n' +
+          '                 U add\n' +
           '0000000000000000 T main\n' +
           '                 U printf\n' +
-          '                 U tru\n' +
+          '                 U sub\n' +
           '---\n' +
-          '0000000000000000 T cong' },
+          '0000000000000000 T add' },
 
         { t: 'p', x:
           '<code>main.o</code> có <b>ba</b> chữ <code>U</code> và <b>một</b> chữ ' +
-          '<code>T</code>; <code>phep.o</code> có một chữ <code>T</code>. Ghép lại: ' +
-          '<code>cong</code> có nhà cung cấp, <code>printf</code> sẽ tìm trong ' +
-          '<code>libc</code>, còn <code>tru</code> thì không ai có. Chạy giai đoạn 4:' },
+          '<code>T</code>; <code>ops.o</code> có một chữ <code>T</code>. Ghép lại: ' +
+          '<code>add</code> có nhà cung cấp, <code>printf</code> sẽ tìm trong ' +
+          '<code>libc</code>, còn <code>sub</code> thì không ai có. Chạy giai đoạn 4:' },
 
-        { t: 'code', where: 'wsl', code: 'gcc -o chuongtrinh main.o phep.o' },
+        { t: 'code', where: 'wsl', code: 'gcc -o program main.o ops.o' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '/usr/bin/x86_64-linux-gnu-ld.bfd: main.o: in function `main\':\n' +
-          'main.c:(.text+0x3a): undefined reference to `tru\'\n' +
+          'main.c:(.text+0x3a): undefined reference to `sub\'\n' +
           'collect2: error: ld returned 1 exit status' },
 
         { t: 'cal', kind: 'info', title: 'Đọc thông báo lỗi này cho kỹ — bạn sẽ gặp nó suốt đời', x:
@@ -873,37 +873,37 @@ Lesson.register({
           '<p><code>main.o: in function \'main\'</code>: ai đang cần.<br>' +
           '<code>main.c:(.text+0x3a)</code>: cần ở byte thứ <code>0x3a</code> trong section ' +
           '<code>.text</code>.<br>' +
-          '<code>undefined reference to \'tru\'</code>: cần cái gì.</p>' +
+          '<code>undefined reference to \'sub\'</code>: cần cái gì.</p>' +
           '<p>Ba câu hỏi cần tự đặt khi gặp lỗi này: (1) tôi đã <b>viết</b> hàm đó chưa? ' +
           '(2) file <code>.o</code> chứa nó có nằm trong lệnh liên kết không? (3) nó có bị ' +
           '<code>static</code> che không? Ở đây là trường hợp (1).</p>' },
 
         { t: 'code', where: 'wsl', name: 'bổ sung định nghĩa còn thiếu', code:
-          'cat >> phep.c <<\'EOF\'\n' +
-          'int tru(int a, int b) { return a - b; }\n' +
+          'cat >> ops.c <<\'EOF\'\n' +
+          'int sub(int a, int b) { return a - b; }\n' +
           'EOF\n' +
-          'gcc -Wall -c phep.c\n' +
-          'nm phep.o\n' +
-          'gcc -o chuongtrinh main.o phep.o && ./chuongtrinh' },
+          'gcc -Wall -c ops.c\n' +
+          'nm ops.o\n' +
+          'gcc -o program main.o ops.o && ./program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '0000000000000000 T cong\n' +
-          '0000000000000018 T tru\n' +
-          'cong(2,3) = 5\n' +
-          'tru(9,4)  = 5' },
+          '0000000000000000 T add\n' +
+          '0000000000000018 T sub\n' +
+          'add(2,3) = 5\n' +
+          'sub(9,4)  = 5' },
 
         { t: 'p', x:
           'Chữ <code>U</code> đã tìm được chữ <code>T</code> tương ứng. Giờ thử lỗi ngược lại: ' +
           '<b>hai</b> nơi cùng định nghĩa một hàm.' },
 
         { t: 'code', where: 'wsl', code:
-          'echo \'int cong(int a, int b) { return a + b; }\' > trung.c\n' +
-          'gcc -c trung.c\n' +
-          'gcc -o loi main.o phep.o trung.o' },
+          'echo \'int add(int a, int b) { return a + b; }\' > dup.c\n' +
+          'gcc -c dup.c\n' +
+          'gcc -o conflict main.o ops.o dup.o' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '/usr/bin/x86_64-linux-gnu-ld.bfd: trung.o: in function `cong\':\n' +
-          'trung.c:(.text+0x0): multiple definition of `cong\'; phep.o:phep.c:(.text+0x0): first defined here\n' +
+          '/usr/bin/x86_64-linux-gnu-ld.bfd: dup.o: in function `add\':\n' +
+          'dup.c:(.text+0x0): multiple definition of `add\'; ops.o:ops.c:(.text+0x0): first defined here\n' +
           'collect2: error: ld returned 1 exit status' },
 
         { t: 'cal', kind: 'why', title: 'Hai lỗi đối xứng, cùng một nguyên tắc', x:
@@ -930,23 +930,23 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'cd ~/bai15\n' +
-          'cat > tienich.h <<\'EOF\'\n' +
-          'static inline int nhan_doi(int x) { return x * 2; }\n' +
+          'cat > util.h <<\'EOF\'\n' +
+          'static inline int twice(int x) { return x * 2; }\n' +
           'EOF\n' +
           'cat > e1.c <<\'EOF\'\n' +
-          '#include "tienich.h"\n' +
-          '#include "tienich.h"\n' +
-          'int main(void) { return nhan_doi(2); }\n' +
+          '#include "util.h"\n' +
+          '#include "util.h"\n' +
+          'int main(void) { return twice(2); }\n' +
           'EOF\n' +
           'gcc -c e1.c -o /dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'In file included from e1.c:2:\n' +
-          'tienich.h:1:19: error: redefinition of \u2018nhan_doi\u2019\n' +
-          '    1 | static inline int nhan_doi(int x) { return x * 2; }\n' +
-          '      |                   ^~~~~~~~\n' +
+          'util.h:1:19: error: redefinition of \u2018twice\u2019\n' +
+          '    1 | static inline int twice(int x) { return x * 2; }\n' +
+          '      |                   ^~~~~\n' +
           'In file included from e1.c:1:\n' +
-          'tienich.h:1:19: note: previous definition of \u2018nhan_doi\u2019 with type \u2018int(int)\u2019' },
+          'util.h:1:19: note: previous definition of \u2018twice\u2019 with type \u2018int(int)\u2019' },
 
         { t: 'p', x:
           'Chú ý hai dòng <code>In file included from e1.c:2</code> và ' +
@@ -954,18 +954,18 @@ Lesson.register({
           'nhau</b> dẫn tới cùng một định nghĩa. Thêm guard vào rồi thử lại:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > tienich.h <<\'EOF\'\n' +
-          '#ifndef TIENICH_H\n' +
-          '#define TIENICH_H\n' +
+          'cat > util.h <<\'EOF\'\n' +
+          '#ifndef UTIL_H\n' +
+          '#define UTIL_H\n' +
           '\n' +
-          'static inline int nhan_doi(int x) { return x * 2; }\n' +
+          'static inline int twice(int x) { return x * 2; }\n' +
           '\n' +
-          '#endif /* TIENICH_H */\n' +
+          '#endif /* UTIL_H */\n' +
           'EOF\n' +
-          'gcc -c e1.c -o /dev/null && echo "OK — bien dich thanh cong"' },
+          'gcc -c e1.c -o /dev/null && echo "OK - compile succeeded"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'OK — bien dich thanh cong' },
+          'OK - compile succeeded' },
 
         { t: 'cal', kind: 'warn', title: 'Vì sao ví dụ này dùng hàm chứ không dùng struct', x:
           '<p>Nếu bạn thử với <code>struct diem { int x; int y; };</code> thay vì một hàm, ' +
@@ -1013,7 +1013,7 @@ Lesson.register({
          '<b>Giai đoạn 2.</b> Bạn gọi một hàm mà chưa có khai báo nào',
          'Thiếu <code>#include</code>. Đừng bỏ qua: sau đó bạn sẽ ăn tiếp một <code>undefined reference</code> ở giai đoạn 4. Luôn bật <code>-Wall</code>'],
 
-        ['<code>undefined reference to ‘tru’</code><br><code>collect2: error: ld returned 1</code>',
+        ['<code>undefined reference to ‘sub’</code><br><code>collect2: error: ld returned 1</code>',
          '<b>Giai đoạn 4.</b> Có chữ <code>U</code> mà không có chữ <code>T</code> nào khớp',
          'Kiểm tra ba việc: hàm đã được <b>viết</b> chưa; file <code>.o</code> chứa nó có <b>trong lệnh liên kết</b> không; nó có bị <code>static</code> che không. Dùng <code>nm *.o | grep tên_hàm</code>'],
 
@@ -1021,7 +1021,7 @@ Lesson.register({
          '<b>Giai đoạn 4.</b> Header cho <b>khai báo</b>, thư viện cho <b>định nghĩa</b> — bạn mới có cái thứ nhất',
          'Thêm <code>-lm</code> vào <b>cuối</b> lệnh. Đây là ví dụ rõ nhất cho ranh giới khai báo/định nghĩa. Bài 17 sẽ nói kỹ về <code>-l</code>'],
 
-        ['<code>multiple definition of ‘cong’; …first defined here</code>',
+        ['<code>multiple definition of ‘add’; …first defined here</code>',
          '<b>Giai đoạn 4.</b> Hai file <code>.o</code> cùng cung cấp một ký hiệu',
          'Gần như luôn do đặt <b>định nghĩa</b> trong file <code>.h</code>. Chuyển thân hàm sang <code>.c</code>, chỉ để lại khai báo trong header'],
 
@@ -1048,7 +1048,7 @@ Lesson.register({
     { t: 'recap', title: 'Tóm tắt Bài 15', items: [
       'Một lệnh <b>gcc</b> gọi ra bốn chương trình nối tiếp: <b>cc1</b> (tiền xử lý + biên dịch), <b>as</b> (hợp dịch), <b>collect2/ld</b> (liên kết). Xem tận mắt bằng <code>gcc -v</code>.',
       'Bốn cờ để dừng lại giữa chừng: <code>-E</code> sau giai đoạn 1, <code>-S</code> sau giai đoạn 2, <code>-c</code> sau giai đoạn 3, không cờ gì thì chạy hết cả bốn. <code>-save-temps</code> chạy hết nhưng <b>giữ lại</b> mọi file trung gian.',
-      'Đường cong kích thước của <code>hello.c</code>: <b>191 → 21 502 → 871 → 1 632 → 15 952</b> byte. Phình <b>112 lần</b> ở giai đoạn 1 rồi co <b>25 lần</b> ở giai đoạn 2 — vì hầu hết nội dung header là <b>khai báo, không sinh mã</b>.',
+      'Đường cong kích thước của <code>hello.c</code>: <b>193 → 21 500 → 869 → 1 632 → 15 952</b> byte. Phình <b>111 lần</b> ở giai đoạn 1 rồi co <b>25 lần</b> ở giai đoạn 2 — vì hầu hết nội dung header là <b>khai báo, không sinh mã</b>.',
       'Bộ tiền xử lý <b>chỉ thay văn bản</b>. Nó không biết C, không biết toán, không kiểm tra kiểu. Đó là nguồn gốc của cả ba cái bẫy macro: thiếu ngoặc quanh tham số (<b>11</b> thay vì 25), thiếu ngoặc quanh biểu thức (<b>21</b> thay vì 30), và tham số có tác dụng phụ bị tính <b>hai lần</b>.',
       '<b>Khai báo</b> nói "cái này tồn tại ở đâu đó" — đủ để giai đoạn 2 chạy xong. <b>Định nghĩa</b> mới tạo ra mã thật — cần đến ở giai đoạn 4. Chính khoảng cách này cho phép biên dịch từng file riêng lẻ, và là nền tảng của <code>make</code>.',
       '<code>nm</code> đọc bảng ký hiệu: <b>T</b> = file này <b>cung cấp</b>, <b>U</b> = file này <b>cần</b>. Trình liên kết chỉ làm một việc — ghép mọi <b>U</b> với đúng một <b>T</b>.',
@@ -1062,7 +1062,7 @@ Lesson.register({
       '<code>.c</code> — và mỗi lần bạn sửa <b>một</b> dòng, bạn chỉ muốn biên dịch lại đúng ' +
       '<b>một</b> file đó.</p>' +
       '<p><b>Bài 16 — Make và Makefile</b> giải bài toán ấy. Bạn sẽ viết Makefile cho chính ' +
-      'thư mục <code>lk/</code> vừa làm, sửa một dòng trong <code>phep.c</code> và <b>đo</b> ' +
+      'thư mục <code>link/</code> vừa làm, sửa một dòng trong <code>ops.c</code> và <b>đo</b> ' +
       'xem <code>make</code> chỉ biên dịch lại bao nhiêu file. Bạn cũng sẽ thấy vì sao ' +
       '<code>make</code> so <b>thời gian sửa file</b> chứ không so nội dung — và điều đó gây ' +
       'ra loại lỗi build khó chịu nào.</p>' }
@@ -1085,7 +1085,7 @@ Lesson.register({
       why: 'Header chủ yếu chứa <b>khai báo</b> (nguyên mẫu hàm, typedef, struct) và các dòng đánh dấu <code>#</code>. Trình biên dịch dùng khai báo để kiểm tra kiểu rồi bỏ đi — chỉ <b>định nghĩa</b> mới sinh ra mã. Đây chính là lý do khai báo và định nghĩa phải tách nhau, và cũng là lý do <code>#include</code> một header nặng không làm chương trình của bạn to lên.'
     },
     {
-      q: '<code>gcc -Wall -c main.c</code> chạy thành công, không một cảnh báo, dù <code>main.c</code> gọi hàm <code>tru()</code> chưa được viết ở bất kỳ đâu. Vì sao đây là hành vi đúng?',
+      q: '<code>gcc -Wall -c main.c</code> chạy thành công, không một cảnh báo, dù <code>main.c</code> gọi hàm <code>sub()</code> chưa được viết ở bất kỳ đâu. Vì sao đây là hành vi đúng?',
       opts: [
         'Vì -Wall không kiểm tra hàm, phải dùng -Wextra mới thấy',
         'Vì gcc giả định hàm nằm trong thư viện chuẩn',
@@ -1093,10 +1093,10 @@ Lesson.register({
         'Vì -c bỏ qua mọi kiểm tra, phải liên kết mới kiểm tra được'
       ],
       a: 2,
-      why: 'Trình biên dịch làm việc trên <b>một đơn vị dịch</b> tại một thời điểm. Khai báo <code>int tru(int, int);</code> cho nó biết đủ để sinh lệnh <code>call</code> với địa chỉ để trống, rồi ghi <code>U tru</code> vào bảng ký hiệu. Chỉ giai đoạn 4 mới nhìn thấy toàn bộ chương trình và phát hiện thiếu. Chính sự "thiển cận có chủ ý" này cho phép biên dịch riêng lẻ — nền tảng của mọi hệ thống build.'
+      why: 'Trình biên dịch làm việc trên <b>một đơn vị dịch</b> tại một thời điểm. Khai báo <code>int sub(int, int);</code> cho nó biết đủ để sinh lệnh <code>call</code> với địa chỉ để trống, rồi ghi <code>U sub</code> vào bảng ký hiệu. Chỉ giai đoạn 4 mới nhìn thấy toàn bộ chương trình và phát hiện thiếu. Chính sự "thiển cận có chủ ý" này cho phép biên dịch riêng lẻ — nền tảng của mọi hệ thống build.'
     },
     {
-      q: '<code>#define TANG(x) (x) + 1</code>. Kết quả của <code>10 * TANG(2)</code> là bao nhiêu và vì sao?',
+      q: '<code>#define INCR(x) (x) + 1</code>. Kết quả của <code>10 * INCR(2)</code> là bao nhiêu và vì sao?',
       opts: [
         '30 — vì tham số đã được bọc ngoặc',
         '21 — vì sau khi thay văn bản, biểu thức là 10 * (2) + 1',
@@ -1104,21 +1104,21 @@ Lesson.register({
         'Lỗi biên dịch — macro thiếu ngoặc ngoài'
       ],
       a: 1,
-      why: 'Bộ tiền xử lý <b>chỉ thay văn bản</b>, không có khái niệm ưu tiên phép toán. <code>TANG(2)</code> trở thành đúng chuỗi ký tự <code>(2) + 1</code>, nên cả biểu thức là <code>10 * (2) + 1</code> = <b>21</b>. Ngoặc quanh tham số không cứu được; phải có ngoặc quanh <b>cả thân macro</b>: <code>#define TANG(x) ((x) + 1)</code>. Và không có cảnh báo nào — mã hoàn toàn hợp lệ với trình biên dịch.'
+      why: 'Bộ tiền xử lý <b>chỉ thay văn bản</b>, không có khái niệm ưu tiên phép toán. <code>INCR(2)</code> trở thành đúng chuỗi ký tự <code>(2) + 1</code>, nên cả biểu thức là <code>10 * (2) + 1</code> = <b>21</b>. Ngoặc quanh tham số không cứu được; phải có ngoặc quanh <b>cả thân macro</b>: <code>#define INCR(x) ((x) + 1)</code>. Và không có cảnh báo nào — mã hoàn toàn hợp lệ với trình biên dịch.'
     },
     {
-      q: 'Bạn thấy: <code>/usr/bin/x86_64-linux-gnu-ld.bfd: main.o: undefined reference to ‘doc_cam_bien’</code>. Nguyên nhân nào <b>không</b> thể là thủ phạm?',
+      q: 'Bạn thấy: <code>/usr/bin/x86_64-linux-gnu-ld.bfd: main.o: undefined reference to ‘read_sensor’</code>. Nguyên nhân nào <b>không</b> thể là thủ phạm?',
       opts: [
-        'Bạn quên đưa file cambien.o vào lệnh liên kết',
+        'Bạn quên đưa file sensor.o vào lệnh liên kết',
         'Hàm được định nghĩa là static nên chỉ nhìn thấy trong file của nó',
-        'Bạn quên #include "cambien.h" trong main.c',
+        'Bạn quên #include "sensor.h" trong main.c',
         'Hàm mới chỉ có khai báo trong header, chưa ai viết thân hàm'
       ],
       a: 2,
       why: 'Thiếu <code>#include</code> gây lỗi hoặc cảnh báo ở <b>giai đoạn 2</b> (<code>implicit declaration</code> — hoặc lỗi thẳng với chuẩn C mới), tức bạn sẽ không đi được tới giai đoạn 4 với thông báo này. Ba nguyên nhân còn lại đều đúng: chúng đều tạo ra một chữ <b>U</b> mà không có chữ <b>T</b> nào khớp. Hãy tập thói quen đọc tên chương trình báo lỗi — thấy <code>ld</code> là biết ngay lỗi thuộc giai đoạn 4.'
     },
     {
-      q: 'Header <code>tienich.h</code> của bạn có header guard đầy đủ. Vậy mà khi liên kết bạn vẫn nhận <code>multiple definition of ‘khoi_tao’</code>. Nguyên nhân khả dĩ nhất là gì?',
+      q: 'Header <code>util.h</code> của bạn có header guard đầy đủ. Vậy mà khi liên kết bạn vẫn nhận <code>multiple definition of ‘init’</code>. Nguyên nhân khả dĩ nhất là gì?',
       opts: [
         'Guard bị viết sai tên macro nên không có tác dụng',
         'Header chứa định nghĩa hàm chứ không chỉ khai báo, và được include từ nhiều file .c khác nhau',
@@ -1129,7 +1129,7 @@ Lesson.register({
       why: 'Header guard chỉ chặn include lặp <b>trong cùng một đơn vị dịch</b>. Nếu <code>a.c</code> và <code>b.c</code> cùng include header chứa <b>định nghĩa</b>, mỗi file được một bản sao hợp lệ — guard không hề biết tới file kia. Kết quả là hai chữ <b>T</b> cùng tên ở giai đoạn 4. Quy tắc: header chỉ chứa <b>khai báo</b>; ngoại lệ duy nhất là <code>static inline</code>, vì <code>static</code> giữ ký hiệu ở phạm vi từng file.'
     },
     {
-      q: 'Trong <code>hello.c</code> bạn viết <code>VUONG(7)</code>; file <code>.i</code> cho thấy <code>((7) * (7))</code>; nhưng assembly lại là <code>movl $49, %esi</code>. Phép nhân biến mất ở giai đoạn nào?',
+      q: 'Trong <code>hello.c</code> bạn viết <code>SQUARE(7)</code>; file <code>.i</code> cho thấy <code>((7) * (7))</code>; nhưng assembly lại là <code>movl $49, %esi</code>. Phép nhân biến mất ở giai đoạn nào?',
       opts: [
         'Giai đoạn 1 — bộ tiền xử lý đã tính sẵn',
         'Giai đoạn 2 — trình biên dịch gấp hằng số',
@@ -1137,7 +1137,7 @@ Lesson.register({
         'Giai đoạn 4 — trình liên kết tối ưu lúc ghép mã'
       ],
       a: 1,
-      why: 'Chuỗi ba bằng chứng chỉ thẳng vào giai đoạn 2: file <code>.i</code> (đầu ra giai đoạn 1) vẫn còn dấu <code>*</code>, còn file <code>.s</code> (đầu ra giai đoạn 2) đã là hằng <b>49</b>. Kỹ thuật này gọi là <i>constant folding</i> và chạy kể cả ở <code>-O0</code>. Với nhúng nó rất có giá trị: <code>#define TAN_SO (16 * 1000 * 1000)</code> viết cho dễ đọc mà không tốn chu kỳ CPU nào lúc chạy.'
+      why: 'Chuỗi ba bằng chứng chỉ thẳng vào giai đoạn 2: file <code>.i</code> (đầu ra giai đoạn 1) vẫn còn dấu <code>*</code>, còn file <code>.s</code> (đầu ra giai đoạn 2) đã là hằng <b>49</b>. Kỹ thuật này gọi là <i>constant folding</i> và chạy kể cả ở <code>-O0</code>. Với nhúng nó rất có giá trị: <code>#define FREQ_HZ (16 * 1000 * 1000)</code> viết cho dễ đọc mà không tốn chu kỳ CPU nào lúc chạy.'
     }
   ]
 });

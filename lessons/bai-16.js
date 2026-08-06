@@ -9,8 +9,8 @@ Lesson.register({
   intro:
     'Ở Bài 15 bạn gõ tay hai lệnh <code>gcc -c</code> rồi một lệnh liên kết. Với ba file thì ' +
     'còn chịu được. Trong bài này bạn sẽ dựng một dự án <b>60 file</b> và đo: build đầy đủ mất ' +
-    '<b>1,210 giây</b>, còn sửa một file rồi build lại chỉ mất <b>0,136 giây</b> — nhanh hơn ' +
-    '<b>8,9 lần</b>. Với kernel Linux, cùng tỉ lệ ấy là khác biệt giữa <i>đi uống cà phê</i> và ' +
+    '<b>1,535 giây</b>, còn sửa một file rồi build lại chỉ mất <b>0,187 giây</b> — nhanh hơn ' +
+    '<b>8,2 lần</b>. Với kernel Linux, cùng tỉ lệ ấy là khác biệt giữa <i>đi uống cà phê</i> và ' +
     '<i>bấm build rồi xem kết quả ngay</i>. Công cụ tạo ra khác biệt đó tên là <b>make</b>, và ' +
     'nó chỉ biết làm đúng một việc: <b>so sánh thời gian sửa file</b>. Toàn bộ sức mạnh lẫn ' +
     'toàn bộ cạm bẫy của nó đều bắt nguồn từ câu vừa rồi.',
@@ -49,20 +49,20 @@ Lesson.register({
     { t: 'table',
       head: ['Việc', 'Thời gian đo được', 'So với build đầy đủ'],
       rows: [
-        ['Build đầy đủ, một tiến trình (<code>make</code>)', '<b>1,210 s</b>', '—'],
-        ['Sửa <b>một</b> file rồi <code>make</code>', '<b>0,136 s</b>', 'nhanh hơn <b>8,9 lần</b>'],
-        ['Không sửa gì, chạy <code>make</code>', '<b>0,003 s</b>', 'nhanh hơn <b>403 lần</b>'],
-        ['Build đầy đủ, 6 tiến trình (<code>make -j6</code>)', '<b>0,465 s</b>', 'nhanh hơn <b>2,6 lần</b>']
+        ['Build đầy đủ, một tiến trình (<code>make</code>)', '<b>1,535 s</b>', '—'],
+        ['Sửa <b>một</b> file rồi <code>make</code>', '<b>0,187 s</b>', 'nhanh hơn <b>8,2 lần</b>'],
+        ['Không sửa gì, chạy <code>make</code>', '<b>0,004 s</b>', 'nhanh hơn <b>384 lần</b>'],
+        ['Build đầy đủ, 6 tiến trình (<code>make -j6</code>)', '<b>0,555 s</b>', 'nhanh hơn <b>2,8 lần</b>']
       ]},
 
     { t: 'cal', kind: 'why', title: 'Hai cách tăng tốc, đừng nhầm lẫn chúng', x:
       '<p>Bảng trên chứa <b>hai</b> kỹ thuật khác hẳn nhau.</p>' +
       '<p><b>Build tăng dần</b> (dòng 2 và 3) — làm <i>ít việc hơn</i>. Đây là đóng góp chính ' +
-      'của <code>make</code>, và nó tiết kiệm <b>8,9 lần</b>.</p>' +
+      'của <code>make</code>, và nó tiết kiệm <b>8,2 lần</b>.</p>' +
       '<p><b>Build song song</b> <code>-j6</code> (dòng 4) — làm <i>cùng lượng việc</i> nhưng ' +
-      'trên 6 lõi cùng lúc. Tiết kiệm <b>2,6 lần</b> trên máy 6 CPU của bạn.</p>' +
-      '<p>Chú ý 2,6 chứ không phải 6: bước liên kết cuối cùng không song song được, và các ' +
-      'tiến trình còn tranh nhau ổ đĩa. Đây là lý do bạn nên nhớ tỉ lệ <b>2,6 trên 6</b> này — trong ' +
+      'trên 6 lõi cùng lúc. Tiết kiệm <b>2,8 lần</b> trên máy 6 CPU của bạn.</p>' +
+      '<p>Chú ý 2,8 chứ không phải 6: bước liên kết cuối cùng không song song được, và các ' +
+      'tiến trình còn tranh nhau ổ đĩa. Đây là lý do bạn nên nhớ tỉ lệ <b>2,8 trên 6</b> này — trong ' +
       'thực tế, tăng <code>-j</code> lên gấp đôi <b>không</b> làm build nhanh gấp đôi.</p>' +
       '<p>Hai kỹ thuật này <b>nhân</b> với nhau, không thay thế nhau. Ở <b>Chặng 07</b> khi ' +
       'build kernel, bạn sẽ dùng cả hai.</p>' },
@@ -70,25 +70,25 @@ Lesson.register({
     { t: 'fig',
       svg:
         '<svg viewBox="0 0 720 250" width="720" role="img" aria-label="So sánh biên dịch lại toàn bộ 60 file với biên dịch lại đúng một file">' +
-        '<text class="d-t" x="20" y="24">Sua 1 dong trong mo7.c — sau do lam gi?</text>' +
+        '<text class="d-t" x="20" y="24">Sua 1 dong trong mod7.c — sau do lam gi?</text>' +
 
         '<rect class="d-box-w" x="20" y="44" width="320" height="86" rx="8"/>' +
         '<text class="d-t" x="180" y="68" text-anchor="middle">Bang tay: bien dich lai tat ca</text>' +
         '<text class="d-ts" x="180" y="88" text-anchor="middle">60 lan chay gcc + 1 lan lien ket</text>' +
-        '<text class="d-t" x="180" y="114" text-anchor="middle">1,210 s</text>' +
+        '<text class="d-t" x="180" y="114" text-anchor="middle">1,535 s</text>' +
 
         '<rect class="d-box-g" x="380" y="44" width="320" height="86" rx="8"/>' +
         '<text class="d-t" x="540" y="68" text-anchor="middle">make: chi lam phan da cu</text>' +
         '<text class="d-ts" x="540" y="88" text-anchor="middle">1 lan chay gcc + 1 lan lien ket</text>' +
-        '<text class="d-t" x="540" y="114" text-anchor="middle">0,136 s</text>' +
+        '<text class="d-t" x="540" y="114" text-anchor="middle">0,187 s</text>' +
 
         '<line class="d-line" x1="340" y1="87" x2="374" y2="87"/>' +
         '<path class="d-arrow" d="M374 87 l-8 -4 v8 z"/>' +
 
         '<rect class="d-box" x="20" y="150" width="680" height="80" rx="8"/>' +
         '<text class="d-t" x="40" y="176">make lam duoc dieu do bang dung mot phep so sanh:</text>' +
-        '<text class="d-tm" x="40" y="202">mo7.o cu hon mo7.c ?  -&gt; chay lai gcc</text>' +
-        '<text class="d-tm" x="40" y="220">mo7.o moi hon mo7.c ? -&gt; bo qua</text>' +
+        '<text class="d-tm" x="40" y="202">mod7.o cu hon mod7.c ?  -&gt; chay lai gcc</text>' +
+        '<text class="d-tm" x="40" y="220">mod7.o moi hon mod7.c ? -&gt; bo qua</text>' +
         '</svg>',
       cap:
         'Toàn bộ giá trị của make nằm ở phép so sánh hai dòng cuối. Không có trí tuệ nào ở ' +
@@ -107,7 +107,7 @@ Lesson.register({
       svg:
         '<svg viewBox="0 0 720 210" width="720" role="img" aria-label="Giải phẫu một quy tắc make gồm mục tiêu, điều kiện tiên quyết và công thức">' +
         '<rect class="d-box" x="20" y="16" width="680" height="76" rx="8"/>' +
-        '<text class="d-tm" x="44" y="48">main.o: main.c phep.h inra.h</text>' +
+        '<text class="d-tm" x="44" y="48">main.o: main.c ops.h print.h</text>' +
         '<text class="d-ts" x="44" y="76">|--TAB--&gt;|</text>' +
         '<text class="d-tm" x="132" y="76">gcc -Wall -c main.c</text>' +
 
@@ -137,23 +137,23 @@ Lesson.register({
         'không phải dấu cách.' },
 
     { t: 'code', where: 'file', name: 'Makefile — dạng sơ khai nhất', code:
-      'chuongtrinh: main.o phep.o inra.o\n' +
-      '\tgcc -o chuongtrinh main.o phep.o inra.o\n' +
+      'program: main.o ops.o print.o\n' +
+      '\tgcc -o program main.o ops.o print.o\n' +
       '\n' +
-      'main.o: main.c phep.h inra.h\n' +
+      'main.o: main.c ops.h print.h\n' +
       '\tgcc -Wall -c main.c\n' +
       '\n' +
-      'phep.o: phep.c phep.h\n' +
-      '\tgcc -Wall -c phep.c\n' +
+      'ops.o: ops.c ops.h\n' +
+      '\tgcc -Wall -c ops.c\n' +
       '\n' +
-      'inra.o: inra.c inra.h\n' +
-      '\tgcc -Wall -c inra.c\n' +
+      'print.o: print.c print.h\n' +
+      '\tgcc -Wall -c print.c\n' +
       '\n' +
       'clean:\n' +
-      '\trm -f chuongtrinh main.o phep.o inra.o',
+      '\trm -f program main.o ops.o print.o',
       notes: [
         'Chín dòng lệnh, bốn quy tắc. Mục tiêu đầu tiên trong file — ở đây là ' +
-        '<code>chuongtrinh</code> — là mục tiêu <b>mặc định</b>: gõ <code>make</code> không kèm ' +
+        '<code>program</code> — là mục tiêu <b>mặc định</b>: gõ <code>make</code> không kèm ' +
         'tham số thì nó làm mục tiêu này.'
       ] },
 
@@ -174,14 +174,14 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       'gcc -Wall -c main.c\n' +
-      'gcc -Wall -c phep.c\n' +
-      'gcc -Wall -c inra.c\n' +
-      'gcc -o chuongtrinh main.o phep.o inra.o' },
+      'gcc -Wall -c ops.c\n' +
+      'gcc -Wall -c print.c\n' +
+      'gcc -o program main.o ops.o print.o' },
 
     { t: 'p', x: 'Chạy lại ngay lập tức, nó không làm gì cả:' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'make: \'chuongtrinh\' is up to date.' },
+      'make: \'program\' is up to date.' },
 
     { t: 'cal', kind: 'info', title: 'make in ra chính lệnh nó chạy — và đó là tính năng', x:
       '<p>Mặc định <code>make</code> <b>vọng lại</b> từng lệnh trước khi thực thi. Nhờ vậy bạn ' +
@@ -209,7 +209,7 @@ Lesson.register({
       'file, <b>không</b> tính mã băm, <b>không</b> biết bạn đã sửa gì.</p>' +
       '<p>Lựa chọn này có lý do: so hai con số 64-bit tốn vài nano giây, còn đọc và băm 60 file ' +
       'thì tốn hàng chục mili giây. Đó là vì sao <code>make</code> không việc gì mất ' +
-      '<b>0,003 s</b> khi không có gì thay đổi.</p>' +
+      '<b>0,004 s</b> khi không có gì thay đổi.</p>' +
       '<p>Nhưng cái giá phải trả rất cụ thể, và bạn sẽ tự tay gây ra nó ở bước 4: nếu quy tắc ' +
       '<b>không khai báo</b> một phụ thuộc, <code>make</code> sẽ không bao giờ biết tới nó.</p>' },
 
@@ -223,13 +223,13 @@ Lesson.register({
         '<rect class="d-box-a" x="20" y="32" width="150" height="38" rx="6"/>' +
         '<text class="d-tm" x="95" y="56" text-anchor="middle">main.c</text>' +
         '<rect class="d-box-a" x="20" y="86" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="95" y="110" text-anchor="middle">phep.c</text>' +
+        '<text class="d-tm" x="95" y="110" text-anchor="middle">ops.c</text>' +
         '<rect class="d-box-a" x="20" y="140" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="95" y="164" text-anchor="middle">inra.c</text>' +
+        '<text class="d-tm" x="95" y="164" text-anchor="middle">print.c</text>' +
         '<rect class="d-box-w" x="20" y="200" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="95" y="224" text-anchor="middle">phep.h</text>' +
+        '<text class="d-tm" x="95" y="224" text-anchor="middle">ops.h</text>' +
         '<rect class="d-box-w" x="20" y="248" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="95" y="272" text-anchor="middle">inra.h</text>' +
+        '<text class="d-tm" x="95" y="272" text-anchor="middle">print.h</text>' +
 
         '<line class="d-line" x1="170" y1="51" x2="286" y2="51"/>' +
         '<path class="d-arrow" d="M286 51 l-8 -4 v8 z"/>' +
@@ -249,9 +249,9 @@ Lesson.register({
         '<rect class="d-box" x="292" y="32" width="150" height="38" rx="6"/>' +
         '<text class="d-tm" x="367" y="56" text-anchor="middle">main.o</text>' +
         '<rect class="d-box" x="292" y="86" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="367" y="110" text-anchor="middle">phep.o</text>' +
+        '<text class="d-tm" x="367" y="110" text-anchor="middle">ops.o</text>' +
         '<rect class="d-box" x="292" y="140" width="150" height="38" rx="6"/>' +
-        '<text class="d-tm" x="367" y="164" text-anchor="middle">inra.o</text>' +
+        '<text class="d-tm" x="367" y="164" text-anchor="middle">print.o</text>' +
 
         '<line class="d-line" x1="442" y1="51" x2="556" y2="98"/>' +
         '<path class="d-arrow" d="M556 98 l-8 -1 l1 8 z"/>' +
@@ -261,31 +261,31 @@ Lesson.register({
         '<path class="d-arrow" d="M556 112 l-7 -5 l-1 8 z"/>' +
 
         '<rect class="d-box-p" x="562" y="86" width="138" height="38" rx="6"/>' +
-        '<text class="d-tm" x="631" y="110" text-anchor="middle">chuongtrinh</text>' +
+        '<text class="d-tm" x="631" y="110" text-anchor="middle">program</text>' +
 
-        '<text class="d-ts" x="292" y="212">Sua phep.h -&gt; main.o va phep.o cu hon no</text>' +
+        '<text class="d-ts" x="292" y="212">Sua ops.h -&gt; main.o va ops.o cu hon no</text>' +
         '<text class="d-ts" x="292" y="230">-&gt; hai file nay bien dich lai</text>' +
-        '<text class="d-ts" x="292" y="252">-&gt; chuongtrinh gio cu hon chung</text>' +
-        '<text class="d-ts" x="292" y="270">-&gt; lien ket lai. inra.o KHONG bi dung toi.</text>' +
+        '<text class="d-ts" x="292" y="252">-&gt; program gio cu hon chung</text>' +
+        '<text class="d-ts" x="292" y="270">-&gt; lien ket lai. print.o KHONG bi dung toi.</text>' +
         '</svg>',
       cap:
         'Sửa một header lan truyền lên trên theo đúng các mũi tên đã khai báo — và chỉ theo ' +
         'những mũi tên đã khai báo.' },
 
     { t: 'p', x:
-      'Đây là bằng chứng thật: sau khi build xong, chỉ cần <code>touch phep.h</code> (đổi thời ' +
+      'Đây là bằng chứng thật: sau khi build xong, chỉ cần <code>touch ops.h</code> (đổi thời ' +
       'gian sửa mà không đổi nội dung) rồi chạy lại <code>make</code>:' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'gcc -Wall -c main.c\n' +
-      'gcc -Wall -c phep.c\n' +
-      'gcc -o chuongtrinh main.o phep.o inra.o' },
+      'gcc -Wall -c ops.c\n' +
+      'gcc -o program main.o ops.o print.o' },
 
-    { t: 'cal', kind: 'info', title: 'inra.o vắng mặt — đó chính là điều đáng chú ý', x:
-      '<p><code>make</code> biên dịch lại <code>main.o</code> và <code>phep.o</code> vì cả hai ' +
-      'khai báo <code>phep.h</code> là điều kiện tiên quyết. <code>inra.o</code> thì không, nên ' +
+    { t: 'cal', kind: 'info', title: 'print.o vắng mặt — đó chính là điều đáng chú ý', x:
+      '<p><code>make</code> biên dịch lại <code>main.o</code> và <code>ops.o</code> vì cả hai ' +
+      'khai báo <code>ops.h</code> là điều kiện tiên quyết. <code>print.o</code> thì không, nên ' +
       'nó được để yên.</p>' +
-      '<p>Chú ý: nội dung <code>phep.h</code> <b>không hề đổi</b> — <code>touch</code> chỉ đổi ' +
+      '<p>Chú ý: nội dung <code>ops.h</code> <b>không hề đổi</b> — <code>touch</code> chỉ đổi ' +
       'đồng hồ. <code>make</code> vẫn build lại. Bằng chứng rõ ràng rằng nó thực sự chỉ nhìn ' +
       'thời gian.</p>' +
       '<p>Điều này cũng giải thích một lỗi kinh điển: chép mã nguồn từ máy khác sang bằng ' +
@@ -298,7 +298,7 @@ Lesson.register({
         ['<code>make clean</code>', 'Làm đúng mục tiêu tên <code>clean</code>', 'Tên mục tiêu là tham số, không phải lệnh con của make'],
         ['<code>make -n</code>', '<b>In ra</b> các lệnh sẽ chạy nhưng <b>không chạy</b>', 'Cực kỳ hữu ích với Makefile lạ: xem trước nó định làm gì trước khi cho phép'],
         ['<code>make -j6</code>', 'Chạy tối đa 6 công thức <b>song song</b>', 'Đặt bằng số CPU. Máy bạn có 6, xem bằng <code>nproc</code>'],
-        ['<code>make -C thumuc</code>', 'Chuyển sang <code>thumuc</code> rồi mới chạy', 'Nền tảng của build đa thư mục; kernel dùng liên tục'],
+        ['<code>make -C dir</code>', 'Chuyển sang <code>dir</code> rồi mới chạy', 'Nền tảng của build đa thư mục; kernel dùng liên tục'],
         ['<code>make CFLAGS=-Os</code>', 'Ghi đè biến <code>CFLAGS</code> từ dòng lệnh', 'Ưu tiên cao hơn giá trị đặt trong Makefile — cách chuẩn để đổi cờ tạm thời']
       ]},
 
@@ -317,13 +317,13 @@ Lesson.register({
 
     { t: 'p', x:
       'Makefile sơ khai ở trên lặp lại chữ <code>gcc -Wall -c</code> ba lần và liệt kê ' +
-      '<code>main.o phep.o inra.o</code> hai lần. Thêm file thứ tư là phải sửa ba chỗ. Ba công ' +
+      '<code>main.o ops.o print.o</code> hai lần. Thêm file thứ tư là phải sửa ba chỗ. Ba công ' +
       'cụ sau xóa hết sự lặp đó.' },
 
     { t: 'h3', x: 'Biến' },
 
     { t: 'p', x:
-      'Cú pháp gán là <code>TEN = giá trị</code>, cú pháp dùng là <code>$(TEN)</code>. Có bốn ' +
+      'Cú pháp gán là <code>NAME = giá trị</code>, cú pháp dùng là <code>$(NAME)</code>. Có bốn ' +
       'toán tử gán và sự khác nhau giữa hai cái đầu là câu hỏi phỏng vấn kinh điển:' },
 
     { t: 'table',
@@ -336,28 +336,28 @@ Lesson.register({
       ]},
 
     { t: 'code', where: 'file', name: 'Makefile — thử = và :=', code:
-      'A  = xin\n' +
-      'B  = $(A) chao\n' +
-      'A  = tam biet\n' +
+      'A  = hello\n' +
+      'B  = $(A) world\n' +
+      'A  = bye\n' +
       '\n' +
-      'C := xin\n' +
-      'D := $(C) chao\n' +
-      'C := tam biet\n' +
+      'C := hello\n' +
+      'D := $(C) world\n' +
+      'C := bye\n' +
       '\n' +
-      'thu:\n' +
+      'try:\n' +
       '\t@echo "B (dung =)  = $(B)"\n' +
       '\t@echo "D (dung :=) = $(D)"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'B (dung =)  = tam biet chao\n' +
-      'D (dung :=) = xin chao' },
+      'B (dung =)  = bye world\n' +
+      'D (dung :=) = hello world' },
 
     { t: 'cal', kind: 'warn', title: 'Hai dòng này giải thích rất nhiều lỗi build khó hiểu', x:
       '<p><code>B</code> dùng <code>=</code>, nên <code>$(A)</code> chỉ được tra <b>lúc dòng ' +
-      'echo chạy</b> — khi đó <code>A</code> đã là <code>tam biet</code>. Thứ tự các dòng trong ' +
+      'echo chạy</b> — khi đó <code>A</code> đã là <code>bye</code>. Thứ tự các dòng trong ' +
       'Makefile <b>không</b> quyết định kết quả.</p>' +
       '<p><code>D</code> dùng <code>:=</code>, chụp lại giá trị của <code>C</code> ngay tại chỗ, ' +
-      'nên vẫn là <code>xin chao</code>. Thứ tự <b>có</b> quyết định.</p>' +
+      'nên vẫn là <code>hello world</code>. Thứ tự <b>có</b> quyết định.</p>' +
       '<p><b>Quy tắc thực dụng:</b> mặc định dùng <code>:=</code>. Nó dễ đoán và nhanh hơn ' +
       '(không tính lại mỗi lần dùng). Chỉ dùng <code>=</code> khi bạn <i>cố ý</i> muốn giá trị ' +
       'được tính muộn — ví dụ biến tham chiếu tới thứ được định nghĩa ở file khác include sau.</p>' +
@@ -372,11 +372,11 @@ Lesson.register({
       'đang chạy. Chúng làm cho một công thức có thể phục vụ mọi file.' },
 
     { t: 'table',
-      head: ['Biến', 'Nghĩa', 'Trong quy tắc <code>main.o: main.c phep.h inra.h</code>'],
+      head: ['Biến', 'Nghĩa', 'Trong quy tắc <code>main.o: main.c ops.h print.h</code>'],
       rows: [
         ['<code>$@</code>', '<b>Mục tiêu</b> đang được làm', '<code>main.o</code>'],
         ['<code>$&lt;</code>', 'Điều kiện tiên quyết <b>đầu tiên</b>', '<code>main.c</code>'],
-        ['<code>$^</code>', '<b>Tất cả</b> tiên quyết, bỏ trùng lặp', '<code>main.c phep.h inra.h</code>'],
+        ['<code>$^</code>', '<b>Tất cả</b> tiên quyết, bỏ trùng lặp', '<code>main.c ops.h print.h</code>'],
         ['<code>$?</code>', 'Chỉ những tiên quyết <b>mới hơn</b> mục tiêu', 'thay đổi theo từng lần chạy'],
         ['<code>$*</code>', 'Phần khớp với dấu <code>%</code> trong pattern rule', '<code>main</code>']
       ]},
@@ -392,44 +392,44 @@ Lesson.register({
     { t: 'h3', x: 'Pattern rule' },
 
     { t: 'p', x:
-      'Ba quy tắc <code>main.o</code>, <code>phep.o</code>, <code>inra.o</code> có cùng một ' +
+      'Ba quy tắc <code>main.o</code>, <code>ops.o</code>, <code>print.o</code> có cùng một ' +
       'hình dạng. Dấu <code>%</code> gộp chúng thành một: "bất kỳ file <code>.o</code> nào cũng ' +
       'làm được từ file <code>.c</code> cùng tên, theo cách này".' },
 
     { t: 'code', where: 'file', name: 'Makefile — bản rút gọn, 15 dòng', code:
       'CC      = gcc\n' +
       'CFLAGS  = -Wall -Wextra -O2\n' +
-      'OBJS    = main.o phep.o inra.o\n' +
-      'DICH    = chuongtrinh\n' +
+      'OBJS    = main.o ops.o print.o\n' +
+      'TARGET  = program\n' +
       '\n' +
-      '$(DICH): $(OBJS)\n' +
+      '$(TARGET): $(OBJS)\n' +
       '\t$(CC) $(CFLAGS) -o $@ $^\n' +
       '\n' +
       '%.o: %.c\n' +
       '\t$(CC) $(CFLAGS) -c $< -o $@\n' +
       '\n' +
       'clean:\n' +
-      '\trm -f $(DICH) $(OBJS)\n' +
+      '\trm -f $(TARGET) $(OBJS)\n' +
       '\n' +
       '.PHONY: clean',
       notes: [
-        'Thêm file <code>ngat.c</code> vào dự án giờ chỉ cần sửa <b>một</b> chỗ: thêm ' +
-        '<code>ngat.o</code> vào <code>OBJS</code>. Pattern rule tự lo phần còn lại.'
+        'Thêm file <code>irq.c</code> vào dự án giờ chỉ cần sửa <b>một</b> chỗ: thêm ' +
+        '<code>irq.o</code> vào <code>OBJS</code>. Pattern rule tự lo phần còn lại.'
       ] },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'gcc -Wall -Wextra -O2 -c main.c -o main.o\n' +
-      'gcc -Wall -Wextra -O2 -c phep.c -o phep.o\n' +
-      'gcc -Wall -Wextra -O2 -c inra.c -o inra.o\n' +
-      'gcc -Wall -Wextra -O2 -o chuongtrinh main.o phep.o inra.o' },
+      'gcc -Wall -Wextra -O2 -c ops.c -o ops.o\n' +
+      'gcc -Wall -Wextra -O2 -c print.c -o print.o\n' +
+      'gcc -Wall -Wextra -O2 -o program main.o ops.o print.o' },
 
     { t: 'cal', kind: 'info', title: 'Đọc ngược output để hiểu biến tự động', x:
-      '<p>Ba dòng đầu: <code>$&lt;</code> đã thành <code>main.c</code>/<code>phep.c</code>' +
-      '/<code>inra.c</code>, <code>$@</code> thành <code>main.o</code>/…</p>' +
-      '<p>Dòng cuối: <code>$@</code> là <code>chuongtrinh</code>, còn <code>$^</code> bung ra ' +
+      '<p>Ba dòng đầu: <code>$&lt;</code> đã thành <code>main.c</code>/<code>ops.c</code>' +
+      '/<code>print.c</code>, <code>$@</code> thành <code>main.o</code>/…</p>' +
+      '<p>Dòng cuối: <code>$@</code> là <code>program</code>, còn <code>$^</code> bung ra ' +
       'trọn ba file <code>.o</code>. Nếu ở đó bạn viết nhầm <code>$&lt;</code> thay ' +
       '<code>$^</code>, chỉ <code>main.o</code> được liên kết và bạn nhận ' +
-      '<code>undefined reference to \'cong\'</code> — đúng lỗi Bài 15 đã mổ xẻ.</p>' },
+      '<code>undefined reference to \'add\'</code> — đúng lỗi Bài 15 đã mổ xẻ.</p>' },
 
     { t: 'h3', x: 'Hàm xử lý danh sách' },
 
@@ -440,12 +440,12 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       'patsubst : main.o driver/gpio.o driver/uart.o\n' +
-      'thay hau to: main.o driver/gpio.o driver/uart.o\n' +
+      'suffix   : main.o driver/gpio.o driver/uart.o\n' +
       'notdir   : main.c gpio.c uart.c\n' +
       'dir      : ./ driver/ driver/\n' +
       'addprefix: build/main.o build/gpio.o build/uart.o\n' +
       'words    : 3\n' +
-      'shell    : chay-luc-doc-Makefile' },
+      'shell    : parse-time-shell' },
 
     { t: 'cmdx', cmd: 'Các hàm sinh ra bảy dòng trên', title: 'Bảy hàm đủ dùng cho 95% Makefile',
       rows: [
@@ -479,14 +479,14 @@ Lesson.register({
     { t: 'cal', kind: 'why', title: 'make làm đúng luật — và vì thế làm sai ý bạn', x:
       '<p>Luật vẫn là luật cũ: mục tiêu <code>clean</code> <b>tồn tại</b>, và nó không có điều ' +
       'kiện tiên quyết nào để mà cũ hơn. Kết luận: không cần làm gì.</p>' +
-      '<p>Công thức <code>rm -f …</code> không hề chạy. File <code>chuongtrinh</code> vẫn còn ' +
+      '<p>Công thức <code>rm -f …</code> không hề chạy. File <code>program</code> vẫn còn ' +
       'nguyên. Không có thông báo lỗi nào — đây là loại hỏng hóc <i>im lặng</i>, khó chịu nhất.</p>' +
       '<p>Khai báo <code>.PHONY: clean</code> nói với <code>make</code>: "<code>clean</code> ' +
       'không bao giờ là một file, đừng đi tìm nó, cứ chạy công thức". Sau khi thêm dòng đó, ' +
       'kết quả đúng như mong đợi:</p>' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'rm -f chuongtrinh main.o phep.o inra.o' },
+      'rm -f program main.o ops.o print.o' },
 
     { t: 'cal', kind: 'tip', title: 'Quy tắc: mọi mục tiêu là động từ đều phải có .PHONY', x:
       '<p>Không chỉ để tránh va tên file. Có <code>.PHONY</code>, <code>make</code> còn ' +
@@ -495,7 +495,7 @@ Lesson.register({
       '<p>Cách viết gọn thường gặp: gom một dòng ở cuối file<br>' +
       '<code>.PHONY: all clean install test</code></p>' +
       '<p>Còn <code>all</code> thì để làm gì? Nó là mục tiêu đầu tiên, đóng vai trò "làm mọi ' +
-      'thứ", với danh sách tiên quyết là các đích thật: <code>all: chuongtrinh tailieu</code>.</p>' },
+      'thứ", với danh sách tiên quyết là các đích thật: <code>all: program docs</code>.</p>' },
 
     /* ══════════════════════════════════════════════
        6. QUY TẮC NGẦM
@@ -503,17 +503,17 @@ Lesson.register({
     { t: 'h2', x: 'make đã biết sẵn 163 quy tắc trước khi bạn viết dòng nào' },
 
     { t: 'p', x:
-      'Trong một thư mục chỉ có <code>chao.c</code> và <b>không hề có Makefile</b>:' },
+      'Trong một thư mục chỉ có <code>hello.c</code> và <b>không hề có Makefile</b>:' },
 
     { t: 'code', where: 'wsl', code:
       'ls\n' +
-      'make chao\n' +
-      './chao' },
+      'make hello\n' +
+      './hello' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'chao.c\n' +
-      'cc     chao.c   -o chao\n' +
-      'chao' },
+      'hello.c\n' +
+      'cc     hello.c   -o hello\n' +
+      'hello' },
 
     { t: 'p', x:
       'Nó lấy quy tắc đó ở đâu ra? Từ cơ sở dữ liệu dựng sẵn, xem được bằng ' +
@@ -550,26 +550,26 @@ Lesson.register({
     { t: 'p', x:
       'Bản Makefile rút gọn đẹp hơn hẳn bản sơ khai — nhưng nó đã <b>đánh mất</b> một thứ. ' +
       'Pattern rule <code>%.o: %.c</code> chỉ khai báo <b>một</b> điều kiện tiên quyết: file ' +
-      '<code>.c</code>. Không còn dòng nào nhắc tới <code>phep.h</code> nữa.' },
+      '<code>.c</code>. Không còn dòng nào nhắc tới <code>ops.h</code> nữa.' },
 
     { t: 'p', x:
-      'Hậu quả không phải lý thuyết. Đây là một phiên chạy thật. File <code>phep.h</code> chứa ' +
-      '<code>#define HE_SO 1</code> và <code>phep.c</code> tính ' +
-      '<code>return (a + b) * HE_SO;</code>:' },
+      'Hậu quả không phải lý thuyết. Đây là một phiên chạy thật. File <code>ops.h</code> chứa ' +
+      '<code>#define FACTOR 1</code> và <code>ops.c</code> tính ' +
+      '<code>return (a + b) * FACTOR;</code>:' },
 
     { t: 'code', where: 'wsl', code:
       'make clean && make\n' +
-      './chuongtrinh\n' +
-      'sed -i \'s/#define HE_SO 1/#define HE_SO 10/\' phep.h\n' +
+      './program\n' +
+      'sed -i \'s/#define FACTOR 1/#define FACTOR 10/\' ops.h\n' +
       'make\n' +
-      './chuongtrinh' },
+      './program' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'cong(2,3) = 5\n' +
-      'tru(9,4) = 5\n' +
-      'make: \'chuongtrinh\' is up to date.\n' +
-      'cong(2,3) = 5\n' +
-      'tru(9,4) = 5' },
+      'add(2,3) = 5\n' +
+      'subtract(9,4) = 5\n' +
+      'make: \'program\' is up to date.\n' +
+      'add(2,3) = 5\n' +
+      'subtract(9,4) = 5' },
 
     { t: 'cal', kind: 'danger', title: 'Bạn vừa sửa mã nguồn và chương trình vẫn chạy mã cũ', x:
       '<p>Hằng số đã đổi từ 1 thành 10. Chương trình phải in <code>50</code>. Nó in ' +
@@ -588,7 +588,7 @@ Lesson.register({
       'sách đó dài, lồng nhau và luôn lạc hậu. Cách chữa là bảo chính trình biên dịch khai báo ' +
       'hộ, vì nó là kẻ duy nhất biết chắc file <code>.c</code> đã đọc những header nào.' },
 
-    { t: 'cmdx', cmd: 'gcc -MMD -MP -c phep.c -o phep.o', title: 'Hai cờ sinh phụ thuộc tự động',
+    { t: 'cmdx', cmd: 'gcc -MMD -MP -c ops.c -o ops.o', title: 'Hai cờ sinh phụ thuộc tự động',
       rows: [
         ['<code>-MD</code>', 'Vừa biên dịch bình thường, vừa ghi ra file <code>.d</code> chứa danh sách phụ thuộc', 'Khác với <code>-M</code> (chỉ in phụ thuộc, <b>không</b> biên dịch)'],
         ['<code>-MMD</code>', 'Như <code>-MD</code> nhưng <b>bỏ qua header hệ thống</b>', 'Đây là cái bạn muốn: <code>stdio.h</code> gần như không bao giờ đổi, đưa vào chỉ làm file <code>.d</code> phình ra'],
@@ -599,18 +599,18 @@ Lesson.register({
     { t: 'code', where: 'file', name: 'Makefile — bản hoàn chỉnh, có phụ thuộc tự động', code:
       'CC      = gcc\n' +
       'CFLAGS  = -Wall -Wextra -O2 -MMD -MP\n' +
-      'OBJS    = main.o phep.o inra.o\n' +
+      'OBJS    = main.o ops.o print.o\n' +
       'DEPS    = $(OBJS:.o=.d)\n' +
-      'DICH    = chuongtrinh\n' +
+      'TARGET  = program\n' +
       '\n' +
-      '$(DICH): $(OBJS)\n' +
+      '$(TARGET): $(OBJS)\n' +
       '\t$(CC) $(CFLAGS) -o $@ $^\n' +
       '\n' +
       '%.o: %.c\n' +
       '\t$(CC) $(CFLAGS) -c $< -o $@\n' +
       '\n' +
       'clean:\n' +
-      '\trm -f $(DICH) $(OBJS) $(DEPS)\n' +
+      '\trm -f $(TARGET) $(OBJS) $(DEPS)\n' +
       '\n' +
       '-include $(DEPS)\n' +
       '\n' +
@@ -621,40 +621,40 @@ Lesson.register({
     { t: 'code', where: 'wsl', code: 'cat main.d' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'main.o: main.c phep.h inra.h\n' +
-      'phep.h:\n' +
-      'inra.h:' },
+      'main.o: main.c ops.h print.h\n' +
+      'ops.h:\n' +
+      'print.h:' },
 
     { t: 'cal', kind: 'why', title: 'File .d là một mẩu Makefile — không hơn không kém', x:
       '<p>Dòng đầu chính là quy tắc mà bạn đã viết tay ở bản sơ khai: ' +
-      '<code>main.o: main.c phep.h inra.h</code>. Chỉ khác là lần này <b>trình biên dịch</b> ' +
+      '<code>main.o: main.c ops.h print.h</code>. Chỉ khác là lần này <b>trình biên dịch</b> ' +
       'viết nó, nên nó không bao giờ sai và không bao giờ lạc hậu.</p>' +
       '<p><code>-include $(DEPS)</code> dán những dòng đó vào Makefile. <code>make</code> gộp ' +
       'chúng với pattern rule, và phụ thuộc header sống lại.</p>' +
-      '<p><b>Hai dòng <code>phep.h:</code> và <code>inra.h:</code> rỗng là do <code>-MP</code>.</b> ' +
-      'Chúng nói "có một quy tắc làm ra <code>phep.h</code>, và nó chẳng cần làm gì". Vì sao cần? ' +
-      'Giả sử bạn <b>xóa</b> <code>inra.h</code> và sửa code cho hết dùng nó. File ' +
-      '<code>.d</code> cũ vẫn đòi <code>inra.h</code>, và <code>make</code> sẽ chết với ' +
-      '<code>No rule to make target \'inra.h\'</code>. Mục tiêu giả rỗng chặn đúng tình huống ' +
+      '<p><b>Hai dòng <code>ops.h:</code> và <code>print.h:</code> rỗng là do <code>-MP</code>.</b> ' +
+      'Chúng nói "có một quy tắc làm ra <code>ops.h</code>, và nó chẳng cần làm gì". Vì sao cần? ' +
+      'Giả sử bạn <b>xóa</b> <code>print.h</code> và sửa code cho hết dùng nó. File ' +
+      '<code>.d</code> cũ vẫn đòi <code>print.h</code>, và <code>make</code> sẽ chết với ' +
+      '<code>No rule to make target \'print.h\'</code>. Mục tiêu giả rỗng chặn đúng tình huống ' +
       'đó.</p>' +
       '<p>Vòng đời hơi kỳ lạ nhưng hoạt động: build lần đầu chưa có <code>.d</code> nào, nên ' +
       'mọi file được biên dịch — vốn dĩ là đúng. Từ lần thứ hai trở đi, <code>.d</code> đã có ' +
       'và chính xác.</p>' },
 
     { t: 'p', x:
-      'Thử lại đúng kịch bản đã lừa được bản Makefile trước — đổi <code>HE_SO</code> từ 10 ' +
+      'Thử lại đúng kịch bản đã lừa được bản Makefile trước — đổi <code>FACTOR</code> từ 10 ' +
       'thành 100:' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'gcc -Wall -Wextra -O2 -MMD -MP -c main.c -o main.o\n' +
-      'gcc -Wall -Wextra -O2 -MMD -MP -c phep.c -o phep.o\n' +
-      'gcc -Wall -Wextra -O2 -MMD -MP -o chuongtrinh main.o phep.o inra.o\n' +
-      'cong(2,3) = 500\n' +
-      'tru(9,4) = 500' },
+      'gcc -Wall -Wextra -O2 -MMD -MP -c ops.c -o ops.o\n' +
+      'gcc -Wall -Wextra -O2 -MMD -MP -o program main.o ops.o print.o\n' +
+      'add(2,3) = 500\n' +
+      'subtract(9,4) = 500' },
 
     { t: 'cal', kind: 'info', title: 'Hai file được biên dịch lại, một file thì không', x:
-      '<p><code>main.o</code> và <code>phep.o</code> cùng đọc <code>phep.h</code> nên cùng phải ' +
-      'làm lại. <code>inra.o</code> không đọc, nên nó được để yên — <code>make</code> vừa ' +
+      '<p><code>main.o</code> và <code>ops.o</code> cùng đọc <code>ops.h</code> nên cùng phải ' +
+      'làm lại. <code>print.o</code> không đọc, nên nó được để yên — <code>make</code> vừa ' +
       '<b>đúng</b> vừa <b>tối thiểu</b>, đúng lúc, không cần bạn khai báo gì.</p>' +
       '<p>Bốn dòng thêm vào Makefile (<code>-MMD -MP</code>, <code>DEPS</code>, ' +
       '<code>-include</code>, và <code>$(DEPS)</code> trong <code>clean</code>) là <b>khoản đầu ' +
@@ -674,7 +674,7 @@ Lesson.register({
 
     { t: 'p', x:
       'Thay vì một biến <code>OBJS</code> khổng lồ, mỗi thư mục con có một Makefile chỉ gồm ' +
-      'vài dòng <code>obj-y += tên.o</code>. Chữ <code>y</code> là <i>yes</i> — lấy từ ' +
+      'vài dòng <code>obj-y += name.o</code>. Chữ <code>y</code> là <i>yes</i> — lấy từ ' +
       'cấu hình kernel, nơi mỗi tính năng có giá trị <code>y</code> (dịch vào kernel), ' +
       '<code>m</code> (dịch thành module) hoặc <code>n</code> (bỏ).' },
 
@@ -682,11 +682,11 @@ Lesson.register({
       'obj-y += main.o\n' +
       'obj-y += driver/gpio.o\n' +
       'obj-y += driver/uart.o\n' +
-      'obj-y += lib/tienich.o\n' +
+      'obj-y += lib/util.o\n' +
       '\n' +
-      'obj-tuychon-y := yes\n' +
-      'ifeq ($(obj-tuychon-y),yes)\n' +
-      '  obj-y += lib/them.o\n' +
+      'obj-optional-y := yes\n' +
+      'ifeq ($(obj-optional-y),yes)\n' +
+      '  obj-y += lib/optional.o\n' +
       'endif\n' +
       '\n' +
       'app: $(obj-y)\n' +
@@ -727,8 +727,8 @@ Lesson.register({
       '  CC      main.o\n' +
       '  CC      driver/gpio.o\n' +
       '  CC      driver/uart.o\n' +
-      '  CC      lib/tienich.o\n' +
-      '  CC      lib/them.o\n' +
+      '  CC      lib/util.o\n' +
+      '  CC      lib/optional.o\n' +
       '  LD      app' },
 
     { t: 'code', where: 'wsl', code: 'make clean && make V=1' },
@@ -756,13 +756,13 @@ Lesson.register({
 
     { t: 'code', where: 'file', name: 'Makefile — gọi make trong thư mục con', code:
       'all:\n' +
-      '\t$(MAKE) -C con f.o' },
+      '\t$(MAKE) -C sub f.o' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'make -C con f.o\n' +
-      'make[1]: Entering directory \'/tmp/dq/con\'\n' +
+      'make -C sub f.o\n' +
+      'make[1]: Entering directory \'/tmp/proj/sub\'\n' +
       'gcc -c f.c -o f.o\n' +
-      'make[1]: Leaving directory \'/tmp/dq/con\'' },
+      'make[1]: Leaving directory \'/tmp/proj/sub\'' },
 
     { t: 'cal', kind: 'info', title: 'Ba chi tiết trong bốn dòng output này', x:
       '<p><b><code>$(MAKE)</code> chứ không phải <code>make</code>.</b> Biến này giữ đúng đường ' +
@@ -783,7 +783,7 @@ Lesson.register({
       ['Recipe', 'công thức', 'Các dòng lệnh shell, mỗi dòng bắt đầu bằng <b>TAB</b>, chạy khi mục tiêu lỗi thời'],
       ['Pattern rule', 'quy tắc mẫu', 'Quy tắc dùng <code>%</code> để phục vụ mọi file cùng dạng, ví dụ <code>%.o: %.c</code>'],
       ['Automatic variable', 'biến tự động', '<code>$@ $&lt; $^ $? $*</code> — make tự đặt trong mỗi công thức'],
-      ['Incremental build', 'build tăng dần', 'Chỉ làm lại phần đã lỗi thời. Đo được: <b>0,136 s</b> thay vì <b>1,210 s</b>'],
+      ['Incremental build', 'build tăng dần', 'Chỉ làm lại phần đã lỗi thời. Đo được: <b>0,187 s</b> thay vì <b>1,535 s</b>'],
       ['Jobserver', 'máy chủ công việc', 'Cơ chế make dùng để chia hạn ngạch <code>-j</code> cho các tiến trình make con'],
       ['Kbuild', 'hệ thống build kernel', 'Tập quy ước make của kernel Linux: <code>obj-y</code>, <code>V=1</code>, Makefile mỗi thư mục']
     ]},
@@ -809,48 +809,48 @@ Lesson.register({
           'header — vừa đủ để thấy sự lan truyền phụ thuộc.' },
 
         { t: 'code', where: 'wsl', name: 'tạo mã nguồn', code:
-          'cat > phep.h <<\'EOF\'\n' +
-          '#ifndef PHEP_H\n' +
-          '#define PHEP_H\n' +
-          '#define HE_SO 1\n' +
-          'int cong(int a, int b);\n' +
-          'int tru(int a, int b);\n' +
+          'cat > ops.h <<\'EOF\'\n' +
+          '#ifndef OPS_H\n' +
+          '#define OPS_H\n' +
+          '#define FACTOR 1\n' +
+          'int add(int a, int b);\n' +
+          'int subtract(int a, int b);\n' +
           '#endif\n' +
           'EOF\n' +
-          'cat > phep.c <<\'EOF\'\n' +
-          '#include "phep.h"\n' +
-          'int cong(int a, int b) { return (a + b) * HE_SO; }\n' +
-          'int tru(int a, int b)  { return (a - b) * HE_SO; }\n' +
+          'cat > ops.c <<\'EOF\'\n' +
+          '#include "ops.h"\n' +
+          'int add(int a, int b) { return (a + b) * FACTOR; }\n' +
+          'int subtract(int a, int b)  { return (a - b) * FACTOR; }\n' +
           'EOF\n' +
-          'cat > inra.h <<\'EOF\'\n' +
-          '#ifndef INRA_H\n' +
-          '#define INRA_H\n' +
-          'void in_ket_qua(const char *ten, int gt);\n' +
+          'cat > print.h <<\'EOF\'\n' +
+          '#ifndef PRINT_H\n' +
+          '#define PRINT_H\n' +
+          'void print_result(const char *name, int value);\n' +
           '#endif\n' +
           'EOF\n' +
-          'cat > inra.c <<\'EOF\'\n' +
+          'cat > print.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
-          '#include "inra.h"\n' +
-          'void in_ket_qua(const char *ten, int gt) { printf("%s = %d\\n", ten, gt); }\n' +
+          '#include "print.h"\n' +
+          'void print_result(const char *name, int value) { printf("%s = %d\\n", name, value); }\n' +
           'EOF\n' +
           'cat > main.c <<\'EOF\'\n' +
-          '#include "phep.h"\n' +
-          '#include "inra.h"\n' +
+          '#include "ops.h"\n' +
+          '#include "print.h"\n' +
           'int main(void)\n' +
           '{\n' +
-          '    in_ket_qua("cong(2,3)", cong(2, 3));\n' +
-          '    in_ket_qua("tru(9,4)",  tru(9, 4));\n' +
+          '    print_result("add(2,3)", add(2, 3));\n' +
+          '    print_result("subtract(9,4)",  subtract(9, 4));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
           'ls' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'inra.c\n' +
-          'inra.h\n' +
+          'print.c\n' +
+          'print.h\n' +
           'main.c\n' +
-          'phep.c\n' +
-          'phep.h' },
+          'ops.c\n' +
+          'ops.h' },
 
         { t: 'p', x:
           'Giờ viết Makefile sơ khai. Dùng <code>cat &gt; … &lt;&lt;\'EOF\'</code> vì cách này ' +
@@ -859,27 +859,27 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', name: 'tạo Makefile', code:
           'printf \'%b\\n\' \\\n' +
-          '  \'chuongtrinh: main.o phep.o inra.o\' \\\n' +
-          '  \'\\tgcc -o chuongtrinh main.o phep.o inra.o\' \\\n' +
+          '  \'program: main.o ops.o print.o\' \\\n' +
+          '  \'\\tgcc -o program main.o ops.o print.o\' \\\n' +
           '  \'\' \\\n' +
-          '  \'main.o: main.c phep.h inra.h\' \\\n' +
+          '  \'main.o: main.c ops.h print.h\' \\\n' +
           '  \'\\tgcc -Wall -c main.c\' \\\n' +
           '  \'\' \\\n' +
-          '  \'phep.o: phep.c phep.h\' \\\n' +
-          '  \'\\tgcc -Wall -c phep.c\' \\\n' +
+          '  \'ops.o: ops.c ops.h\' \\\n' +
+          '  \'\\tgcc -Wall -c ops.c\' \\\n' +
           '  \'\' \\\n' +
-          '  \'inra.o: inra.c inra.h\' \\\n' +
-          '  \'\\tgcc -Wall -c inra.c\' \\\n' +
+          '  \'print.o: print.c print.h\' \\\n' +
+          '  \'\\tgcc -Wall -c print.c\' \\\n' +
           '  \'\' \\\n' +
           '  \'clean:\' \\\n' +
-          '  \'\\trm -f chuongtrinh main.o phep.o inra.o\' > Makefile\n' +
+          '  \'\\trm -f program main.o ops.o print.o\' > Makefile\n' +
           'cat -A Makefile | grep gcc' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '^Igcc -o chuongtrinh main.o phep.o inra.o$\n' +
+          '^Igcc -o program main.o ops.o print.o$\n' +
           '^Igcc -Wall -c main.c$\n' +
-          '^Igcc -Wall -c phep.c$\n' +
-          '^Igcc -Wall -c inra.c$' },
+          '^Igcc -Wall -c ops.c$\n' +
+          '^Igcc -Wall -c print.c$' },
 
         { t: 'cal', kind: 'tip', title: 'Kiểm tra TAB trước khi chạy make', x:
           '<p><code>cat -A</code> hiện TAB thành <code>^I</code> và cuối dòng thành ' +
@@ -894,15 +894,15 @@ Lesson.register({
           '<p><code>cat -A</code> là công cụ bạn đã dùng ở <b>Bài 13</b> để soi ký tự vô hình ' +
           '(kể cả ký tự xuống dòng kiểu Windows <code>^M</code>). Ở đây nó lại có ích.</p>' },
 
-        { t: 'code', where: 'wsl', code: 'make && ./chuongtrinh' },
+        { t: 'code', where: 'wsl', code: 'make && ./program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'gcc -Wall -c main.c\n' +
-          'gcc -Wall -c phep.c\n' +
-          'gcc -Wall -c inra.c\n' +
-          'gcc -o chuongtrinh main.o phep.o inra.o\n' +
-          'cong(2,3) = 5\n' +
-          'tru(9,4) = 5' }
+          'gcc -Wall -c ops.c\n' +
+          'gcc -Wall -c print.c\n' +
+          'gcc -o program main.o ops.o print.o\n' +
+          'add(2,3) = 5\n' +
+          'subtract(9,4) = 5' }
       ]},
 
       /* ─────────── BƯỚC 2 ─────────── */
@@ -913,33 +913,33 @@ Lesson.register({
         { t: 'code', where: 'wsl', name: 'thí nghiệm 1 — không sửa gì', code: 'make' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'make: \'chuongtrinh\' is up to date.' },
+          'make: \'program\' is up to date.' },
 
         { t: 'code', where: 'wsl', name: 'thí nghiệm 2 — chạm vào một file .c', code:
-          'touch phep.c\n' +
+          'touch ops.c\n' +
           'make' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'gcc -Wall -c phep.c\n' +
-          'gcc -o chuongtrinh main.o phep.o inra.o' },
+          'gcc -Wall -c ops.c\n' +
+          'gcc -o program main.o ops.o print.o' },
 
         { t: 'code', where: 'wsl', name: 'thí nghiệm 3 — chạm vào một header', code:
-          'touch phep.h\n' +
+          'touch ops.h\n' +
           'make' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'gcc -Wall -c main.c\n' +
-          'gcc -Wall -c phep.c\n' +
-          'gcc -o chuongtrinh main.o phep.o inra.o' },
+          'gcc -Wall -c ops.c\n' +
+          'gcc -o program main.o ops.o print.o' },
 
         { t: 'cal', kind: 'why', title: 'Ba kết quả, ba bài học', x:
           '<p><b>Thí nghiệm 1:</b> không có tiên quyết nào mới hơn → không làm gì. Chi phí gần ' +
           'bằng không.</p>' +
-          '<p><b>Thí nghiệm 2:</b> <code>phep.c</code> mới hơn <code>phep.o</code> → biên dịch ' +
-          'lại đúng một file. Sau đó <code>phep.o</code> mới hơn <code>chuongtrinh</code> → ' +
+          '<p><b>Thí nghiệm 2:</b> <code>ops.c</code> mới hơn <code>ops.o</code> → biên dịch ' +
+          'lại đúng một file. Sau đó <code>ops.o</code> mới hơn <code>program</code> → ' +
           'liên kết lại. <b>Sự lan truyền đi lên đúng một tầng một.</b></p>' +
-          '<p><b>Thí nghiệm 3:</b> <code>phep.h</code> là tiên quyết của <b>hai</b> quy tắc, nên ' +
-          'hai file được làm lại. <code>inra.o</code> vắng mặt — đúng như đồ thị phụ thuộc đã ' +
+          '<p><b>Thí nghiệm 3:</b> <code>ops.h</code> là tiên quyết của <b>hai</b> quy tắc, nên ' +
+          'hai file được làm lại. <code>print.o</code> vắng mặt — đúng như đồ thị phụ thuộc đã ' +
           'vẽ.</p>' +
           '<p>Chú ý <code>touch</code> <b>không đổi nội dung</b> file. <code>make</code> vẫn ' +
           'build lại. Đây là bằng chứng trực tiếp cho câu "make quyết định bằng đồng hồ".</p>' },
@@ -955,10 +955,10 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           'gcc -Wall -c main.c\n' +
-          'gcc -o chuongtrinh main.o phep.o inra.o\n' +
+          'gcc -o program main.o ops.o print.o\n' +
           '--- chay that:\n' +
           'gcc -Wall -c main.c\n' +
-          'gcc -o chuongtrinh main.o phep.o inra.o' },
+          'gcc -o program main.o ops.o print.o' },
 
         { t: 'cal', kind: 'info', title: 'Hai output giống hệt nhau — đó là ý nghĩa của -n', x:
           '<p><code>make -n</code> in ra chính xác kịch bản sẽ chạy, rồi dừng. Vì nó không chạy ' +
@@ -975,34 +975,34 @@ Lesson.register({
           'không đụng dự án chính.' },
 
         { t: 'code', where: 'wsl', name: 'lỗi 1 — dùng dấu cách thay TAB', code:
-          'mkdir -p ~/bai16/thu && cd ~/bai16/thu\n' +
-          'printf \'all:\\n    echo xin chao\\n\' > Makefile\n' +
+          'mkdir -p ~/bai16/try && cd ~/bai16/try\n' +
+          'printf \'all:\\n    echo hello\\n\' > Makefile\n' +
           'cat -A Makefile\n' +
           'make\n' +
           'echo "exit=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'all:$\n' +
-          '    echo xin chao$\n' +
+          '    echo hello$\n' +
           'Makefile:2: *** missing separator.  Stop.\n' +
           'exit=2' },
 
         { t: 'code', where: 'wsl', name: 'sửa lại bằng TAB thật', code:
-          'printf \'all:\\n\\techo xin chao\\n\' > Makefile\n' +
+          'printf \'all:\\n\\techo hello\\n\' > Makefile\n' +
           'make' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'echo xin chao\n' +
-          'xin chao' },
+          'echo hello\n' +
+          'hello' },
 
         { t: 'cal', kind: 'info', title: 'Vì sao make in ra lệnh rồi mới in kết quả', x:
-          '<p>Dòng <code>echo xin chao</code> đầu tiên là <code>make</code> <b>vọng lại</b> công ' +
-          'thức. Dòng <code>xin chao</code> thứ hai mới là output của lệnh.</p>' +
-          '<p>Đặt <code>@</code> trước lệnh — <code>\t@echo xin chao</code> — thì chỉ còn một ' +
+          '<p>Dòng <code>echo hello</code> đầu tiên là <code>make</code> <b>vọng lại</b> công ' +
+          'thức. Dòng <code>hello</code> thứ hai mới là output của lệnh.</p>' +
+          '<p>Đặt <code>@</code> trước lệnh — <code>\t@echo hello</code> — thì chỉ còn một ' +
           'dòng. Đây chính là cơ chế đằng sau <code>$(Q)</code> của kernel.</p>' },
 
         { t: 'code', where: 'wsl', name: 'lỗi 2 — thiếu quy tắc cho một tiên quyết', code:
-          'printf \'app: main.o thieu.o\\n\\tgcc -o app main.o thieu.o\\n\' > Makefile\n' +
+          'printf \'app: main.o missing.o\\n\\tgcc -o app main.o missing.o\\n\' > Makefile\n' +
           'make\n' +
           'echo "exit=$?"' },
 
@@ -1022,20 +1022,20 @@ Lesson.register({
           'cd ~/bai16\n' +
           'touch clean\n' +
           'make clean\n' +
-          'ls chuongtrinh' },
+          'ls program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'make: \'clean\' is up to date.\n' +
-          'chuongtrinh' },
+          'program' },
 
         { t: 'code', where: 'wsl', name: 'thêm .PHONY rồi thử lại', code:
           'printf \'\\n.PHONY: clean\\n\' >> Makefile\n' +
           'make clean\n' +
-          'ls chuongtrinh' },
+          'ls program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'rm -f chuongtrinh main.o phep.o inra.o\n' +
-          'ls: cannot access \'chuongtrinh\': No such file or directory' },
+          'rm -f program main.o ops.o print.o\n' +
+          'ls: cannot access \'program\': No such file or directory' },
 
         { t: 'cal', kind: 'warn', title: 'Lỗi im lặng nguy hiểm hơn lỗi ồn ào', x:
           '<p>Hai lỗi đầu dừng <code>make</code> lại với mã thoát <b>2</b>. Bạn thấy ngay, sửa ' +
@@ -1047,7 +1047,7 @@ Lesson.register({
           '<code>make</code> ở đây <i>không nói dối</i> — nó thật sự đã hoàn thành việc "đảm bảo ' +
           'file <code>clean</code> tồn tại". Chỉ là việc đó không phải việc bạn muốn.</p>' },
 
-        { t: 'code', where: 'wsl', code: 'rm -f clean && rm -rf ~/bai16/thu' }
+        { t: 'code', where: 'wsl', code: 'rm -f clean && rm -rf ~/bai16/try' }
       ]},
 
       /* ─────────── BƯỚC 4 ─────────── */
@@ -1061,62 +1061,62 @@ Lesson.register({
           'cat > Makefile <<\'EOF\'\n' +
           'CC      = gcc\n' +
           'CFLAGS  = -Wall -Wextra -O2\n' +
-          'OBJS    = main.o phep.o inra.o\n' +
-          'DICH    = chuongtrinh\n' +
+          'OBJS    = main.o ops.o print.o\n' +
+          'TARGET  = program\n' +
           '\n' +
-          '$(DICH): $(OBJS)\n' +
+          '$(TARGET): $(OBJS)\n' +
           '\t$(CC) $(CFLAGS) -o $@ $^\n' +
           '\n' +
           '%.o: %.c\n' +
           '\t$(CC) $(CFLAGS) -c $< -o $@\n' +
           '\n' +
           'clean:\n' +
-          '\trm -f $(DICH) $(OBJS)\n' +
+          '\trm -f $(TARGET) $(OBJS)\n' +
           '\n' +
           '.PHONY: clean\n' +
           'EOF\n' +
           'make clean >/dev/null; make\n' +
-          './chuongtrinh' },
+          './program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'gcc -Wall -Wextra -O2 -c main.c -o main.o\n' +
-          'gcc -Wall -Wextra -O2 -c phep.c -o phep.o\n' +
-          'gcc -Wall -Wextra -O2 -c inra.c -o inra.o\n' +
-          'gcc -Wall -Wextra -O2 -o chuongtrinh main.o phep.o inra.o\n' +
-          'cong(2,3) = 5\n' +
-          'tru(9,4) = 5' },
+          'gcc -Wall -Wextra -O2 -c ops.c -o ops.o\n' +
+          'gcc -Wall -Wextra -O2 -c print.c -o print.o\n' +
+          'gcc -Wall -Wextra -O2 -o program main.o ops.o print.o\n' +
+          'add(2,3) = 5\n' +
+          'subtract(9,4) = 5' },
 
         { t: 'p', x:
-          'Ngắn hơn, dễ mở rộng hơn. Giờ đổi hằng số <code>HE_SO</code> trong header từ 1 thành ' +
+          'Ngắn hơn, dễ mở rộng hơn. Giờ đổi hằng số <code>FACTOR</code> trong header từ 1 thành ' +
           '10. Kết quả đúng phải là <code>50</code>.' },
 
         { t: 'code', where: 'wsl', code:
-          'sed -i \'s/#define HE_SO 1/#define HE_SO 10/\' phep.h\n' +
-          'grep \'#define HE_SO\' phep.h\n' +
+          'sed -i \'s/#define FACTOR 1/#define FACTOR 10/\' ops.h\n' +
+          'grep \'#define FACTOR\' ops.h\n' +
           'make\n' +
-          './chuongtrinh' },
+          './program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '#define HE_SO 10\n' +
-          'make: \'chuongtrinh\' is up to date.\n' +
-          'cong(2,3) = 5\n' +
-          'tru(9,4) = 5' },
+          '#define FACTOR 10\n' +
+          'make: \'program\' is up to date.\n' +
+          'add(2,3) = 5\n' +
+          'subtract(9,4) = 5' },
 
         { t: 'cal', kind: 'danger', title: 'Đây là khoảnh khắc quan trọng nhất của cả bài', x:
           '<p>Bạn vừa sửa mã nguồn. <code>make</code> nói mọi thứ đã cập nhật. Chương trình chạy ' +
           'mã cũ. Không một dấu hiệu nào cảnh báo.</p>' +
           '<p>Nguyên nhân: pattern rule <code>%.o: %.c</code> chỉ khai báo file <code>.c</code> ' +
           'là tiên quyết. Bản Makefile sơ khai ở bước 1 có dòng ' +
-          '<code>phep.o: phep.c phep.h</code> nên <b>không</b> mắc lỗi này. Bạn vừa đánh đổi ' +
+          '<code>ops.o: ops.c ops.h</code> nên <b>không</b> mắc lỗi này. Bạn vừa đánh đổi ' +
           'tính đúng đắn lấy sự ngắn gọn.</p>' +
           '<p>Kiểm chứng rằng mã nguồn không có lỗi:</p>' },
 
-        { t: 'code', where: 'wsl', code: 'make clean && make >/dev/null && ./chuongtrinh' },
+        { t: 'code', where: 'wsl', code: 'make clean && make >/dev/null && ./program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'rm -f chuongtrinh main.o phep.o inra.o\n' +
-          'cong(2,3) = 50\n' +
-          'tru(9,4) = 50' },
+          'rm -f program main.o ops.o print.o\n' +
+          'add(2,3) = 50\n' +
+          'subtract(9,4) = 50' },
 
         { t: 'cal', kind: 'tip', title: 'Phép thử chẩn đoán bạn sẽ dùng suốt nghề', x:
           '<p><b>Nếu <code>make clean &amp;&amp; make</code> làm triệu chứng biến mất, thì lỗi ' +
@@ -1133,11 +1133,11 @@ Lesson.register({
           'Chú ý <code>$(wildcard *.c)</code> — không phải liệt kê 60 tên bằng tay.' },
 
         { t: 'code', where: 'wsl', name: 'sinh 60 mô-đun', code:
-          'rm -rf ~/bai16lon && mkdir -p ~/bai16lon && cd ~/bai16lon\n' +
+          'rm -rf ~/bai16big && mkdir -p ~/bai16big && cd ~/bai16big\n' +
           'for i in $(seq 1 60); do\n' +
-          '  printf \'#include <stdio.h>\\nint mo%d(void) { return %d; }\\n\' "$i" "$i" > mo$i.c\n' +
+          '  printf \'#include <stdio.h>\\nint mod%d(void) { return %d; }\\n\' "$i" "$i" > mod$i.c\n' +
           'done\n' +
-          'printf \'#include <stdio.h>\\nint main(void) { printf("60 mo-dun\\\\n"); return 0; }\\n\' > main.c\n' +
+          'printf \'#include <stdio.h>\\nint main(void) { printf("60 modules\\\\n"); return 0; }\\n\' > main.c\n' +
           'ls *.c | wc -l' },
 
         { t: 'code', where: 'out', nocopy: true, code: '61' },
@@ -1164,20 +1164,20 @@ Lesson.register({
           'time make >/dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'real\t0m2.327s' },
+          'real\t0m1.535s' },
 
         { t: 'code', where: 'wsl', name: 'sửa một file rồi build lại', code:
-          'touch mo7.c\n' +
+          'touch mod7.c\n' +
           'time make >/dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'real\t0m0.228s' },
+          'real\t0m0.187s' },
 
         { t: 'code', where: 'wsl', name: 'không sửa gì', code:
           'time make >/dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'real\t0m0.012s' },
+          'real\t0m0.004s' },
 
         { t: 'code', where: 'wsl', name: 'build đầy đủ nhưng song song 6 tiến trình', code:
           'nproc\n' +
@@ -1186,26 +1186,26 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           '6\n' +
-          'real\t0m0.801s' },
+          'real\t0m0.555s' },
 
         { t: 'cal', kind: 'why', title: 'Bốn con số, ba kết luận', x:
-          '<p><b>1,210 → 0,136 s</b> khi chỉ sửa một file: nhanh hơn <b>8,9 lần</b>. Đây là ' +
+          '<p><b>1,535 → 0,187 s</b> khi chỉ sửa một file: nhanh hơn <b>8,2 lần</b>. Đây là ' +
           'toàn bộ lý do <code>make</code> tồn tại.</p>' +
-          '<p><b>1,210 → 0,465 s</b> với <code>-j6</code> trên máy 6 CPU: nhanh hơn ' +
-          '<b>2,6 lần</b>, <b>không</b> phải 6 lần. Bước liên kết cuối chỉ là một tiến trình, ' +
+          '<p><b>1,535 → 0,555 s</b> với <code>-j6</code> trên máy 6 CPU: nhanh hơn ' +
+          '<b>2,8 lần</b>, <b>không</b> phải 6 lần. Bước liên kết cuối chỉ là một tiến trình, ' +
           'và 6 tiến trình gcc tranh nhau đọc header trên đĩa. Hãy nhớ tỉ lệ này để không kỳ ' +
           'vọng sai khi build kernel ở Chặng 07.</p>' +
-          '<p><b>0,003 s</b> khi không có gì đổi: gần như miễn phí. Vì thế gõ <code>make</code> ' +
+          '<p><b>0,004 s</b> khi không có gì đổi: gần như miễn phí. Vì thế gõ <code>make</code> ' +
           'thay vì tự hỏi "mình đã build chưa nhỉ" luôn là lựa chọn đúng.</p>' +
           '<p>Kết hợp cả hai: <code>make -j6</code> sau khi sửa một file mất khoảng bằng ' +
-          '<b>0,136 s</b> — vì chỉ có một file để dịch, song song chẳng giúp gì. Song song có ' +
+          '<b>0,187 s</b> — vì chỉ có một file để dịch, song song chẳng giúp gì. Song song có ' +
           'giá trị ở build đầy đủ; build tăng dần có giá trị hằng ngày.</p>' +
-          '<p><b>Số của bạn sẽ khác một chút.</b> Lần build đầu tiên trên máy này mất ' +
-          '<b>1,98 s</b> vì bộ nhớ đệm đĩa còn lạnh; các lần sau ổn định quanh <b>1,21 s</b>. ' +
-          'Hãy chạy mỗi phép đo hai ba lần và lấy lần sau — điều cần khớp là <b>tỉ lệ</b>, ' +
-          'không phải chữ số lẻ.</p>' },
+          '<p><b>Số của bạn sẽ khác một chút.</b> Trên máy này, hai lần đo build đầy đủ liên ' +
+          'tiếp cho <b>1,535 s</b> và <b>1,536 s</b> — rất ổn định vì cache đĩa đã ấm sẵn từ các ' +
+          'bước trước. Hãy chạy mỗi phép đo hai ba lần — điều cần khớp là <b>tỉ lệ</b>, không ' +
+          'phải chữ số lẻ.</p>' },
 
-        { t: 'code', where: 'wsl', code: 'cd ~ && rm -rf ~/bai16lon' }
+        { t: 'code', where: 'wsl', code: 'cd ~ && rm -rf ~/bai16big' }
       ]},
 
       /* ─────────── BƯỚC 6 ─────────── */
@@ -1219,18 +1219,18 @@ Lesson.register({
           'cat > Makefile <<\'EOF\'\n' +
           'CC      = gcc\n' +
           'CFLAGS  = -Wall -Wextra -O2 -MMD -MP\n' +
-          'OBJS    = main.o phep.o inra.o\n' +
+          'OBJS    = main.o ops.o print.o\n' +
           'DEPS    = $(OBJS:.o=.d)\n' +
-          'DICH    = chuongtrinh\n' +
+          'TARGET  = program\n' +
           '\n' +
-          '$(DICH): $(OBJS)\n' +
+          '$(TARGET): $(OBJS)\n' +
           '\t$(CC) $(CFLAGS) -o $@ $^\n' +
           '\n' +
           '%.o: %.c\n' +
           '\t$(CC) $(CFLAGS) -c $< -o $@\n' +
           '\n' +
           'clean:\n' +
-          '\trm -f $(DICH) $(OBJS) $(DEPS)\n' +
+          '\trm -f $(TARGET) $(OBJS) $(DEPS)\n' +
           '\n' +
           '-include $(DEPS)\n' +
           '\n' +
@@ -1241,31 +1241,31 @@ Lesson.register({
           'cat main.d' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'inra.d\n' +
+          'print.d\n' +
           'main.d\n' +
-          'phep.d\n' +
-          'main.o: main.c phep.h inra.h\n' +
-          'phep.h:\n' +
-          'inra.h:' },
+          'ops.d\n' +
+          'main.o: main.c ops.h print.h\n' +
+          'ops.h:\n' +
+          'print.h:' },
 
         { t: 'p', x:
           'Dòng đầu của <code>main.d</code> chính là quy tắc bạn viết tay ở bước 1. Giờ thử lại ' +
-          'kịch bản đã lừa được bản 2 — đổi <code>HE_SO</code> từ 10 lên 100:' },
+          'kịch bản đã lừa được bản 2 — đổi <code>FACTOR</code> từ 10 lên 100:' },
 
         { t: 'code', where: 'wsl', code:
-          'sed -i \'s/#define HE_SO 10/#define HE_SO 100/\' phep.h\n' +
+          'sed -i \'s/#define FACTOR 10/#define FACTOR 100/\' ops.h\n' +
           'make\n' +
-          './chuongtrinh' },
+          './program' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'gcc -Wall -Wextra -O2 -MMD -MP -c main.c -o main.o\n' +
-          'gcc -Wall -Wextra -O2 -MMD -MP -c phep.c -o phep.o\n' +
-          'gcc -Wall -Wextra -O2 -MMD -MP -o chuongtrinh main.o phep.o inra.o\n' +
-          'cong(2,3) = 500\n' +
-          'tru(9,4) = 500' },
+          'gcc -Wall -Wextra -O2 -MMD -MP -c ops.c -o ops.o\n' +
+          'gcc -Wall -Wextra -O2 -MMD -MP -o program main.o ops.o print.o\n' +
+          'add(2,3) = 500\n' +
+          'subtract(9,4) = 500' },
 
         { t: 'cal', kind: 'info', title: 'Đúng, tối thiểu, và tự động', x:
-          '<p>Hai file đọc <code>phep.h</code> được biên dịch lại; <code>inra.o</code> thì ' +
+          '<p>Hai file đọc <code>ops.h</code> được biên dịch lại; <code>print.o</code> thì ' +
           'không. Bạn không khai báo một phụ thuộc nào — trình biên dịch tự khai hộ.</p>' +
           '<p>Bản 3 vừa <b>ngắn</b> như bản 2 vừa <b>đúng</b> như bản 1. Đó là toàn bộ ý nghĩa ' +
           'của bốn dòng thêm vào.</p>' },
@@ -1278,16 +1278,16 @@ Lesson.register({
           'rm -rf ~/bai16kb && mkdir -p ~/bai16kb/driver ~/bai16kb/lib && cd ~/bai16kb\n' +
           'cat > main.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
-          'int gpio_init(void); int uart_init(void); int tien_ich(void);\n' +
+          'int gpio_init(void); int uart_init(void); int util_init(void);\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("gpio=%d uart=%d tienich=%d\\n", gpio_init(), uart_init(), tien_ich());\n' +
+          '    printf("gpio=%d uart=%d util=%d\\n", gpio_init(), uart_init(), util_init());\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
           'echo \'int gpio_init(void) { return 1; }\' > driver/gpio.c\n' +
           'echo \'int uart_init(void) { return 2; }\' > driver/uart.c\n' +
-          'echo \'int tien_ich(void) { return 3; }\' > lib/tienich.c' },
+          'echo \'int util_init(void) { return 3; }\' > lib/util.c' },
 
         { t: 'code', where: 'wsl', name: 'Makefile kiểu Kbuild', code:
           'cat > Makefile <<\'EOF\'\n' +
@@ -1303,7 +1303,7 @@ Lesson.register({
           'obj-y += main.o\n' +
           'obj-y += driver/gpio.o\n' +
           'obj-y += driver/uart.o\n' +
-          'obj-y += lib/tienich.o\n' +
+          'obj-y += lib/util.o\n' +
           '\n' +
           'app: $(obj-y)\n' +
           '\t$(Q)echo "  LD      $@"\n' +
@@ -1325,9 +1325,9 @@ Lesson.register({
           '  CC      main.o\n' +
           '  CC      driver/gpio.o\n' +
           '  CC      driver/uart.o\n' +
-          '  CC      lib/tienich.o\n' +
+          '  CC      lib/util.o\n' +
           '  LD      app\n' +
-          'gpio=1 uart=2 tienich=3' },
+          'gpio=1 uart=2 util=3' },
 
         { t: 'code', where: 'wsl', name: 'bật chế độ ồn ào', code:
           'make clean && make V=1 | head -6' },
@@ -1351,7 +1351,7 @@ Lesson.register({
 
         { t: 'p', x: 'Dọn dẹp:' },
 
-        { t: 'code', where: 'wsl', code: 'cd ~ && rm -rf ~/bai16 ~/bai16kb ~/bai16lon' }
+        { t: 'code', where: 'wsl', code: 'cd ~ && rm -rf ~/bai16 ~/bai16kb ~/bai16big' }
       ]}
 
     ]},
@@ -1379,7 +1379,7 @@ Lesson.register({
 
         ['<code>*** recipe commences before first target.  Stop.</code>',
          'File bắt đầu bằng một dòng TAB trước khi có mục tiêu nào',
-         'Thường do copy-paste hụt mất dòng <code>tên:</code>. Xem lại vài dòng đầu file'],
+         'Thường do copy-paste hụt mất dòng <code>name:</code>. Xem lại vài dòng đầu file'],
 
         ['<code>make: \'clean\' is up to date.</code>',
          'Thư mục có một <b>file</b> tên <code>clean</code>, nên <code>make</code> coi mục tiêu đã xong',
@@ -1393,7 +1393,7 @@ Lesson.register({
          'Thời gian sửa file bị đẩy lên mới hơn file <code>.o</code> — thường do <code>cp</code>, giải nén, hoặc chép qua <code>/mnt/c</code>',
          'Dùng <code>cp -p</code> hoặc <code>rsync -a</code> để giữ nguyên mtime. Kiểm tra bằng <code>ls -l --time-style=full-iso</code>'],
 
-        ['<code>undefined reference to \'cong\'</code> khi liên kết trong Makefile',
+        ['<code>undefined reference to \'add\'</code> khi liên kết trong Makefile',
          'Dòng liên kết dùng <code>$&lt;</code> (chỉ tiên quyết <b>đầu tiên</b>) thay vì <code>$^</code> (<b>tất cả</b>)',
          'Dòng liên kết phải là <code>$(CC) $(CFLAGS) -o $@ $^</code>. Xác nhận bằng <code>make -n</code>'],
 
@@ -1407,7 +1407,7 @@ Lesson.register({
 
         ['Biến có giá trị lạ, không giống chỗ bạn gán',
          'Dùng <code>=</code> nên biến được tính lại lúc dùng, và đã bị gán đè ở dòng dưới',
-         'Đổi sang <code>:=</code>. In ra để kiểm tra bằng một mục tiêu tạm: <code>xem:</code> rồi <code>@echo $(TEN)</code>']
+         'Đổi sang <code>:=</code>. In ra để kiểm tra bằng một mục tiêu tạm: <code>show:</code> rồi <code>@echo $(NAME)</code>']
       ]},
 
     /* ══════════════════════════════════════════════
@@ -1416,7 +1416,7 @@ Lesson.register({
     { t: 'recap', title: 'Tóm tắt Bài 16', items: [
       'Một quy tắc gồm <b>ba phần</b>: mục tiêu, điều kiện tiên quyết, công thức. Dòng công thức <b>phải</b> bắt đầu bằng ký tự <b>TAB</b> — dấu cách cho <code>missing separator</code>.',
       '<code>make</code> chỉ có <b>một</b> luật: chạy công thức nếu mục tiêu không tồn tại hoặc có tiên quyết <b>mới hơn</b>. Nó so <b>thời gian sửa file</b>, không đọc nội dung — bằng chứng: <code>touch</code> một file không đổi nội dung vẫn kích hoạt build lại.',
-      'Đo trên dự án 60 file: build đầy đủ <b>1,210 s</b>, sửa một file rồi build lại <b>0,136 s</b> (<b>8,9 lần</b> nhanh hơn), không sửa gì <b>0,003 s</b>, và <code>-j6</code> trên 6 CPU cho <b>0,465 s</b> — nhanh hơn <b>2,6 lần</b> chứ không phải 6.',
+      'Đo trên dự án 60 file: build đầy đủ <b>1,535 s</b>, sửa một file rồi build lại <b>0,187 s</b> (<b>8,2 lần</b> nhanh hơn), không sửa gì <b>0,004 s</b>, và <code>-j6</code> trên 6 CPU cho <b>0,555 s</b> — nhanh hơn <b>2,8 lần</b> chứ không phải 6.',
       'Biến tự động <code>$@</code> (mục tiêu), <code>$&lt;</code> (tiên quyết đầu tiên), <code>$^</code> (tất cả) cùng pattern rule <code>%.o: %.c</code> rút Makefile từ 15 dòng lệnh xuống 6. Dòng liên kết phải dùng <code>$^</code>, không phải <code>$&lt;</code>.',
       '<code>:=</code> tính giá trị <b>ngay tại dòng gán</b>, <code>=</code> tính <b>mỗi lần dùng</b>. Mặc định hãy dùng <code>:=</code>.',
       '<b>Mọi mục tiêu là động từ đều cần <code>.PHONY</code>.</b> Không có nó, một file trùng tên làm <code>make clean</code> im lặng không làm gì, mà vẫn thoát với mã <b>0</b>.',
@@ -1427,11 +1427,11 @@ Lesson.register({
 
     { t: 'cal', kind: 'info', title: 'Bài tiếp theo', x:
       '<p>Trong bài này mọi thứ đều là mã của bạn. Nhưng dòng <code>printf</code> trong ' +
-      '<code>inra.c</code> đến từ <b>thư viện C</b> — thứ bạn chưa hề biên dịch. Ở Bài 15 bạn ' +
+      '<code>print.c</code> đến từ <b>thư viện C</b> — thứ bạn chưa hề biên dịch. Ở Bài 15 bạn ' +
       'đã thấy <code>nm hello</code> báo <code>U printf@GLIBC_2.2.5</code> và ' +
       '<code>ldd</code> chỉ ra <code>libc.so.6</code>.</p>' +
       '<p><b>Bài 17 — Thư viện tĩnh và động</b> mổ xẻ đúng chỗ đó. Bạn sẽ tự tạo cả ' +
-      '<code>libphep.a</code> lẫn <code>libphep.so</code> từ chính <code>phep.c</code> của bài ' +
+      '<code>libops.a</code> lẫn <code>libops.so</code> từ chính <code>ops.c</code> của bài ' +
       'này, đo kích thước hai chương trình kết quả, và trả lời được câu hỏi mà Chặng 02 đặt ra ' +
       'từ đầu: vì sao bản <code>hello</code> tĩnh nặng <b>705 328 byte</b> còn bản động chỉ ' +
       '<b>15 952 byte</b> — và vì sao thiết bị nhúng vẫn thường chọn bản nặng hơn.</p>' }
@@ -1443,15 +1443,15 @@ Lesson.register({
      ══════════════════════════════════════════════ */
   quiz: [
     {
-      q: 'Bạn chạy <code>touch phep.h</code> — chỉ đổi thời gian, nội dung y nguyên — rồi <code>make</code>. Nó biên dịch lại hai file. Vì sao?',
+      q: 'Bạn chạy <code>touch ops.h</code> — chỉ đổi thời gian, nội dung y nguyên — rồi <code>make</code>. Nó biên dịch lại hai file. Vì sao?',
       opts: [
-        'make đã đọc phep.h và phát hiện nội dung khác với lần trước',
-        'make chỉ so thời gian sửa file, và phep.h giờ mới hơn hai file .o phụ thuộc vào nó',
+        'make đã đọc ops.h và phát hiện nội dung khác với lần trước',
+        'make chỉ so thời gian sửa file, và ops.h giờ mới hơn hai file .o phụ thuộc vào nó',
         'touch làm hỏng bộ nhớ đệm của make nên nó phải làm lại',
         'make luôn biên dịch lại mọi file có #include một header vừa được mở'
       ],
       a: 1,
-      why: '<code>make</code> <b>không bao giờ</b> đọc nội dung file. Nó chỉ so hai con dấu thời gian (mtime), vì phép so hai số 64-bit tốn vài nano giây còn đọc và băm 60 file tốn hàng chục mili giây. Đó là lý do <code>make</code> mất <b>0,003 s</b> khi không có gì đổi. Hệ quả trực tiếp: <code>cp</code> mã nguồn từ máy khác sang sẽ làm mọi file mới hơn object và kích hoạt build lại toàn bộ.'
+      why: '<code>make</code> <b>không bao giờ</b> đọc nội dung file. Nó chỉ so hai con dấu thời gian (mtime), vì phép so hai số 64-bit tốn vài nano giây còn đọc và băm 60 file tốn hàng chục mili giây. Đó là lý do <code>make</code> mất <b>0,004 s</b> khi không có gì đổi. Hệ quả trực tiếp: <code>cp</code> mã nguồn từ máy khác sang sẽ làm mọi file mới hơn object và kích hoạt build lại toàn bộ.'
     },
     {
       q: 'Makefile của bạn có <code>clean: rm -f app *.o</code> nhưng không có <code>.PHONY</code>. Một đồng nghiệp vô tình tạo file tên <code>clean</code>. Chuyện gì xảy ra khi chạy <code>make clean</code>?',
@@ -1465,7 +1465,7 @@ Lesson.register({
       why: 'Mục tiêu <code>clean</code> tồn tại như một file và không có tiên quyết nào mới hơn, nên theo đúng luật, <code>make</code> kết luận không cần làm gì. Điều nguy hiểm là <b>mã thoát vẫn là 0</b> — một script CI sẽ coi như thành công. Đây là lỗi <i>im lặng</i>, khác hẳn <code>missing separator</code> vốn dừng ngay với mã 2. Quy tắc: mọi mục tiêu là động từ đều phải khai báo <code>.PHONY</code>.'
     },
     {
-      q: 'Trong quy tắc <code>chuongtrinh: main.o phep.o inra.o</code>, công thức viết <code>gcc -o $@ $&lt;</code>. Kết quả là gì?',
+      q: 'Trong quy tắc <code>program: main.o ops.o print.o</code>, công thức viết <code>gcc -o $@ $&lt;</code>. Kết quả là gì?',
       opts: [
         'Liên kết đúng — $< là tất cả các file .o',
         'Lỗi missing separator vì $< không dùng được ở dòng liên kết',
@@ -1473,21 +1473,21 @@ Lesson.register({
         'make từ chối chạy vì $@ và $< không dùng chung được'
       ],
       a: 2,
-      why: '<code>$&lt;</code> là <b>tiên quyết đầu tiên</b>, ở đây là <code>main.o</code>. Lệnh trở thành <code>gcc -o chuongtrinh main.o</code>, nên <code>cong</code> và <code>in_ket_qua</code> không có nhà cung cấp và bạn nhận đúng lỗi <code>undefined reference</code> của Bài 15. Dòng liên kết phải dùng <code>$^</code> — "tất cả tiên quyết". Mẹo nhớ: <code>$&lt;</code> mũi tên chỉ vào trong = <b>một</b> đầu vào, dùng ở dòng biên dịch; <code>$^</code> dùng ở dòng liên kết.'
+      why: '<code>$&lt;</code> là <b>tiên quyết đầu tiên</b>, ở đây là <code>main.o</code>. Lệnh trở thành <code>gcc -o program main.o</code>, nên <code>add</code> và <code>print_result</code> không có nhà cung cấp và bạn nhận đúng lỗi <code>undefined reference</code> của Bài 15. Dòng liên kết phải dùng <code>$^</code> — "tất cả tiên quyết". Mẹo nhớ: <code>$&lt;</code> mũi tên chỉ vào trong = <b>một</b> đầu vào, dùng ở dòng biên dịch; <code>$^</code> dùng ở dòng liên kết.'
     },
     {
-      q: 'Bạn sửa một hằng số trong <code>cauhinh.h</code>, chạy <code>make</code>, nhưng chương trình vẫn chạy giá trị cũ và make báo <i>up to date</i>. Chạy <code>make clean &amp;&amp; make</code> thì đúng. Chẩn đoán?',
+      q: 'Bạn sửa một hằng số trong <code>config.h</code>, chạy <code>make</code>, nhưng chương trình vẫn chạy giá trị cũ và make báo <i>up to date</i>. Chạy <code>make clean &amp;&amp; make</code> thì đúng. Chẩn đoán?',
       opts: [
         'Trình biên dịch có lỗi tối ưu hóa, thử hạ xuống -O0',
-        'Header guard trong cauhinh.h bị sai nên nội dung mới không được nạp',
+        'Header guard trong config.h bị sai nên nội dung mới không được nạp',
         'Makefile không khai báo header là điều kiện tiên quyết — cần -MMD -MP và -include',
         'Cần chạy make -B để buộc build lại mỗi lần'
       ],
       a: 2,
-      why: 'Việc <code>make clean &amp;&amp; make</code> chữa được triệu chứng chứng minh <b>mã nguồn đúng</b> — chỉ hệ thống build là sai. Pattern rule <code>%.o: %.c</code> chỉ khai báo file <code>.c</code>, nên <code>make</code> không hề biết header đã đổi. Cách chữa đúng là để trình biên dịch tự khai báo: <code>-MMD -MP</code> sinh file <code>.d</code> chứa dòng <code>main.o: main.c cauhinh.h</code>, rồi <code>-include</code> nạp nó vào. <code>make -B</code> thì build lại <b>mọi thứ</b> mỗi lần — đúng kết quả nhưng vứt bỏ toàn bộ giá trị của make.'
+      why: 'Việc <code>make clean &amp;&amp; make</code> chữa được triệu chứng chứng minh <b>mã nguồn đúng</b> — chỉ hệ thống build là sai. Pattern rule <code>%.o: %.c</code> chỉ khai báo file <code>.c</code>, nên <code>make</code> không hề biết header đã đổi. Cách chữa đúng là để trình biên dịch tự khai báo: <code>-MMD -MP</code> sinh file <code>.d</code> chứa dòng <code>main.o: main.c config.h</code>, rồi <code>-include</code> nạp nó vào. <code>make -B</code> thì build lại <b>mọi thứ</b> mỗi lần — đúng kết quả nhưng vứt bỏ toàn bộ giá trị của make.'
     },
     {
-      q: 'Trên máy 6 CPU, build đầy đủ dự án 60 file mất <b>1,210 s</b> với một tiến trình và <b>0,465 s</b> với <code>-j6</code>. Vì sao không phải khoảng 0,2 s?',
+      q: 'Trên máy 6 CPU, build đầy đủ dự án 60 file mất <b>1,535 s</b> với một tiến trình và <b>0,555 s</b> với <code>-j6</code>. Vì sao không phải khoảng 0,2 s?',
       opts: [
         'Vì make chỉ dùng được tối đa 3 lõi',
         'Vì bước liên kết cuối cùng không song song được và các tiến trình gcc còn tranh nhau ổ đĩa',
@@ -1495,7 +1495,7 @@ Lesson.register({
         'Vì mỗi tiến trình gcc chỉ chạy được ở 50% tốc độ khi có nhiều tiến trình'
       ],
       a: 1,
-      why: 'Tăng tốc song song luôn bị chặn bởi phần <b>không song song được</b> — ở đây là lệnh liên kết cuối, chỉ một tiến trình. Cộng thêm 6 tiến trình gcc cùng đọc header từ đĩa. Kết quả đo được là <b>2,6 lần</b> trên 6 lõi. Hãy nhớ tỉ lệ này khi build kernel ở Chặng 07: tăng <code>-j</code> lên gấp đôi <b>không</b> làm build nhanh gấp đôi. Lưu ý build song song và build tăng dần là hai kỹ thuật khác nhau và chúng nhân với nhau.'
+      why: 'Tăng tốc song song luôn bị chặn bởi phần <b>không song song được</b> — ở đây là lệnh liên kết cuối, chỉ một tiến trình. Cộng thêm 6 tiến trình gcc cùng đọc header từ đĩa. Kết quả đo được là <b>2,8 lần</b> trên 6 lõi. Hãy nhớ tỉ lệ này khi build kernel ở Chặng 07: tăng <code>-j</code> lên gấp đôi <b>không</b> làm build nhanh gấp đôi. Lưu ý build song song và build tăng dần là hai kỹ thuật khác nhau và chúng nhân với nhau.'
     },
     {
       q: 'Trong Makefile của kernel bạn thấy <code>obj-$(CONFIG_GPIO_ABC) += gpio-abc.o</code>. Dòng này làm gì khi <code>CONFIG_GPIO_ABC</code> có giá trị <code>n</code>?',

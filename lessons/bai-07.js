@@ -80,7 +80,7 @@ Lesson.register({
     { t: 'h2', x: 'nano: học trong ba phút' },
 
     { t: 'p', x:
-      '<code>nano ten-file</code> là xong. Con trỏ ở ngay đầu file, gõ chữ là chữ hiện ra, ' +
+      '<code>nano filename</code> là xong. Con trỏ ở ngay đầu file, gõ chữ là chữ hiện ra, ' +
       'phím mũi tên di chuyển, <kbd>Backspace</kbd> xoá. Không có chế độ nào cả. ' +
       'Hai dòng dưới cùng màn hình <b>luôn hiện danh sách phím</b> — bạn không cần nhớ gì.' },
 
@@ -89,7 +89,7 @@ Lesson.register({
       svg:
         '<svg viewBox="0 0 720 230" width="720" role="img" aria-label="Sơ đồ bố cục màn hình của trình soạn thảo nano gồm thanh tiêu đề, vùng soạn thảo và hai dòng phím tắt">' +
         '<rect class="d-box-p" x="20" y="16" width="600" height="26" rx="4"/>' +
-        '<text class="d-tm" x="32" y="34">GNU nano 8.7.1        cauhinh.conf                Modified</text>' +
+        '<text class="d-tm" x="32" y="34">GNU nano 8.7.1        config.conf                 Modified</text>' +
         '<text class="d-ts" x="628" y="34">tiêu đề</text>' +
 
         '<rect class="d-box" x="20" y="48" width="600" height="96" rx="4"/>' +
@@ -345,7 +345,7 @@ Lesson.register({
     { t: 'h2', x: 'File .swp và màn hình E325 đáng sợ' },
 
     { t: 'p', x:
-      'Ngay khi mở một file, vim tạo một file ẩn bên cạnh: <code>.tên-file.swp</code>. ' +
+      'Ngay khi mở một file, vim tạo một file ẩn bên cạnh: <code>.filename.swp</code>. ' +
       'Nó ghi liên tục mọi thay đổi vào đó. Nếu phiên làm việc kết thúc bình thường, vim xoá file ' +
       'này. Nếu mất điện, rớt SSH hoặc board treo, file <code>.swp</code> <b>ở lại</b>.' },
 
@@ -355,7 +355,7 @@ Lesson.register({
       ['E325', '', 'Mã lỗi vim hiện khi mở một file đã có <code>.swp</code>. Kèm theo là một màn ' +
        'hình dài liệt kê tiến trình nào đang giữ file và gợi ý hai khả năng.'],
       ['Recover', '', 'Nạp nội dung từ file swap thay vì từ đĩa, để lấy lại phần chưa kịp lưu. ' +
-       'Chọn bằng phím <code>R</code>, hoặc <code>vim -r ten-file</code>.'],
+       'Chọn bằng phím <code>R</code>, hoặc <code>vim -r filename</code>.'],
       ['Delete it', '', 'Xoá file swap và mở file bình thường. Chọn khi bạn chắc chắn không có gì ' +
        'đáng cứu — phím <code>D</code>.']
     ]},
@@ -368,9 +368,9 @@ Lesson.register({
 
     { t: 'list', ordered: true, items: [
       'Nhấn <kbd>Enter</kbd> để bỏ qua màn hình cảnh báo, hoặc <code>q</code> để thoát hẳn.',
-      'Nếu tin rằng có phần chưa lưu đáng cứu: mở lại bằng <code>vim -r ten-file</code>, ' +
+      'Nếu tin rằng có phần chưa lưu đáng cứu: mở lại bằng <code>vim -r filename</code>, ' +
       'kiểm tra nội dung, rồi <code>:w</code> để ghi đè lên file thật.',
-      'Nếu không cần: xoá file swap bằng <code>rm .ten-file.swp</code> rồi mở lại như bình thường.',
+      'Nếu không cần: xoá file swap bằng <code>rm .filename.swp</code> rồi mở lại như bình thường.',
       'Muốn biết máy còn sót file swap nào: chạy <code>vim -r</code> không kèm tên file.'
     ]},
 
@@ -453,7 +453,7 @@ Lesson.register({
             'Nhấn <kbd>Ctrl</kbd>+<kbd>W</kbd>, gõ <code>DEBUG</code>, nhấn <kbd>Enter</kbd> — ' +
             'con trỏ nhảy tới dòng đó.',
             'Nhấn <kbd>Ctrl</kbd>+<kbd>K</kbd> để cắt cả dòng <code>CONFIG_DEBUG=y</code>.',
-            'Đưa con trỏ về đầu file, gõ thêm một dòng <code># cau hinh cho board</code> rồi ' +
+            'Đưa con trỏ về đầu file, gõ thêm một dòng <code># board config</code> rồi ' +
             '<kbd>Enter</kbd>.',
             'Nhấn <kbd>Ctrl</kbd>+<kbd>O</kbd> rồi <kbd>Enter</kbd> để lưu, sau đó ' +
             '<kbd>Ctrl</kbd>+<kbd>X</kbd> để thoát.'
@@ -492,7 +492,7 @@ Lesson.register({
             'Gõ <code>/DEBUG</code> rồi <kbd>Enter</kbd> để tìm, sau đó <code>dd</code> để xoá ' +
             'cả dòng.',
             'Gõ <code>gg</code> về đầu file, nhấn <code>O</code> (chữ O viết hoa) để mở một dòng ' +
-            'mới <b>phía trên</b>, gõ <code># cau hinh cho board</code>, nhấn <kbd>Esc</kbd>.',
+            'mới <b>phía trên</b>, gõ <code># board config</code>, nhấn <kbd>Esc</kbd>.',
             'Gõ <code>u</code> vài lần và xem vim lùi lại từng bước — rồi ' +
             '<kbd>Ctrl</kbd>+<kbd>r</kbd> để làm lại.',
             'Gõ <code>:wq</code> rồi <kbd>Enter</kbd>.'
@@ -539,11 +539,11 @@ Lesson.register({
 
           { t: 'p', x: 'Chèn một dòng vào đầu file, rồi đổi hàng loạt:' },
           { t: 'code', where: 'wsl', code:
-            'vim -Es -c \'1i|# cau hinh kernel\' -c \'wq\' kernel.conf\n' +
+            'vim -Es -c \'1i|# kernel config\' -c \'wq\' kernel.conf\n' +
             'vim -Es -c \'%s/=y/=m/g\' -c \'wq\' kernel.conf\n' +
             'cat kernel.conf' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '# cau hinh kernel\n' +
+            '# kernel config\n' +
             'CONFIG_UART=m\n' +
             'CONFIG_I2C=m\n' +
             'CONFIG_DEBUG=m' },
@@ -560,7 +560,7 @@ Lesson.register({
             'sed -i \'s/=m/=y/g\' kernel.conf\n' +
             'cat kernel.conf' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '# cau hinh kernel\n' +
+            '# kernel config\n' +
             'CONFIG_UART=y\n' +
             'CONFIG_I2C=y\n' +
             'CONFIG_DEBUG=y' },
@@ -832,10 +832,10 @@ Lesson.register({
         'Board đã hết dung lượng đĩa'
       ],
       a: 2,
-      why: 'vim ghi mọi thay đổi vào một file nháp <code>.tên-file.swp</code> ngay khi bạn mở file, ' +
+      why: 'vim ghi mọi thay đổi vào một file nháp <code>.filename.swp</code> ngay khi bạn mở file, ' +
            'và chỉ xoá nó khi bạn thoát bình thường. Mạng đứt nên nó ở lại. File thật trên đĩa ' +
-           '<b>vẫn nguyên vẹn</b>. Cứu phần chưa lưu bằng <code>vim -r ten-file</code> rồi ' +
-           '<code>:w</code>; không cần thì <code>rm .ten-file.swp</code>. Nhớ <code>ls -a</code> ' +
+           '<b>vẫn nguyên vẹn</b>. Cứu phần chưa lưu bằng <code>vim -r filename</code> rồi ' +
+           '<code>:w</code>; không cần thì <code>rm .filename.swp</code>. Nhớ <code>ls -a</code> ' +
            'mới thấy nó, vì tên bắt đầu bằng dấu chấm.'
     },
     {

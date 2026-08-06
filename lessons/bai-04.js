@@ -185,16 +185,16 @@ Lesson.register({
     { t: 'table',
       head: ['Bạn gõ', 'Shell hiểu thành', 'Kết quả'],
       rows: [
-        ['<code>rm hai tu.txt</code>', 'Hai đối số: <code>hai</code> và <code>tu.txt</code>', 'Báo lỗi không tìm thấy cả hai'],
-        ['<code>rm "hai tu.txt"</code>', 'Một đối số: <code>hai tu.txt</code>', 'Đúng ý bạn'],
-        ['<code>rm hai\\ tu.txt</code>', 'Một đối số — dấu <code>\\</code> huỷ ý nghĩa của khoảng trắng', 'Cũng đúng, nhưng khó đọc hơn'],
+        ['<code>rm two words.txt</code>', 'Hai đối số: <code>two</code> và <code>words.txt</code>', 'Báo lỗi không tìm thấy cả hai'],
+        ['<code>rm "two words.txt"</code>', 'Một đối số: <code>two words.txt</code>', 'Đúng ý bạn'],
+        ['<code>rm two\\ words.txt</code>', 'Một đối số — dấu <code>\\</code> huỷ ý nghĩa của khoảng trắng', 'Cũng đúng, nhưng khó đọc hơn'],
         ['<code>echo $x</code> với <code>x="a  b"</code>', 'Hai đối số, khoảng trắng thừa bị nuốt', 'In ra <code>a b</code>'],
         ['<code>echo "$x"</code>', 'Một đối số nguyên vẹn', 'In ra <code>a  b</code>']
       ]},
 
     { t: 'cal', kind: 'warn', title: 'Luật vàng về nháy kép', x:
-      '<p>Trong script, hãy bọc <b>mọi</b> biến bằng nháy kép: viết <code>"$duong_dan"</code> chứ không ' +
-      'phải <code>$duong_dan</code>.</p>' +
+      '<p>Trong script, hãy bọc <b>mọi</b> biến bằng nháy kép: viết <code>"$path"</code> chứ không ' +
+      'phải <code>$path</code>.</p>' +
       '<p>Không bọc, một đường dẫn chứa dấu cách sẽ vỡ thành nhiều đối số và lệnh của bạn tác động ' +
       'nhầm lên file khác. Với một script chạy <code>rm</code> lúc khởi động thiết bị, hậu quả không ' +
       'phải là "in sai" mà là "xoá nhầm". Bài 13 sẽ đào sâu chủ đề trích dẫn này.</p>' },
@@ -364,7 +364,7 @@ Lesson.register({
       rows: [
         ['<b>0</b>', 'Thành công', 'Mọi lệnh chạy trót lọt'],
         ['<b>1</b>', 'Lỗi chung', '<code>grep</code> không tìm thấy dòng nào; <code>false</code>'],
-        ['<b>2</b>', 'Dùng sai cú pháp hoặc không tìm thấy file', '<code>ls file-khong-co</code>; <code>ls --alll</code>'],
+        ['<b>2</b>', 'Dùng sai cú pháp hoặc không tìm thấy file', '<code>ls missing-file</code>; <code>ls --alll</code>'],
         ['<b>126</b>', 'Tìm thấy file nhưng <b>không chạy được</b>', 'Quên <code>chmod +x</code> cho script'],
         ['<b>127</b>', '<b>Không tìm thấy lệnh</b>', 'Gõ sai tên, hoặc chương trình chưa được cài'],
         ['<b>130</b>', 'Bị dừng bởi <kbd>Ctrl</kbd>+<kbd>C</kbd>', '128 + 2, với 2 là số hiệu tín hiệu SIGINT'],
@@ -390,7 +390,7 @@ Lesson.register({
       head: ['Viết', 'Nghĩa', 'Ví dụ thực tế'],
       rows: [
         ['<code>A &amp;&amp; B</code>', 'Chạy B <b>chỉ khi</b> A thành công (mã 0)',
-         '<code>make &amp;&amp; ./chuong-trinh</code> — chỉ chạy khi build xong'],
+         '<code>make &amp;&amp; ./program</code> — chỉ chạy khi build xong'],
         ['<code>A || B</code>', 'Chạy B <b>chỉ khi</b> A thất bại (mã khác 0)',
          '<code>cd ~/embedded || mkdir ~/embedded</code>'],
         ['<code>A ; B</code>', 'Chạy B <b>bất kể</b> A ra sao',
@@ -400,9 +400,9 @@ Lesson.register({
       ]},
 
     { t: 'cal', kind: 'why', title: 'Vì sao dấu ; và dấu &amp;&amp; không thay nhau được', x:
-      '<p>Câu <code>make ; ./chuong-trinh</code> vẫn chạy chương trình <b>ngay cả khi build thất bại</b> — ' +
+      '<p>Câu <code>make ; ./program</code> vẫn chạy chương trình <b>ngay cả khi build thất bại</b> — ' +
       'bạn sẽ chạy bản cũ mà tưởng là bản mới, rồi mất một buổi đi tìm lỗi không tồn tại.</p>' +
-      '<p>Với <code>make &amp;&amp; ./chuong-trinh</code>, build hỏng thì dừng ngay tại đó. ' +
+      '<p>Với <code>make &amp;&amp; ./program</code>, build hỏng thì dừng ngay tại đó. ' +
       'Trong mọi script build và mọi lệnh nhiều bước, <code>&amp;&amp;</code> gần như luôn là lựa chọn đúng.</p>' },
 
     /* ══════════════════════════════════════════════
@@ -455,26 +455,26 @@ Lesson.register({
         blocks: [
           { t: 'code', where: 'wsl', code:
             'mkdir -p ~/embedded/bai04/demo && cd ~/embedded/bai04/demo\n' +
-            'touch bao-cao.txt ghi-chu.md\n' +
-            'mkdir tai-lieu\n' +
-            'printf \'xin chao\\n\' > bao-cao.txt' },
+            'touch report.txt notes.md\n' +
+            'mkdir docs\n' +
+            'printf \'hello\\n\' > report.txt' },
 
           { t: 'p', x:
             'Giờ chạy <code>ls</code> ở dạng trần trụi nhất — không tuỳ chọn, không đối số:' },
           { t: 'code', where: 'wsl', code: 'ls' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bao-cao.txt\n' +
-            'ghi-chu.md\n' +
-            'tai-lieu' },
+            'docs\n' +
+            'notes.md\n' +
+            'report.txt' },
 
           { t: 'p', x:
             'Thêm một tuỳ chọn để đổi <b>cách</b> hiển thị:' },
           { t: 'code', where: 'wsl', code: 'ls -l' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'total 8\n' +
-            '-rw-r--r-- 1 shinarus shinarus    9 Aug  1 15:35 bao-cao.txt\n' +
-            '-rw-r--r-- 1 shinarus shinarus    0 Aug  1 15:35 ghi-chu.md\n' +
-            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  1 15:35 tai-lieu' },
+            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  6 00:16 docs\n' +
+            '-rw-r--r-- 1 shinarus shinarus    0 Aug  6 00:16 notes.md\n' +
+            '-rw-r--r-- 1 shinarus shinarus    6 Aug  6 00:16 report.txt' },
 
           { t: 'p', x:
             'Ba dòng dưới đây <b>cho kết quả giống hệt nhau</b>. Hãy chạy cả ba và đối chiếu:' },
@@ -484,11 +484,11 @@ Lesson.register({
             'ls --all --human-readable -l' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'total 16K\n' +
-            'drwxr-xr-x 3 shinarus shinarus 4.0K Aug  1 15:35 .\n' +
-            'drwxr-xr-x 3 shinarus shinarus 4.0K Aug  1 15:35 ..\n' +
-            '-rw-r--r-- 1 shinarus shinarus    9 Aug  1 15:35 bao-cao.txt\n' +
-            '-rw-r--r-- 1 shinarus shinarus    0 Aug  1 15:35 ghi-chu.md\n' +
-            'drwxr-xr-x 3 shinarus shinarus 4.0K Aug  1 15:35 tai-lieu' },
+            'drwxr-xr-x 3 shinarus shinarus 4.0K Aug  6 00:16 .\n' +
+            'drwxr-xr-x 3 shinarus shinarus 4.0K Aug  6 00:16 ..\n' +
+            'drwxr-xr-x 2 shinarus shinarus 4.0K Aug  6 00:16 docs\n' +
+            '-rw-r--r-- 1 shinarus shinarus    0 Aug  6 00:16 notes.md\n' +
+            '-rw-r--r-- 1 shinarus shinarus    6 Aug  6 00:16 report.txt' },
 
           { t: 'cmdx', cmd: 'ls -lah',
             title: 'Mổ xẻ câu lệnh',
@@ -630,19 +630,19 @@ Lesson.register({
         blocks: [
           { t: 'p', x: 'Mã <b>0</b> và mã <b>2</b> — thành công và thất bại thông thường:' },
           { t: 'code', where: 'wsl', code:
-            'ls bao-cao.txt > /dev/null\n' +
+            'ls report.txt > /dev/null\n' +
             'echo $?\n' +
-            'ls khong-co.txt\n' +
+            'ls missing.txt\n' +
             'echo $?' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '0\n' +
-            'ls: cannot access \'khong-co.txt\': No such file or directory\n' +
+            'ls: cannot access \'missing.txt\': No such file or directory\n' +
             '2' },
 
           { t: 'cal', kind: 'warn', title: 'Cái bẫy lớn nhất của $?', x:
             '<p><code>$?</code> chỉ giữ mã thoát của <b>lệnh vừa chạy xong ngay trước đó</b> — và ' +
             '<code>echo</code> cũng là một lệnh. Hãy tự thử:</p>' +
-            '<p><code>ls khong-co.txt 2>/dev/null</code> · <code>echo $?</code> in ra <b>2</b> · ' +
+            '<p><code>ls missing.txt 2>/dev/null</code> · <code>echo $?</code> in ra <b>2</b> · ' +
             '<code>echo $?</code> lần nữa in ra <b>0</b>.</p>' +
             '<p>Số 0 lần hai là mã thoát của chính lệnh <code>echo</code> đầu tiên. Muốn dùng lại nhiều lần ' +
             'thì phải cất đi ngay: <code>rc=$?</code>. Đây là lỗi kinh điển trong script kiểm thử tự động.</p>' },
@@ -659,24 +659,24 @@ Lesson.register({
             'Mã <b>126</b> — file có đó nhưng không chạy được. Đây là lỗi mà mọi người mới đều gặp ' +
             'trong tuần đầu tiên:' },
           { t: 'code', where: 'wsl', code:
-            'printf \'#!/bin/bash\\necho "Toi da chay duoc"\\n\' > chao.sh\n' +
-            'ls -l chao.sh\n' +
-            './chao.sh\n' +
+            'printf \'#!/bin/bash\\necho "It works"\\n\' > hello.sh\n' +
+            'ls -l hello.sh\n' +
+            './hello.sh\n' +
             'echo $?' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '-rw-r--r-- 1 shinarus shinarus 36 Aug  1 15:40 chao.sh\n' +
-            'bash: ./chao.sh: Permission denied\n' +
+            '-rw-r--r-- 1 shinarus shinarus 28 Aug  6 00:16 hello.sh\n' +
+            'bash: ./hello.sh: Permission denied\n' +
             '126' },
 
           { t: 'p', x: 'Cấp quyền thực thi rồi chạy lại:' },
           { t: 'code', where: 'wsl', code:
-            'chmod +x chao.sh\n' +
-            'ls -l chao.sh\n' +
-            './chao.sh\n' +
+            'chmod +x hello.sh\n' +
+            'ls -l hello.sh\n' +
+            './hello.sh\n' +
             'echo $?' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '-rwxr-xr-x 1 shinarus shinarus 36 Aug  1 15:40 chao.sh\n' +
-            'Toi da chay duoc\n' +
+            '-rwxr-xr-x 1 shinarus shinarus 28 Aug  6 00:16 hello.sh\n' +
+            'It works\n' +
             '0' },
 
           { t: 'cal', kind: 'info', title: 'Ba chữ x vừa xuất hiện', x:
@@ -710,13 +710,13 @@ Lesson.register({
 
           { t: 'p', x: 'Cuối cùng, dùng mã thoát để nối lệnh — đúng cách và sai cách:' },
           { t: 'code', where: 'wsl', code:
-            'ls bao-cao.txt && echo "TON TAI"\n' +
-            'ls khong-co.txt || echo "KHONG TON TAI"' },
+            'ls report.txt && echo "EXISTS"\n' +
+            'ls missing.txt || echo "NOT FOUND"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bao-cao.txt\n' +
-            'TON TAI\n' +
-            'ls: cannot access \'khong-co.txt\': No such file or directory\n' +
-            'KHONG TON TAI' },
+            'report.txt\n' +
+            'EXISTS\n' +
+            'ls: cannot access \'missing.txt\': No such file or directory\n' +
+            'NOT FOUND' },
 
           { t: 'cal', kind: 'tip', title: 'Bạn vừa viết câu lệnh có điều kiện đầu tiên', x:
             '<p>Không cần <code>if</code>, không cần script. Đây chính là dạng rút gọn bạn sẽ gặp trong ' +
@@ -737,18 +737,18 @@ Lesson.register({
         ['<code>bash: lss: command not found</code> · mã 127',
          'Gõ sai tên lệnh, hoặc chương trình chưa được cài, hoặc không nằm trong <code>$PATH</code>',
          'Kiểm tra chính tả; <code>type -a &lt;lệnh&gt;</code>; nếu chưa cài thì <code>sudo apt install</code>'],
-        ['<code>bash: ./chao.sh: Permission denied</code> · mã 126',
+        ['<code>bash: ./hello.sh: Permission denied</code> · mã 126',
          'File tồn tại nhưng thiếu bit thực thi',
-         '<code>chmod +x chao.sh</code> rồi chạy lại'],
+         '<code>chmod +x hello.sh</code> rồi chạy lại'],
         ['<code>ls: cannot access \'x\': No such file or directory</code> · mã 2',
          'Sai tên file hoặc sai thư mục hiện tại',
          '<code>pwd</code> để biết mình đang ở đâu, <code>ls</code> để xem có gì'],
         ['<code>error: unexpected argument \'--alll\' found</code>',
          'Sai tên tuỳ chọn. Máy bạn dùng uutils nên thông báo khác GNU',
          'Đọc dòng <code>tip:</code> ngay dưới — nó gợi ý đúng tên tuỳ chọn'],
-        ['<code>rm: cannot remove \'hai\'</code> và <code>\'tu.txt\'</code>',
+        ['<code>rm: cannot remove \'two\'</code> và <code>\'words.txt\'</code>',
          'Tên file có dấu cách nhưng không được bọc nháy',
-         '<code>rm "hai tu.txt"</code>'],
+         '<code>rm "two words.txt"</code>'],
         ['<code>No manual entry for cd</code> · mã 16',
          '<code>cd</code> là builtin, không phải file, nên không có trang man',
          'Dùng <code>help cd</code>'],
@@ -842,7 +842,7 @@ Lesson.register({
            '<code>x</code> xuất hiện.'
     },
     {
-      q: 'Đoạn sau in ra gì? <code>ls khong-co.txt 2>/dev/null</code> · <code>echo $?</code> · <code>echo $?</code>',
+      q: 'Đoạn sau in ra gì? <code>ls missing.txt 2>/dev/null</code> · <code>echo $?</code> · <code>echo $?</code>',
       opts: [
         '<code>2</code> rồi <code>2</code>',
         '<code>2</code> rồi <code>0</code>',
@@ -856,7 +856,7 @@ Lesson.register({
            'Muốn dùng lại nhiều lần phải cất ngay: <code>rc=$?</code>.'
     },
     {
-      q: 'Trong một script build, nên viết <code>make ; ./chuong-trinh</code> hay <code>make &amp;&amp; ./chuong-trinh</code>?',
+      q: 'Trong một script build, nên viết <code>make ; ./program</code> hay <code>make &amp;&amp; ./program</code>?',
       opts: [
         'Hai cách tương đương nhau',
         '<code>;</code> — để luôn chạy được chương trình',

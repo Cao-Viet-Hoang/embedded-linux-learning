@@ -636,9 +636,9 @@ Lesson.register({
             '<code>?</code> ở cột này là dịch vụ nền, không gắn với bàn phím nào.</p>' },
           { t: 'p', x: 'Shell cũng tự biết PID của mình qua hai biến dựng sẵn:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'echo "PID cua shell = $$"\necho "PPID = $PPID"' },
+            'echo "shell PID = $$"\necho "PPID = $PPID"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'PID cua shell = 314\n' +
+            'shell PID = 314\n' +
             'PPID = 313' },
           { t: 'p', x: 'Bây giờ đếm toàn bộ máy:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: 'ps -e --no-headers | wc -l' },
@@ -768,12 +768,12 @@ Lesson.register({
             'đó chính là điểm khác biệt.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'sleep 60 &\n' +
-            'echo "PID vua chay nen = $!"\n' +
+            'echo "background PID = $!"\n' +
             'sleep 30 &\n' +
             'sleep 45 &\n' +
             'jobs' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'PID vua chay nen = 412\n' +
+            'background PID = 2884\n' +
             '[1]   Running                    sleep 60 &\n' +
             '[2]-  Running                    sleep 30 &\n' +
             '[3]+  Running                    sleep 45 &' },
@@ -786,20 +786,20 @@ Lesson.register({
           { t: 'p', x: 'Xem PID và đối chiếu với <code>ps</code>:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: 'jobs -l\nps -o pid,ppid,stat,comm' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '[1]    412 Running                    sleep 60 &\n' +
-            '[2]-   413 Running                    sleep 30 &\n' +
-            '[3]+   414 Running                    sleep 45 &\n' +
+            '[1]   2884 Running                    sleep 60 &\n' +
+            '[2]-  2885 Running                    sleep 30 &\n' +
+            '[3]+  2886 Running                    sleep 45 &\n' +
             '    PID    PPID STAT COMMAND\n' +
-            '    293     292 Ss+  bash\n' +
-            '    412     293 S    sleep\n' +
-            '    413     293 S    sleep\n' +
-            '    414     293 S    sleep\n' +
-            '    415     293 R    ps' },
+            '   2878    2876 Ss+  bash\n' +
+            '   2884    2878 S    sleep\n' +
+            '   2885    2878 S    sleep\n' +
+            '   2886    2878 S    sleep\n' +
+            '   2887    2878 R    ps' },
           { t: 'cal', kind: 'why', title: 'Đọc cột STAT ở đây là hiểu toàn bộ job control', x:
             '<p>Ba tiến trình <code>sleep</code> ở <code>S</code> — <b>không</b> có dấu ' +
             '<code>+</code>. Chỉ <code>bash</code> mang <code>Ss+</code>: dấu <code>+</code> nghĩa ' +
             'là <b>nó đang giữ bàn phím</b>.</p>' +
-            '<p>Cả bốn tiến trình con đều có <code>PPID = 293</code>, tức shell của bạn. Bảng ' +
+            '<p>Cả bốn tiến trình con đều có <code>PPID = 2878</code>, tức shell của bạn. Bảng ' +
             '<code>jobs</code> chỉ là cách shell ghi chép về chính những đứa con này — kernel ' +
             'không biết gì về khái niệm "job số 1".</p>' },
           { t: 'p', x: 'Giết một job bằng <b>số job</b>, không phải PID:' },
@@ -851,14 +851,14 @@ Lesson.register({
             '[1]+  Terminated                 sleep 100' },
           { t: 'h4', x: 'Mã thoát nói cho bạn biết tín hiệu nào đã hạ nó' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'sleep 30 &\nP=$!\nkill -TERM $P\nwait $P\necho "ma thoat sau SIGTERM = $?"' },
+            'sleep 30 &\nP=$!\nkill -TERM $P\nwait $P\necho "exit code after SIGTERM = $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'ma thoat sau SIGTERM = 143' },
+            'exit code after SIGTERM = 143' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'sleep 30 &\nP=$!\nkill -KILL $P\nwait $P\necho "ma thoat sau SIGKILL = $?"' },
+            'sleep 30 &\nP=$!\nkill -KILL $P\nwait $P\necho "exit code after SIGKILL = $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bash: line 15:   420 Killed                     sleep 30\n' +
-            'ma thoat sau SIGKILL = 137' },
+            'bash: line 5:  2831 Killed                     sleep 30\n' +
+            'exit code after SIGKILL = 137' },
           { t: 'cal', kind: 'info', title: '143 và 137 — hai con số bạn sẽ gặp suốt sự nghiệp', x:
             '<p><code>128 + 15 = 143</code> và <code>128 + 9 = 137</code>. Để ý bash còn in thêm ' +
             'chữ <code>Killed</code> cho trường hợp thứ hai nhưng không in gì cho trường hợp đầu: ' +
@@ -867,13 +867,13 @@ Lesson.register({
             'nghĩ ngay tới hết RAM — kernel OOM killer gửi SIGKILL.</p>' },
           { t: 'h4', x: 'Kiểm tra một tiến trình còn sống mà không đụng vào nó' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'sleep 20 &\nQ=$!\nkill -0 $Q; echo "tien trinh song: rc=$?"\n' +
-            'kill -9 $Q; sleep 1\nkill -0 $Q; echo "tien trinh chet: rc=$?"' },
+            'sleep 20 &\nQ=$!\nkill -0 $Q; echo "process alive: rc=$?"\n' +
+            'kill -9 $Q; sleep 1\nkill -0 $Q; echo "process dead: rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'tien trinh song: rc=0\n' +
-            'bash: line 50:   435 Killed                     sleep 20\n' +
-            'bash: kill: (435) - No such process\n' +
-            'tien trinh chet: rc=1' },
+            'process alive: rc=0\n' +
+            'bash: line 6:  2806 Killed                     sleep 20\n' +
+            'bash: line 6: kill: (2806) - No such process\n' +
+            'process dead: rc=1' },
           { t: 'cal', kind: 'tip', title: 'kill -0 là cách chuẩn để hỏi "còn sống không"', x:
             '<p>Tín hiệu số 0 không tồn tại. <code>kill</code> chỉ thực hiện <b>kiểm tra quyền và ' +
             'kiểm tra tồn tại</b> rồi dừng lại — không gửi gì cả. Mã thoát 0 nghĩa là "có, và bạn ' +
@@ -888,34 +888,34 @@ Lesson.register({
             'Bảng tín hiệu nói SIGTERM bắt được còn SIGKILL thì không. Bước này chứng minh điều ' +
             'đó bằng một script mười dòng. Lệnh <code>trap</code> đăng ký hàm xử lý cho một tín ' +
             'hiệu — Bài 13 sẽ dùng nó nghiêm túc, ở đây chỉ cần biết nó "bắt" tín hiệu.' },
-          { t: 'code', where: 'file', lang: 'bash', name: '~/embedded/bai09/buongbinh.sh', code:
+          { t: 'code', where: 'file', lang: 'bash', name: '~/embedded/bai09/stubborn.sh', code:
             '#!/bin/bash\n' +
-            "trap 'echo \"[buongbinh] nhan SIGTERM, toi khong di dau ca\"' TERM\n" +
-            "trap 'echo \"[buongbinh] nhan SIGINT, cung khong\"' INT\n" +
-            'echo "[buongbinh] bat dau, PID=$$"\n' +
+            "trap 'echo \"[stubborn] received SIGTERM, not going anywhere\"' TERM\n" +
+            "trap 'echo \"[stubborn] received SIGINT, not that either\"' INT\n" +
+            'echo "[stubborn] starting, PID=$$"\n' +
             'while true; do sleep 1; done' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod +x buongbinh.sh\n./buongbinh.sh &\nB=$!\nsleep 1' },
+            'chmod +x stubborn.sh\n./stubborn.sh &\nB=$!\nsleep 1' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '[buongbinh] bat dau, PID=423' },
+            '[stubborn] starting, PID=4312' },
           { t: 'p', x: 'Gửi SIGTERM — tín hiệu mà <code>kill</code> dùng mặc định:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'kill -TERM $B\nsleep 1\nps -o pid,stat,comm -p $B' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '[buongbinh] nhan SIGTERM, toi khong di dau ca\n' +
+            '[stubborn] received SIGTERM, not going anywhere\n' +
             '    PID STAT COMMAND\n' +
-            '    423 S    buongbinh.sh' },
+            '   4312 S    stubborn.sh' },
           { t: 'p', x: 'Thử SIGINT, tức <kbd>Ctrl</kbd>+<kbd>C</kbd>:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'kill -INT $B\nsleep 1\nps -o pid,stat,comm -p $B --no-headers' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '[buongbinh] nhan SIGINT, cung khong\n' +
-            '    423 S    buongbinh.sh' },
+            '[stubborn] received SIGINT, not that either\n' +
+            '   4312 S    stubborn.sh' },
           { t: 'p', x: 'Bây giờ tín hiệu không ai chống được:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'kill -KILL $B\nsleep 1\nps -o pid,stat,comm -p $B --no-headers\necho "rc=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bash: line 42:   423 Killed                     ./buongbinh.sh\n' +
+            'bash: line 32:  4312 Killed                     ./stubborn.sh\n' +
             'rc=1' },
           { t: 'cal', kind: 'why', title: 'Bạn vừa chứng minh vì sao Ctrl+C đôi khi không có tác dụng', x:
             '<p>Không phải terminal treo. Chương trình <b>đã nhận</b> tín hiệu và <b>chọn</b> ' +
@@ -934,7 +934,7 @@ Lesson.register({
             '<code>perl</code> thì không — nó <code>fork</code> ra một con, con chết ngay, còn cha ' +
             'thì đi ngủ mà không thèm gọi <code>wait()</code>.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            "perl -e 'my $p=fork(); if($p==0){ exit 0 } print \"cha=$$ con=$p\\n\"; sleep 6;' &\n" +
+            "perl -e 'my $p=fork(); if($p==0){ exit 0 } print \"parent=$$ child=$p\\n\"; sleep 6;' &\n" +
             'sleep 1\n' +
             'ps -e -o pid,ppid,stat,comm,args | grep -i defunct' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
@@ -971,27 +971,27 @@ Lesson.register({
             '<p>Ghi nhớ quy trình xử lý khi gặp zombie chồng chất trên thiết bị: tìm PPID → khởi ' +
             'động lại <b>tiến trình cha</b> → zombie tự tan.</p>' },
           { t: 'h4', x: 'Và bây giờ là đứa trẻ mồ côi' },
-          { t: 'code', where: 'file', lang: 'bash', name: '~/embedded/bai09/mocoi.sh', code:
+          { t: 'code', where: 'file', lang: 'bash', name: '~/embedded/bai09/orphan.sh', code:
             '#!/bin/bash\n' +
             'sleep 8 &\n' +
-            'echo "con PID=$! ; cha PID=$$"' },
+            'echo "child PID=$! ; parent PID=$$"' },
           { t: 'p', x:
             'Script này chạy <code>sleep 8</code> ở hậu cảnh rồi <b>thoát ngay</b>. Đứa con còn ' +
             'sống thêm tám giây nữa trong khi cha nó đã chết.' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'chmod +x mocoi.sh\n./mocoi.sh\nsleep 1\npgrep -a "sleep 8"' },
+            'chmod +x orphan.sh\n./orphan.sh\nsleep 1\npgrep -af "sleep 8"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'con PID=428 ; cha PID=427\n' +
-            '428 sleep 8' },
-          { t: 'p', x: 'Cha là PID 427 và nó đã chết. Vậy giờ ai là cha của 428?' },
+            'child PID=4327 ; parent PID=4326\n' +
+            '4327 sleep 8' },
+          { t: 'p', x: 'Cha là PID 4326 và nó đã chết. Vậy giờ ai là cha của 4327?' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'ps -o pid,ppid,stat,comm -p 428 --no-headers\n' +
-            'ps -o pid,ppid,user,comm,args -p 310 --no-headers' },
+            'ps -o pid,ppid,stat,comm -p 4327 --no-headers\n' +
+            'ps -o pid,ppid,user,comm,args -p 4299 --no-headers' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '    428     310 S    sleep\n' +
-            '    310     309 root     Relay(311)      /init' },
+            '   4327    4299 S    sleep\n' +
+            '   4299    4298 root     Relay(4301)      /init' },
           { t: 'cal', kind: 'info', title: 'Trên WSL2, kẻ nhận nuôi không phải PID 1', x:
-            '<p>PPID của đứa trẻ đổi từ <b>427</b> sang <b>310</b> — tiến trình <code>/init</code> ' +
+            '<p>PPID của đứa trẻ đổi từ <b>4326</b> sang <b>4299</b> — tiến trình <code>/init</code> ' +
             'của WSL. Linux hiện đại cho phép một tiến trình tự đăng ký làm <i>subreaper</i>, tức ' +
             '"người nhận nuôi con cháu trong nhánh của tôi". WSL dùng cơ chế này, systemd cũng ' +
             'dùng nó cho từng dịch vụ.</p>' +
@@ -1000,9 +1000,9 @@ Lesson.register({
             'chúng luôn có người dọn xác.</p>' },
           { t: 'p', x: 'Dọn dẹp:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
-            'pkill -9 -f buongbinh\npkill -9 sleep\ncd ~\nrm -rf ~/embedded/bai09\nls ~/embedded' },
+            'pkill -9 -f stubborn\npkill -9 sleep\ncd ~\nrm -rf ~/embedded/bai09\nls ~/embedded' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bai03\nbai04\nbai05\nbai07\nimages' },
+            'bai03\nbai04\nbai05\nbai07\nbai19\nbai20\nbai21\nbai22\nbai23\nbai24\nimages' },
           { t: 'cal', kind: 'warn', title: 'pkill -9 sleep giết MỌI tiến trình tên sleep', x:
             '<p>Ở đây vô hại vì chỉ có tiến trình của bạn. Trên máy chủ dùng chung hoặc trên thiết ' +
             'bị đang chạy dịch vụ, một khuôn khớp quá rộng sẽ hạ luôn thứ bạn không định đụng tới.</p>' +

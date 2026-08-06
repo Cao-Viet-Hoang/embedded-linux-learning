@@ -104,7 +104,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'why', title: 'Vì sao lỗi phải có một dòng chảy riêng', x:
       '<p>Hãy tưởng tượng lỗi và kết quả trộn chung một dòng. Câu lệnh ' +
-      '<code>ls *.txt &gt; danhsach.txt</code> sẽ nhét luôn dòng ' +
+      '<code>ls *.txt &gt; list.txt</code> sẽ nhét luôn dòng ' +
       '<code>No such file or directory</code> vào giữa danh sách, và bước xử lý tiếp theo sẽ coi ' +
       'thông báo lỗi đó là một tên file.</p>' +
       '<p>Tách làm hai kênh giải quyết triệt để: <b>fd 1 chỉ chứa dữ liệu để máy đọc, fd 2 chỉ ' +
@@ -138,10 +138,10 @@ Lesson.register({
       '<p>Shell xử lý chuyển hướng ngay sau <code>fork()</code>, <b>trước</b> khi ' +
       '<code>exec()</code> nạp chương trình. Nghĩa là tới lúc lệnh của bạn bắt đầu chạy, file đã ' +
       'bị cắt về 0 byte rồi.</p>' +
-      '<p>Vì thế <code>grep 1 goc.txt &gt; goc.txt</code> <b>xoá sạch</b> ' +
-      '<code>goc.txt</code>. Phần thực hành sẽ cho bạn tự tay phá một file để không bao giờ quên.</p>' +
+      '<p>Vì thế <code>grep 1 source.txt &gt; source.txt</code> <b>xoá sạch</b> ' +
+      '<code>source.txt</code>. Phần thực hành sẽ cho bạn tự tay phá một file để không bao giờ quên.</p>' +
       '<p>Cách đúng luôn là qua file tạm:</p>' +
-      '<p><code>grep 1 goc.txt &gt; tam.txt &amp;&amp; mv tam.txt goc.txt</code></p>' },
+      '<p><code>grep 1 source.txt &gt; temp.txt &amp;&amp; mv temp.txt source.txt</code></p>' },
 
     { t: 'cal', kind: 'tip', title: 'set -o noclobber: tấm lưới an toàn', x:
       '<p>Bật <code>set -o noclobber</code> thì <code>&gt;</code> sẽ <b>từ chối</b> ghi đè file đã ' +
@@ -157,31 +157,31 @@ Lesson.register({
       'kết quả trái ngược:' },
 
     { t: 'code', where: 'wsl', lang: 'bash', code:
-      'ls a.txt khongcofile.txt > dung.txt 2>&1     # cả hai vào file\n' +
-      'ls a.txt khongcofile.txt 2>&1 > sai.txt      # chỉ stdout vào file' },
+      'ls a.txt missing.txt > correct.txt 2>&1     # cả hai vào file\n' +
+      'ls a.txt missing.txt 2>&1 > wrong.txt       # chỉ stdout vào file' },
 
     { t: 'fig',
       cap: '2>&1 nghĩa là "cho fd 2 trỏ tới chỗ fd 1 ĐANG trỏ tới, ngay lúc này". Vì thế phải đặt nó SAU khi đã đổi fd 1.',
       svg:
         '<svg viewBox="0 0 720 260" width="720" role="img" aria-label="So sánh thứ tự hai toán tử chuyển hướng, giải thích vì sao 2 lớn hơn và 1 phải đặt sau">' +
         '<rect class="d-box-g" x="20" y="14" width="330" height="26" rx="4"/>' +
-        '<text class="d-t" x="185" y="32" text-anchor="middle">&gt; dung.txt  2&gt;&amp;1     ĐÚNG</text>' +
+        '<text class="d-t" x="185" y="32" text-anchor="middle">&gt; correct.txt  2&gt;&amp;1     ĐÚNG</text>' +
         '<rect class="d-box-w" x="380" y="14" width="320" height="26" rx="4"/>' +
-        '<text class="d-t" x="540" y="32" text-anchor="middle">2&gt;&amp;1  &gt; sai.txt     SAI</text>' +
+        '<text class="d-t" x="540" y="32" text-anchor="middle">2&gt;&amp;1  &gt; wrong.txt     SAI</text>' +
 
         '<rect class="d-box" x="20" y="54" width="330" height="44" rx="4"/>' +
-        '<text class="d-ts" x="30" y="72">Bước 1 — fd 1 rời màn hình, trỏ vào dung.txt</text>' +
-        '<text class="d-tm" x="30" y="90">1 → dung.txt      2 → màn hình</text>' +
+        '<text class="d-ts" x="30" y="72">Bước 1 — fd 1 rời màn hình, trỏ vào correct.txt</text>' +
+        '<text class="d-tm" x="30" y="90">1 → correct.txt      2 → màn hình</text>' +
         '<rect class="d-box" x="380" y="54" width="320" height="44" rx="4"/>' +
         '<text class="d-ts" x="390" y="72">Bước 1 — fd 2 chép chỗ fd 1 đang trỏ: màn hình</text>' +
         '<text class="d-tm" x="390" y="90">1 → màn hình      2 → màn hình</text>' +
 
         '<rect class="d-box" x="20" y="106" width="330" height="44" rx="4"/>' +
-        '<text class="d-ts" x="30" y="124">Bước 2 — fd 2 chép chỗ fd 1: dung.txt</text>' +
-        '<text class="d-tm" x="30" y="142">1 → dung.txt      2 → dung.txt</text>' +
+        '<text class="d-ts" x="30" y="124">Bước 2 — fd 2 chép chỗ fd 1: correct.txt</text>' +
+        '<text class="d-tm" x="30" y="142">1 → correct.txt      2 → correct.txt</text>' +
         '<rect class="d-box" x="380" y="106" width="320" height="44" rx="4"/>' +
         '<text class="d-ts" x="390" y="124">Bước 2 — fd 1 rời đi, nhưng fd 2 KHÔNG theo</text>' +
-        '<text class="d-tm" x="390" y="142">1 → sai.txt       2 → màn hình</text>' +
+        '<text class="d-tm" x="390" y="142">1 → wrong.txt       2 → màn hình</text>' +
 
         '<rect class="d-box-g" x="20" y="158" width="330" height="40" rx="4"/>' +
         '<text class="d-t" x="30" y="176">Kết quả: file chứa CẢ HAI</text>' +
@@ -333,7 +333,7 @@ Lesson.register({
       'Tên lấy từ chữ T trong ống nước: một đầu vào, hai đầu ra. <code>tee</code> đọc stdin, ghi ' +
       'vào file <b>và</b> đẩy tiếp ra stdout để tầng sau vẫn nhận được.' },
 
-    { t: 'code', where: 'wsl', lang: 'bash', code: 'seq 1 5 | tee luu.txt | wc -l' },
+    { t: 'code', where: 'wsl', lang: 'bash', code: 'seq 1 5 | tee saved.txt | wc -l' },
 
     { t: 'code', where: 'out', lang: 'text', nocopy: true, code: '5' },
 
@@ -367,25 +367,25 @@ Lesson.register({
       'coi đó là stdin".' },
 
     { t: 'code', where: 'wsl', lang: 'bash', code:
-      'TEN="shinarus"\n' +
+      'NAME="shinarus"\n' +
       '\n' +
-      'cat <<EOF > co-thay-the.txt\n' +
-      'xin chao $TEN\n' +
-      'thu muc hien tai la $(pwd)\n' +
+      'cat <<EOF > with-subst.txt\n' +
+      'hello $NAME\n' +
+      'current directory is $(pwd)\n' +
       'EOF\n' +
       '\n' +
-      "cat <<'EOF' > khong-thay-the.txt\n" +
-      'xin chao $TEN\n' +
-      'thu muc hien tai la $(pwd)\n' +
+      "cat <<'EOF' > no-subst.txt\n" +
+      'hello $NAME\n' +
+      'current directory is $(pwd)\n' +
       'EOF' },
 
     { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-      '--- co-thay-the.txt\n' +
-      'xin chao shinarus\n' +
-      'thu muc hien tai la /home/shinarus/embedded/bai10\n' +
-      '--- khong-thay-the.txt\n' +
-      'xin chao $TEN\n' +
-      'thu muc hien tai la $(pwd)' },
+      '--- with-subst.txt\n' +
+      'hello shinarus\n' +
+      'current directory is /home/shinarus/embedded/bai10\n' +
+      '--- no-subst.txt\n' +
+      'hello $NAME\n' +
+      'current directory is $(pwd)' },
 
     { t: 'cal', kind: 'why', title: 'Dấu nháy quanh EOF là công tắc bật/tắt việc thay thế biến', x:
       '<p><code>&lt;&lt;EOF</code> — bash <b>vẫn</b> thay thế <code>$BIEN</code> và ' +
@@ -442,13 +442,13 @@ Lesson.register({
       'chuyện với nhau, tạo một <b>named pipe</b> bằng <code>mkfifo</code>:' },
 
     { t: 'code', where: 'wsl', lang: 'bash', code:
-      'mkfifo ong\n' +
-      "stat -c '%F %a %n' ong\n" +
-      'ls -l ong' },
+      'mkfifo mypipe\n' +
+      "stat -c '%F %a %n' mypipe\n" +
+      'ls -l mypipe' },
 
     { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-      'fifo 644 ong\n' +
-      'prw-r--r-- 1 shinarus shinarus 0 Aug  1 16:51 ong' },
+      'fifo 644 mypipe\n' +
+      'prw-r--r-- 1 shinarus shinarus 0 Aug  6 07:59 mypipe' },
 
     { t: 'cal', kind: 'info', title: 'Chữ p đầu dòng và kích thước 0', x:
       '<p>Ký tự đầu là <code>p</code> — loại file thứ năm bạn gặp, sau <code>-</code> ' +
@@ -535,8 +535,8 @@ Lesson.register({
     { t: 'cal', kind: 'warn', title: 'Nhưng đừng nói bừa rằng bỏ cat sẽ nhanh hơn', x:
       '<p>Có một lời khuyên lan truyền khắp Internet: <code>cat f | grep x</code> chậm hơn ' +
       '<code>grep x f</code>. Hãy đo trên chính máy này với một file 22 MB:</p>' +
-      '<p><code>grep -c 7 lon2.txt</code> → 1405677, <b>real 0m0,031s</b><br>' +
-      '<code>cat lon2.txt | grep -c 7</code> → 1405677, <b>real 0m0,031s</b></p>' +
+      '<p><code>grep -c 7 large.txt</code> → 1405677, <b>real 0m0,036s</b><br>' +
+      '<code>cat large.txt | grep -c 7</code> → 1405677, <b>real 0m0,037s</b></p>' +
       '<p><b>Bằng nhau.</b> Lý do thật để bỏ <code>cat</code> không phải tốc độ, mà là:</p>' +
       '<p>1. Bạn tốn thêm một tiến trình mà chẳng để làm gì.<br>' +
       '2. <code>grep</code> mất khả năng <b>in tên file</b> khi tìm nhiều file.<br>' +
@@ -591,26 +591,26 @@ Lesson.register({
           'Cách chắc chắn nhất để thấy hai dòng chảy là khác nhau: bắt một lệnh vừa thành công ' +
           'vừa thất bại cùng lúc. Hỏi <code>ls</code> về một file có thật và một file không có.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'echo "noi dung" > a.txt\n' +
-          'ls a.txt khongcofile.txt\n' +
+          'echo "content" > a.txt\n' +
+          'ls a.txt missing.txt\n' +
           'echo "rc=$?"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          "ls: cannot access 'khongcofile.txt': No such file or directory\n" +
+          "ls: cannot access 'missing.txt': No such file or directory\n" +
           'a.txt\n' +
           'rc=2' },
         { t: 'p', x:
           'Hai dòng đó đi qua hai kênh khác nhau, dù trên màn hình chúng nằm cạnh nhau. Bây giờ ' +
           'chặn từng kênh một:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'echo "--- chi giu ket qua"\n' +
-          'ls a.txt khongcofile.txt 2>/dev/null\n' +
-          'echo "--- chi giu loi"\n' +
-          'ls a.txt khongcofile.txt 2>&1 >/dev/null' },
+          'echo "--- keep only stdout"\n' +
+          'ls a.txt missing.txt 2>/dev/null\n' +
+          'echo "--- keep only stderr"\n' +
+          'ls a.txt missing.txt 2>&1 >/dev/null' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '--- chi giu ket qua\n' +
+          '--- keep only stdout\n' +
           'a.txt\n' +
-          '--- chi giu loi\n' +
-          "ls: cannot access 'khongcofile.txt': No such file or directory" },
+          '--- keep only stderr\n' +
+          "ls: cannot access 'missing.txt': No such file or directory" },
         { t: 'cmdx', cmd: 'Vì sao 2>&1 >/dev/null lại giữ được lỗi',
           rows: [
             ['<code>2&gt;&amp;1</code>', 'fd 2 chép chỗ fd 1 <b>đang</b> trỏ tới: màn hình', 'Đọc từ trái sang phải'],
@@ -619,11 +619,11 @@ Lesson.register({
           ]},
         { t: 'p', x: 'Và hai cách gộp cả hai vào một file — kiểm chứng chúng cho ra file giống hệt nhau:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'ls a.txt khongcofile.txt > ketqua.txt 2>&1\n' +
-          'ls a.txt khongcofile.txt &> ketqua2.txt\n' +
-          'diff ketqua.txt ketqua2.txt && echo "HAI FILE GIONG HET NHAU"' },
+          'ls a.txt missing.txt > result.txt 2>&1\n' +
+          'ls a.txt missing.txt &> result2.txt\n' +
+          'diff result.txt result2.txt && echo "TWO FILES ARE IDENTICAL"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'HAI FILE GIONG HET NHAU' }
+          'TWO FILES ARE IDENTICAL' }
       ]},
 
       /* ---------- BƯỚC 3 ---------- */
@@ -632,24 +632,24 @@ Lesson.register({
           'Đây là bước quan trọng nhất của bài. Hai câu lệnh chỉ khác nhau ở chỗ đặt ' +
           '<code>2&gt;&amp;1</code>, và chúng cho hai kết quả khác nhau.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'ls a.txt khongcofile.txt > dung.txt 2>&1\n' +
-          'echo "--- noi dung dung.txt"\n' +
-          'cat dung.txt' },
+          'ls a.txt missing.txt > correct.txt 2>&1\n' +
+          'echo "--- content of correct.txt"\n' +
+          'cat correct.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '--- noi dung dung.txt\n' +
-          "ls: cannot access 'khongcofile.txt': No such file or directory\n" +
+          '--- content of correct.txt\n' +
+          "ls: cannot access 'missing.txt': No such file or directory\n" +
           'a.txt' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'ls a.txt khongcofile.txt 2>&1 > sai.txt\n' +
-          'echo "--- noi dung sai.txt"\n' +
-          'cat sai.txt' },
+          'ls a.txt missing.txt 2>&1 > wrong.txt\n' +
+          'echo "--- content of wrong.txt"\n' +
+          'cat wrong.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          "ls: cannot access 'khongcofile.txt': No such file or directory\n" +
-          '--- noi dung sai.txt\n' +
+          "ls: cannot access 'missing.txt': No such file or directory\n" +
+          '--- content of wrong.txt\n' +
           'a.txt' },
-        { t: 'cal', kind: 'warn', title: 'Hãy để ý dòng lỗi nhảy lên TRƯỚC dòng "--- noi dung sai.txt"', x:
+        { t: 'cal', kind: 'warn', title: 'Hãy để ý dòng lỗi nhảy lên TRƯỚC dòng "--- content of wrong.txt"', x:
           '<p>Ở lần thứ hai, thông báo lỗi in ra <b>màn hình ngay khi <code>ls</code> chạy</b>, ' +
-          'nên nó xuất hiện trước dòng <code>echo</code>. File <code>sai.txt</code> chỉ chứa ' +
+          'nên nó xuất hiện trước dòng <code>echo</code>. File <code>wrong.txt</code> chỉ chứa ' +
           '<code>a.txt</code>.</p>' +
           '<p>Trong script tự động chạy đêm, kiểu nhầm này khiến file log trông sạch bong trong ' +
           'khi lỗi thật đã bay đi mất. <b>Quy tắc: <code>2&gt;&amp;1</code> luôn đứng cuối ' +
@@ -676,10 +676,10 @@ Lesson.register({
           'Bây giờ là bài học quan trọng: đường ống <b>chỉ mang fd 1</b>. Đếm số dòng mà ' +
           '<code>wc</code> nhận được khi lệnh trái sinh ra một dòng kết quả và một dòng lỗi:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'ls a.txt khongcofile.txt | wc -l\n' +
-          'ls a.txt khongcofile.txt |& wc -l' },
+          'ls a.txt missing.txt | wc -l\n' +
+          'ls a.txt missing.txt |& wc -l' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          "ls: cannot access 'khongcofile.txt': No such file or directory\n" +
+          "ls: cannot access 'missing.txt': No such file or directory\n" +
           '1\n' +
           '2' },
         { t: 'cal', kind: 'why', title: 'Số 1 và số 2 nói lên tất cả', x:
@@ -692,17 +692,17 @@ Lesson.register({
           '<code>2&gt;&amp;1</code>.</p>' },
         { t: 'p', x: 'Cuối cùng, rẽ dòng chảy làm hai bằng <code>tee</code>:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'seq 1 5 | tee luu.txt | wc -l\n' +
-          'echo "--- luu.txt van co du 5 dong"\n' +
-          'cat luu.txt\n' +
-          'seq 6 8 | tee -a luu.txt > /dev/null\n' +
-          'echo "--- sau khi tee -a"\n' +
-          'cat luu.txt' },
+          'seq 1 5 | tee saved.txt | wc -l\n' +
+          'echo "--- saved.txt still has all 5 lines"\n' +
+          'cat saved.txt\n' +
+          'seq 6 8 | tee -a saved.txt > /dev/null\n' +
+          'echo "--- after tee -a"\n' +
+          'cat saved.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           '5\n' +
-          '--- luu.txt van co du 5 dong\n' +
+          '--- saved.txt still has all 5 lines\n' +
           '1\n2\n3\n4\n5\n' +
-          '--- sau khi tee -a\n' +
+          '--- after tee -a\n' +
           '1\n2\n3\n4\n5\n6\n7\n8' }
       ]},
 
@@ -713,20 +713,20 @@ Lesson.register({
           'này:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'false | true\n' +
-          'echo "rc cua ca ong = $?"\n' +
+          'echo "rc of whole pipe = $?"\n' +
           'false | true\n' +
           'echo "PIPESTATUS = ${PIPESTATUS[@]}"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'rc cua ca ong = 0\n' +
+          'rc of whole pipe = 0\n' +
           'PIPESTATUS = 1 0' },
         { t: 'p', x: 'Bật <code>pipefail</code> và chạy lại đúng câu lệnh đó:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'set -o pipefail\n' +
           'false | true\n' +
-          'echo "rc voi pipefail = $?"\n' +
+          'echo "rc with pipefail = $?"\n' +
           'set +o pipefail' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'rc voi pipefail = 1' },
+          'rc with pipefail = 1' },
         { t: 'cal', kind: 'danger', title: 'Nếu quên pipefail, script CI của bạn sẽ nói dối', x:
           '<p><code>make 2&gt;&amp;1 | tee build.log</code> — nếu <code>make</code> thất bại mà ' +
           '<code>tee</code> thành công, cả câu lệnh trả về <b>0</b>. Hệ thống tích hợp liên tục ' +
@@ -766,40 +766,40 @@ Lesson.register({
           'Bốn công cụ giải bốn bài toán mà chuyển hướng thường không giải được. Bắt đầu bằng ' +
           'here-doc, so sánh có nháy và không nháy:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'TEN="shinarus"\n' +
-          'cat <<EOF > co-thay-the.txt\n' +
-          'xin chao $TEN\n' +
-          'thu muc hien tai la $(pwd)\n' +
+          'NAME="shinarus"\n' +
+          'cat <<EOF > with-subst.txt\n' +
+          'hello $NAME\n' +
+          'current directory is $(pwd)\n' +
           'EOF\n' +
-          "cat <<'EOF' > khong-thay-the.txt\n" +
-          'xin chao $TEN\n' +
-          'thu muc hien tai la $(pwd)\n' +
+          "cat <<'EOF' > no-subst.txt\n" +
+          'hello $NAME\n' +
+          'current directory is $(pwd)\n' +
           'EOF\n' +
-          'echo "--- co thay the"; cat co-thay-the.txt\n' +
-          'echo "--- khong thay the"; cat khong-thay-the.txt\n' +
+          'echo "--- with substitution"; cat with-subst.txt\n' +
+          'echo "--- without substitution"; cat no-subst.txt\n' +
           'wc -c <<< "abcdef"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '--- co thay the\n' +
-          'xin chao shinarus\n' +
-          'thu muc hien tai la /home/shinarus/embedded/bai10\n' +
-          '--- khong thay the\n' +
-          'xin chao $TEN\n' +
-          'thu muc hien tai la $(pwd)\n' +
+          '--- with substitution\n' +
+          'hello shinarus\n' +
+          'current directory is /home/shinarus/embedded/bai10\n' +
+          '--- without substitution\n' +
+          'hello $NAME\n' +
+          'current directory is $(pwd)\n' +
           '7' },
         { t: 'p', x: 'Tiếp theo, bật tấm lưới an toàn <code>noclobber</code> và thử ghi đè:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'echo "ban goc" > nc.txt\n' +
+          'echo "original" > nc.txt\n' +
           'set -o noclobber\n' +
-          'echo "de len" > nc.txt\n' +
+          'echo "overwrite" > nc.txt\n' +
           'echo "rc=$?"\n' +
-          'echo "de len bang moi gia" >| nc.txt\n' +
+          'echo "overwrite no matter what" >| nc.txt\n' +
           'echo "rc=$?"; cat nc.txt\n' +
           'set +o noclobber' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'bash: nc.txt: cannot overwrite existing file\n' +
           'rc=1\n' +
           'rc=0\n' +
-          'de len bang moi gia' },
+          'overwrite no matter what' },
         { t: 'p', x:
           'Rồi biến đầu ra của lệnh thành file để đưa cho <code>diff</code> — thứ mà đường ống ' +
           'không làm được vì <code>diff</code> cần hai nguồn cùng lúc:' },
@@ -821,11 +821,11 @@ Lesson.register({
           'chúng chỉ nhận tham số. <code>xargs</code> biến dòng chảy thành tham số:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'seq 1 5 | xargs\n' +
-          'echo "--- chia moi lan 2 tham so"\n' +
+          'echo "--- split into groups of 2 args"\n' +
           'seq 1 5 | xargs -n 2 echo' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           '1 2 3 4 5\n' +
-          '--- chia moi lan 2 tham so\n' +
+          '--- split into groups of 2 args\n' +
           '1 2\n' +
           '3 4\n' +
           '5' },
@@ -838,16 +838,16 @@ Lesson.register({
           'cách.</p>' },
         { t: 'p', x: 'Cuối cùng, tạo một đường ống có tên nằm trên hệ thống file:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'mkfifo ong\n' +
-          "stat -c '%F %a %n' ong\n" +
-          'ls -l ong\n' +
-          'cat ong > nhan.txt &\n' +
-          'echo "du lieu chay qua ong" > ong\n' +
-          'sleep 1; cat nhan.txt' },
+          'mkfifo mypipe\n' +
+          "stat -c '%F %a %n' mypipe\n" +
+          'ls -l mypipe\n' +
+          'cat mypipe > received.txt &\n' +
+          'echo "data flowing through the pipe" > mypipe\n' +
+          'sleep 1; cat received.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'fifo 644 ong\n' +
-          'prw-r--r-- 1 shinarus shinarus 0 Aug  1 16:51 ong\n' +
-          'du lieu chay qua ong' }
+          'fifo 644 mypipe\n' +
+          'prw-r--r-- 1 shinarus shinarus 0 Aug  6 07:59 mypipe\n' +
+          'data flowing through the pipe' }
       ]},
 
       /* ---------- BƯỚC 7 ---------- */
@@ -857,32 +857,32 @@ Lesson.register({
           'ngược vào chính nó. Hãy làm thật, trên một file rác, để không bao giờ làm nhầm trên ' +
           'file thật.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'seq 1 10 > goc.txt\n' +
-          'wc -l goc.txt\n' +
-          'grep 1 goc.txt > goc.txt\n' +
+          'seq 1 10 > source.txt\n' +
+          'wc -l source.txt\n' +
+          'grep 1 source.txt > source.txt\n' +
           'echo "rc=$?"\n' +
-          'wc -c goc.txt' },
+          'wc -c source.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '10 goc.txt\n' +
-          "grep: goc.txt: input file is also the output\n" +
+          '10 source.txt\n' +
+          "grep: source.txt: input file is also the output\n" +
           'rc=2\n' +
-          '0 goc.txt' },
+          '0 source.txt' },
         { t: 'cal', kind: 'danger', title: 'grep đã kịp cảnh báo, nhưng file vẫn mất sạch — 0 byte', x:
           '<p>Hãy đọc kỹ trình tự: <code>grep</code> phát hiện được vấn đề và <b>từ chối chạy</b> ' +
           'với mã thoát 2. Nhưng file đã <b>0 byte</b> rồi.</p>' +
           '<p>Vì kẻ xoá file không phải <code>grep</code> — mà là <b>bash</b>, khi nó xử lý ' +
-          '<code>&gt; goc.txt</code> trước lúc <code>grep</code> được nạp vào bộ nhớ. Đến khi ' +
+          '<code>&gt; source.txt</code> trước lúc <code>grep</code> được nạp vào bộ nhớ. Đến khi ' +
           '<code>grep</code> mở file để đọc thì chẳng còn gì.</p>' +
           '<p>Không phải công cụ nào cũng lịch sự cảnh báo như vậy. Với ' +
           '<code>sort</code>, <code>awk</code> hay <code>sed</code> không có ' +
           '<code>-i</code>, bạn mất dữ liệu trong im lặng.</p>' },
         { t: 'p', x: 'Cách đúng luôn đi qua một file tạm:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'seq 1 10 > goc.txt\n' +
-          'grep 1 goc.txt > tam.txt && mv tam.txt goc.txt\n' +
-          'wc -l goc.txt; cat goc.txt' },
+          'seq 1 10 > source.txt\n' +
+          'grep 1 source.txt > temp.txt && mv temp.txt source.txt\n' +
+          'wc -l source.txt; cat source.txt' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '2 goc.txt\n' +
+          '2 source.txt\n' +
           '1\n' +
           '10' },
         { t: 'cal', kind: 'why', title: 'Vì sao phải là && chứ không phải dấu chấm phẩy', x:
@@ -893,15 +893,15 @@ Lesson.register({
           'Trước khi dọn, thử tạo một fd của riêng mình. Đây là cách script chuyên nghiệp mở ' +
           'một file nhật ký một lần rồi ghi nhiều lần, thay vì mở/đóng liên tục:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'exec 3> ghichu.log\n' +
-          'echo "dong qua fd 3" >&3\n' +
+          'exec 3> note.log\n' +
+          'echo "line via fd 3" >&3\n' +
           'exec 3>&-\n' +
-          'cat ghichu.log\n' +
-          'echo "ghi vao fd da dong" >&3\n' +
+          'cat note.log\n' +
+          'echo "write to a closed fd" >&3\n' +
           'echo "rc=$?"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'dong qua fd 3\n' +
-          'bash: 3: Bad file descriptor\n' +
+          'line via fd 3\n' +
+          'bash: line 6: 3: Bad file descriptor\n' +
           'rc=1' },
         { t: 'cmdx', cmd: 'exec dùng cho chuyển hướng',
           rows: [
@@ -916,7 +916,7 @@ Lesson.register({
           'rm -rf ~/embedded/bai10\n' +
           'ls ~/embedded' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'bai03  bai04  bai05  bai07  images' }
+          'bai03  bai04  bai05  bai19  bai24  images' }
       ]}
     ]},
 
@@ -928,7 +928,7 @@ Lesson.register({
     { t: 'table',
       head: ['Thông báo', 'Nguyên nhân', 'Cách xử lý'],
       rows: [
-        ['<code>grep: goc.txt: input file is also the output</code>, và file còn <b>0 byte</b>',
+        ['<code>grep: source.txt: input file is also the output</code>, và file còn <b>0 byte</b>',
          'Bash cắt file về 0 khi xử lý <code>&gt;</code>, trước khi grep chạy',
          'Luôn qua file tạm: <code>grep x f &gt; tam &amp;&amp; mv tam f</code>'],
         ['<code>bash: /etc/motd: Permission denied</code> dù đã gõ <code>sudo</code>',
@@ -1002,7 +1002,7 @@ Lesson.register({
 
   quiz: [
     {
-      q: 'Bạn gõ <code>grep loi nhatky.txt &gt; nhatky.txt</code> và sau đó file rỗng 0 byte. Ai đã xoá nội dung?',
+      q: 'Bạn gõ <code>grep error log.txt &gt; log.txt</code> và sau đó file rỗng 0 byte. Ai đã xoá nội dung?',
       opts: [
         'grep, vì nó đọc file rồi ghi đè lên',
         'Bash, khi xử lý dấu <code>&gt;</code> trước lúc grep được nạp',

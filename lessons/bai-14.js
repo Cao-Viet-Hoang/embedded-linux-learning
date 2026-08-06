@@ -245,7 +245,7 @@ Lesson.register({
         '</svg>' },
 
     { t: 'cal', kind: 'why', title: 'Vì sao truyền con trỏ chứ không truyền giá trị', x:
-      '<p>C truyền tham số <b>bằng bản sao</b>, luôn luôn. Hàm <code>doi_cho(int a, int b)</code> ' +
+      '<p>C truyền tham số <b>bằng bản sao</b>, luôn luôn. Hàm <code>swap(int a, int b)</code> ' +
       'đổi chỗ hai <i>bản sao</i> rồi trả về, còn hai biến gốc không suy suyển — bạn sẽ thấy ' +
       'đúng điều đó ở bước 3.</p>' +
       '<p>Muốn hàm sửa được biến của người gọi, cách duy nhất là đưa cho nó <b>địa chỉ</b>. ' +
@@ -257,10 +257,10 @@ Lesson.register({
       'Trên vi xử lý 200 MHz với 64 KB RAM, khác biệt đó là thật.</p>' },
 
     { t: 'cal', kind: 'warn', title: 'Mảng không phải con trỏ, dù nó rất giống', x:
-      '<p><code>mang[2]</code> và <code>*(mang + 2)</code> cho cùng kết quả, nên nhiều người ' +
+      '<p><code>arr[2]</code> và <code>*(arr + 2)</code> cho cùng kết quả, nên nhiều người ' +
       'kết luận mảng <i>là</i> con trỏ. Không phải. Bạn sẽ đo được ở bước 3: ' +
-      '<code>sizeof(mang)</code> = <b>20</b> với mảng 5 phần tử <code>int</code>, còn ' +
-      '<code>sizeof(&amp;mang[0])</code> = <b>8</b>.</p>' +
+      '<code>sizeof(arr)</code> = <b>20</b> với mảng 5 phần tử <code>int</code>, còn ' +
+      '<code>sizeof(&amp;arr[0])</code> = <b>8</b>.</p>' +
       '<p>Mảng là một khối 20 byte có thật; nó chỉ <b>tự chuyển thành</b> con trỏ tới phần tử ' +
       'đầu khi bị dùng trong biểu thức. Hệ quả thực tế cắn người ta nhiều nhất: khi bạn ' +
       'truyền mảng vào hàm, tham số bên trong hàm <b>đã là con trỏ</b>, nên ' +
@@ -284,7 +284,7 @@ Lesson.register({
       cap: 'Chỉ đổi thứ tự khai báo, không đổi một trường nào: 12 byte xuống 8. Với mảng 1000 phần tử, đó là 4000 byte RAM tiết kiệm được miễn phí.',
       svg:
         '<svg viewBox="0 0 720 320" width="720" role="img" aria-label="So sánh ba cách khai báo struct: xấu 12 byte, tốt 8 byte, packed 6 byte">' +
-        '<text class="d-t" x="20" y="22">struct xau { uint8_t a; uint32_t b; uint8_t c; }   ->  sizeof = 12</text>' +
+        '<text class="d-t" x="20" y="22">struct bad_layout { uint8_t a; uint32_t b; uint8_t c; }   ->  sizeof = 12</text>' +
         '<rect class="d-box-g" x="20" y="34" width="50" height="36" rx="3"/>' +
         '<text class="d-tm" x="45" y="57" text-anchor="middle">a</text>' +
         '<rect class="d-box-w" x="70" y="34" width="150" height="36" rx="3"/>' +
@@ -297,7 +297,7 @@ Lesson.register({
         '<text class="d-ts" x="545" y="57" text-anchor="middle">3 byte dem — bo phi</text>' +
         '<text class="d-ts" x="20" y="88">offset:  a=0        b=4                   c=8</text>' +
 
-        '<text class="d-t" x="20" y="128">struct tot { uint32_t b; uint8_t a; uint8_t c; }   ->  sizeof = 8</text>' +
+        '<text class="d-t" x="20" y="128">struct good_layout { uint32_t b; uint8_t a; uint8_t c; }   ->  sizeof = 8</text>' +
         '<rect class="d-box-a" x="20" y="140" width="200" height="36" rx="3"/>' +
         '<text class="d-tm" x="120" y="163" text-anchor="middle">b  (4 byte)</text>' +
         '<rect class="d-box-g" x="220" y="140" width="50" height="36" rx="3"/>' +
@@ -308,7 +308,7 @@ Lesson.register({
         '<text class="d-ts" x="370" y="163" text-anchor="middle">2 byte dem</text>' +
         '<text class="d-ts" x="20" y="194">offset:  b=0                   a=4  c=5</text>' +
 
-        '<text class="d-t" x="20" y="234">struct __attribute__((packed)) nen { … }   ->  sizeof = 6</text>' +
+        '<text class="d-t" x="20" y="234">struct __attribute__((packed)) packed_layout { … }   ->  sizeof = 6</text>' +
         '<rect class="d-box-g" x="20" y="246" width="50" height="36" rx="3"/>' +
         '<text class="d-tm" x="45" y="269" text-anchor="middle">a</text>' +
         '<rect class="d-box-a" x="70" y="246" width="200" height="36" rx="3"/>' +
@@ -385,19 +385,19 @@ Lesson.register({
       ]},
 
     { t: 'p', x:
-      'Ghép <code>union</code> với <b>bitfield</b> — cú pháp <code>uint32_t bat : 1;</code> ' +
+      'Ghép <code>union</code> với <b>bitfield</b> — cú pháp <code>uint32_t enable : 1;</code> ' +
       'nghĩa là "trường này chỉ chiếm 1 bit" — ta được mẫu thiết kế mà mọi driver đều dùng: ' +
       'một thanh ghi phần cứng vừa đọc được như số nguyên 32 bit, vừa đọc được theo từng ' +
       'trường có tên.' },
 
     { t: 'fig',
-      cap: 'Một union thanh ghi cho ba cách nhìn vào đúng bốn byte đó. Ghi vào truong.toc_do là ghi vào các bit 4–7 của nguyen, không cần dịch bit bằng tay.',
+      cap: 'Một union thanh ghi cho ba cách nhìn vào đúng bốn byte đó. Ghi vào fields.speed là ghi vào các bit 4–7 của raw, không cần dịch bit bằng tay.',
       svg:
         '<svg viewBox="0 0 720 260" width="720" role="img" aria-label="Sơ đồ union thanh ghi với ba cách nhìn: nguyên, mảng byte và bitfield">' +
         '<rect class="d-box-p" x="20" y="16" width="680" height="30" rx="4"/>' +
-        '<text class="d-tm" x="34" y="36">union thanh_ghi r;   sizeof(r) == 4   /* ca ba cach nhin dung chung 4 byte nay */</text>' +
+        '<text class="d-tm" x="34" y="36">union hwreg r;   sizeof(r) == 4   /* ca ba cach nhin dung chung 4 byte nay */</text>' +
 
-        '<text class="d-t" x="20" y="78">cach 1 — r.nguyen</text>' +
+        '<text class="d-t" x="20" y="78">cach 1 — r.raw</text>' +
         '<rect class="d-box-a" x="220" y="60" width="480" height="30" rx="3"/>' +
         '<text class="d-tm" x="460" y="80" text-anchor="middle">0x000000A5   (mot uint32_t)</text>' +
 
@@ -411,27 +411,27 @@ Lesson.register({
         '<text class="d-tm" x="520" y="122" text-anchor="middle">00</text>' +
         '<text class="d-tm" x="640" y="122" text-anchor="middle">00</text>' +
 
-        '<text class="d-t" x="20" y="164">cach 3 — r.truong</text>' +
+        '<text class="d-t" x="20" y="164">cach 3 — r.fields</text>' +
         '<rect class="d-box-w" x="220" y="146" width="60" height="30" rx="3"/>' +
         '<rect class="d-box-w" x="280" y="146" width="90" height="30" rx="3"/>' +
         '<rect class="d-box-w" x="370" y="146" width="110" height="30" rx="3"/>' +
         '<rect class="d-box" x="480" y="146" width="220" height="30" rx="3"/>' +
-        '<text class="d-ts" x="250" y="166" text-anchor="middle">bat</text>' +
-        '<text class="d-ts" x="325" y="166" text-anchor="middle">che_do</text>' +
-        '<text class="d-ts" x="425" y="166" text-anchor="middle">toc_do</text>' +
-        '<text class="d-ts" x="590" y="166" text-anchor="middle">du_tru (24 bit)</text>' +
+        '<text class="d-ts" x="250" y="166" text-anchor="middle">enable</text>' +
+        '<text class="d-ts" x="325" y="166" text-anchor="middle">mode</text>' +
+        '<text class="d-ts" x="425" y="166" text-anchor="middle">speed</text>' +
+        '<text class="d-ts" x="590" y="166" text-anchor="middle">reserved (24 bit)</text>' +
         '<text class="d-ts" x="250" y="192" text-anchor="middle">1 bit</text>' +
         '<text class="d-ts" x="325" y="192" text-anchor="middle">3 bit</text>' +
         '<text class="d-ts" x="425" y="192" text-anchor="middle">4 bit</text>' +
 
         '<rect class="d-box-w" x="20" y="214" width="680" height="34" rx="4"/>' +
-        '<text class="d-t" x="34" y="236">0xA5 = 1010 0101 -> bat=1, che_do=2, toc_do=10. Dat toc_do=0xF thi nguyen thanh 0x000000F5.</text>' +
+        '<text class="d-t" x="34" y="236">0xA5 = 1010 0101 -> enable=1, mode=2, speed=10. Dat speed=0xF thi raw thanh 0x000000F5.</text>' +
         '</svg>' },
 
     { t: 'cal', kind: 'warn', title: 'Bitfield tiện nhưng không di động — hãy biết trước', x:
       '<p>Chuẩn C <b>không</b> quy định bitfield được xếp từ bit thấp lên hay từ bit cao ' +
       'xuống. GCC trên máy little-endian xếp từ bit 0 lên, nên bạn sẽ thấy ' +
-      '<code>bat</code> = bit 0. Trên trình biên dịch khác hoặc máy big-endian, thứ tự có thể ' +
+      '<code>enable</code> = bit 0. Trên trình biên dịch khác hoặc máy big-endian, thứ tự có thể ' +
       'ngược lại.</p>' +
       '<p>Vì thế kernel Linux <b>tránh dùng bitfield cho thanh ghi phần cứng</b> và dùng ' +
       'macro dịch bit — đúng những macro bạn viết ở mục sau. Bitfield vẫn rất đáng dùng cho ' +
@@ -451,10 +451,10 @@ Lesson.register({
 
     { t: 'code', where: 'file', name: 'bit.c — bốn macro cần thuộc lòng', code:
       '#define BIT(n)          (1U << (n))\n' +
-      '#define DAT(reg, n)     ((reg) |=  BIT(n))    /* bat  bit n, giu nguyen cac bit khac */\n' +
-      '#define XOA(reg, n)     ((reg) &= ~BIT(n))    /* tat  bit n */\n' +
-      '#define DAO(reg, n)     ((reg) ^=  BIT(n))    /* dao  bit n */\n' +
-      '#define KIEM(reg, n)    (((reg) >> (n)) & 1U) /* doc  bit n, ra 0 hoac 1 */' },
+      '#define SET(reg, n)     ((reg) |=  BIT(n))    /* set   bit n, keep the other bits unchanged */\n' +
+      '#define CLEAR(reg, n)   ((reg) &= ~BIT(n))    /* clear bit n */\n' +
+      '#define TOGGLE(reg, n)  ((reg) ^=  BIT(n))    /* toggle bit n */\n' +
+      '#define TEST(reg, n)    (((reg) >> (n)) & 1U) /* read  bit n, returns 0 or 1 */' },
 
     { t: 'cmdx', cmd: 'Vì sao mỗi macro lại viết như vậy', title: 'Đọc từng toán tử',
       rows: [
@@ -471,13 +471,13 @@ Lesson.register({
       '(mask). Ví dụ trích 4 bit bắt đầu từ vị trí 12:' },
 
     { t: 'code', where: 'file', name: 'trích và ghi một trường nhiều bit', code:
-      'uint32_t truong = (reg >> 12) & 0xF;      /* doc 4 bit tai vi tri 12 */\n' +
+      'uint32_t field = (reg >> 12) & 0xF;       /* read the 4-bit field at position 12 */\n' +
       '\n' +
-      'reg &= ~(0xFU << 12);                     /* buoc 1: xoa sach truong cu  */\n' +
-      'reg |=  ((gia_tri & 0xFU) << 12);         /* buoc 2: dat gia tri moi vao */' },
+      'reg &= ~(0xFU << 12);                     /* step 1: clear the old field   */\n' +
+      'reg |=  ((value & 0xFU) << 12);           /* step 2: write in the new value */' },
 
     { t: 'cal', kind: 'tip', title: 'Luôn xoá trước, ghi sau — hai bước, không phải một', x:
-      '<p>Người mới hay viết thẳng <code>reg |= (gia_tri &lt;&lt; 12)</code> và bỏ qua bước ' +
+      '<p>Người mới hay viết thẳng <code>reg |= (value &lt;&lt; 12)</code> và bỏ qua bước ' +
       'xoá. Nó chạy đúng khi trường đang bằng 0 — tức là <b>lần đầu tiên</b> — rồi sai từ lần ' +
       'thứ hai trở đi, vì phép OR chỉ bật thêm bit chứ không tắt bit nào.</p>' +
       '<p>Đây là loại lỗi tệ nhất trong nghề: nó không sai ngay, nó sai <i>về sau</i>, khi bạn ' +
@@ -552,13 +552,13 @@ Lesson.register({
     { t: 'table',
       head: ['Đặt ở đâu', 'Nghĩa là gì', 'Vì sao dùng'],
       rows: [
-        ['Biến <b>ngoài</b> mọi hàm<br><code>static int lan_goi;</code>',
+        ['Biến <b>ngoài</b> mọi hàm<br><code>static int call_count;</code>',
          'Chỉ file <code>.c</code> này thấy được. File khác không thể <code>extern</code> tới',
          '<b>Che giấu trạng thái nội bộ.</b> Không có nó, mọi biến toàn cục của mọi file đều nằm chung một không gian tên'],
-        ['<b>Hàm</b><br><code>static void ghi_log(void)</code>',
+        ['<b>Hàm</b><br><code>static void write_log(void)</code>',
          'Hàm nội bộ, không xuất ra ngoài file',
          'Giữ giao diện của module gọn. Trình biên dịch cũng dễ nội tuyến (inline) hơn'],
-        ['Biến <b>bên trong</b> hàm<br><code>static int rieng = 100;</code>',
+        ['Biến <b>bên trong</b> hàm<br><code>static int private_count = 100;</code>',
          '<b>Sống suốt đời chương trình</b>, không mất khi hàm kết thúc. Chỉ khởi tạo một lần',
          'Giữ trạng thái giữa các lần gọi mà không cần biến toàn cục']
       ]},
@@ -608,8 +608,8 @@ Lesson.register({
           'Đừng tin bảng ở phần lý thuyết. Hãy tự hỏi trình biên dịch. Tạo file đầu tiên bằng ' +
           '<b>here-doc</b> — đúng kỹ thuật bạn đã học ở <b>Bài 13</b>.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo kieu.c', code:
-          'cat > kieu.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo types.c', code:
+          'cat > types.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '#include <stdint.h>\n' +
           '\n' +
@@ -632,8 +632,8 @@ Lesson.register({
           'EOF' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -Wall -Wextra -o kieu kieu.c\n' +
-          './kieu' },
+          'gcc -Wall -Wextra -o types types.c\n' +
+          './types' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'char         1 byte\n' +
@@ -649,11 +649,11 @@ Lesson.register({
           'uint32_t     4 byte\n' +
           'uint64_t     8 byte' },
 
-        { t: 'cmdx', cmd: 'gcc -Wall -Wextra -o kieu kieu.c', title: 'Hai cờ nên gõ ở mọi lần biên dịch',
+        { t: 'cmdx', cmd: 'gcc -Wall -Wextra -o types types.c', title: 'Hai cờ nên gõ ở mọi lần biên dịch',
           rows: [
             ['<code>-Wall</code>', 'Bật nhóm cảnh báo <b>thường gặp và gần như luôn là lỗi thật</b>', 'Tên gợi ý "all" nhưng thực ra chưa phải tất cả'],
             ['<code>-Wextra</code>', 'Bật thêm một nhóm nữa, trong đó có cảnh báo về tham số không dùng và so sánh có dấu / không dấu', 'Cặp <code>-Wall -Wextra</code> là mặc định của mọi dự án nghiêm túc'],
-            ['<code>-o kieu</code>', 'Đặt tên file kết quả', 'Không có nó thì GCC đặt tên <code>a.out</code>, di sản từ năm 1970'],
+            ['<code>-o types</code>', 'Đặt tên file kết quả', 'Không có nó thì GCC đặt tên <code>a.out</code>, di sản từ năm 1970'],
             ['<code>%zu</code>', 'Định dạng in dành riêng cho <code>size_t</code>', 'Dùng <code>%d</code> ở đây là sai và <code>-Wall</code> sẽ mắng bạn']
           ]},
 
@@ -672,22 +672,22 @@ Lesson.register({
           '    uint32_t x = 0x12345678;\n' +
           '    unsigned char *p = (unsigned char *)&x;\n' +
           '\n' +
-          '    printf("gia tri  : 0x%08X\\n", x);\n' +
+          '    printf("value    : 0x%08X\\n", x);\n' +
           '    printf("byte 0..3: %02X %02X %02X %02X\\n", p[0], p[1], p[2], p[3]);\n' +
           '\n' +
           '    if (p[0] == 0x78)\n' +
-          '        printf("ket luan : little-endian\\n");\n' +
+          '        printf("result   : little-endian\\n");\n' +
           '    else\n' +
-          '        printf("ket luan : big-endian\\n");\n' +
+          '        printf("result   : big-endian\\n");\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
           'gcc -Wall -o endian endian.c && ./endian' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'gia tri  : 0x12345678\n' +
+          'value    : 0x12345678\n' +
           'byte 0..3: 78 56 34 12\n' +
-          'ket luan : little-endian' },
+          'result   : little-endian' },
 
         { t: 'cal', kind: 'why', title: 'Vì sao ép kiểu sang unsigned char * là hợp lệ', x:
           '<p>Chuẩn C nói rằng ép con trỏ kiểu này sang kiểu khác rồi đọc thường là ' +
@@ -737,30 +737,30 @@ Lesson.register({
           'một file <b>khẳng định điều ngược lại</b> rồi đưa cho ba trình biên dịch. Trình nào ' +
           'thấy khẳng định sai sẽ từ chối làm việc.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo dai.c', code:
-          'cat > dai.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo sizes.c', code:
+          'cat > sizes.c <<\'EOF\'\n' +
           '#include <stdint.h>\n' +
           '\n' +
-          '_Static_assert(sizeof(long) == 8,     "long KHONG phai 8 byte tren kien truc nay");\n' +
-          '_Static_assert(sizeof(void *) == 8,   "con tro KHONG phai 8 byte tren kien truc nay");\n' +
-          '_Static_assert(sizeof(uint32_t) == 4, "uint32_t khong phai 4 byte");\n' +
+          '_Static_assert(sizeof(long) == 8,     "long is NOT 8 bytes on this architecture");\n' +
+          '_Static_assert(sizeof(void *) == 8,   "pointer is NOT 8 bytes on this architecture");\n' +
+          '_Static_assert(sizeof(uint32_t) == 4, "uint32_t is not 4 bytes");\n' +
           '\n' +
           'int main(void) { return 0; }\n' +
           'EOF' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -c dai.c -o /dev/null && echo "x86_64: ba khang dinh deu dung"\n' +
-          'aarch64-linux-gnu-gcc -c dai.c -o /dev/null && echo "aarch64: ba khang dinh deu dung"\n' +
-          'arm-linux-gnueabihf-gcc -c dai.c -o /dev/null' },
+          'gcc -c sizes.c -o /dev/null && echo "x86_64: all three assertions hold"\n' +
+          'aarch64-linux-gnu-gcc -c sizes.c -o /dev/null && echo "aarch64: all three assertions hold"\n' +
+          'arm-linux-gnueabihf-gcc -c sizes.c -o /dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'x86_64: ba khang dinh deu dung\n' +
-          'aarch64: ba khang dinh deu dung\n' +
-          'dai.c:3:1: error: static assertion failed: "long KHONG phai 8 byte tren kien truc nay"\n' +
-          '    3 | _Static_assert(sizeof(long) == 8,     "long KHONG phai 8 byte tren kien truc nay");\n' +
+          'x86_64: all three assertions hold\n' +
+          'aarch64: all three assertions hold\n' +
+          'sizes.c:3:1: error: static assertion failed: "long is NOT 8 bytes on this architecture"\n' +
+          '    3 | _Static_assert(sizeof(long) == 8,     "long is NOT 8 bytes on this architecture");\n' +
           '      | ^~~~~~~~~~~~~~\n' +
-          'dai.c:4:1: error: static assertion failed: "con tro KHONG phai 8 byte tren kien truc nay"\n' +
-          '    4 | _Static_assert(sizeof(void *) == 8,   "con tro KHONG phai 8 byte tren kien truc nay");\n' +
+          'sizes.c:4:1: error: static assertion failed: "pointer is NOT 8 bytes on this architecture"\n' +
+          '    4 | _Static_assert(sizeof(void *) == 8,   "pointer is NOT 8 bytes on this architecture");\n' +
           '      | ^~~~~~~~~~~~~~' },
 
         { t: 'cal', kind: 'info', title: 'Đọc kỹ kết quả — nó nói ba điều cùng lúc', x:
@@ -777,19 +777,19 @@ Lesson.register({
           'Đảo ngược khẳng định để xác nhận ARM 32-bit thật sự dùng ILP32:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > dai2.c <<\'EOF\'\n' +
+          'cat > sizes2.c <<\'EOF\'\n' +
           '#include <stdint.h>\n' +
-          '_Static_assert(sizeof(long) == 4, "long la 4 byte");\n' +
-          '_Static_assert(sizeof(void *) == 4, "con tro la 4 byte");\n' +
-          '_Static_assert(sizeof(uint32_t) == 4, "uint32_t luon 4 byte");\n' +
+          '_Static_assert(sizeof(long) == 4, "long is 4 bytes");\n' +
+          '_Static_assert(sizeof(void *) == 4, "pointer is 4 bytes");\n' +
+          '_Static_assert(sizeof(uint32_t) == 4, "uint32_t is always 4 bytes");\n' +
           'int main(void) { return 0; }\n' +
           'EOF\n' +
-          'arm-linux-gnueabihf-gcc -c dai2.c -o /dev/null && echo "armhf: long=4, con tro=4, uint32_t=4"' },
+          'arm-linux-gnueabihf-gcc -c sizes2.c -o /dev/null && echo "armhf: long=4, pointer=4, uint32_t=4"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'armhf: long=4, con tro=4, uint32_t=4' },
+          'armhf: long=4, pointer=4, uint32_t=4' },
 
-        { t: 'cmdx', cmd: '_Static_assert(dieu_kien, "thong bao")', title: 'Một công cụ bạn nên dùng nhiều hơn bạn nghĩ',
+        { t: 'cmdx', cmd: '_Static_assert(condition, "message")', title: 'Một công cụ bạn nên dùng nhiều hơn bạn nghĩ',
           rows: [
             ['Chạy lúc nào', '<b>Lúc biên dịch</b>, không sinh ra một lệnh máy nào', 'Khác hoàn toàn <code>assert()</code> của <code>&lt;assert.h&gt;</code> vốn chạy lúc thực thi'],
             ['Điều kiện phải là', 'Biểu thức hằng — <code>sizeof</code>, <code>_Alignof</code>, số học trên hằng', 'Không dùng được với biến'],
@@ -800,8 +800,8 @@ Lesson.register({
         { t: 'cal', kind: 'tip', title: 'Thói quen đáng tập: khẳng định bố cục struct', x:
           '<p>Khi bạn viết một <code>struct</code> mô tả gói tin hoặc cấu trúc trên flash, hãy ' +
           'đặt ngay dưới nó:</p>' +
-          '<p><code>_Static_assert(sizeof(struct goi_tin) == 16, "bo cuc goi tin bi thay ' +
-          'doi");</code></p>' +
+          '<p><code>_Static_assert(sizeof(struct packet) == 16, "packet layout has ' +
+          'changed");</code></p>' +
           '<p>Ngày nào đó có người thêm một trường vào giữa, bản build sẽ <b>gãy ngay lập ' +
           'tức</b> kèm thông báo rõ ràng — thay vì thiết bị ngoài hiện trường bắt đầu gửi dữ ' +
           'liệu rác và không ai hiểu vì sao. Đây là một trong những dòng mã có tỉ lệ ' +
@@ -815,47 +815,47 @@ Lesson.register({
           '<code>p + 1</code> nhảy bao nhiêu byte, và mảng có phải con trỏ không. Một chương ' +
           'trình trả lời cả ba.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo contro.c', code:
-          'cat > contro.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo control_flow.c', code:
+          'cat > control_flow.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '#include <stdint.h>\n' +
           '\n' +
-          'static void doi_cho_sai(int a, int b) { int t = a; a = b; b = t; }\n' +
-          'static void doi_cho_dung(int *a, int *b) { int t = *a; *a = *b; *b = t; }\n' +
+          'static void swap_wrong(int a, int b) { int t = a; a = b; b = t; }\n' +
+          'static void swap_right(int *a, int *b) { int t = *a; *a = *b; *b = t; }\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
           '    int x = 1, y = 2;\n' +
           '\n' +
-          '    doi_cho_sai(x, y);\n' +
-          '    printf("sau doi_cho_sai : x=%d y=%d\\n", x, y);\n' +
-          '    doi_cho_dung(&x, &y);\n' +
-          '    printf("sau doi_cho_dung: x=%d y=%d\\n", x, y);\n' +
+          '    swap_wrong(x, y);\n' +
+          '    printf("after swap_wrong: x=%d y=%d\\n", x, y);\n' +
+          '    swap_right(&x, &y);\n' +
+          '    printf("after swap_right: x=%d y=%d\\n", x, y);\n' +
           '\n' +
           '    uint8_t  *p8  = (uint8_t  *)0x1000;\n' +
           '    uint32_t *p32 = (uint32_t *)0x1000;\n' +
           '    printf("p8  = %p   p8  + 1 = %p\\n", (void *)p8,  (void *)(p8  + 1));\n' +
           '    printf("p32 = %p   p32 + 1 = %p\\n", (void *)p32, (void *)(p32 + 1));\n' +
           '\n' +
-          '    int mang[5] = { 10, 20, 30, 40, 50 };\n' +
-          '    printf("mang[2] = %d, *(mang + 2) = %d\\n", mang[2], *(mang + 2));\n' +
-          '    printf("sizeof(mang) = %zu, sizeof(&mang[0]) = %zu\\n",\n' +
-          '           sizeof(mang), sizeof(&mang[0]));\n' +
+          '    int arr[5] = { 10, 20, 30, 40, 50 };\n' +
+          '    printf("arr[2] = %d, *(arr + 2) = %d\\n", arr[2], *(arr + 2));\n' +
+          '    printf("sizeof(arr) = %zu, sizeof(&arr[0]) = %zu\\n",\n' +
+          '           sizeof(arr), sizeof(&arr[0]));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -Wall -Wextra -o contro contro.c && ./contro' },
+          'gcc -Wall -Wextra -o control_flow control_flow.c && ./control_flow' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'sau doi_cho_sai : x=1 y=2\n' +
-          'sau doi_cho_dung: x=2 y=1\n' +
+          'after swap_wrong: x=1 y=2\n' +
+          'after swap_right: x=2 y=1\n' +
           'p8  = 0x1000   p8  + 1 = 0x1001\n' +
           'p32 = 0x1000   p32 + 1 = 0x1004\n' +
-          'mang[2] = 30, *(mang + 2) = 30\n' +
-          'sizeof(mang) = 20, sizeof(&mang[0]) = 8' },
+          'arr[2] = 30, *(arr + 2) = 30\n' +
+          'sizeof(arr) = 20, sizeof(&arr[0]) = 8' },
 
         { t: 'cal', kind: 'info', title: 'Đọc sáu dòng kết quả', x:
-          '<p><b>Dòng 1:</b> <code>doi_cho_sai</code> chạy xong mà <code>x</code> và ' +
+          '<p><b>Dòng 1:</b> <code>swap_wrong</code> chạy xong mà <code>x</code> và ' +
           '<code>y</code> không đổi. Hàm đã đổi chỗ hai bản sao rồi vứt đi. Đây là ' +
           '<i>truyền theo giá trị</i>, và C <b>chỉ có</b> cơ chế này.</p>' +
           '<p><b>Dòng 2:</b> truyền địa chỉ thì sửa được. Không có phép màu — hàm vẫn nhận bản ' +
@@ -863,7 +863,7 @@ Lesson.register({
           '<p><b>Dòng 3–4:</b> cùng xuất phát từ <code>0x1000</code>, cộng 1 ra ' +
           '<code>0x1001</code> và <code>0x1004</code>. Trình biên dịch nhân ngầm với ' +
           '<code>sizeof</code> của kiểu.</p>' +
-          '<p><b>Dòng 5–6:</b> <code>mang[2]</code> và <code>*(mang + 2)</code> bằng nhau — ' +
+          '<p><b>Dòng 5–6:</b> <code>arr[2]</code> và <code>*(arr + 2)</code> bằng nhau — ' +
           'nhưng <code>sizeof</code> ra <b>20</b> và <b>8</b>. Mảng và con trỏ là hai thứ khác ' +
           'nhau, chỉ giống nhau ở một số ngữ cảnh.</p>' },
 
@@ -885,25 +885,25 @@ Lesson.register({
           'báo và một thuộc tính. <code>offsetof</code> cho ta biết mỗi trường thật sự nằm ở ' +
           'byte thứ mấy.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo canle.c', code:
-          'cat > canle.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo alignment.c', code:
+          'cat > alignment.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '#include <stdint.h>\n' +
           '#include <stddef.h>\n' +
           '\n' +
-          'struct xau {\n' +
+          'struct bad_layout {\n' +
           '    uint8_t  a;\n' +
           '    uint32_t b;\n' +
           '    uint8_t  c;\n' +
           '};\n' +
           '\n' +
-          'struct tot {\n' +
+          'struct good_layout {\n' +
           '    uint32_t b;\n' +
           '    uint8_t  a;\n' +
           '    uint8_t  c;\n' +
           '};\n' +
           '\n' +
-          'struct __attribute__((packed)) nen {\n' +
+          'struct __attribute__((packed)) packed_layout {\n' +
           '    uint8_t  a;\n' +
           '    uint32_t b;\n' +
           '    uint8_t  c;\n' +
@@ -911,57 +911,57 @@ Lesson.register({
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("struct xau : sizeof=%2zu  align=%zu  offset a=%zu b=%zu c=%zu\\n",\n' +
-          '           sizeof(struct xau), _Alignof(struct xau),\n' +
-          '           offsetof(struct xau, a), offsetof(struct xau, b), offsetof(struct xau, c));\n' +
-          '    printf("struct tot : sizeof=%2zu  align=%zu  offset b=%zu a=%zu c=%zu\\n",\n' +
-          '           sizeof(struct tot), _Alignof(struct tot),\n' +
-          '           offsetof(struct tot, b), offsetof(struct tot, a), offsetof(struct tot, c));\n' +
-          '    printf("struct nen : sizeof=%2zu  align=%zu  offset a=%zu b=%zu c=%zu\\n",\n' +
-          '           sizeof(struct nen), _Alignof(struct nen),\n' +
-          '           offsetof(struct nen, a), offsetof(struct nen, b), offsetof(struct nen, c));\n' +
+          '    printf("struct bad_layout    : sizeof=%2zu  align=%zu  offset a=%zu b=%zu c=%zu\\n",\n' +
+          '           sizeof(struct bad_layout), _Alignof(struct bad_layout),\n' +
+          '           offsetof(struct bad_layout, a), offsetof(struct bad_layout, b), offsetof(struct bad_layout, c));\n' +
+          '    printf("struct good_layout   : sizeof=%2zu  align=%zu  offset b=%zu a=%zu c=%zu\\n",\n' +
+          '           sizeof(struct good_layout), _Alignof(struct good_layout),\n' +
+          '           offsetof(struct good_layout, b), offsetof(struct good_layout, a), offsetof(struct good_layout, c));\n' +
+          '    printf("struct packed_layout : sizeof=%2zu  align=%zu  offset a=%zu b=%zu c=%zu\\n",\n' +
+          '           sizeof(struct packed_layout), _Alignof(struct packed_layout),\n' +
+          '           offsetof(struct packed_layout, a), offsetof(struct packed_layout, b), offsetof(struct packed_layout, c));\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -Wall -Wextra -o canle canle.c && ./canle' },
+          'gcc -Wall -Wextra -o alignment alignment.c && ./alignment' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'struct xau : sizeof=12  align=4  offset a=0 b=4 c=8\n' +
-          'struct tot : sizeof= 8  align=4  offset b=0 a=4 c=5\n' +
-          'struct nen : sizeof= 6  align=1  offset a=0 b=1 c=5' },
+          'struct bad_layout    : sizeof=12  align=4  offset a=0 b=4 c=8\n' +
+          'struct good_layout   : sizeof= 8  align=4  offset b=0 a=4 c=5\n' +
+          'struct packed_layout : sizeof= 6  align=1  offset a=0 b=1 c=5' },
 
         { t: 'cmdx', cmd: 'Đọc ba dòng kết quả', title: 'Từng con số nói gì',
           rows: [
-            ['<code>xau</code>: <code>a=0 b=4 c=8</code>, size 12', '<code>a</code> chiếm byte 0, rồi <b>3 byte đệm</b> để <code>b</code> rơi vào offset 4', 'Sau <code>c</code> ở offset 8 lại thêm <b>3 byte đệm</b> cho tổng chia hết cho 4. Đệm 6/12 = <b>50% lãng phí</b>'],
-            ['<code>tot</code>: <code>b=0 a=4 c=5</code>, size 8', 'Trường lớn nhất khai báo trước nên <b>không cần đệm giữa</b>', 'Chỉ còn 2 byte đệm cuối. Cùng dữ liệu, <b>ít hơn 4 byte</b>'],
-            ['<code>nen</code>: <code>a=0 b=1 c=5</code>, size 6', '<code>packed</code> bỏ hết đệm — 6 byte đúng bằng tổng dữ liệu', '<b>Nhưng</b> <code>b</code> nằm ở offset 1, không chia hết cho 4: truy cập lệch'],
-            ['Cột <code>align</code>', 'Yêu cầu căn lề của cả struct', '<code>xau</code> và <code>tot</code> cần địa chỉ chia hết cho 4; <code>nen</code> đặt ở đâu cũng được, đó chính là điều nguy hiểm']
+            ['<code>bad_layout</code>: <code>a=0 b=4 c=8</code>, size 12', '<code>a</code> chiếm byte 0, rồi <b>3 byte đệm</b> để <code>b</code> rơi vào offset 4', 'Sau <code>c</code> ở offset 8 lại thêm <b>3 byte đệm</b> cho tổng chia hết cho 4. Đệm 6/12 = <b>50% lãng phí</b>'],
+            ['<code>good_layout</code>: <code>b=0 a=4 c=5</code>, size 8', 'Trường lớn nhất khai báo trước nên <b>không cần đệm giữa</b>', 'Chỉ còn 2 byte đệm cuối. Cùng dữ liệu, <b>ít hơn 4 byte</b>'],
+            ['<code>packed_layout</code>: <code>a=0 b=1 c=5</code>, size 6', '<code>packed</code> bỏ hết đệm — 6 byte đúng bằng tổng dữ liệu', '<b>Nhưng</b> <code>b</code> nằm ở offset 1, không chia hết cho 4: truy cập lệch'],
+            ['Cột <code>align</code>', 'Yêu cầu căn lề của cả struct', '<code>bad_layout</code> và <code>good_layout</code> cần địa chỉ chia hết cho 4; <code>packed_layout</code> đặt ở đâu cũng được, đó chính là điều nguy hiểm']
           ]},
 
         { t: 'p', x:
           'Bốn byte nghe không đáng gì. Hãy nhân lên với số phần tử của một mảng thật:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > mang.c <<\'EOF\'\n' +
+          'cat > array_savings.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '#include <stdint.h>\n' +
-          'struct xau { uint8_t a; uint32_t b; uint8_t c; };\n' +
-          'struct tot { uint32_t b; uint8_t a; uint8_t c; };\n' +
+          'struct bad_layout { uint8_t a; uint32_t b; uint8_t c; };\n' +
+          'struct good_layout { uint32_t b; uint8_t a; uint8_t c; };\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("1000 x struct xau = %zu byte\\n", sizeof(struct xau) * 1000);\n' +
-          '    printf("1000 x struct tot = %zu byte\\n", sizeof(struct tot) * 1000);\n' +
-          '    printf("tiet kiem         = %zu byte\\n",\n' +
-          '           sizeof(struct xau) * 1000 - sizeof(struct tot) * 1000);\n' +
+          '    printf("1000 x struct bad_layout  = %zu byte\\n", sizeof(struct bad_layout) * 1000);\n' +
+          '    printf("1000 x struct good_layout = %zu byte\\n", sizeof(struct good_layout) * 1000);\n' +
+          '    printf("savings                   = %zu byte\\n",\n' +
+          '           sizeof(struct bad_layout) * 1000 - sizeof(struct good_layout) * 1000);\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -o mang mang.c && ./mang' },
+          'gcc -o array_savings array_savings.c && ./array_savings' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '1000 x struct xau = 12000 byte\n' +
-          '1000 x struct tot = 8000 byte\n' +
-          'tiet kiem         = 4000 byte' },
+          '1000 x struct bad_layout  = 12000 byte\n' +
+          '1000 x struct good_layout = 8000 byte\n' +
+          'savings                   = 4000 byte' },
 
         { t: 'cal', kind: 'why', title: '4000 byte đổi lấy việc đổi chỗ hai dòng khai báo', x:
           '<p>Trên máy này, 4 KB là không đáng kể. Trên một vi điều khiển có <b>64 KB RAM</b> — ' +
@@ -997,14 +997,14 @@ Lesson.register({
           '#include <stdint.h>\n' +
           '\n' +
           '#define BIT(n)          (1U << (n))\n' +
-          '#define DAT(reg, n)     ((reg) |=  BIT(n))\n' +
-          '#define XOA(reg, n)     ((reg) &= ~BIT(n))\n' +
-          '#define DAO(reg, n)     ((reg) ^=  BIT(n))\n' +
-          '#define KIEM(reg, n)    (((reg) >> (n)) & 1U)\n' +
+          '#define SET(reg, n)     ((reg) |=  BIT(n))\n' +
+          '#define CLEAR(reg, n)   ((reg) &= ~BIT(n))\n' +
+          '#define TOGGLE(reg, n)  ((reg) ^=  BIT(n))\n' +
+          '#define TEST(reg, n)    (((reg) >> (n)) & 1U)\n' +
           '\n' +
-          'static void in_nhi_phan(const char *nhan, uint32_t v)\n' +
+          'static void print_binary(const char *label, uint32_t v)\n' +
           '{\n' +
-          '    printf("%-10s 0x%08X  ", nhan, v);\n' +
+          '    printf("%-10s 0x%08X  ", label, v);\n' +
           '    for (int i = 31; i >= 0; i--) {\n' +
           '        putchar(((v >> i) & 1U) ? \'1\' : \'0\');\n' +
           '        if (i % 8 == 0 && i)\n' +
@@ -1017,40 +1017,40 @@ Lesson.register({
           '{\n' +
           '    uint32_t reg = 0;\n' +
           '\n' +
-          '    in_nhi_phan("ban dau", reg);\n' +
-          '    DAT(reg, 3);   in_nhi_phan("dat bit3", reg);\n' +
-          '    DAT(reg, 12);  in_nhi_phan("dat bit12", reg);\n' +
-          '    DAO(reg, 3);   in_nhi_phan("dao bit3", reg);\n' +
-          '    XOA(reg, 12);  in_nhi_phan("xoa bit12", reg);\n' +
+          '    print_binary("initial", reg);\n' +
+          '    SET(reg, 3);     print_binary("set bit3", reg);\n' +
+          '    SET(reg, 12);    print_binary("set bit12", reg);\n' +
+          '    TOGGLE(reg, 3);  print_binary("toggle bit3", reg);\n' +
+          '    CLEAR(reg, 12);  print_binary("clear bit12", reg);\n' +
           '\n' +
           '    reg = 0x0000FF00;\n' +
-          '    in_nhi_phan("reg moi", reg);\n' +
-          '    printf("bit 8  = %u\\n", KIEM(reg, 8));\n' +
-          '    printf("bit 7  = %u\\n", KIEM(reg, 7));\n' +
+          '    print_binary("new reg", reg);\n' +
+          '    printf("bit 8  = %u\\n", TEST(reg, 8));\n' +
+          '    printf("bit 7  = %u\\n", TEST(reg, 7));\n' +
           '\n' +
           '    reg = 0xABCD1234;\n' +
-          '    uint32_t truong = (reg >> 12) & 0xF;\n' +
-          '    printf("truong 4 bit tai vi tri 12 cua 0x%08X = 0x%X\\n", reg, truong);\n' +
+          '    uint32_t field = (reg >> 12) & 0xF;\n' +
+          '    printf("4-bit field at position 12 of 0x%08X = 0x%X\\n", reg, field);\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
           'gcc -Wall -Wextra -o bit bit.c && ./bit' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'ban dau    0x00000000  00000000 00000000 00000000 00000000\n' +
-          'dat bit3   0x00000008  00000000 00000000 00000000 00001000\n' +
-          'dat bit12  0x00001008  00000000 00000000 00010000 00001000\n' +
-          'dao bit3   0x00001000  00000000 00000000 00010000 00000000\n' +
-          'xoa bit12  0x00000000  00000000 00000000 00000000 00000000\n' +
-          'reg moi    0x0000FF00  00000000 00000000 11111111 00000000\n' +
+          'initial    0x00000000  00000000 00000000 00000000 00000000\n' +
+          'set bit3   0x00000008  00000000 00000000 00000000 00001000\n' +
+          'set bit12  0x00001008  00000000 00000000 00010000 00001000\n' +
+          'toggle bit3 0x00001000  00000000 00000000 00010000 00000000\n' +
+          'clear bit12 0x00000000  00000000 00000000 00000000 00000000\n' +
+          'new reg    0x0000FF00  00000000 00000000 11111111 00000000\n' +
           'bit 8  = 1\n' +
           'bit 7  = 0\n' +
-          'truong 4 bit tai vi tri 12 cua 0xABCD1234 = 0x1' },
+          '4-bit field at position 12 of 0xABCD1234 = 0x1' },
 
         { t: 'cal', kind: 'info', title: 'Đối chiếu cột hex với cột nhị phân', x:
-          '<p>Dòng <code>dat bit12</code> cho <code>0x00001008</code>. Kiểm lại: bit 12 và ' +
+          '<p>Dòng <code>set bit12</code> cho <code>0x00001008</code>. Kiểm lại: bit 12 và ' +
           'bit 3 cùng bật, <code>2^12 + 2^3 = 4096 + 8 = 4104 = 0x1008</code>. Đúng.</p>' +
-          '<p><b>Điểm quan trọng nhất:</b> ở dòng <code>dat bit12</code>, bit 3 <b>vẫn còn</b>. ' +
+          '<p><b>Điểm quan trọng nhất:</b> ở dòng <code>set bit12</code>, bit 3 <b>vẫn còn</b>. ' +
           'Phép <code>|=</code> chỉ thêm chứ không xoá. Đó chính là tính chất mà điều khiển ' +
           'thanh ghi cần: bật chân GPIO số 12 mà không được đụng tới 31 chân kia, vì chúng ' +
           'đang điều khiển những thứ khác trên board.</p>' +
@@ -1062,57 +1062,57 @@ Lesson.register({
         { t: 'p', x:
           'Bây giờ là <code>union</code>: cũng bốn byte đó, nhưng nhìn theo ba cách.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo lienhiep.c', code:
-          'cat > lienhiep.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo union_demo.c', code:
+          'cat > union_demo.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '#include <stdint.h>\n' +
           '\n' +
-          'union thanh_ghi {\n' +
-          '    uint32_t nguyen;\n' +
+          'union hwreg {\n' +
+          '    uint32_t raw;\n' +
           '    uint8_t  byte[4];\n' +
           '    struct {\n' +
-          '        uint32_t bat     : 1;\n' +
-          '        uint32_t che_do  : 3;\n' +
-          '        uint32_t toc_do  : 4;\n' +
-          '        uint32_t du_tru  : 24;\n' +
-          '    } truong;\n' +
+          '        uint32_t enable   : 1;\n' +
+          '        uint32_t mode     : 3;\n' +
+          '        uint32_t speed    : 4;\n' +
+          '        uint32_t reserved : 24;\n' +
+          '    } fields;\n' +
           '};\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    union thanh_ghi r;\n' +
+          '    union hwreg r;\n' +
           '\n' +
           '    printf("sizeof(union) = %zu byte\\n", sizeof(r));\n' +
           '\n' +
-          '    r.nguyen = 0x000000A5;\n' +
-          '    printf("nguyen  = 0x%08X\\n", r.nguyen);\n' +
+          '    r.raw = 0x000000A5;\n' +
+          '    printf("raw     = 0x%08X\\n", r.raw);\n' +
           '    printf("byte[]  = %02X %02X %02X %02X\\n", r.byte[0], r.byte[1], r.byte[2], r.byte[3]);\n' +
-          '    printf("bat     = %u\\n", r.truong.bat);\n' +
-          '    printf("che_do  = %u\\n", r.truong.che_do);\n' +
-          '    printf("toc_do  = %u\\n", r.truong.toc_do);\n' +
+          '    printf("enable  = %u\\n", r.fields.enable);\n' +
+          '    printf("mode    = %u\\n", r.fields.mode);\n' +
+          '    printf("speed   = %u\\n", r.fields.speed);\n' +
           '\n' +
-          '    r.truong.toc_do = 0xF;\n' +
-          '    printf("sau khi dat toc_do=0xF -> nguyen = 0x%08X\\n", r.nguyen);\n' +
+          '    r.fields.speed = 0xF;\n' +
+          '    printf("after setting speed=0xF -> raw = 0x%08X\\n", r.raw);\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -Wall -Wextra -o lienhiep lienhiep.c && ./lienhiep' },
+          'gcc -Wall -Wextra -o union_demo union_demo.c && ./union_demo' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'sizeof(union) = 4 byte\n' +
-          'nguyen  = 0x000000A5\n' +
+          'raw     = 0x000000A5\n' +
           'byte[]  = A5 00 00 00\n' +
-          'bat     = 1\n' +
-          'che_do  = 2\n' +
-          'toc_do  = 10\n' +
-          'sau khi dat toc_do=0xF -> nguyen = 0x000000F5' },
+          'enable  = 1\n' +
+          'mode    = 2\n' +
+          'speed   = 10\n' +
+          'after setting speed=0xF -> raw = 0x000000F5' },
 
         { t: 'cal', kind: 'info', title: 'Kiểm lại bằng tay để tin vào kết quả', x:
           '<p><code>0xA5</code> = <code>1010 0101</code> ở dạng nhị phân. Đọc từ bit 0 lên:</p>' +
-          '<p><code>bat</code> = bit 0 = <b>1</b>. ✓<br>' +
-          '<code>che_do</code> = bit 1–3 = <code>010</code> = <b>2</b>. ✓<br>' +
-          '<code>toc_do</code> = bit 4–7 = <code>1010</code> = <b>10</b>. ✓</p>' +
-          '<p>Ghi <code>toc_do = 0xF</code> tức là đặt bit 4–7 thành <code>1111</code>, biến ' +
+          '<p><code>enable</code> = bit 0 = <b>1</b>. ✓<br>' +
+          '<code>mode</code> = bit 1–3 = <code>010</code> = <b>2</b>. ✓<br>' +
+          '<code>speed</code> = bit 4–7 = <code>1010</code> = <b>10</b>. ✓</p>' +
+          '<p>Ghi <code>speed = 0xF</code> tức là đặt bit 4–7 thành <code>1111</code>, biến ' +
           'nửa cao của byte thấp từ <code>A</code> thành <code>F</code>: <code>0xA5</code> → ' +
           '<code>0xF5</code>. ✓</p>' +
           '<p><code>byte[] = A5 00 00 00</code> là <b>bằng chứng thứ hai</b> cho tính ' +
@@ -1126,7 +1126,7 @@ Lesson.register({
           'b <i>hoặc</i> c, tuỳ ngữ cảnh.</p>' +
           '<p>Hệ quả: <code>union</code> <b>không nhớ</b> nó đang chứa cái gì. Trách nhiệm đó ' +
           'là của bạn, và đó chính là chỗ nó nguy hiểm. Mẫu an toàn là bọc nó trong một ' +
-          '<code>struct</code> có thêm một trường <code>kieu</code> để ghi lại đang dùng nhánh ' +
+          '<code>struct</code> có thêm một trường <code>type</code> để ghi lại đang dùng nhánh ' +
           'nào — kernel gọi mẫu này là <i>tagged union</i>.</p>' }
       ]},
 
@@ -1136,31 +1136,31 @@ Lesson.register({
           'Đây là bước thuyết phục nhất của cả bài. Ta viết <b>hai hàm giống hệt nhau</b>, chỉ ' +
           'khác một từ khoá, rồi bảo GCC in ra assembly để so sánh.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo vol.c', code:
-          'cat > vol.c <<\'EOF\'\n' +
+        { t: 'code', where: 'wsl', name: 'tạo volatile_demo.c', code:
+          'cat > volatile_demo.c <<\'EOF\'\n' +
           '#include <stdint.h>\n' +
           '\n' +
-          'int cho_co_thuong(uint32_t *co)\n' +
+          'int wait_flag_plain(uint32_t *flag)\n' +
           '{\n' +
           '    int n = 0;\n' +
-          '    while (*co == 0)\n' +
+          '    while (*flag == 0)\n' +
           '        n++;\n' +
           '    return n;\n' +
           '}\n' +
           '\n' +
-          'int cho_co_volatile(volatile uint32_t *co)\n' +
+          'int wait_flag_volatile(volatile uint32_t *flag)\n' +
           '{\n' +
           '    int n = 0;\n' +
-          '    while (*co == 0)\n' +
+          '    while (*flag == 0)\n' +
           '        n++;\n' +
           '    return n;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -O2 -S -o vol.s vol.c\n' +
-          'sed -n \'/^cho_co_thuong:/,/\\.size\\tcho_co_thuong/p\' vol.s | grep -v \'\\.cfi\'' },
+          'gcc -O2 -S -o volatile_demo.s volatile_demo.c\n' +
+          'sed -n \'/^wait_flag_plain:/,/\\.size\\twait_flag_plain/p\' volatile_demo.s | grep -v \'\\.cfi\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'cho_co_thuong:\n' +
+          'wait_flag_plain:\n' +
           '.LFB0:\n' +
           '\tendbr64\n' +
           '\tmovl\t(%rdi), %eax\n' +
@@ -1182,10 +1182,10 @@ Lesson.register({
           'kia:' },
 
         { t: 'code', where: 'wsl', code:
-          'sed -n \'/^cho_co_volatile:/,/\\.size\\tcho_co_volatile/p\' vol.s | grep -v \'\\.cfi\'' },
+          'sed -n \'/^wait_flag_volatile:/,/\\.size\\twait_flag_volatile/p\' volatile_demo.s | grep -v \'\\.cfi\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'cho_co_volatile:\n' +
+          'wait_flag_volatile:\n' +
           '.LFB1:\n' +
           '\tendbr64\n' +
           '\tmovl\t(%rdi), %eax\n' +
@@ -1211,7 +1211,7 @@ Lesson.register({
           ]},
 
         { t: 'cal', kind: 'danger', title: 'Hãy tự thử: bỏ -O2 đi', x:
-          '<p>Chạy lại <code>gcc -O0 -S -o vol0.s vol.c</code> rồi so sánh. Bạn sẽ thấy ' +
+          '<p>Chạy lại <code>gcc -O0 -S -o volatile_demo0.s volatile_demo.c</code> rồi so sánh. Bạn sẽ thấy ' +
           '<b>cả hai</b> hàm đều đọc lại bộ nhớ mỗi vòng lặp, tức là bản thiếu ' +
           '<code>volatile</code> <i>vẫn chạy đúng</i>.</p>' +
           '<p>Đó chính xác là lý do lỗi này giết người: bạn phát triển và gỡ lỗi với ' +
@@ -1225,81 +1225,81 @@ Lesson.register({
           'Phần cuối: <code>static</code>. Ta viết hai file, dùng cả ba nghĩa của từ khoá này, ' +
           'rồi soi ký hiệu bằng <code>nm</code>.' },
 
-        { t: 'code', where: 'wsl', name: 'tạo dem.c và main.c', code:
+        { t: 'code', where: 'wsl', name: 'tạo counter.c và main.c', code:
           'mkdir -p st && cd st\n' +
-          'cat > dem.c <<\'EOF\'\n' +
+          'cat > counter.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '\n' +
-          'static int lan_goi = 0;      /* chi file nay thay */\n' +
-          'int tong_cong = 0;           /* ca chuong trinh thay */\n' +
+          'static int call_count = 0;   /* visible only in this file */\n' +
+          'int total = 0;               /* visible to the whole program */\n' +
           '\n' +
-          'static void ghi_log(void)    /* ham noi bo */\n' +
+          'static void write_log(void)  /* internal function */\n' +
           '{\n' +
-          '    printf("  [log] lan goi thu %d\\n", lan_goi);\n' +
+          '    printf("  [log] call #%d\\n", call_count);\n' +
           '}\n' +
           '\n' +
-          'int dem_len(void)\n' +
+          'int count_calls(void)\n' +
           '{\n' +
-          '    static int rieng = 100;  /* song suot doi chuong trinh */\n' +
-          '    lan_goi++;\n' +
-          '    tong_cong++;\n' +
-          '    rieng++;\n' +
-          '    ghi_log();\n' +
-          '    return rieng;\n' +
+          '    static int private_count = 100;  /* lives for the program\'s lifetime */\n' +
+          '    call_count++;\n' +
+          '    total++;\n' +
+          '    private_count++;\n' +
+          '    write_log();\n' +
+          '    return private_count;\n' +
           '}\n' +
           'EOF\n' +
           'cat > main.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
           '\n' +
-          'extern int tong_cong;\n' +
-          'int dem_len(void);\n' +
+          'extern int total;\n' +
+          'int count_calls(void);\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("dem_len -> %d\\n", dem_len());\n' +
-          '    printf("dem_len -> %d\\n", dem_len());\n' +
-          '    printf("dem_len -> %d\\n", dem_len());\n' +
-          '    printf("tong_cong = %d\\n", tong_cong);\n' +
+          '    printf("count_calls -> %d\\n", count_calls());\n' +
+          '    printf("count_calls -> %d\\n", count_calls());\n' +
+          '    printf("count_calls -> %d\\n", count_calls());\n' +
+          '    printf("total = %d\\n", total);\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF\n' +
-          'gcc -Wall -Wextra -c dem.c\n' +
+          'gcc -Wall -Wextra -c counter.c\n' +
           'gcc -Wall -Wextra -c main.c\n' +
-          'gcc -o dem dem.o main.o\n' +
-          './dem' },
+          'gcc -o counter counter.o main.o\n' +
+          './counter' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '  [log] lan goi thu 1\n' +
-          'dem_len -> 101\n' +
-          '  [log] lan goi thu 2\n' +
-          'dem_len -> 102\n' +
-          '  [log] lan goi thu 3\n' +
-          'dem_len -> 103\n' +
-          'tong_cong = 3' },
+          '  [log] call #1\n' +
+          'count_calls -> 101\n' +
+          '  [log] call #2\n' +
+          'count_calls -> 102\n' +
+          '  [log] call #3\n' +
+          'count_calls -> 103\n' +
+          'total = 3' },
 
         { t: 'p', x:
-          'Biến <code>rieng</code> đi từ 101 lên 103 qua ba lần gọi — nó <b>không</b> bị đặt ' +
-          'lại về 100. Dòng <code>static int rieng = 100;</code> chỉ chạy <b>một lần duy ' +
+          'Biến <code>private_count</code> đi từ 101 lên 103 qua ba lần gọi — nó <b>không</b> bị đặt ' +
+          'lại về 100. Dòng <code>static int private_count = 100;</code> chỉ chạy <b>một lần duy ' +
           'nhất</b>, trước khi <code>main</code> bắt đầu. Giờ soi bảng ký hiệu:' },
 
-        { t: 'code', where: 'wsl', code: 'nm dem.o' },
+        { t: 'code', where: 'wsl', code: 'nm counter.o' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '0000000000000027 T dem_len\n' +
-          '0000000000000000 t ghi_log\n' +
-          '0000000000000004 b lan_goi\n' +
+          '0000000000000004 b call_count\n' +
+          '0000000000000027 T count_calls\n' +
           '                 U printf\n' +
-          '0000000000000000 d rieng.0\n' +
-          '0000000000000000 B tong_cong' },
+          '0000000000000000 d private_count.0\n' +
+          '0000000000000000 B total\n' +
+          '0000000000000000 t write_log' },
 
-        { t: 'cmdx', cmd: 'nm dem.o', title: 'Sáu dòng, và chữ hoa/chữ thường nói tất cả',
+        { t: 'cmdx', cmd: 'nm counter.o', title: 'Sáu dòng, và chữ hoa/chữ thường nói tất cả',
           rows: [
-            ['<code>T dem_len</code>', '<b>T</b>ext — mã chương trình, <b>chữ hoa = toàn cục</b>', 'File khác liên kết tới được. Đây là hàm duy nhất được xuất ra'],
-            ['<code>t ghi_log</code>', 'Cũng là mã, nhưng <b>chữ thường = cục bộ</b>', 'Vì có <code>static</code>. Trình liên kết không cho ai bên ngoài dùng'],
-            ['<code>b lan_goi</code>', '<b>b</b>ss — biến khởi tạo bằng 0, <b>cục bộ</b>', 'Vùng <code>.bss</code> không chiếm chỗ trong file, chỉ được cấp lúc nạp'],
-            ['<code>B tong_cong</code>', 'Cũng ở <code>.bss</code>, nhưng <b>toàn cục</b>', 'Đúng một chữ cái khác nhau, mà là toàn bộ khác biệt về khả năng nhìn thấy'],
-            ['<code>d rieng.0</code>', '<b>d</b>ata — biến có giá trị khởi tạo khác 0, cục bộ', 'Chú ý cái đuôi <code>.0</code>: GCC đổi tên để tránh trùng với biến cùng tên ở hàm khác'],
-            ['<code>U printf</code>', '<b>U</b>ndefined — cần, nhưng chưa có', 'Trình liên kết phải tìm nó ở nơi khác. <b>Bài 17 và 18</b> sẽ đi sâu vào đúng chữ U này']
+            ['<code>b call_count</code>', '<b>b</b>ss — biến khởi tạo bằng 0, <b>cục bộ</b>', 'Vùng <code>.bss</code> không chiếm chỗ trong file, chỉ được cấp lúc nạp'],
+            ['<code>T count_calls</code>', '<b>T</b>ext — mã chương trình, <b>chữ hoa = toàn cục</b>', 'File khác liên kết tới được. Đây là hàm duy nhất được xuất ra'],
+            ['<code>U printf</code>', '<b>U</b>ndefined — cần, nhưng chưa có', 'Trình liên kết phải tìm nó ở nơi khác. <b>Bài 17 và 18</b> sẽ đi sâu vào đúng chữ U này'],
+            ['<code>d private_count.0</code>', '<b>d</b>ata — biến có giá trị khởi tạo khác 0, cục bộ', 'Chú ý cái đuôi <code>.0</code>: GCC đổi tên để tránh trùng với biến cùng tên ở hàm khác'],
+            ['<code>B total</code>', 'Cũng ở <code>.bss</code>, nhưng <b>toàn cục</b>', 'Đúng một chữ cái khác nhau, mà là toàn bộ khác biệt về khả năng nhìn thấy'],
+            ['<code>t write_log</code>', 'Cũng là mã, nhưng <b>chữ thường = cục bộ</b>', 'Vì có <code>static</code>. Trình liên kết không cho ai bên ngoài dùng']
           ]},
 
         { t: 'p', x:
@@ -1308,29 +1308,29 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'cd ~/bai14\n' +
-          'cat > pham.c <<\'EOF\'\n' +
+          'cat > scope_test.c <<\'EOF\'\n' +
           '#include <stdio.h>\n' +
-          'extern int lan_goi;\n' +
-          'int dem_len(void);\n' +
-          'int main(void) { dem_len(); printf("%d\\n", lan_goi); return 0; }\n' +
+          'extern int call_count;\n' +
+          'int count_calls(void);\n' +
+          'int main(void) { count_calls(); printf("%d\\n", call_count); return 0; }\n' +
           'EOF\n' +
-          'gcc -o pham pham.c st/dem.c' },
+          'gcc -o scope_test scope_test.c st/counter.c' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '/usr/bin/x86_64-linux-gnu-ld.bfd: /tmp/ccRVRyvS.o: warning: relocation against `lan_goi\' in read-only section `.text\'\n' +
-          '/usr/bin/x86_64-linux-gnu-ld.bfd: /tmp/ccRVRyvS.o: in function `main\':\n' +
-          'pham.c:(.text+0xf): undefined reference to `lan_goi\'\n' +
+          '/usr/bin/x86_64-linux-gnu-ld.bfd: /tmp/ccOppQF2.o: warning: relocation against `call_count\' in read-only section `.text\'\n' +
+          '/usr/bin/x86_64-linux-gnu-ld.bfd: /tmp/ccOppQF2.o: in function `main\':\n' +
+          'scope_test.c:(.text+0xf): undefined reference to `call_count\'\n' +
           '/usr/bin/x86_64-linux-gnu-ld.bfd: warning: creating DT_TEXTREL in a PIE\n' +
           'collect2: error: ld returned 1 exit status' },
 
         { t: 'cal', kind: 'why', title: 'undefined reference — lỗi bạn sẽ gặp cả nghìn lần', x:
           '<p>Chú ý ba điều trong thông báo này.</p>' +
           '<p><b>Một:</b> lỗi đến từ <code>ld</code>, <b>không phải</b> từ <code>gcc</code>. ' +
-          'Việc biên dịch đã thành công hoàn toàn — <code>pham.c</code> tự nó không có gì sai. ' +
+          'Việc biên dịch đã thành công hoàn toàn — <code>scope_test.c</code> tự nó không có gì sai. ' +
           'Chỉ tới bước liên kết, khi hai file gặp nhau, vấn đề mới lộ ra.</p>' +
-          '<p><b>Hai:</b> <code>undefined reference to \'lan_goi\'</code> nghĩa là "có người ' +
-          'cần ký hiệu này mà không ai cung cấp". Biến <code>lan_goi</code> <i>có tồn tại</i> ' +
-          'trong <code>dem.o</code> — <code>nm</code> vừa cho bạn thấy — nhưng nó mang chữ ' +
+          '<p><b>Hai:</b> <code>undefined reference to \'call_count\'</code> nghĩa là "có người ' +
+          'cần ký hiệu này mà không ai cung cấp". Biến <code>call_count</code> <i>có tồn tại</i> ' +
+          'trong <code>counter.o</code> — <code>nm</code> vừa cho bạn thấy — nhưng nó mang chữ ' +
           'thường <code>b</code>, nên trình liên kết coi như nó không tồn tại đối với thế giới ' +
           'bên ngoài.</p>' +
           '<p><b>Ba:</b> đây là <b>tính năng</b>, không phải trở ngại. <code>static</code> cho ' +
@@ -1394,7 +1394,7 @@ Lesson.register({
 
       'Con trỏ là một biến chứa địa chỉ, rộng <b>8</b> byte ở đây. <code>p + 1</code> nhảy ' +
       '<code>sizeof(*p)</code> byte chứ không phải 1 byte. Mảng <b>không phải</b> con trỏ: ' +
-      '<code>sizeof(mang)</code> = <b>20</b> còn <code>sizeof(&amp;mang[0])</code> = <b>8</b>.',
+      '<code>sizeof(arr)</code> = <b>20</b> còn <code>sizeof(&amp;arr[0])</code> = <b>8</b>.',
 
       'Trình biên dịch chèn <b>byte đệm</b> để mọi trường nằm ở offset chia hết cho căn lề của ' +
       'nó. Cùng ba trường: khai báo xấu ra <b>12</b> byte, sắp lại còn <b>8</b>, ' +
@@ -1420,7 +1420,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'info', title: 'Bài tiếp theo', x:
       '<p><b>Bài 15 — Bốn giai đoạn biên dịch.</b> Hôm nay bạn gõ ' +
-      '<code>gcc -o kieu kieu.c</code> và một file thực thi xuất hiện. Bài sau sẽ chứng minh ' +
+      '<code>gcc -o types types.c</code> và một file thực thi xuất hiện. Bài sau sẽ chứng minh ' +
       'rằng lệnh đó thật ra là <b>bốn chương trình khác nhau chạy nối tiếp</b>, và bạn sẽ ' +
       'dừng lại sau từng chương trình để xem sản phẩm trung gian: file <code>.i</code> sau ' +
       'tiền xử lý (bạn sẽ đo xem 27 dòng mã của mình phình lên bao nhiêu nghìn dòng sau khi ' +
@@ -1445,7 +1445,7 @@ Lesson.register({
         'Cần thêm <code>volatile</code> vì thời gian là giá trị thay đổi từ bên ngoài'
       ],
       a: 1,
-      why: 'Bạn đã kiểm chứng đúng điều này ở bước 2: cùng một file <code>dai.c</code>, ' +
+      why: 'Bạn đã kiểm chứng đúng điều này ở bước 2: cùng một file <code>sizes.c</code>, ' +
            '<code>gcc</code> và <code>aarch64-linux-gnu-gcc</code> chấp nhận ' +
            '<code>sizeof(long) == 8</code>, còn <code>arm-linux-gnueabihf-gcc</code> ' +
            '<b>từ chối biên dịch</b>. Với 4 byte có dấu, số giây tràn vào năm 2038. Cách sửa là ' +
@@ -1508,8 +1508,8 @@ Lesson.register({
            '<code>&amp;= ~(0xFU &lt;&lt; 12)</code> rồi đặt giá trị mới vào.'
     },
     {
-      q: 'Trong <code>nm dem.o</code> bạn thấy <code>0000000000000000 t ghi_log</code> và ' +
-         '<code>0000000000000027 T dem_len</code>. Chữ <code>t</code> thường và <code>T</code> ' +
+      q: 'Trong <code>nm counter.o</code> bạn thấy <code>0000000000000000 t write_log</code> và ' +
+         '<code>0000000000000027 T count_calls</code>. Chữ <code>t</code> thường và <code>T</code> ' +
          'hoa khác nhau chỗ nào?',
       opts: [
         '<code>T</code> là hàm đã được tối ưu, <code>t</code> là hàm chưa tối ưu',
@@ -1521,9 +1521,9 @@ Lesson.register({
       why: 'Chữ cái cho biết <b>section</b> (<code>T</code>/<code>t</code> = text, ' +
            '<code>B</code>/<code>b</code> = bss, <code>D</code>/<code>d</code> = data), còn ' +
            'hoa hay thường cho biết <b>khả năng nhìn thấy</b>. Bạn đã chứng minh sự khác biệt ' +
-           'này là thật: khi <code>extern int lan_goi;</code> từ file khác, trình liên kết trả ' +
-           'về <code>undefined reference to \'lan_goi\'</code> mặc dù <code>nm</code> rõ ràng ' +
-           'liệt kê biến đó trong <code>dem.o</code>. Hàm <code>static</code> vẫn nằm trong ' +
+           'này là thật: khi <code>extern int call_count;</code> từ file khác, trình liên kết trả ' +
+           'về <code>undefined reference to \'call_count\'</code> mặc dù <code>nm</code> rõ ràng ' +
+           'liệt kê biến đó trong <code>counter.o</code>. Hàm <code>static</code> vẫn nằm trong ' +
            '<code>.text</code> và vẫn có mặt trong file thực thi, chỉ là không ai bên ngoài ' +
            'gọi tới được.'
     },

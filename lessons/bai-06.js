@@ -100,7 +100,7 @@ Lesson.register({
         ['-R', '<i>recursive</i> — xuống hết mọi thư mục con.',
          'Cẩn thận trong cây mã nguồn kernel: hơn 80 nghìn file.'],
         ['-d', '<i>directory</i> — nói về <b>chính thư mục</b>, không phải nội dung.',
-         '<code>ls -l duan</code> liệt kê bên trong; <code>ls -ld duan</code> mô tả cái thư mục.'],
+         '<code>ls -l project</code> liệt kê bên trong; <code>ls -ld project</code> mô tả cái thư mục.'],
         ['-i', '<i>inode</i> — hiện số inode ở cột đầu.',
          'Đây là chìa khoá để phân biệt liên kết cứng ở cuối bài.']
       ]},
@@ -112,7 +112,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'warn', title: 'ls không có màu khi kết quả bị chuyển hướng', x:
       '<p>Trên terminal, <code>ls</code> tô màu thư mục khác file. Nhưng khi bạn viết ' +
-      '<code>ls &gt; ds.txt</code> hoặc <code>ls | grep …</code>, màu biến mất.</p>' +
+      '<code>ls &gt; listing.txt</code> hoặc <code>ls | grep …</code>, màu biến mất.</p>' +
       '<p>Đó là <b>cố ý</b>: <code>ls</code> phát hiện đầu ra không phải màn hình nên bỏ mã màu, ' +
       'nếu không file kết quả sẽ đầy ký tự rác kiểu <code>^[[0m</code>. Bài 10 sẽ giải thích cơ chế ' +
       'chuyển hướng này.</p>' },
@@ -157,7 +157,7 @@ Lesson.register({
       '<p><code>rm -rf $DIR/*</code> khi biến <code>$DIR</code> <b>rỗng</b> — nó biến thành ' +
       '<code>rm -rf /*</code>. Đây là lỗi đã xoá sạch máy chủ thật, nhiều lần. Bài 13 sẽ dạy bạn ' +
       '<code>set -u</code> để bash dừng lại thay vì thay biến rỗng vào.</p>' +
-      '<p><code>rm -rf duan /build</code> — thừa một dấu cách trước <code>/build</code>, và bạn ' +
+      '<p><code>rm -rf project /build</code> — thừa một dấu cách trước <code>/build</code>, và bạn ' +
       'vừa yêu cầu xoá hai thứ thay vì một.</p>' +
       '<p><b>Thói quen tự bảo vệ:</b> gõ <code>ls</code> với đúng đường dẫn đó trước, nhìn kết quả, ' +
       'rồi mới đổi <code>ls</code> thành <code>rm -r</code>.</p>' },
@@ -211,11 +211,11 @@ Lesson.register({
         ['<code>[abc]</code>', 'Một ký tự nằm trong danh sách',
          '<code>[gu]*</code> → <code>gpio.c uart.c</code>, bỏ qua <code>main.c</code>'],
         ['<code>[0-9]</code>', 'Một ký tự trong khoảng',
-         '<code>bai0[12].txt</code> → <code>bai01.txt bai02.txt</code>, bỏ <code>bai10.txt</code>'],
+         '<code>log0[12].txt</code> → <code>log01.txt log02.txt</code>, bỏ <code>log10.txt</code>'],
         ['<code>[!a]</code>', 'Một ký tự <b>không</b> nằm trong danh sách',
          '<code>[!m]*.c</code> → mọi file <code>.c</code> không bắt đầu bằng m'],
         ['<code>{a,b}</code>', 'Mở rộng dấu ngoặc — <b>không</b> cần file tồn tại',
-         '<code>echo bai{1,2}</code> → <code>bai1 bai2</code>']
+         '<code>echo file{1,2}</code> → <code>file1 file2</code>']
       ]},
 
     { t: 'cal', kind: 'warn', title: 'Ký tự đại diện không phải biểu thức chính quy', x:
@@ -259,7 +259,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'info', title: 'Vì sao tên nó là cat', x:
       '<p><code>cat</code> viết tắt của <i>concatenate</i> — <b>nối</b>. Nhiệm vụ gốc của nó là ' +
-      'ghép nhiều file thành một luồng: <code>cat a.txt b.txt &gt; gop.txt</code>.</p>' +
+      'ghép nhiều file thành một luồng: <code>cat a.txt b.txt &gt; merged.txt</code>.</p>' +
       '<p>Việc "in một file ra màn hình" chỉ là trường hợp đặc biệt khi bạn đưa cho nó đúng một ' +
       'file. Hiểu điều này giúp bạn nhớ vì sao nó vô dụng với file dài — nó chưa bao giờ được ' +
       'thiết kế để đọc.</p>' },
@@ -321,12 +321,12 @@ Lesson.register({
       cap: 'Liên kết cứng là tên thứ hai của cùng một inode; liên kết mềm là một file riêng chứa đường dẫn. Xoá bản gốc phá hỏng liên kết mềm nhưng không ảnh hưởng liên kết cứng.',
       svg:
         '<svg viewBox="0 0 720 300" width="720" role="img" aria-label="Sơ đồ so sánh liên kết cứng và liên kết mềm, cho thấy liên kết cứng trỏ thẳng vào inode còn liên kết mềm trỏ vào tên file">' +
-        '<text class="d-t" x="20" y="18">LIÊN KẾT CỨNG — ln goc.txt cung.txt</text>' +
+        '<text class="d-t" x="20" y="18">LIÊN KẾT CỨNG — ln source.txt hardlink.txt</text>' +
 
         '<rect class="d-box" x="20" y="30" width="120" height="34" rx="5"/>' +
-        '<text class="d-tm" x="80" y="52" text-anchor="middle">goc.txt</text>' +
+        '<text class="d-tm" x="80" y="52" text-anchor="middle">source.txt</text>' +
         '<rect class="d-box" x="20" y="76" width="120" height="34" rx="5"/>' +
-        '<text class="d-tm" x="80" y="98" text-anchor="middle">cung.txt</text>' +
+        '<text class="d-tm" x="80" y="98" text-anchor="middle">hardlink.txt</text>' +
 
         '<line class="d-line" x1="140" y1="47" x2="252" y2="66"/>' +
         '<path class="d-arrow" d="M252 66 l-9 -1 l3 -7 z"/>' +
@@ -334,7 +334,7 @@ Lesson.register({
         '<path class="d-arrow" d="M252 76 l-9 1 l3 7 z"/>' +
 
         '<rect class="d-box-p" x="256" y="46" width="150" height="50" rx="5"/>' +
-        '<text class="d-t" x="331" y="66" text-anchor="middle">inode 56384</text>' +
+        '<text class="d-t" x="331" y="66" text-anchor="middle">inode 56514</text>' +
         '<text class="d-ts" x="331" y="84" text-anchor="middle">số liên kết = 2</text>' +
 
         '<line class="d-line" x1="406" y1="71" x2="452" y2="71"/>' +
@@ -343,23 +343,23 @@ Lesson.register({
         '<text class="d-t" x="531" y="66" text-anchor="middle">Dữ liệu trên đĩa</text>' +
         '<text class="d-ts" x="531" y="84" text-anchor="middle">chỉ có một bản</text>' +
 
-        '<text class="d-ts" x="620" y="66">Xoá goc.txt</text>' +
+        '<text class="d-ts" x="620" y="66">Xoá source.txt</text>' +
         '<text class="d-ts" x="620" y="84">→ vẫn đọc được</text>' +
 
         '<line class="d-line" x1="20" y1="130" x2="700" y2="130"/>' +
 
-        '<text class="d-t" x="20" y="158">LIÊN KẾT MỀM — ln -s goc.txt mem.txt</text>' +
+        '<text class="d-t" x="20" y="158">LIÊN KẾT MỀM — ln -s source.txt softlink.txt</text>' +
 
         '<rect class="d-box-a" x="20" y="170" width="120" height="50" rx="5"/>' +
-        '<text class="d-tm" x="80" y="190" text-anchor="middle">mem.txt</text>' +
-        '<text class="d-ts" x="80" y="208" text-anchor="middle">inode 56398</text>' +
+        '<text class="d-tm" x="80" y="190" text-anchor="middle">softlink.txt</text>' +
+        '<text class="d-ts" x="80" y="208" text-anchor="middle">inode 56515</text>' +
 
         '<line class="d-line" x1="140" y1="195" x2="192" y2="195"/>' +
         '<path class="d-arrow" d="M192 195 l-8 -4 v8 z"/>' +
 
         '<rect class="d-box-w" x="196" y="170" width="176" height="50" rx="5"/>' +
         '<text class="d-ts" x="284" y="190" text-anchor="middle">nội dung chỉ là chuỗi</text>' +
-        '<text class="d-tm" x="284" y="208" text-anchor="middle">"goc.txt"</text>' +
+        '<text class="d-tm" x="284" y="208" text-anchor="middle">"source.txt"</text>' +
 
         '<line class="d-line" x1="372" y1="195" x2="424" y2="195"/>' +
         '<path class="d-arrow" d="M424 195 l-8 -4 v8 z"/>' +
@@ -368,7 +368,7 @@ Lesson.register({
         '<text class="d-ts" x="503" y="190" text-anchor="middle">tra lại cái TÊN đó</text>' +
         '<text class="d-ts" x="503" y="208" text-anchor="middle">trong thư mục</text>' +
 
-        '<text class="d-ts" x="596" y="190">Xoá goc.txt</text>' +
+        '<text class="d-ts" x="596" y="190">Xoá source.txt</text>' +
         '<text class="d-ts" x="596" y="208">→ liên kết gãy</text>' +
 
         '<rect class="d-box-w" x="20" y="240" width="682" height="46" rx="6"/>' +
@@ -379,7 +379,7 @@ Lesson.register({
     { t: 'table',
       head: ['Tiêu chí', 'Liên kết cứng', 'Liên kết mềm'],
       rows: [
-        ['Tạo bằng', '<code>ln goc dich</code>', '<code>ln -s goc dich</code>'],
+        ['Tạo bằng', '<code>ln src dst</code>', '<code>ln -s src dst</code>'],
         ['Số inode', '<b>Giống hệt</b> bản gốc', 'Khác — nó là file riêng'],
         ['Ký tự đầu ở <code>ls -l</code>', '<code>-</code>, y như file thường', '<code>l</code>, kèm mũi tên'],
         ['Xoá bản gốc', 'Không sao, dữ liệu vẫn còn', '<b>Gãy</b> — <code>No such file or directory</code>'],
@@ -400,7 +400,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'why', title: 'Vì sao liên kết cứng không vượt được phân vùng', x:
       '<p>Vì liên kết cứng lưu <b>số inode</b>, mà số inode chỉ có ý nghĩa bên trong một hệ thống ' +
-      'file. Inode 56384 của phân vùng gốc và inode 56384 của thẻ SD là hai file hoàn toàn khác nhau.</p>' +
+      'file. Inode 56514 của phân vùng gốc và inode 56514 của thẻ SD là hai file hoàn toàn khác nhau.</p>' +
       '<p>Bạn sẽ gặp lỗi này thật khi thử liên kết một file trong WSL sang <code>/mnt/c</code> — ' +
       'phần thực hành có kết quả cụ thể.</p>' },
 
@@ -420,41 +420,41 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'mkdir -p ~/embedded/bai06\n' +
             'cd ~/embedded/bai06\n' +
-            'mkdir -p duan/src duan/include duan/build duan/docs\n' +
-            'touch duan/src/main.c duan/src/uart.c duan/src/gpio.c\n' +
-            'touch duan/include/uart.h duan/include/gpio.h\n' +
-            'touch duan/docs/README.md duan/docs/ghi-chu.txt\n' +
-            'echo "int main(void) { return 0; }" > duan/src/main.c\n' +
-            'ls -R duan' },
+            'mkdir -p project/src project/include project/build project/docs\n' +
+            'touch project/src/main.c project/src/uart.c project/src/gpio.c\n' +
+            'touch project/include/uart.h project/include/gpio.h\n' +
+            'touch project/docs/README.md project/docs/notes.txt\n' +
+            'echo "int main(void) { return 0; }" > project/src/main.c\n' +
+            'ls -R project' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'duan:\n' +
+            'project:\n' +
             'build\n' +
             'docs\n' +
             'include\n' +
             'src\n' +
             '\n' +
-            'duan/build:\n' +
+            'project/build:\n' +
             '\n' +
-            'duan/docs:\n' +
+            'project/docs:\n' +
             'README.md\n' +
-            'ghi-chu.txt\n' +
+            'notes.txt\n' +
             '\n' +
-            'duan/include:\n' +
+            'project/include:\n' +
             'gpio.h\n' +
             'uart.h\n' +
             '\n' +
-            'duan/src:\n' +
+            'project/src:\n' +
             'gpio.c\n' +
             'main.c\n' +
             'uart.c' },
 
-          { t: 'cmdx', cmd: 'mkdir -p duan/src duan/include',
+          { t: 'cmdx', cmd: 'mkdir -p project/src project/include',
             title: 'Mổ xẻ câu lệnh',
             rows: [
               ['mkdir', '<i>make directory</i>.', ''],
               ['-p', '<i>parents</i> — tạo luôn mọi thư mục cha còn thiếu, và <b>không báo lỗi nếu đích đã tồn tại</b>.',
                'Tính chất thứ hai quan trọng hơn: nhờ nó, <code>mkdir -p</code> chạy lại lần thứ hai vẫn thành công. Script cài đặt nào cũng dựa vào điều này.'],
-              ['duan/src duan/include', 'Nhiều đối số — tạo nhiều thư mục trong một lần gọi.',
+              ['project/src project/include', 'Nhiều đối số — tạo nhiều thư mục trong một lần gọi.',
                'Gần như mọi lệnh thao tác file đều nhận nhiều đối số như vậy.'],
               ['touch', 'Tạo file rỗng, hoặc cập nhật thời gian nếu file đã có.',
                'Tên bắt nguồn từ nhiệm vụ gốc: "chạm" vào file để đổi mốc thời gian, buộc <code>make</code> biên dịch lại.']
@@ -462,32 +462,47 @@ Lesson.register({
 
           { t: 'p', x:
             'Bạn có thể đã nghe tới lệnh <code>tree</code> để vẽ cây đẹp hơn. Thử xem:' },
-          { t: 'code', where: 'wsl', code: 'tree duan' },
+          { t: 'code', where: 'wsl', code: 'tree project' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bash: tree: command not found' },
+            'project\n' +
+            '├── build\n' +
+            '├── docs\n' +
+            '│   ├── README.md\n' +
+            '│   └── notes.txt\n' +
+            '├── include\n' +
+            '│   ├── gpio.h\n' +
+            '│   └── uart.h\n' +
+            '└── src\n' +
+            '    ├── gpio.c\n' +
+            '    ├── main.c\n' +
+            '    └── uart.c\n' +
+            '\n' +
+            '5 directories, 7 files' },
 
-          { t: 'cal', kind: 'info', title: 'Lỗi này là bài học, không phải sự cố', x:
-            '<p><code>tree</code> <b>không</b> nằm trong bản cài mặc định của Ubuntu. Bài 12 sẽ dạy ' +
-            'bạn cài nó bằng <code>sudo apt install tree</code>.</p>' +
+          { t: 'cal', kind: 'info', title: 'tree tiện, nhưng đừng phụ thuộc vào nó', x:
+            '<p>Trên máy này <code>tree</code> đã có sẵn — Bài 12 sẽ hướng dẫn bạn cài nó bằng ' +
+            '<code>sudo apt install tree</code>, và lệnh này chạy lại được sau đó. Nếu bạn thử trên ' +
+            'một Ubuntu vừa cài xong, nhiều khả năng bạn sẽ gặp <code>bash: tree: command not found</code> ' +
+            '— nó <b>không</b> nằm trong bản cài mặc định.</p>' +
             '<p>Nhưng hãy nhớ điều quan trọng hơn: trên một board nhúng thật, ' +
             '<code>tree</code> <b>gần như chắc chắn không có</b>, và bạn cũng không cài thêm được. ' +
             'Vì vậy hai lệnh dưới đây mới là kỹ năng thật — chúng dùng công cụ luôn có sẵn:</p>' },
 
           { t: 'code', where: 'wsl', code:
-            'find duan | sort' },
+            'find project | sort' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'duan\n' +
-            'duan/build\n' +
-            'duan/docs\n' +
-            'duan/docs/README.md\n' +
-            'duan/docs/ghi-chu.txt\n' +
-            'duan/include\n' +
-            'duan/include/gpio.h\n' +
-            'duan/include/uart.h\n' +
-            'duan/src\n' +
-            'duan/src/gpio.c\n' +
-            'duan/src/main.c\n' +
-            'duan/src/uart.c' },
+            'project\n' +
+            'project/build\n' +
+            'project/docs\n' +
+            'project/docs/README.md\n' +
+            'project/docs/notes.txt\n' +
+            'project/include\n' +
+            'project/include/gpio.h\n' +
+            'project/include/uart.h\n' +
+            'project/src\n' +
+            'project/src/gpio.c\n' +
+            'project/src/main.c\n' +
+            'project/src/uart.c' },
 
           { t: 'cal', kind: 'tip', x:
             '<p><code>find</code> in ra <b>đường dẫn đầy đủ</b> của từng thứ, mỗi thứ một dòng. ' +
@@ -499,28 +514,28 @@ Lesson.register({
       { title: 'Đọc kết quả ls dưới sáu góc nhìn',
         blocks: [
           { t: 'code', where: 'wsl', code:
-            'ls -la duan/src\n' +
-            'ls -lh duan/src\n' +
-            'ls -lt duan/src\n' +
-            'ls -ld duan' },
+            'ls -la project/src\n' +
+            'ls -lh project/src\n' +
+            'ls -lt project/src\n' +
+            'ls -ld project' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'total 12\n' +
-            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  1 15:59 .\n' +
-            'drwxr-xr-x 6 shinarus shinarus 4096 Aug  1 15:59 ..\n' +
-            '-rw-r--r-- 1 shinarus shinarus    0 Aug  1 15:59 gpio.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus   29 Aug  1 15:59 main.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus    0 Aug  1 15:59 uart.c\n' +
+            'drwxr-xr-x 2 shinarus shinarus 4096 Aug  6 00:13 .\n' +
+            'drwxr-xr-x 6 shinarus shinarus 4096 Aug  6 00:13 ..\n' +
+            '-rw-r--r-- 1 shinarus shinarus    0 Aug  6 00:13 gpio.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus   29 Aug  6 00:13 main.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus    0 Aug  6 00:13 uart.c\n' +
             '\n' +
             'total 4.0K\n' +
-            '-rw-r--r-- 1 shinarus shinarus  0 Aug  1 15:59 gpio.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus 29 Aug  1 15:59 main.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus  0 Aug  1 15:59 uart.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus  0 Aug  6 00:13 gpio.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus 29 Aug  6 00:13 main.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus  0 Aug  6 00:13 uart.c\n' +
             '\n' +
-            '-rw-r--r-- 1 shinarus shinarus 29 Aug  1 15:59 main.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus  0 Aug  1 15:59 uart.c\n' +
-            '-rw-r--r-- 1 shinarus shinarus  0 Aug  1 15:59 gpio.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus 29 Aug  6 00:13 main.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus  0 Aug  6 00:13 uart.c\n' +
+            '-rw-r--r-- 1 shinarus shinarus  0 Aug  6 00:13 gpio.c\n' +
             '\n' +
-            'drwxr-xr-x 6 shinarus shinarus 4096 Aug  1 15:59 duan' },
+            'drwxr-xr-x 6 shinarus shinarus 4096 Aug  6 00:13 project' },
 
           { t: 'cal', kind: 'info', title: 'Bốn chi tiết đáng để ý', x:
             '<p><b>total 12</b> không phải tổng kích thước file mà là số <b>khối 1 KiB</b> mà thư ' +
@@ -530,15 +545,15 @@ Lesson.register({
             '<p><code>-lt</code> đảo thứ tự: <code>main.c</code> lên đầu vì nó được ghi sau cùng ' +
             '(lệnh <code>echo</code> ở bước 1). Ba file kia cùng một giây nên thứ tự giữa chúng ' +
             'không có ý nghĩa.</p>' +
-            '<p><code>-ld duan</code> mô tả <b>chính thư mục</b>: số liên kết <b>6</b>. Không phải ' +
-            'ngẫu nhiên — đó là <code>.</code> của chính nó, <code>duan</code> trong thư mục cha, ' +
+            '<p><code>-ld project</code> mô tả <b>chính thư mục</b>: số liên kết <b>6</b>. Không phải ' +
+            'ngẫu nhiên — đó là <code>.</code> của chính nó, <code>project</code> trong thư mục cha, ' +
             'cộng bốn mục <code>..</code> của bốn thư mục con.</p>' }
         ]},
 
       { title: 'Chứng minh shell mới là kẻ mở rộng dấu sao',
         blocks: [
           { t: 'code', where: 'wsl', code:
-            'cd ~/embedded/bai06/duan/src\n' +
+            'cd ~/embedded/bai06/project/src\n' +
             'ls *.c\n' +
             'ls ?pio.c\n' +
             'ls [gu]*' },
@@ -590,9 +605,9 @@ Lesson.register({
         blocks: [
           { t: 'code', where: 'wsl', code:
             'cd ~/embedded/bai06\n' +
-            'cp duan/src/main.c duan/src/main.c.bak\n' +
-            'cp -r duan duan-copy\n' +
-            'ls duan-copy' },
+            'cp project/src/main.c project/src/main.c.bak\n' +
+            'cp -r project project-copy\n' +
+            'ls project-copy' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'build\n' +
             'docs\n' +
@@ -601,28 +616,28 @@ Lesson.register({
 
           { t: 'p', x: 'Giờ thử chép một thư mục mà <b>quên</b> <code>-r</code>:' },
           { t: 'code', where: 'wsl', code:
-            'cp duan thumuc-dich\n' +
+            'cp project target-dir\n' +
             'echo "ma thoat: $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'cp: -r not specified; omitting directory \'duan\'\n' +
+            'cp: -r not specified; omitting directory \'project\'\n' +
             'ma thoat: 1' },
 
           { t: 'p', x:
             'Tiếp theo, so sánh <code>cp -r</code> với <code>cp -a</code>. Khác biệt nằm ở ' +
             '<b>thời gian sửa</b> — và nó quan trọng hơn bạn tưởng:' },
           { t: 'code', where: 'wsl', code:
-            'mkdir -p src2 && touch -d \'2020-01-01 10:00\' src2/cu.txt\n' +
+            'mkdir -p src2 && touch -d \'2020-01-01 10:00\' src2/old.txt\n' +
             'cp -a src2 dst-a\n' +
             'cp -r src2 dst-r\n' +
             'ls -l --time-style=long-iso dst-a dst-r' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'dst-a:\n' +
             'total 0\n' +
-            '-rw-r--r-- 1 shinarus shinarus 0 2020-01-01 17:00 cu.txt\n' +
+            '-rw-r--r-- 1 shinarus shinarus 0 2020-01-01 17:00 old.txt\n' +
             '\n' +
             'dst-r:\n' +
             'total 0\n' +
-            '-rw-r--r-- 1 shinarus shinarus 0 2026-08-01 16:01 cu.txt' },
+            '-rw-r--r-- 1 shinarus shinarus 0 2026-08-06 00:13 old.txt' },
 
           { t: 'cal', kind: 'why', title: 'Vì sao dân nhúng luôn dùng cp -a', x:
             '<p><code>cp -r</code> tạo file <b>mới tinh</b>: thời gian là lúc chép, quyền có thể ' +
@@ -635,15 +650,15 @@ Lesson.register({
 
           { t: 'p', x: 'Đổi tên, di chuyển, rồi xoá — kèm một lỗi nữa:' },
           { t: 'code', where: 'wsl', code:
-            'mv duan/src/main.c.bak duan/src/main.c.old\n' +
-            'mv duan/docs/ghi-chu.txt duan/\n' +
-            'rm duan/src/main.c.old\n' +
-            'rm duan/build\n' +
+            'mv project/src/main.c.bak project/src/main.c.old\n' +
+            'mv project/docs/notes.txt project/\n' +
+            'rm project/src/main.c.old\n' +
+            'rm project/build\n' +
             'echo "ma thoat: $?"\n' +
-            'rm -r duan/build\n' +
+            'rm -r project/build\n' +
             'echo "ma thoat: $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'rm: cannot remove \'duan/build\': Is a directory\n' +
+            'rm: cannot remove \'project/build\': Is a directory\n' +
             'ma thoat: 1\n' +
             'ma thoat: 0' },
 
@@ -659,49 +674,49 @@ Lesson.register({
       { title: 'Xem file: cat, head, tail và wc',
         blocks: [
           { t: 'code', where: 'wsl', code:
-            'mkdir -p ~/embedded/bai06/xem && cd ~/embedded/bai06/xem\n' +
-            'seq 1 200 | sed \'s/^/dong /\' > nhat-ky.log\n' +
-            'wc nhat-ky.log' },
+            'mkdir -p ~/embedded/bai06/view && cd ~/embedded/bai06/view\n' +
+            'seq 1 200 | sed \'s/^/line /\' > sample.log\n' +
+            'wc sample.log' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            ' 200  400 1692 nhat-ky.log' },
+            ' 200  400 1692 sample.log' },
 
-          { t: 'cmdx', cmd: 'wc nhat-ky.log',
+          { t: 'cmdx', cmd: 'wc sample.log',
             title: 'Ba con số đó là gì',
             rows: [
               ['200', 'Số <b>dòng</b>. Lấy riêng bằng <code>wc -l</code>.',
                'Con số dùng nhiều nhất: "log có bao nhiêu dòng lỗi?".'],
               ['400', 'Số <b>từ</b>. Lấy riêng bằng <code>wc -w</code>.',
-               'Mỗi dòng có hai từ: chữ "dong" và con số.'],
+               'Mỗi dòng có hai từ: chữ "line" và con số.'],
               ['1692', 'Số <b>byte</b>. Lấy riêng bằng <code>wc -c</code>.',
                'Bài 5 đã dùng đúng tuỳ chọn này để bắt <code>/proc/cpuinfo</code> lộ ra 9294 byte dù <code>ls</code> báo 0.']
             ]},
 
           { t: 'p', x: 'Bốn cách nhìn khác nhau vào cùng một file:' },
           { t: 'code', where: 'wsl', code:
-            'head -3 nhat-ky.log\n' +
-            'tail -3 nhat-ky.log\n' +
-            'tail -n +198 nhat-ky.log\n' +
-            'head -c 20 nhat-ky.log; echo' },
+            'head -3 sample.log\n' +
+            'tail -3 sample.log\n' +
+            'tail -n +198 sample.log\n' +
+            'head -c 20 sample.log; echo' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'dong 1\n' +
-            'dong 2\n' +
-            'dong 3\n' +
+            'line 1\n' +
+            'line 2\n' +
+            'line 3\n' +
             '\n' +
-            'dong 198\n' +
-            'dong 199\n' +
-            'dong 200\n' +
+            'line 198\n' +
+            'line 199\n' +
+            'line 200\n' +
             '\n' +
-            'dong 198\n' +
-            'dong 199\n' +
-            'dong 200\n' +
+            'line 198\n' +
+            'line 199\n' +
+            'line 200\n' +
             '\n' +
-            'dong 1\n' +
-            'dong 2\n' +
-            'dong 3' },
+            'line 1\n' +
+            'line 2\n' +
+            'line 3' },
 
           { t: 'cal', kind: 'info', title: 'Vì sao head -c 20 dừng đúng chỗ đó', x:
-            '<p><code>dong 1\\n</code> là 7 byte, <code>dong 2\\n</code> thêm 7 nữa là 14, rồi ' +
-            '<code>dong 3</code> là 6 byte nữa — vừa tròn <b>20</b>. Nó cắt <b>ngay trước</b> ký tự ' +
+            '<p><code>line 1\\n</code> là 7 byte, <code>line 2\\n</code> thêm 7 nữa là 14, rồi ' +
+            '<code>line 3</code> là 6 byte nữa — vừa tròn <b>20</b>. Nó cắt <b>ngay trước</b> ký tự ' +
             'xuống dòng thứ ba, nên phải thêm lệnh <code>echo</code> để dấu nhắc không dính vào ' +
             'dòng kết quả.</p>' +
             '<p>Chi tiết vụn vặt này lại là điều bạn cần khi đọc file nhị phân — ' +
@@ -722,8 +737,8 @@ Lesson.register({
             'không khớp: <code>Exec format error</code>. Bài 21 sẽ mổ xẻ cả cấu trúc ELF.</p>' },
 
           { t: 'cal', kind: 'warn', title: 'less không chạy được trong script, chỉ gõ tay', x:
-            '<p>Hãy tự gõ <code>less nhat-ky.log</code> ngay bây giờ và thử: <kbd>Space</kbd>, ' +
-            '<kbd>G</kbd>, <kbd>g</kbd>, gõ <code>/dong 150</code> rồi <kbd>Enter</kbd>, ' +
+            '<p>Hãy tự gõ <code>less sample.log</code> ngay bây giờ và thử: <kbd>Space</kbd>, ' +
+            '<kbd>G</kbd>, <kbd>g</kbd>, gõ <code>/line 150</code> rồi <kbd>Enter</kbd>, ' +
             'cuối cùng <kbd>q</kbd> để thoát.</p>' +
             '<p>Không thể chụp lại kết quả của nó vào bài học vì <code>less</code> vẽ cả màn hình ' +
             'chứ không in ra dòng — nó cần một terminal thật. Đó cũng là lý do bạn không bao giờ ' +
@@ -733,89 +748,91 @@ Lesson.register({
       { title: 'Liên kết cứng và mềm: tự tay chứng minh',
         blocks: [
           { t: 'code', where: 'wsl', code:
-            'mkdir -p ~/embedded/bai06/lien-ket && cd ~/embedded/bai06/lien-ket\n' +
-            'printf \'dong 1\\ndong 2\\ndong 3\\n\' > goc.txt\n' +
-            'ln goc.txt cung.txt\n' +
-            'ln -s goc.txt mem.txt\n' +
+            'mkdir -p ~/embedded/bai06/links && cd ~/embedded/bai06/links\n' +
+            'printf \'line 1\\nline 2\\nline 3\\n\' > source.txt\n' +
+            'ln source.txt hardlink.txt\n' +
+            'ln -s source.txt softlink.txt\n' +
             'ls -li' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '56384 -rw-r--r-- 2 shinarus shinarus 21 Aug  1 16:00 cung.txt\n' +
-            '56384 -rw-r--r-- 2 shinarus shinarus 21 Aug  1 16:00 goc.txt\n' +
-            '56398 lrwxrwxrwx 1 shinarus shinarus  7 Aug  1 16:00 mem.txt -> goc.txt' },
+            'total 8\n' +
+            '56514 -rw-r--r-- 2 shinarus shinarus 21 Aug  6 00:13 hardlink.txt\n' +
+            '56515 lrwxrwxrwx 1 shinarus shinarus 10 Aug  6 00:13 softlink.txt -> source.txt\n' +
+            '56514 -rw-r--r-- 2 shinarus shinarus 21 Aug  6 00:13 source.txt' },
 
-          { t: 'cal', kind: 'info', title: 'Đọc ba dòng này thật kỹ — mọi thứ nằm ở đây', x:
-            '<p><code>goc.txt</code> và <code>cung.txt</code> có <b>cùng số inode 56384</b>. ' +
+          { t: 'cal', kind: 'info', title: 'Đọc bốn dòng này thật kỹ — mọi thứ nằm ở đây', x:
+            '<p><code>source.txt</code> và <code>hardlink.txt</code> có <b>cùng số inode 56514</b>. ' +
             'Chúng không phải hai file — chúng là <b>hai cái tên của một file</b>.</p>' +
             '<p>Cột số liên kết của cả hai đều là <b>2</b>. Trước khi tạo liên kết cứng, nó là 1.</p>' +
-            '<p><code>mem.txt</code> có inode <b>khác</b> (56398), ký tự đầu là <code>l</code>, và ' +
-            'kích thước là <b>7</b> — đúng bằng độ dài chuỗi <code>goc.txt</code>. Toàn bộ nội dung ' +
-            'của liên kết mềm chính là đường dẫn đó.</p>' },
+            '<p><code>softlink.txt</code> có inode <b>khác</b> (56515), ký tự đầu là <code>l</code>, ' +
+            'và kích thước là <b>10</b> — đúng bằng độ dài chuỗi <code>source.txt</code>. Toàn bộ nội ' +
+            'dung của liên kết mềm chính là đường dẫn đó.</p>' },
 
           { t: 'p', x: 'Ghi thêm vào <b>một</b> tên, rồi đọc bằng <b>các tên khác</b>:' },
           { t: 'code', where: 'wsl', code:
-            'echo "dong 4" >> cung.txt\n' +
-            'cat goc.txt\n' +
-            'cat mem.txt' },
+            'echo "line 4" >> hardlink.txt\n' +
+            'cat source.txt\n' +
+            'cat softlink.txt' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'dong 1\n' +
-            'dong 2\n' +
-            'dong 3\n' +
-            'dong 4\n' +
+            'line 1\n' +
+            'line 2\n' +
+            'line 3\n' +
+            'line 4\n' +
             '\n' +
-            'dong 1\n' +
-            'dong 2\n' +
-            'dong 3\n' +
-            'dong 4' },
+            'line 1\n' +
+            'line 2\n' +
+            'line 3\n' +
+            'line 4' },
 
           { t: 'p', x:
             'Bây giờ là thí nghiệm quyết định. Xoá cái tên "gốc" và xem chuyện gì xảy ra với ' +
             'hai cái tên còn lại:' },
           { t: 'code', where: 'wsl', code:
-            'rm goc.txt\n' +
+            'rm source.txt\n' +
             'ls -li\n' +
-            'cat cung.txt\n' +
-            'cat mem.txt' },
+            'cat hardlink.txt\n' +
+            'cat softlink.txt' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            '56384 -rw-r--r-- 1 shinarus shinarus 28 Aug  1 16:00 cung.txt\n' +
-            '56398 lrwxrwxrwx 1 shinarus shinarus  7 Aug  1 16:00 mem.txt -> goc.txt\n' +
+            'total 4\n' +
+            '56514 -rw-r--r-- 1 shinarus shinarus 28 Aug  6 00:13 hardlink.txt\n' +
+            '56515 lrwxrwxrwx 1 shinarus shinarus 10 Aug  6 00:13 softlink.txt -> source.txt\n' +
             '\n' +
-            'dong 1\n' +
-            'dong 2\n' +
-            'dong 3\n' +
-            'dong 4\n' +
+            'line 1\n' +
+            'line 2\n' +
+            'line 3\n' +
+            'line 4\n' +
             '\n' +
-            'cat: mem.txt: No such file or directory' },
+            'cat: softlink.txt: No such file or directory' },
 
           { t: 'cal', kind: 'why', title: 'rm không xoá file — nó xoá một cái tên', x:
-            '<p>Số liên kết của inode 56384 vừa tụt từ 2 xuống <b>1</b>. Dữ liệu còn nguyên vẹn, ' +
-            'đọc qua <code>cung.txt</code> vẫn đủ bốn dòng.</p>' +
+            '<p>Số liên kết của inode 56514 vừa tụt từ 2 xuống <b>1</b>. Dữ liệu còn nguyên vẹn, ' +
+            'đọc qua <code>hardlink.txt</code> vẫn đủ bốn dòng.</p>' +
             '<p>Tên thật của lời gọi hệ thống mà <code>rm</code> dùng là <code>unlink()</code> — ' +
             '"gỡ liên kết", chứ không phải "xoá". Kernel chỉ giải phóng các khối dữ liệu khi số ' +
             'liên kết chạm <b>0</b>.</p>' +
-            '<p><code>mem.txt</code> thì gãy, vì nó chỉ lưu chuỗi <code>"goc.txt"</code> và cái tên ' +
-            'đó không còn trong bảng thư mục nữa. Chú ý: <code>ls</code> vẫn liệt kê nó bình ' +
+            '<p><code>softlink.txt</code> thì gãy, vì nó chỉ lưu chuỗi <code>"source.txt"</code> và ' +
+            'cái tên đó không còn trong bảng thư mục nữa. Chú ý: <code>ls</code> vẫn liệt kê nó bình ' +
             'thường — bản thân liên kết mềm vẫn tồn tại, chỉ là trỏ vào hư không.</p>' },
 
-          { t: 'code', where: 'wsl', code: 'file mem.txt' },
+          { t: 'code', where: 'wsl', code: 'file softlink.txt' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'mem.txt: broken symbolic link to goc.txt' },
+            'softlink.txt: broken symbolic link to source.txt' },
 
           { t: 'p', x: 'Cuối cùng, kiểm chứng hai giới hạn của liên kết cứng:' },
           { t: 'code', where: 'wsl', code:
-            'ln cung.txt /mnt/c/Users/DELL/thu-nghiem.txt\n' +
-            'mkdir -p tm\n' +
-            'ln tm tm2' },
+            'ln hardlink.txt /mnt/c/Users/DELL/test.txt\n' +
+            'mkdir -p dir1\n' +
+            'ln dir1 dir2' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'ln: failed to create hard link \'cung.txt\' => \'/mnt/c/Users/DELL/thu-nghiem.txt\':\n' +
+            'ln: failed to create hard link \'hardlink.txt\' => \'/mnt/c/Users/DELL/test.txt\': ' +
             'Invalid cross-device link\n' +
-            'ln: tm: hard link not allowed for directory' },
+            'ln: dir1: hard link not allowed for directory' },
 
           { t: 'cal', kind: 'info', x:
             '<p><code>Invalid cross-device link</code> — chính là điều đã dự đoán ở phần lý thuyết. ' +
             '<code>/mnt/c</code> là ổ Windows gắn qua 9p, còn <code>~</code> nằm trên ext4; ' +
             'số inode của phân vùng này vô nghĩa với phân vùng kia.</p>' +
             '<p>Còn <code>hard link not allowed for directory</code> là kernel chặn vòng lặp. ' +
-            'Liên kết mềm thì không sao: <code>ln -s tm tm2</code> chạy được ngay.</p>' }
+            'Liên kết mềm thì không sao: <code>ln -s dir1 dir2</code> chạy được ngay.</p>' }
         ]},
 
       { title: 'Tìm thủ thuật BusyBox đang chạy trên máy bạn',
@@ -895,10 +912,10 @@ Lesson.register({
         ['<code>bash: tree: command not found</code>',
          '<code>tree</code> không có trong bản cài mặc định',
          'Dùng <code>ls -R</code> hoặc <code>find</code>; muốn cài thì xem Bài 12'],
-        ['<code>cp: -r not specified; omitting directory \'duan\'</code>',
+        ['<code>cp: -r not specified; omitting directory \'project\'</code>',
          'Chép thư mục mà quên <code>-r</code>',
          'Thêm <code>-r</code>, hoặc <code>-a</code> nếu là cây hệ thống'],
-        ['<code>rm: cannot remove \'duan/build\': Is a directory</code>',
+        ['<code>rm: cannot remove \'project/build\': Is a directory</code>',
          '<code>rm</code> cố ý từ chối thư mục để bảo vệ bạn',
          '<code>rm -r</code>. Chạy <code>ls</code> với đúng đường dẫn đó trước'],
         ['<code>ls: cannot access \'*.cpp\': No such file or directory</code>',
@@ -907,12 +924,12 @@ Lesson.register({
         ['<code>ln: failed to create hard link …: Invalid cross-device link</code>',
          'Liên kết cứng không vượt được ranh giới phân vùng',
          'Dùng <code>ln -s</code>'],
-        ['<code>ln: tm: hard link not allowed for directory</code>',
+        ['<code>ln: dir1: hard link not allowed for directory</code>',
          'Kernel cấm, vì sẽ tạo vòng lặp vô hạn trong cây thư mục',
          'Dùng <code>ln -s</code>'],
-        ['<code>cat: mem.txt: No such file or directory</code> dù <code>ls</code> vẫn thấy file',
+        ['<code>cat: softlink.txt: No such file or directory</code> dù <code>ls</code> vẫn thấy file',
          'Liên kết mềm bị gãy — đích đã bị xoá hoặc đổi tên',
-         '<code>ls -l</code> xem nó trỏ đi đâu, <code>file mem.txt</code> xác nhận'],
+         '<code>ls -l</code> xem nó trỏ đi đâu, <code>file softlink.txt</code> xác nhận'],
         ['<code>rmdir: failed to remove \'x\': Directory not empty</code>',
          '<code>rmdir</code> chỉ xoá được thư mục rỗng',
          '<code>rm -r x</code> nếu chắc chắn, sau khi đã <code>ls -R x</code>'],
@@ -977,7 +994,7 @@ Lesson.register({
            '<code>rm -rf /*</code> và lần này khớp thật.'
     },
     {
-      q: 'Sau <code>ln goc.txt cung.txt</code>, bạn chạy <code>rm goc.txt</code>. Nội dung file ra sao?',
+      q: 'Sau <code>ln source.txt hardlink.txt</code>, bạn chạy <code>rm source.txt</code>. Nội dung file ra sao?',
       opts: [
         'Mất hoàn toàn, vì đã xoá bản gốc',
         'Còn nguyên — <code>rm</code> chỉ gỡ một cái tên, số liên kết tụt từ 2 xuống 1',
@@ -985,8 +1002,8 @@ Lesson.register({
         'Chuyển sang trạng thái chờ xoá'
       ],
       a: 1,
-      why: 'Không có khái niệm "bản gốc" với liên kết cứng — <code>goc.txt</code> và ' +
-           '<code>cung.txt</code> là hai cái tên hoàn toàn bình đẳng của inode 56384. Lời gọi hệ ' +
+      why: 'Không có khái niệm "bản gốc" với liên kết cứng — <code>source.txt</code> và ' +
+           '<code>hardlink.txt</code> là hai cái tên hoàn toàn bình đẳng của inode 56514. Lời gọi hệ ' +
            'thống mà <code>rm</code> dùng tên là <code>unlink()</code>. Kernel chỉ giải phóng dữ liệu ' +
            'khi số liên kết chạm <b>0</b>.'
     },
@@ -1019,10 +1036,10 @@ Lesson.register({
            'đúng. <code>cp -a</code> giữ nguyên tất cả — quy tắc bất di bất dịch khi chép cây hệ thống.'
     },
     {
-      q: '<code>ls -l</code> vẫn liệt kê <code>mem.txt</code> bình thường, nhưng <code>cat mem.txt</code> báo <code>No such file or directory</code>. Chuyện gì xảy ra?',
+      q: '<code>ls -l</code> vẫn liệt kê <code>softlink.txt</code> bình thường, nhưng <code>cat softlink.txt</code> báo <code>No such file or directory</code>. Chuyện gì xảy ra?',
       opts: [
         'File bị hỏng ở tầng đĩa',
-        '<code>mem.txt</code> là liên kết mềm và đích của nó đã bị xoá hoặc đổi tên',
+        '<code>softlink.txt</code> là liên kết mềm và đích của nó đã bị xoá hoặc đổi tên',
         'Bạn thiếu quyền đọc',
         'File đang bị một tiến trình khác khoá'
       ],
@@ -1030,8 +1047,8 @@ Lesson.register({
       why: 'Bản thân liên kết mềm vẫn tồn tại — nó là một file thật với inode riêng, nội dung là ' +
            'chuỗi đường dẫn — nên <code>ls</code> hiển thị bình thường. Nhưng khi <code>cat</code> ' +
            'mở nó, kernel tra cái tên trong chuỗi đó và không tìm thấy. Xác nhận bằng ' +
-           '<code>file mem.txt</code>: <code>broken symbolic link to goc.txt</code>. Nếu là vấn đề ' +
-           'quyền thì thông báo sẽ là <code>Permission denied</code>.'
+           '<code>file softlink.txt</code>: <code>broken symbolic link to source.txt</code>. Nếu là ' +
+           'vấn đề quyền thì thông báo sẽ là <code>Permission denied</code>.'
     },
     {
       q: 'Bạn đứng trong <code>~/embedded/bai06</code> và chạy <code>rm -rf ~/embedded/bai06</code>. Chuyện gì xảy ra?',

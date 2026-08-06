@@ -378,7 +378,7 @@ Lesson.register({
             '#include <stdio.h>\n' +
             '\n' +
             'int main(void) {\n' +
-            '    printf("Xin chao tu ARM64!\\n");\n' +
+            '    printf("Hello from ARM64!\\n");\n' +
             '    return 0;\n' +
             '}' },
 
@@ -432,7 +432,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'qemu-aarch64 ./hello-arm64' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'Xin chao tu ARM64!' },
+            'Hello from ARM64!' },
 
           { t: 'cal', kind: 'tip', title: 'Chuyện gì vừa xảy ra', x:
             '<p><code>qemu-aarch64</code> nạp file, đọc từng lệnh ARM64, dịch sang lệnh x86-64 rồi cho ' +

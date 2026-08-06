@@ -201,7 +201,7 @@ Lesson.register({
     { t: 'h2', x: 'signal() hay sigaction() — vì sao câu trả lời luôn là sigaction' },
 
     { t: 'p', x:
-      'Sách vở cũ dạy <code>signal(SIGINT, xu_ly)</code> vì nó ngắn. Đừng dùng. Hàm này là di ' +
+      'Sách vở cũ dạy <code>signal(SIGINT, handler)</code> vì nó ngắn. Đừng dùng. Hàm này là di ' +
       'sản từ Unix những năm 1970, và <b>ngữ nghĩa của nó khác nhau giữa các hệ điều hành</b> — ' +
       'mã chạy đúng trên máy bạn có thể chạy sai trên uClibc của thiết bị.' },
 
@@ -215,40 +215,40 @@ Lesson.register({
         ['Chuẩn hoá bởi POSIX', 'Có nhưng hành vi để ngỏ', 'Có, hành vi xác định rõ']
       ]},
 
-    { t: 'code', where: 'file', name: 'bat.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'catch_sigint.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
       '#include <unistd.h>\n' +
       '\n' +
-      'static volatile sig_atomic_t dem = 0;\n' +
+      'static volatile sig_atomic_t count = 0;\n' +
       '\n' +
-      'static void xu_ly(int sig)\n' +
+      'static void handle_sigint(int sig)\n' +
       '{\n' +
       '    (void)sig;\n' +
-      '    dem++;\n' +
-      '    const char *s = "  [handler] nhan tin hieu\\n";\n' +
-      '    write(STDERR_FILENO, s, strlen(s));   /* write an toan, printf thi khong */\n' +
+      '    count++;\n' +
+      '    const char *s = "  [handler] signal received\\n";\n' +
+      '    write(STDERR_FILENO, s, strlen(s));   /* write is safe, printf is not */\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    struct sigaction sa;\n' +
-      '    memset(&sa, 0, sizeof sa);            /* xoa sach truoc da */\n' +
-      '    sa.sa_handler = xu_ly;\n' +
+      '    memset(&sa, 0, sizeof sa);            /* zero it out first */\n' +
+      '    sa.sa_handler = handle_sigint;\n' +
       '    sigemptyset(&sa.sa_mask);\n' +
       '    sa.sa_flags = SA_RESTART;\n' +
       '\n' +
       '    if (sigaction(SIGINT, &sa, NULL) < 0) { perror("sigaction"); return 1; }\n' +
       '\n' +
-      '    printf("pid=%d dang doi tin hieu, nhan Ctrl+C hoac kill -INT %d\\n",\n' +
+      '    printf("pid=%d waiting for signals, press Ctrl+C or run kill -INT %d\\n",\n' +
       '           getpid(), getpid());\n' +
       '    fflush(stdout);\n' +
       '\n' +
-      '    while (dem < 3)\n' +
-      '        pause();                          /* ngu toi khi co tin hieu */\n' +
+      '    while (count < 3)\n' +
+      '        pause();                          /* sleep until a signal arrives */\n' +
       '\n' +
-      '    printf("da nhan du %d tin hieu, thoat binh thuong\\n", dem);\n' +
+      '    printf("received %d signals, exiting normally\\n", count);\n' +
       '    return 0;\n' +
       '}' },
 
@@ -263,19 +263,19 @@ Lesson.register({
       ]},
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o bat bat.c\n' +
-      './bat &\n' +
+      'gcc -Wall -Wextra -o catch_sigint catch_sigint.c\n' +
+      './catch_sigint &\n' +
       'sleep 0.5\n' +
       'kill -INT $!; sleep 0.2\n' +
       'kill -INT $!; sleep 0.2\n' +
       'kill -INT $!' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'pid=472 dang doi tin hieu, nhan Ctrl+C hoac kill -INT 472\n' +
-      '  [handler] nhan tin hieu\n' +
-      '  [handler] nhan tin hieu\n' +
-      '  [handler] nhan tin hieu\n' +
-      'da nhan du 3 tin hieu, thoat binh thuong' },
+      'pid=9325 waiting for signals, press Ctrl+C or run kill -INT 9325\n' +
+      '  [handler] signal received\n' +
+      '  [handler] signal received\n' +
+      '  [handler] signal received\n' +
+      'received 3 signals, exiting normally' },
 
     { t: 'cal', kind: 'info', title: 'Ba lần vẫn chạy — bằng chứng sigaction không tự huỷ đăng ký', x:
       '<p>Handler chạy đủ <b>ba</b> lần rồi chương trình thoát với mã <b>0</b>. Nếu ngữ nghĩa ' +
@@ -291,47 +291,47 @@ Lesson.register({
       'xử lý <code>EINTR</code> hay không. Chương trình dưới đây tự đặt chuông báo cho mình ' +
       'trong lúc đang chặn ở <code>read</code>:' },
 
-    { t: 'code', where: 'file', name: 'ngat.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'eintr_demo.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
       '#include <errno.h>\n' +
       '#include <unistd.h>\n' +
       '\n' +
-      'static void chuong(int s) { (void)s; }\n' +
+      'static void on_alarm(int s) { (void)s; }\n' +
       '\n' +
       'int main(int argc, char *argv[])\n' +
       '{\n' +
-      '    int co_restart = (argc > 1 && argv[1][0] == \'1\');\n' +
+      '    int use_restart = (argc > 1 && argv[1][0] == \'1\');\n' +
       '\n' +
       '    struct sigaction sa;\n' +
       '    memset(&sa, 0, sizeof sa);\n' +
-      '    sa.sa_handler = chuong;\n' +
+      '    sa.sa_handler = on_alarm;\n' +
       '    sigemptyset(&sa.sa_mask);\n' +
-      '    sa.sa_flags = co_restart ? SA_RESTART : 0;\n' +
+      '    sa.sa_flags = use_restart ? SA_RESTART : 0;\n' +
       '    sigaction(SIGALRM, &sa, NULL);\n' +
       '\n' +
-      '    int ong[2];\n' +
-      '    if (pipe(ong) < 0) { perror("pipe"); return 1; }\n' +
+      '    int pipefd[2];\n' +
+      '    if (pipe(pipefd) < 0) { perror("pipe"); return 1; }\n' +
       '\n' +
-      '    alarm(1);                       /* 1 giay nua ban SIGALRM cho chinh minh */\n' +
+      '    alarm(1);                       /* fire SIGALRM at ourself in 1 second */\n' +
       '\n' +
       '    char buf[16];\n' +
       '    errno = 0;\n' +
-      '    ssize_t n = read(ong[0], buf, sizeof buf);   /* chan mai vi khong ai ghi */\n' +
+      '    ssize_t n = read(pipefd[0], buf, sizeof buf);   /* blocks forever since nobody writes */\n' +
       '\n' +
-      '    printf("SA_RESTART=%d  read tra ve %zd, errno=%d (%s)\\n",\n' +
-      '           co_restart, n, errno, errno ? strerror(errno) : "-");\n' +
+      '    printf("SA_RESTART=%d  read returned %zd, errno=%d (%s)\\n",\n' +
+      '           use_restart, n, errno, errno ? strerror(errno) : "-");\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o ngat ngat.c\n' +
-      'timeout 5 ./ngat 0; echo "exit=$?"\n' +
-      'timeout 5 ./ngat 1; echo "exit=$?"' },
+      'gcc -Wall -Wextra -o eintr_demo eintr_demo.c\n' +
+      'timeout 5 ./eintr_demo 0; echo "exit=$?"\n' +
+      'timeout 5 ./eintr_demo 1; echo "exit=$?"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'SA_RESTART=0  read tra ve -1, errno=4 (Interrupted system call)\n' +
+      'SA_RESTART=0  read returned -1, errno=4 (Interrupted system call)\n' +
       'exit=0\n' +
       'exit=124' },
 
@@ -400,52 +400,52 @@ Lesson.register({
       'Nghe trừu tượng. Hãy dựng lại đúng cơ chế đó bằng một hàm <b>của chính bạn</b>, để nhìn ' +
       'thấy hậu quả một cách chắc chắn thay vì trông chờ vào may rủi:' },
 
-    { t: 'code', where: 'file', name: 'taonhap.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'reentrancy_bug.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
       '#include <unistd.h>\n' +
       '\n' +
-      '/* Ham dung dem TINH -> khong tai nhap duoc */\n' +
-      'static char *sotenchuoi(int n)\n' +
+      '/* Uses a STATIC buffer -> not reentrant */\n' +
+      'static char *number_to_string(int n)\n' +
       '{\n' +
-      '    static char dem[32];            /* dung chung cho MOI loi goi */\n' +
-      '    snprintf(dem, sizeof dem, "so la %d", n);\n' +
-      '    sleep(1);                       /* keo dai cua so bi ngat cho de thay */\n' +
-      '    return dem;\n' +
+      '    static char buf[32];            /* shared across EVERY call */\n' +
+      '    snprintf(buf, sizeof buf, "number is %d", n);\n' +
+      '    sleep(1);                       /* stretch the interrupted window so it is easy to see */\n' +
+      '    return buf;\n' +
       '}\n' +
       '\n' +
-      'static void xu_ly(int s)\n' +
+      'static void handle_sigusr1(int s)\n' +
       '{\n' +
       '    (void)s;\n' +
-      '    sotenchuoi(999);                /* handler ghi de len chinh cai dem do */\n' +
+      '    number_to_string(999);          /* handler overwrites that very buffer */\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    struct sigaction sa;\n' +
       '    memset(&sa, 0, sizeof sa);\n' +
-      '    sa.sa_handler = xu_ly;\n' +
+      '    sa.sa_handler = handle_sigusr1;\n' +
       '    sa.sa_flags = SA_RESTART;\n' +
       '    sigaction(SIGUSR1, &sa, NULL);\n' +
       '\n' +
       '    printf("pid=%d\\n", getpid());\n' +
       '    fflush(stdout);\n' +
       '\n' +
-      '    char *kq = sotenchuoi(42);      /* trong luc ngu 1s, tin hieu se toi */\n' +
-      '    printf("main mong doi \\"so la 42\\", thuc te nhan duoc: \\"%s\\"\\n", kq);\n' +
+      '    char *result = number_to_string(42);   /* signal will arrive while we sleep 1s */\n' +
+      '    printf("main expected \\"number is 42\\", actually got: \\"%s\\"\\n", result);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'pid=523\n' +
-      'main mong doi "so la 42", thuc te nhan duoc: "so la 999"' },
+      'pid=9433\n' +
+      'main expected "number is 42", actually got: "number is 999"' },
 
     { t: 'cal', kind: 'danger', title: 'Không có lỗi biên dịch, không có cảnh báo, không có crash — chỉ có dữ liệu sai', x:
       '<p>Chương trình chính hỏi số 42 và nhận về 999. Không một công cụ nào báo động: ' +
       '<code>gcc -Wall -Wextra</code> im lặng, chương trình thoát với mã 0, log trông bình ' +
       'thường. Chỉ có <b>giá trị là sai</b>.</p>' +
-      '<p>Cơ chế: <code>sotenchuoi</code> dùng một mảng <code>static</code> — nghĩa là mọi lời ' +
+      '<p>Cơ chế: <code>number_to_string</code> dùng một mảng <code>static</code> — nghĩa là mọi lời ' +
       'gọi dùng chung một vùng nhớ. Handler chen vào giữa lúc <code>main</code> đã ghi xong ' +
       '"so la 42" nhưng chưa kịp đọc ra, và ghi đè lên đó. Đây gọi là hàm <b>không tái nhập</b> ' +
       '(non-reentrant).</p>' +
@@ -473,13 +473,13 @@ Lesson.register({
       '<b>Đặt một cờ</b> kiểu <code>volatile sig_atomic_t</code> rồi trả về ngay. Đây là cách ' +
       'dùng đúng trong hơn 90% trường hợp — chính là mẫu tắt êm ở cuối bài.',
       '<b>Gọi <code>write()</code></b> (syscall thuần, có trong danh sách 199 hàm an toàn) để ' +
-      'ghi một chuỗi cố định ra <code>stderr</code>. Đó là lý do <code>bat.c</code> ở trên dùng ' +
+      'ghi một chuỗi cố định ra <code>stderr</code>. Đó là lý do <code>catch_sigint.c</code> ở trên dùng ' +
       '<code>write</code> chứ không <code>printf</code>.',
       '<b>Gọi <code>waitpid(..., WNOHANG)</code></b> trong vòng lặp để gặt con — cũng an toàn, ' +
       'và là cách chuẩn để dọn zombie.'
     ]},
 
-    { t: 'cmdx', cmd: 'static volatile sig_atomic_t xin_dung = 0;',
+    { t: 'cmdx', cmd: 'static volatile sig_atomic_t shutdown_requested = 0;',
       title: 'Vì sao khai báo cờ phải đủ cả ba từ khoá',
       rows: [
         ['<code>static</code>', 'Biến toàn cục nội bộ tệp — handler và <code>main</code> phải nhìn chung một ô nhớ', 'Không thể truyền tham số cho handler; đây là kênh liên lạc duy nhất'],
@@ -494,8 +494,8 @@ Lesson.register({
       '<i>ngay sau</i> một syscall thất bại và <i>ngay trước</i> dòng <code>perror()</code> — ' +
       'thế là nó in ra thông báo lỗi hoàn toàn sai.</p>' +
       '<p>Cách chữa gọn trong hai dòng: mở đầu handler bằng ' +
-      '<code>int loi_cu = errno;</code> và kết thúc bằng <code>errno = loi_cu;</code>. Bạn sẽ ' +
-      'thấy đúng cặp dòng này trong <code>gatzombie.c</code> ở phần sau.</p>' },
+      '<code>int saved_errno = errno;</code> và kết thúc bằng <code>errno = saved_errno;</code>. Bạn sẽ ' +
+      'thấy đúng cặp dòng này trong <code>reap_zombies.c</code> ở phần sau.</p>' },
 
     /* ══════════════════════════════════════════════
        5. SIGPROCMASK
@@ -508,67 +508,67 @@ Lesson.register({
       'đi, mà là <b>hoãn</b> nó lại. Tín hiệu bị chặn không mất — nó nằm chờ ở trạng thái ' +
       '<i>đang treo</i> và được chuyển phát ngay khi bạn bỏ chặn.' },
 
-    { t: 'code', where: 'file', name: 'chan.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'block_signal.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
       '\n' +
-      'static volatile sig_atomic_t co = 0;\n' +
-      'static void xu_ly(int s) { (void)s; co = 1; }\n' +
+      'static volatile sig_atomic_t flag = 0;\n' +
+      'static void handle_usr1(int s) { (void)s; flag = 1; }\n' +
       '\n' +
-      'static void in_treo(const char *nhan)\n' +
+      'static void print_pending(const char *label)\n' +
       '{\n' +
-      '    sigset_t treo;\n' +
-      '    sigpending(&treo);\n' +
-      '    printf("%-22s SIGUSR1 dang treo? %s\\n",\n' +
-      '           nhan, sigismember(&treo, SIGUSR1) ? "CO" : "khong");\n' +
+      '    sigset_t pending;\n' +
+      '    sigpending(&pending);\n' +
+      '    printf("%-22s SIGUSR1 pending? %s\\n",\n' +
+      '           label, sigismember(&pending, SIGUSR1) ? "YES" : "no");\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    struct sigaction sa;\n' +
       '    memset(&sa, 0, sizeof sa);\n' +
-      '    sa.sa_handler = xu_ly;\n' +
+      '    sa.sa_handler = handle_usr1;\n' +
       '    sigaction(SIGUSR1, &sa, NULL);\n' +
       '\n' +
-      '    sigset_t bo, cu;\n' +
-      '    sigemptyset(&bo);\n' +
-      '    sigaddset(&bo, SIGUSR1);\n' +
-      '    sigprocmask(SIG_BLOCK, &bo, &cu);        /* VAO vung toi han */\n' +
+      '    sigset_t blocked, saved;\n' +
+      '    sigemptyset(&blocked);\n' +
+      '    sigaddset(&blocked, SIGUSR1);\n' +
+      '    sigprocmask(SIG_BLOCK, &blocked, &saved);        /* ENTER critical section */\n' +
       '\n' +
-      '    printf("da chan SIGUSR1, tu ban cho minh mot phat\\n");\n' +
+      '    printf("blocked SIGUSR1, self-raising it once\\n");\n' +
       '    raise(SIGUSR1);\n' +
-      '    in_treo("trong vung toi han:");\n' +
-      '    printf("co = %d  (handler CHUA chay)\\n", co);\n' +
+      '    print_pending("inside critical section:");\n' +
+      '    printf("flag = %d  (handler has NOT run yet)\\n", flag);\n' +
       '\n' +
-      '    sigprocmask(SIG_SETMASK, &cu, NULL);     /* RA khoi vung toi han */\n' +
-      '    in_treo("sau khi bo chan:");\n' +
-      '    printf("co = %d  (handler DA chay ngay khi bo chan)\\n", co);\n' +
+      '    sigprocmask(SIG_SETMASK, &saved, NULL);          /* LEAVE critical section */\n' +
+      '    print_pending("after unblocking:");\n' +
+      '    printf("flag = %d  (handler DID run right when unblocked)\\n", flag);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'da chan SIGUSR1, tu ban cho minh mot phat\n' +
-      'trong vung toi han:    SIGUSR1 dang treo? CO\n' +
-      'co = 0  (handler CHUA chay)\n' +
-      'sau khi bo chan:       SIGUSR1 dang treo? khong\n' +
-      'co = 1  (handler DA chay ngay khi bo chan)' },
+      'blocked SIGUSR1, self-raising it once\n' +
+      'inside critical section: SIGUSR1 pending? YES\n' +
+      'flag = 0  (handler has NOT run yet)\n' +
+      'after unblocking:      SIGUSR1 pending? no\n' +
+      'flag = 1  (handler DID run right when unblocked)' },
 
-    { t: 'cmdx', cmd: 'sigprocmask(SIG_BLOCK, &bo, &cu);',
+    { t: 'cmdx', cmd: 'sigprocmask(SIG_BLOCK, &blocked, &saved);',
       title: 'Bộ công cụ thao tác trên sigset_t',
       rows: [
-        ['<code>sigemptyset(&amp;bo)</code>', 'Tập rỗng', 'Luôn khởi tạo bằng hàm, đừng <code>memset</code> — <code>sigset_t</code> là kiểu mờ'],
-        ['<code>sigfillset(&amp;bo)</code>', 'Tập chứa tất cả tín hiệu', 'Dùng khi muốn chặn sạch tạm thời'],
-        ['<code>sigaddset(&amp;bo, SIGUSR1)</code>', 'Thêm một tín hiệu vào tập', 'Có <code>sigdelset</code> để bỏ ra'],
+        ['<code>sigemptyset(&amp;blocked)</code>', 'Tập rỗng', 'Luôn khởi tạo bằng hàm, đừng <code>memset</code> — <code>sigset_t</code> là kiểu mờ'],
+        ['<code>sigfillset(&amp;blocked)</code>', 'Tập chứa tất cả tín hiệu', 'Dùng khi muốn chặn sạch tạm thời'],
+        ['<code>sigaddset(&amp;blocked, SIGUSR1)</code>', 'Thêm một tín hiệu vào tập', 'Có <code>sigdelset</code> để bỏ ra'],
         ['<code>SIG_BLOCK</code>', 'Thêm tập này vào mặt nạ hiện có', 'Ba lựa chọn: <code>SIG_BLOCK</code>, <code>SIG_UNBLOCK</code>, <code>SIG_SETMASK</code>'],
-        ['<code>SIG_SETMASK</code> + <code>&amp;cu</code>', 'Đặt mặt nạ <b>bằng đúng</b> giá trị đã lưu', 'Cách khôi phục đúng — an toàn hơn <code>SIG_UNBLOCK</code> vì không vô tình mở một tín hiệu vốn đã bị chặn từ trước'],
-        ['<code>sigpending(&amp;treo)</code>', 'Hỏi nhân xem tín hiệu nào đang chờ', 'Công cụ gỡ lỗi rất hữu ích']
+        ['<code>SIG_SETMASK</code> + <code>&amp;saved</code>', 'Đặt mặt nạ <b>bằng đúng</b> giá trị đã lưu', 'Cách khôi phục đúng — an toàn hơn <code>SIG_UNBLOCK</code> vì không vô tình mở một tín hiệu vốn đã bị chặn từ trước'],
+        ['<code>sigpending(&amp;pending)</code>', 'Hỏi nhân xem tín hiệu nào đang chờ', 'Công cụ gỡ lỗi rất hữu ích']
       ]},
 
     { t: 'cal', kind: 'why', title: 'Chặn khác hẳn bỏ qua — nhầm hai khái niệm này là mất tín hiệu thật', x:
       '<p><b>Chặn</b> (<code>sigprocmask</code>) là <i>hoãn</i>: tín hiệu vẫn tồn tại, nằm chờ, ' +
       'và được chuyển phát đầy đủ khi bạn mở. Kết quả thực nghiệm ở trên chứng minh rõ: ' +
-      '<code>co</code> chuyển từ 0 sang 1 <b>ngay tại dòng bỏ chặn</b>, không cần gửi lại.</p>' +
+      '<code>flag</code> chuyển từ 0 sang 1 <b>ngay tại dòng bỏ chặn</b>, không cần gửi lại.</p>' +
       '<p><b>Bỏ qua</b> (<code>SIG_IGN</code>) là <i>vứt</i>: nhân xoá tín hiệu khỏi đời, không ' +
       'bao giờ lấy lại được.</p>' +
       '<p>Một hạn chế cần biết: tín hiệu chuẩn <b>không xếp hàng</b>. Nếu 10 tín hiệu ' +
@@ -589,7 +589,7 @@ Lesson.register({
       'thành dữ liệu, đọc ở đúng chỗ bạn muốn, trong luồng chính, nơi mọi hàm đều gọi được ' +
       'thoải mái.' },
 
-    { t: 'code', where: 'file', name: 'qua_fd.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'signalfd_demo.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
@@ -598,31 +598,31 @@ Lesson.register({
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    sigset_t bo;\n' +
-      '    sigemptyset(&bo);\n' +
-      '    sigaddset(&bo, SIGTERM);\n' +
-      '    sigaddset(&bo, SIGUSR1);\n' +
+      '    sigset_t mask;\n' +
+      '    sigemptyset(&mask);\n' +
+      '    sigaddset(&mask, SIGTERM);\n' +
+      '    sigaddset(&mask, SIGUSR1);\n' +
       '\n' +
-      '    /* BAT BUOC: chan chung, neu khong hanh vi mac dinh van chay */\n' +
-      '    if (sigprocmask(SIG_BLOCK, &bo, NULL) < 0) { perror("sigprocmask"); return 1; }\n' +
+      '    /* MANDATORY: block them first, otherwise the default action still runs */\n' +
+      '    if (sigprocmask(SIG_BLOCK, &mask, NULL) < 0) { perror("sigprocmask"); return 1; }\n' +
       '\n' +
-      '    int fd = signalfd(-1, &bo, 0);\n' +
+      '    int fd = signalfd(-1, &mask, 0);\n' +
       '    if (fd < 0) { perror("signalfd"); return 1; }\n' +
       '\n' +
       '    printf("pid=%d  signalfd = %d\\n", getpid(), fd);\n' +
       '    fflush(stdout);\n' +
       '\n' +
       '    for (;;) {\n' +
-      '        struct signalfd_siginfo tt;\n' +
-      '        ssize_t n = read(fd, &tt, sizeof tt);\n' +
-      '        if (n != sizeof tt) { perror("read"); return 1; }\n' +
+      '        struct signalfd_siginfo info;\n' +
+      '        ssize_t n = read(fd, &info, sizeof info);\n' +
+      '        if (n != sizeof info) { perror("read"); return 1; }\n' +
       '\n' +
-      '        printf("doc duoc tin hieu %d (%s) tu pid %u\\n",\n' +
-      '               tt.ssi_signo, strsignal(tt.ssi_signo), tt.ssi_pid);\n' +
+      '        printf("read signal %d (%s) from pid %u\\n",\n' +
+      '               info.ssi_signo, strsignal(info.ssi_signo), info.ssi_pid);\n' +
       '        fflush(stdout);\n' +
       '\n' +
-      '        if (tt.ssi_signo == SIGTERM) {\n' +
-      '            printf("SIGTERM -> don dep roi thoat binh thuong\\n");\n' +
+      '        if (info.ssi_signo == SIGTERM) {\n' +
+      '            printf("SIGTERM -> cleaning up then exiting normally\\n");\n' +
       '            close(fd);\n' +
       '            return 0;\n' +
       '        }\n' +
@@ -630,23 +630,23 @@ Lesson.register({
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'pid=532  signalfd = 3\n' +
-      'doc duoc tin hieu 10 (User defined signal 1) tu pid 437\n' +
-      'doc duoc tin hieu 15 (Terminated) tu pid 437\n' +
-      'SIGTERM -> don dep roi thoat binh thuong' },
+      'pid=428  signalfd = 3\n' +
+      'read signal 10 (User defined signal 1) from pid 317\n' +
+      'read signal 15 (Terminated) from pid 317\n' +
+      'SIGTERM -> cleaning up then exiting normally' },
 
     { t: 'cal', kind: 'info', title: 'Hai chi tiết đắt giá trong kết quả này', x:
       '<p><b><code>signalfd = 3</code></b> — đúng như Bài 19 và Bài 20 đã dạy: số nhỏ nhất còn ' +
       'trống sau 0, 1, 2. Tín hiệu giờ là một fd bình thường, nghĩa là nó <b>ghép được vào ' +
       '<code>poll</code>/<code>epoll</code></b> cùng với socket và cảm biến. Đây là lý do thật ' +
       'sự khiến người ta dùng <code>signalfd</code>, và Bài 24 sẽ khai thác đúng điểm này.</p>' +
-      '<p><b><code>tu pid 437</code></b> — bạn biết <i>ai</i> đã gửi tín hiệu. Với handler kiểu ' +
+      '<p><b><code>from pid 317</code></b> — bạn biết <i>ai</i> đã gửi tín hiệu. Với handler kiểu ' +
       'cũ, thông tin này chỉ lấy được qua <code>SA_SIGINFO</code> phức tạp hơn nhiều. ' +
       '<code>struct signalfd_siginfo</code> còn có <code>ssi_uid</code>, <code>ssi_status</code>, ' +
       '<code>ssi_code</code> — rất tiện khi cần biết ai đang cố dừng dịch vụ của bạn.</p>' },
 
     { t: 'cal', kind: 'danger', title: 'Quên sigprocmask là signalfd vô dụng', x:
-      '<p>Dòng <code>sigprocmask(SIG_BLOCK, &amp;bo, NULL)</code> <b>không phải tuỳ chọn</b>. ' +
+      '<p>Dòng <code>sigprocmask(SIG_BLOCK, &amp;mask, NULL)</code> <b>không phải tuỳ chọn</b>. ' +
       '<code>signalfd</code> không thay đổi bố trí của tín hiệu — nó chỉ mở thêm một đường để ' +
       '<i>đọc</i> chúng. Nếu bạn không chặn, hành vi mặc định vẫn thi hành: ' +
       '<code>SIGTERM</code> giết chương trình <b>trước khi</b> bạn kịp <code>read</code> một ' +
@@ -676,7 +676,7 @@ Lesson.register({
       'quả là zombie tích tụ tới khi cạn bảng PID. <code>SIGCHLD</code> là mảnh ghép còn ' +
       'thiếu: nhân <b>chủ động báo</b> cho bạn mỗi khi có một đứa con chết.' },
 
-    { t: 'code', where: 'file', name: 'gatzombie.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'reap_zombies.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <signal.h>\n' +
       '#include <string.h>\n' +
@@ -684,38 +684,38 @@ Lesson.register({
       '#include <errno.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
-      'static volatile sig_atomic_t da_gat = 0;\n' +
+      'static volatile sig_atomic_t reaped = 0;\n' +
       '\n' +
-      'static void gat(int s)\n' +
+      'static void reap(int s)\n' +
       '{\n' +
       '    (void)s;\n' +
-      '    int loi_cu = errno;                  /* handler PHAI giu nguyen errno */\n' +
+      '    int saved_errno = errno;             /* handler MUST preserve errno */\n' +
       '    while (waitpid(-1, NULL, WNOHANG) > 0)\n' +
-      '        da_gat++;                        /* mot SIGCHLD co the goi NHIEU con */\n' +
-      '    errno = loi_cu;\n' +
+      '        reaped++;                        /* one SIGCHLD may cover MULTIPLE children */\n' +
+      '    errno = saved_errno;\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    struct sigaction sa;\n' +
       '    memset(&sa, 0, sizeof sa);\n' +
-      '    sa.sa_handler = gat;\n' +
+      '    sa.sa_handler = reap;\n' +
       '    sigemptyset(&sa.sa_mask);\n' +
       '    sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;\n' +
       '    sigaction(SIGCHLD, &sa, NULL);\n' +
       '\n' +
       '    for (int i = 0; i < 5; i++)\n' +
-      '        if (fork() == 0) _exit(0);       /* 5 dua con chet ngay */\n' +
+      '        if (fork() == 0) _exit(0);       /* 5 children that die immediately */\n' +
       '\n' +
-      '    printf("cha pid=%d, da sinh 5 con, KHONG goi wait trong main\\n", getpid());\n' +
+      '    printf("parent pid=%d, spawned 5 children, NOT calling wait in main\\n", getpid());\n' +
       '    fflush(stdout);\n' +
       '\n' +
       '    sleep(4);\n' +
-      '    printf("handler da gat %d con\\n", da_gat);\n' +
+      '    printf("handler reaped %d children\\n", reaped);\n' +
       '    return 0;\n' +
       '}' },
 
-    { t: 'cmdx', cmd: 'while (waitpid(-1, NULL, WNOHANG) > 0) da_gat++;',
+    { t: 'cmdx', cmd: 'while (waitpid(-1, NULL, WNOHANG) > 0) reaped++;',
       title: 'Ba chi tiết bắt buộc trong handler SIGCHLD',
       rows: [
         ['<code>while</code> chứ không <code>if</code>', 'Tín hiệu chuẩn không xếp hàng — 5 con chết gần nhau có thể chỉ sinh <b>1</b> lần chuyển phát', 'Dùng <code>if</code> là gặt được 1, để lại 4 zombie. Lỗi kinh điển'],
@@ -825,41 +825,41 @@ Lesson.register({
           { t: 'p', x:
             'Đừng tin vì tài liệu nói vậy. Hãy để <code>sigaction</code> tự từ chối bạn:' },
 
-          { t: 'code', where: 'file', name: 'khongbat.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'uncatchable_signals.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <signal.h>\n' +
             '#include <string.h>\n' +
             '#include <errno.h>\n' +
             '\n' +
-            'static void xu_ly(int s) { (void)s; }\n' +
+            'static void handle_noop(int s) { (void)s; }\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    struct sigaction sa;\n' +
             '    memset(&sa, 0, sizeof sa);\n' +
-            '    sa.sa_handler = xu_ly;\n' +
+            '    sa.sa_handler = handle_noop;\n' +
             '\n' +
-            '    int ds[] = { SIGINT, SIGTERM, SIGUSR1, SIGKILL, SIGSTOP };\n' +
-            '    for (unsigned i = 0; i < sizeof ds / sizeof ds[0]; i++) {\n' +
+            '    int signals[] = { SIGINT, SIGTERM, SIGUSR1, SIGKILL, SIGSTOP };\n' +
+            '    for (unsigned i = 0; i < sizeof signals / sizeof signals[0]; i++) {\n' +
             '        errno = 0;\n' +
-            '        if (sigaction(ds[i], &sa, NULL) < 0)\n' +
-            '            printf("%-8s (%2d): THAT BAI - %s\\n",\n' +
-            '                   strsignal(ds[i]), ds[i], strerror(errno));\n' +
+            '        if (sigaction(signals[i], &sa, NULL) < 0)\n' +
+            '            printf("%-8s (%2d): FAILED - %s\\n",\n' +
+            '                   strsignal(signals[i]), signals[i], strerror(errno));\n' +
             '        else\n' +
-            '            printf("%-8s (%2d): dang ky OK\\n", strsignal(ds[i]), ds[i]);\n' +
+            '            printf("%-8s (%2d): registered OK\\n", strsignal(signals[i]), signals[i]);\n' +
             '    }\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o khongbat khongbat.c && ./khongbat' },
+            'gcc -Wall -Wextra -o uncatchable_signals uncatchable_signals.c && ./uncatchable_signals' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'Interrupt ( 2): dang ky OK\n' +
-            'Terminated (15): dang ky OK\n' +
-            'User defined signal 1 (10): dang ky OK\n' +
-            'Killed   ( 9): THAT BAI - Invalid argument\n' +
-            'Stopped (signal) (19): THAT BAI - Invalid argument' },
+            'Interrupt ( 2): registered OK\n' +
+            'Terminated (15): registered OK\n' +
+            'User defined signal 1 (10): registered OK\n' +
+            'Killed   ( 9): FAILED - Invalid argument\n' +
+            'Stopped (signal) (19): FAILED - Invalid argument' },
 
           { t: 'cal', kind: 'info', title: 'EINVAL ở đây không phải lỗi lập trình', x:
             '<p><code>Invalid argument</code> (<code>EINVAL</code>) là cách nhân nói "tín hiệu ' +
@@ -877,40 +877,40 @@ Lesson.register({
       { title: 'Bước 2 — Tự tạo ra một lỗi tái nhập, và nhìn nó cho ra dữ liệu sai',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>taonhap.c</code> ở phần lý thuyết. Bước này quan trọng vì nó biến một ' +
+            'Gõ lại <code>reentrancy_bug.c</code> ở phần lý thuyết. Bước này quan trọng vì nó biến một ' +
             'lời khuyên trừu tượng ("đừng gọi <code>printf</code> trong handler") thành một con ' +
             'số sai bạn tự nhìn thấy.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o taonhap taonhap.c\n' +
-            './taonhap &\n' +
+            'gcc -Wall -Wextra -o reentrancy_bug reentrancy_bug.c\n' +
+            './reentrancy_bug &\n' +
             'sleep 0.4\n' +
             'kill -USR1 $!\n' +
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=523\n' +
-            'main mong doi "so la 42", thuc te nhan duoc: "so la 999"' },
+            'pid=9433\n' +
+            'main expected "number is 42", actually got: "number is 999"' },
 
           { t: 'p', x:
             'Bây giờ sửa lại cho đúng. Chỉ cần <b>một</b> thay đổi: handler không được đụng vào ' +
             'hàm không tái nhập nữa, nó chỉ đặt cờ.' },
 
           { t: 'code', where: 'wsl', code:
-            'sed \'s|    sotenchuoi(999);.*|    co = 1;|; s|^static void xu_ly|static volatile sig_atomic_t co = 0;\\nstatic void xu_ly|\' taonhap.c > antoan.c\n' +
-            'gcc -Wall -Wextra -o antoan antoan.c\n' +
-            './antoan &\n' +
+            'sed \'s|    number_to_string(999);.*|    stop = 1;|; s|^static void handle_sigusr1|static volatile sig_atomic_t stop = 0;\\nstatic void handle_sigusr1|\' reentrancy_bug.c > reentrancy_fixed.c\n' +
+            'gcc -Wall -Wextra -o reentrancy_fixed reentrancy_fixed.c\n' +
+            './reentrancy_fixed &\n' +
             'sleep 0.4\n' +
             'kill -USR1 $!\n' +
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=481\n' +
-            'main mong doi "so la 42", thuc te nhan duoc: "so la 42"',
-            notes: ['Nếu <code>sed</code> khiến bạn khó chịu, cứ mở <code>taonhap.c</code> bằng ' +
-              '<code>nano</code> và sửa tay — thay dòng <code>sotenchuoi(999);</code> trong ' +
-              'handler bằng <code>co = 1;</code>, và khai báo <code>static volatile ' +
-              'sig_atomic_t co = 0;</code> ở phía trên.'] },
+            'pid=9482\n' +
+            'main expected "number is 42", actually got: "number is 42"',
+            notes: ['Nếu <code>sed</code> khiến bạn khó chịu, cứ mở <code>reentrancy_bug.c</code> bằng ' +
+              '<code>nano</code> và sửa tay — thay dòng <code>number_to_string(999);</code> trong ' +
+              'handler bằng <code>stop = 1;</code>, và khai báo <code>static volatile ' +
+              'sig_atomic_t stop = 0;</code> ở phía trên.'] },
 
           { t: 'cal', kind: 'why', title: 'Một dòng, khác biệt giữa đúng và sai', x:
             '<p>Chương trình vẫn nhận tín hiệu, handler vẫn chạy, nhưng giờ nó không đụng vào ' +
@@ -928,7 +928,7 @@ Lesson.register({
             'Bước này chữa dứt điểm lỗi rò rỉ PID của Bài 20. Chạy hai chương trình gần như ' +
             'giống hệt nhau, khác đúng một handler, rồi đếm zombie.' },
 
-          { t: 'code', where: 'file', name: 'khonggat.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'zombies_unreaped.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
@@ -936,45 +936,49 @@ Lesson.register({
             '{\n' +
             '    for (int i = 0; i < 5; i++)\n' +
             '        if (fork() == 0) _exit(0);\n' +
-            '    printf("cha pid=%d, da sinh 5 con, khong bat SIGCHLD\\n", getpid());\n' +
+            '    printf("parent pid=%d, spawned 5 children, not catching SIGCHLD\\n", getpid());\n' +
             '    fflush(stdout);\n' +
             '    sleep(4);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o khonggat khonggat.c\n' +
-            './khonggat &\n' +
+            'gcc -Wall -Wextra -o zombies_unreaped zombies_unreaped.c\n' +
+            './zombies_unreaped &\n' +
             'sleep 1\n' +
             'ps -o pid,ppid,stat,comm --ppid $!\n' +
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'cha pid=462, da sinh 5 con, khong bat SIGCHLD\n' +
+            'parent pid=9826, spawned 5 children, not catching SIGCHLD\n' +
             '    PID    PPID STAT COMMAND\n' +
-            '    464     462 Z+   khonggat\n' +
-            '    465     462 Z+   khonggat\n' +
-            '    466     462 Z+   khonggat\n' +
-            '    467     462 Z+   khonggat\n' +
-            '    468     462 Z+   khonggat' },
+            '   9828    9826 Z+   zombies_unreape\n' +
+            '   9829    9826 Z+   zombies_unreape\n' +
+            '   9830    9826 Z+   zombies_unreape\n' +
+            '   9831    9826 Z+   zombies_unreape\n' +
+            '   9832    9826 Z+   zombies_unreape',
+            notes: ['<code>COMMAND</code> hiện <code>zombies_unreape</code>, cụt so với tên thật ' +
+              '<code>zombies_unreaped</code> — nhân chỉ giữ đúng <b>15</b> ký tự cho ' +
+              '<code>comm</code> của một tiến trình. Đây là hành vi thật của Linux, không phải ' +
+              'lỗi đánh máy trong bài.'] },
 
           { t: 'p', x:
             'Năm zombie, đúng như dự đoán. Giờ chạy bản có handler <code>SIGCHLD</code> ' +
-            '(<code>gatzombie.c</code> ở phần lý thuyết):' },
+            '(<code>reap_zombies.c</code> ở phần lý thuyết):' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o gatzombie gatzombie.c\n' +
-            './gatzombie &\n' +
+            'gcc -Wall -Wextra -o reap_zombies reap_zombies.c\n' +
+            './reap_zombies &\n' +
             'sleep 1\n' +
             'ps -o pid,ppid,stat,comm --ppid $!\n' +
             'ps -o stat= --ppid $! | grep -c Z\n' +
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'cha pid=446, da sinh 5 con, KHONG goi wait trong main\n' +
+            'parent pid=12869, spawned 5 children, NOT calling wait in main\n' +
             '    PID    PPID STAT COMMAND\n' +
             '0\n' +
-            'handler da gat 5 con' },
+            'handler reaped 5 children' },
 
           { t: 'cal', kind: 'info', title: 'Bảng ps rỗng và con số 5 — hai nửa của cùng một bằng chứng', x:
             '<p><code>ps</code> chỉ in ra dòng tiêu đề: không còn tiến trình con nào, ' +
@@ -994,28 +998,28 @@ Lesson.register({
       { title: 'Bước 4 — Nhận tín hiệu qua signalfd, không cần handler',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>qua_fd.c</code> ở phần lý thuyết rồi thử cả hai tín hiệu. Chú ý là ' +
+            'Gõ lại <code>signalfd_demo.c</code> ở phần lý thuyết rồi thử cả hai tín hiệu. Chú ý là ' +
             'chương trình này <b>không có hàm handler nào cả</b>.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o qua_fd qua_fd.c\n' +
+            'gcc -Wall -Wextra -o signalfd_demo signalfd_demo.c\n' +
             'echo "shell pid = $$"\n' +
-            './qua_fd &\n' +
+            './signalfd_demo &\n' +
             'sleep 0.4\n' +
             'kill -USR1 $!; sleep 0.3\n' +
             'kill -TERM $!\n' +
             'wait; echo "exit=$?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'shell pid = 437\n' +
-            'pid=532  signalfd = 3\n' +
-            'doc duoc tin hieu 10 (User defined signal 1) tu pid 437\n' +
-            'doc duoc tin hieu 15 (Terminated) tu pid 437\n' +
-            'SIGTERM -> don dep roi thoat binh thuong\n' +
+            'shell pid = 12918\n' +
+            'pid=12919  signalfd = 3\n' +
+            'read signal 10 (User defined signal 1) from pid 12918\n' +
+            'read signal 15 (Terminated) from pid 12918\n' +
+            'SIGTERM -> cleaning up then exiting normally\n' +
             'exit=0' },
 
-          { t: 'cal', kind: 'tip', title: 'Số 437 xuất hiện hai lần — đó không phải trùng hợp', x:
-            '<p><code>ssi_pid</code> trả về <b>437</b>, đúng bằng <code>$$</code> của shell. ' +
+          { t: 'cal', kind: 'tip', title: 'Số 12918 xuất hiện hai lần — đó không phải trùng hợp', x:
+            '<p><code>ssi_pid</code> trả về <b>12918</b>, đúng bằng <code>$$</code> của shell. ' +
             'Chương trình vừa xác định được chính xác ai đã gửi tín hiệu cho nó.</p>' +
             '<p>Trên thiết bị thật, điều này rất có giá khi gỡ lỗi: một dịch vụ bị dừng bất ' +
             'thường có thể ghi lại <code>ssi_pid</code> vào log, và bạn tra ngược ra thủ phạm — ' +
@@ -1026,15 +1030,15 @@ Lesson.register({
             'Giờ hãy phá nó, để hiểu vì sao dòng <code>sigprocmask</code> là bắt buộc:' },
 
           { t: 'code', where: 'wsl', code:
-            'grep -v sigprocmask qua_fd.c > quen_chan.c\n' +
-            'gcc -Wall -Wextra -o quen_chan quen_chan.c\n' +
-            './quen_chan &\n' +
+            'grep -v sigprocmask signalfd_demo.c > forgot_block.c\n' +
+            'gcc -Wall -Wextra -o forgot_block forgot_block.c\n' +
+            './forgot_block &\n' +
             'sleep 0.4\n' +
             'kill -TERM $!\n' +
             'wait; echo "exit=$?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=490  signalfd = 3\n' +
+            'pid=13086  signalfd = 3\n' +
             'exit=143',
             notes: ['<code>143 = 128 + 15</code>: chương trình bị <code>SIGTERM</code> giết theo ' +
               'hành vi mặc định, chưa kịp <code>read</code> byte nào từ <code>signalfd</code>.'] },
@@ -1058,92 +1062,92 @@ Lesson.register({
             'Đây là bước trả lời câu chuyện mở đầu bài. Một chương trình đo nhiệt độ ghi log ' +
             'mỗi giây. Bạn sẽ giết nó hai lần bằng hai cách, rồi so hai file log.' },
 
-          { t: 'code', where: 'file', name: 'tatem.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'shutdown.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <signal.h>\n' +
             '#include <string.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
-            'static volatile sig_atomic_t xin_dung = 0;\n' +
+            'static volatile sig_atomic_t shutdown_requested = 0;\n' +
             '\n' +
-            'static void nhan_term(int s)\n' +
+            'static void handle_term(int s)\n' +
             '{\n' +
             '    (void)s;\n' +
-            '    xin_dung = 1;                       /* CHI dat co, khong lam gi them */\n' +
+            '    shutdown_requested = 1;             /* ONLY sets the flag, nothing else */\n' +
             '}\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    struct sigaction sa;\n' +
             '    memset(&sa, 0, sizeof sa);\n' +
-            '    sa.sa_handler = nhan_term;\n' +
+            '    sa.sa_handler = handle_term;\n' +
             '    sigemptyset(&sa.sa_mask);\n' +
             '    sa.sa_flags = SA_RESTART;\n' +
             '    sigaction(SIGTERM, &sa, NULL);\n' +
-            '    sigaction(SIGINT,  &sa, NULL);      /* Ctrl+C cung tat em */\n' +
+            '    sigaction(SIGINT,  &sa, NULL);      /* Ctrl+C also shuts down gracefully */\n' +
             '\n' +
-            '    FILE *log = fopen("/tmp/tatem.log", "w");\n' +
+            '    FILE *log = fopen("/tmp/shutdown.log", "w");\n' +
             '    if (!log) { perror("fopen"); return 1; }\n' +
-            '    setvbuf(log, NULL, _IOLBF, 0);      /* xa theo dong */\n' +
+            '    setvbuf(log, NULL, _IOLBF, 0);      /* line-buffered flush */\n' +
             '\n' +
-            '    fprintf(log, "khoi dong, pid=%d\\n", getpid());\n' +
-            '    printf("pid=%d dang do nhiet do...\\n", getpid());\n' +
+            '    fprintf(log, "startup, pid=%d\\n", getpid());\n' +
+            '    printf("pid=%d measuring temperature...\\n", getpid());\n' +
             '    fflush(stdout);\n' +
             '\n' +
-            '    int nhip = 0;\n' +
-            '    while (!xin_dung) {                 /* vong lap chinh */\n' +
-            '        fprintf(log, "nhip %d: nhiet do = %d.%d C\\n",\n' +
-            '                nhip, 25 + nhip % 3, nhip % 10);\n' +
-            '        nhip++;\n' +
+            '    int tick = 0;\n' +
+            '    while (!shutdown_requested) {       /* main loop */\n' +
+            '        fprintf(log, "tick %d: temperature = %d.%d C\\n",\n' +
+            '                tick, 25 + tick % 3, tick % 10);\n' +
+            '        tick++;\n' +
             '        sleep(1);\n' +
             '    }\n' +
             '\n' +
-            '    /* VUNG DON DEP — chay duoc vi handler khong tu thoat */\n' +
-            '    fprintf(log, "nhan tin hieu dung, ghi not ban ghi cuoi cung\\n");\n' +
-            '    fprintf(log, "tong cong %d nhip, dong file sach se\\n", nhip);\n' +
+            '    /* CLEANUP SECTION -- reachable because the handler does not exit itself */\n' +
+            '    fprintf(log, "stop signal received, writing final record\\n");\n' +
+            '    fprintf(log, "total %d ticks, closing file cleanly\\n", tick);\n' +
             '    fclose(log);\n' +
-            '    printf("da tat em sau %d nhip\\n", nhip);\n' +
-            '    return 0;                           /* ma thoat 0 = dung theo yeu cau */\n' +
+            '    printf("shut down gracefully after %d ticks\\n", tick);\n' +
+            '    return 0;                           /* exit code 0 = stopped as requested */\n' +
             '}' },
 
           { t: 'code', where: 'wsl', name: 'Lần 1 — SIGTERM', code:
-            'gcc -Wall -Wextra -o tatem tatem.c\n' +
-            'rm -f /tmp/tatem.log\n' +
-            './tatem &\n' +
+            'gcc -Wall -Wextra -o shutdown shutdown.c\n' +
+            'rm -f /tmp/shutdown.log\n' +
+            './shutdown &\n' +
             'sleep 3\n' +
             'kill -TERM $!\n' +
             'wait; echo "exit=$?"\n' +
-            'cat /tmp/tatem.log' },
+            'cat /tmp/shutdown.log' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=450 dang do nhiet do...\n' +
-            'da tat em sau 4 nhip\n' +
+            'pid=418 measuring temperature...\n' +
+            'shut down gracefully after 4 ticks\n' +
             'exit=0\n' +
-            'khoi dong, pid=450\n' +
-            'nhip 0: nhiet do = 25.0 C\n' +
-            'nhip 1: nhiet do = 26.1 C\n' +
-            'nhip 2: nhiet do = 27.2 C\n' +
-            'nhip 3: nhiet do = 25.3 C\n' +
-            'nhan tin hieu dung, ghi not ban ghi cuoi cung\n' +
-            'tong cong 4 nhip, dong file sach se' },
+            'startup, pid=418\n' +
+            'tick 0: temperature = 25.0 C\n' +
+            'tick 1: temperature = 26.1 C\n' +
+            'tick 2: temperature = 27.2 C\n' +
+            'tick 3: temperature = 25.3 C\n' +
+            'stop signal received, writing final record\n' +
+            'total 4 ticks, closing file cleanly' },
 
           { t: 'code', where: 'wsl', name: 'Lần 2 — SIGKILL', code:
-            'rm -f /tmp/tatem.log\n' +
-            './tatem &\n' +
+            'rm -f /tmp/shutdown.log\n' +
+            './shutdown &\n' +
             'sleep 3\n' +
             'kill -KILL $!\n' +
             'wait; echo "exit=$?"\n' +
-            'cat /tmp/tatem.log' },
+            'cat /tmp/shutdown.log' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=454 dang do nhiet do...\n' +
+            'pid=416 measuring temperature...\n' +
             'Killed\n' +
             'exit=137\n' +
-            'khoi dong, pid=454\n' +
-            'nhip 0: nhiet do = 25.0 C\n' +
-            'nhip 1: nhiet do = 26.1 C\n' +
-            'nhip 2: nhiet do = 27.2 C\n' +
-            'nhip 3: nhiet do = 25.3 C' },
+            'startup, pid=416\n' +
+            'tick 0: temperature = 25.0 C\n' +
+            'tick 1: temperature = 26.1 C\n' +
+            'tick 2: temperature = 27.2 C\n' +
+            'tick 3: temperature = 25.3 C' },
 
           { t: 'cal', kind: 'why', title: 'Hai file log, một bài học', x:
             '<p>Bốn dòng dữ liệu là giống hệt nhau. Khác biệt nằm ở phần cuối:</p>' +
@@ -1167,19 +1171,19 @@ Lesson.register({
             'khi tín hiệu tới:' },
 
           { t: 'code', where: 'wsl', code:
-            'strace -e trace=rt_sigaction,clock_nanosleep -o vet21.txt ./tatem &\n' +
+            'strace -e trace=rt_sigaction,clock_nanosleep -o sigterm_trace.txt ./shutdown &\n' +
             'sleep 2.5\n' +
-            'pkill -TERM -x tatem\n' +
+            'pkill -TERM -x shutdown\n' +
             'sleep 1\n' +
-            'cat vet21.txt' },
+            'cat sigterm_trace.txt' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'rt_sigaction(SIGTERM, {sa_handler=0x626d46cc02c9, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7bde50245cb0}, NULL, 8) = 0\n' +
-            'rt_sigaction(SIGINT, {sa_handler=0x626d46cc02c9, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7bde50245cb0}, NULL, 8) = 0\n' +
-            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, 0x7ffe1120f1f0) = 0\n' +
-            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, 0x7ffe1120f1f0) = 0\n' +
-            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, {tv_sec=0, tv_nsec=512667273}) = ? ERESTART_RESTARTBLOCK (Interrupted by signal)\n' +
-            '--- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=482, si_uid=1000} ---\n' +
+            'rt_sigaction(SIGTERM, {sa_handler=0x5b8be8ba52e9, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7072b7845cb0}, NULL, 8) = 0\n' +
+            'rt_sigaction(SIGINT, {sa_handler=0x5b8be8ba52e9, sa_mask=[], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7072b7845cb0}, NULL, 8) = 0\n' +
+            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, 0x7ffedd5247d0) = 0\n' +
+            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, 0x7ffedd5247d0) = 0\n' +
+            'clock_nanosleep(CLOCK_REALTIME, 0, {tv_sec=1, tv_nsec=0}, {tv_sec=0, tv_nsec=510044399}) = ? ERESTART_RESTARTBLOCK (Interrupted by signal)\n' +
+            '--- SIGTERM {si_signo=SIGTERM, si_code=SI_USER, si_pid=441, si_uid=1000} ---\n' +
             '+++ exited with 0 +++',
             notes: ['Địa chỉ hàm, số hiệu PID, số nhịp <code>clock_nanosleep</code> và phần ' +
               '<code>tv_nsec</code> còn lại trên máy bạn sẽ khác — chúng đổi ở mỗi lần chạy. Ba ' +
@@ -1228,13 +1232,13 @@ Lesson.register({
          'Có <code>SA_RESTART</code>: sau khi handler chạy xong, nhân âm thầm gọi lại syscall từ đầu.',
          'Bỏ <code>SA_RESTART</code> và xử lý <code>errno == EINTR</code> tường minh, hoặc chuyển sang <code>signalfd</code> ghép vào <code>poll</code>.'],
 
-        ['<code>read tra ve -1, errno=4 (Interrupted system call)</code>',
+        ['<code>read returned -1, errno=4 (Interrupted system call)</code>',
          '<code>EINTR</code>: syscall bị tín hiệu cắt ngang và <b>không</b> có <code>SA_RESTART</code>.',
          'Đây không phải lỗi thật. Hoặc bọc trong vòng lặp <code>while (n &lt; 0 &amp;&amp; errno == EINTR)</code>, hoặc dùng nó làm tín hiệu thoát vòng lặp — đúng thứ bạn muốn khi tắt êm.'],
 
-        ['Vòng lặp <code>while (!xin_dung)</code> không bao giờ thoát dù handler đã chạy',
+        ['Vòng lặp <code>while (!shutdown_requested)</code> không bao giờ thoát dù handler đã chạy',
          'Thiếu <code>volatile</code>. Với <code>-O2</code>, trình biên dịch thấy thân vòng lặp không sửa biến nên nạp nó vào thanh ghi một lần.',
-         'Khai báo đủ: <code>static volatile sig_atomic_t xin_dung = 0;</code>. Triệu chứng đặc trưng: chạy đúng ở <code>-O0</code>, treo ở <code>-O2</code>.'],
+         'Khai báo đủ: <code>static volatile sig_atomic_t shutdown_requested = 0;</code>. Triệu chứng đặc trưng: chạy đúng ở <code>-O0</code>, treo ở <code>-O2</code>.'],
 
         ['Chương trình dùng <code>signalfd</code> chết ngay, mã thoát <b>143</b>',
          'Quên <code>sigprocmask(SIG_BLOCK, ...)</code>. Hành vi mặc định của <code>SIGTERM</code> thi hành trước khi kịp <code>read</code>.',
@@ -1250,7 +1254,7 @@ Lesson.register({
 
         ['<code>perror</code> in ra thông báo lỗi sai hoàn toàn, không liên quan',
          'Handler chạy xen vào giữa một syscall thất bại và dòng <code>perror</code>, rồi ghi đè <code>errno</code>.',
-         'Lưu và khôi phục trong handler: <code>int loi_cu = errno;</code> … <code>errno = loi_cu;</code>'],
+         'Lưu và khôi phục trong handler: <code>int saved_errno = errno;</code> … <code>errno = saved_errno;</code>'],
 
         ['Chương trình thoát với mã <b>141</b> khi nối qua ống, ví dụ <code>./prog | head -3</code>',
          '<code>SIGPIPE</code> (13): <code>head</code> đọc đủ 3 dòng rồi đóng ống, lần <code>write</code> tiếp theo bị nhân giết. Đo được: <code>141 = 128 + 13</code>.',
@@ -1307,7 +1311,7 @@ Lesson.register({
       a: 1,
       why: 'Cùng một <code>struct sigaction</code> đó đăng ký thành công cho <code>SIGTERM</code> ngay dòng trên, nên vấn đề không nằm ở cấu trúc hay quyền hạn. <code>SIGKILL</code> (9) và <code>SIGSTOP</code> (19) là hai tín hiệu duy nhất bị cấm — đó là cơ chế bảo đảm quản trị viên luôn có cách dừng một tiến trình bất trị. Hệ quả thực tế: sau <code>SIGKILL</code> không có một dòng mã dọn dẹp nào chạy, nên hãy coi nó tương đương mất điện và dồn toàn bộ việc dọn dẹp vào <code>SIGTERM</code>.' },
 
-    { q: 'Chương trình của bạn có <code>while (!xin_dung) { ... }</code> và một handler đặt <code>xin_dung = 1</code>. Nó thoát đúng khi biên dịch với <code>-O0</code>, nhưng treo vĩnh viễn với <code>-O2</code>. Nguyên nhân nhiều khả năng nhất?',
+    { q: 'Chương trình của bạn có <code>while (!shutdown_requested) { ... }</code> và một handler đặt <code>shutdown_requested = 1</code>. Nó thoát đúng khi biên dịch với <code>-O0</code>, nhưng treo vĩnh viễn với <code>-O2</code>. Nguyên nhân nhiều khả năng nhất?',
       opts: [
         'Thiếu <code>volatile</code> trong khai báo biến cờ',
         '<code>-O2</code> làm handler không được đăng ký kịp trước vòng lặp',
@@ -1315,9 +1319,9 @@ Lesson.register({
         'Tín hiệu bị mất vì tín hiệu chuẩn không xếp hàng'
       ],
       a: 0,
-      why: 'Đây là hình mẫu triệu chứng kinh điển: <b>đúng ở -O0, sai ở -O2</b>. Trình tối ưu hoá nhìn thấy thân vòng lặp không hề sửa <code>xin_dung</code>, nên nó kết luận rằng đọc lại biến từ bộ nhớ mỗi vòng là thừa và nạp giá trị vào một thanh ghi một lần duy nhất. Handler ghi vào ô nhớ, nhưng vòng lặp đang đọc thanh ghi — hai nơi khác nhau. <code>volatile</code> chính là lời tuyên bố "biến này có thể bị đổi bởi thứ mà anh không thấy được, hãy đọc lại từ bộ nhớ mỗi lần". Khai báo đủ phải là <code>static volatile sig_atomic_t</code>.' },
+      why: 'Đây là hình mẫu triệu chứng kinh điển: <b>đúng ở -O0, sai ở -O2</b>. Trình tối ưu hoá nhìn thấy thân vòng lặp không hề sửa <code>shutdown_requested</code>, nên nó kết luận rằng đọc lại biến từ bộ nhớ mỗi vòng là thừa và nạp giá trị vào một thanh ghi một lần duy nhất. Handler ghi vào ô nhớ, nhưng vòng lặp đang đọc thanh ghi — hai nơi khác nhau. <code>volatile</code> chính là lời tuyên bố "biến này có thể bị đổi bởi thứ mà anh không thấy được, hãy đọc lại từ bộ nhớ mỗi lần". Khai báo đủ phải là <code>static volatile sig_atomic_t</code>.' },
 
-    { q: 'Handler bắt <code>SIGCHLD</code> của bạn viết <code>if (waitpid(-1, NULL, WNOHANG) &gt; 0) da_gat++;</code>. Tiến trình sinh 5 con chết gần như cùng lúc. Kết quả có thể xảy ra là gì?',
+    { q: 'Handler bắt <code>SIGCHLD</code> của bạn viết <code>if (waitpid(-1, NULL, WNOHANG) &gt; 0) reaped++;</code>. Tiến trình sinh 5 con chết gần như cùng lúc. Kết quả có thể xảy ra là gì?',
       opts: [
         'Luôn gặt đủ 5 con, vì mỗi con chết sinh ra một <code>SIGCHLD</code> riêng',
         'Gặt được ít hơn 5 con và còn zombie sót lại, vì tín hiệu chuẩn không xếp hàng',

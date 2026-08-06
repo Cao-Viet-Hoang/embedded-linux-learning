@@ -21,7 +21,7 @@ Lesson.register({
     'script, build bằng script, và kiểm thử bằng script.',
 
   goals: [
-    'Viết một script có shebang, cấp quyền thực thi và chạy được bằng <code>./tenscript.sh</code>',
+    'Viết một script có shebang, cấp quyền thực thi và chạy được bằng <code>./myscript.sh</code>',
     'Giải thích chính xác vì sao <code>"$x"</code> an toàn còn <code>$x</code> thì không',
     'Dùng mã trả về <code>$?</code> để phân biệt "chạy sai" với "chạy đúng nhưng không tìm thấy"',
     'Viết hàm nhận tham số, dùng <code>local</code>, và trả về mã trạng thái bằng <code>return</code>',
@@ -462,35 +462,35 @@ Lesson.register({
           'Bắt đầu bằng bản không có shebang, để thấy chính xác dòng đó thêm được gì.' },
 
         { t: 'code', where: 'wsl', code:
-          'echo \'echo "xin chao tu $0"\' > khongco.sh\n' +
-          'chmod +x khongco.sh\n' +
-          './khongco.sh\n' +
-          'file khongco.sh' },
+          'echo \'echo "hello from $0"\' > no-shebang.sh\n' +
+          'chmod +x no-shebang.sh\n' +
+          './no-shebang.sh\n' +
+          'file no-shebang.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'xin chao tu ./khongco.sh\n' +
-          'khongco.sh: ASCII text' },
+          'hello from ./no-shebang.sh\n' +
+          'no-shebang.sh: ASCII text' },
 
         { t: 'p', x:
           'Nó <b>chạy</b> — nhưng hãy để ý <code>file</code> chỉ thấy "ASCII text", một file văn ' +
           'bản bình thường. Bây giờ thêm shebang bằng here-doc và so sánh.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > cochao.sh <<\'EOF\'\n' +
+          'cat > with-shebang.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'echo "xin chao tu $0"\n' +
+          'echo "hello from $0"\n' +
           'EOF\n' +
-          'chmod +x cochao.sh\n' +
-          './cochao.sh\n' +
-          'file cochao.sh' },
+          'chmod +x with-shebang.sh\n' +
+          './with-shebang.sh\n' +
+          'file with-shebang.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'xin chao tu ./cochao.sh\n' +
-          'cochao.sh: Bourne-Again shell script, ASCII text executable' },
+          'hello from ./with-shebang.sh\n' +
+          'with-shebang.sh: Bourne-Again shell script, ASCII text executable' },
 
         { t: 'cal', kind: 'why', title: 'Cùng một kết quả, nhưng hai cơ chế hoàn toàn khác nhau', x:
           '<p>Với file <b>có</b> shebang, kernel đọc <code>#!/bin/bash</code> và tự gọi ' +
-          '<code>/bin/bash ./cochao.sh</code>. Đó là con đường chính thức.</p>' +
+          '<code>/bin/bash ./with-shebang.sh</code>. Đó là con đường chính thức.</p>' +
           '<p>Với file <b>không</b> có shebang, kernel từ chối vì không nhận ra định dạng. ' +
           'Shell hiện tại thấy vậy bèn <b>tự đoán</b> rằng đây là script và chạy nó bằng chính ' +
           'nó. Bạn đang phụ thuộc vào lòng tốt của shell, và lòng tốt đó không có trong tiêu ' +
@@ -505,22 +505,22 @@ Lesson.register({
           '<code>chmod +x</code>.' },
 
         { t: 'code', where: 'wsl', code:
-          'cp cochao.sh chuachmod.sh\n' +
-          'chmod -x chuachmod.sh\n' +
-          './chuachmod.sh\n' +
+          'cp with-shebang.sh not-executable.sh\n' +
+          'chmod -x not-executable.sh\n' +
+          './not-executable.sh\n' +
           'echo "ma tra ve = $?"\n' +
-          'bash chuachmod.sh' },
+          'bash not-executable.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'bash: ./chuachmod.sh: Permission denied\n' +
+          'bash: ./not-executable.sh: Permission denied\n' +
           'ma tra ve = 126\n' +
-          'xin chao tu chuachmod.sh' },
+          'hello from not-executable.sh' },
 
         { t: 'cal', kind: 'info', title: 'Permission denied nhưng bash vẫn chạy được — không hề mâu thuẫn', x:
-          '<p><code>./chuachmod.sh</code> yêu cầu kernel <b>thực thi file</b>, và kernel kiểm ' +
+          '<p><code>./not-executable.sh</code> yêu cầu kernel <b>thực thi file</b>, và kernel kiểm ' +
           'tra bit <code>x</code>. Không có thì từ chối, mã <b>126</b>: "tìm thấy nhưng không ' +
           'chạy được".</p>' +
-          '<p><code>bash chuachmod.sh</code> lại là chuyện khác: bạn đang chạy chương trình ' +
+          '<p><code>bash not-executable.sh</code> lại là chuyện khác: bạn đang chạy chương trình ' +
           '<code>bash</code> — vốn có quyền <code>x</code> — và đưa file kia cho nó ' +
           '<b>đọc</b>. Đọc thì chỉ cần quyền <code>r</code>.</p>' +
           '<p>Đây chính là mô hình quyền của Bài 8, nhìn từ một góc mới. Và nó cũng giải thích ' +
@@ -530,13 +530,13 @@ Lesson.register({
         { t: 'p', x: 'Cách thứ hai: shebang gõ sai.' },
 
         { t: 'code', where: 'wsl', code:
-          'printf \'#!/bin/basj\\necho "khong bao gio in ra"\\n\' > sai.sh\n' +
-          'chmod +x sai.sh\n' +
-          './sai.sh\n' +
+          'printf \'#!/bin/basj\\necho "this never prints"\\n\' > bad-shebang.sh\n' +
+          'chmod +x bad-shebang.sh\n' +
+          './bad-shebang.sh\n' +
           'echo "ma tra ve = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'bash: ./sai.sh: /bin/basj: bad interpreter: No such file or directory\n' +
+          'bash: ./bad-shebang.sh: /bin/basj: bad interpreter: No such file or directory\n' +
           'ma tra ve = 126' },
 
         { t: 'p', x:
@@ -544,7 +544,7 @@ Lesson.register({
           'nhìn thấy gì sai</b>: file được lưu với ký tự xuống dòng kiểu Windows.' },
 
         { t: 'code', where: 'wsl', code:
-          'printf \'#!/bin/bash\\r\\necho "co chay khong"\\r\\n\' > crlf.sh\n' +
+          'printf \'#!/bin/bash\\r\\necho "does this run"\\r\\n\' > crlf.sh\n' +
           'chmod +x crlf.sh\n' +
           './crlf.sh\n' +
           'echo "ma tra ve = $?"\n' +
@@ -554,7 +554,7 @@ Lesson.register({
           'bash: ./crlf.sh: /bin/bash^M: bad interpreter: No such file or directory\n' +
           'ma tra ve = 126\n' +
           '#!/bin/bash^M$\n' +
-          'echo "co chay khong"^M$' },
+          'echo "does this run"^M$' },
 
         { t: 'cmdx', cmd: 'cat -A crlf.sh', title: 'Nhìn thấy thứ vô hình',
           rows: [
@@ -581,21 +581,21 @@ Lesson.register({
           'không phải <code>sh</code>.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > sosanh.sh <<\'EOF\'\n' +
+          'cat > bash-vs-sh.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'if [[ "abc" == a* ]]; then echo "[[ ]] hoat dong"; fi\n' +
-          'echo "shell dang chay: $BASH_VERSION"\n' +
+          'if [[ "abc" == a* ]]; then echo "[[ ]] works"; fi\n' +
+          'echo "running shell: $BASH_VERSION"\n' +
           'EOF\n' +
-          'bash sosanh.sh\n' +
-          'sh sosanh.sh\n' +
+          'bash bash-vs-sh.sh\n' +
+          'sh bash-vs-sh.sh\n' +
           'ls -l /bin/sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '[[ ]] hoat dong\n' +
-          'shell dang chay: 5.3.9(1)-release\n' +
-          'sosanh.sh: 2: [[: not found\n' +
-          'shell dang chay: \n' +
-          'lrwxrwxrwx 1 root root 4 Feb  3 03:26 /bin/sh -> dash' },
+          '[[ ]] works\n' +
+          'running shell: 5.3.9(1)-release\n' +
+          'bash-vs-sh.sh: 2: [[: not found\n' +
+          'running shell: \n' +
+          'lrwxrwxrwx 1 root root 4 Feb  3  2026 /bin/sh -> dash' },
 
         { t: 'cal', kind: 'warn', title: 'Đây là bài học quan trọng nhất của bước 1', x:
           '<p><code>/bin/sh</code> <b>không phải</b> bash — nó là một liên kết trỏ tới ' +
@@ -617,31 +617,31 @@ Lesson.register({
           'Trước hết là khác biệt giữa hai loại nháy, và cái bẫy khoảng trắng quanh dấu bằng.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > nhay.sh <<\'EOF\'\n' +
+          'cat > quoting.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'ten="kernel"\n' +
-          'echo "phien ban cua $ten"\n' +
-          'echo \'phien ban cua $ten\'\n' +
-          'echo "hom nay la $(date +%Y)"\n' +
-          'echo \'hom nay la $(date +%Y)\'\n' +
+          'name="kernel"\n' +
+          'echo "version of $name"\n' +
+          'echo \'version of $name\'\n' +
+          'echo "today is $(date +%Y)"\n' +
+          'echo \'today is $(date +%Y)\'\n' +
           'EOF\n' +
-          'bash nhay.sh\n' +
-          'bash -c \'ten = "Linux"\'\n' +
+          'bash quoting.sh\n' +
+          'bash -c \'name = "Linux"\'\n' +
           'echo "ma tra ve = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'phien ban cua kernel\n' +
-          'phien ban cua $ten\n' +
-          'hom nay la 2026\n' +
-          'hom nay la $(date +%Y)\n' +
-          'bash: line 1: ten: command not found\n' +
+          'version of kernel\n' +
+          'version of $name\n' +
+          'today is 2026\n' +
+          'today is $(date +%Y)\n' +
+          'bash: line 1: name: command not found\n' +
           'ma tra ve = 127' },
 
         { t: 'cal', kind: 'info', title: 'Ba dòng, ba bài học', x:
-          '<p><b>Nháy kép thay thế, nháy đơn thì không.</b> Cả biến <code>$ten</code> lẫn thay ' +
+          '<p><b>Nháy kép thay thế, nháy đơn thì không.</b> Cả biến <code>$name</code> lẫn thay ' +
           'thế lệnh <code>$(date …)</code> đều theo quy tắc này.</p>' +
-          '<p><b><code>ten = "Linux"</code> không phải phép gán.</b> Bash tách theo khoảng ' +
-          'trắng, thấy từ đầu tiên là <code>ten</code> và đi tìm một lệnh tên như vậy. Mã ' +
+          '<p><b><code>name = "Linux"</code> không phải phép gán.</b> Bash tách theo khoảng ' +
+          'trắng, thấy từ đầu tiên là <code>name</code> và đi tìm một lệnh tên như vậy. Mã ' +
           '<b>127</b> — "không tìm thấy lệnh" — chính là mã bạn đã gặp ở Bài 12 khi ' +
           '<code>gpiodetect</code> thiếu thư viện.</p>' +
           '<p><b>Quy tắc:</b> không khoảng trắng nào quanh dấu <code>=</code> khi gán. Đây là ' +
@@ -652,26 +652,25 @@ Lesson.register({
           'rồi truy cập nó theo hai cách.' },
 
         { t: 'code', where: 'wsl', code:
-          'mkdir -p thumuc && touch "thumuc/ten co khoang trang.txt"\n' +
-          'cat > tachtu.sh <<\'EOF\'\n' +
+          'mkdir -p folder && touch "folder/file with spaces.txt"\n' +
+          'cat > word-splitting.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'f="thumuc/ten co khoang trang.txt"\n' +
-          'echo "--- co nhay:"\n' +
+          'f="folder/file with spaces.txt"\n' +
+          'echo "--- quoted:"\n' +
           'ls -l "$f"; echo "ma tra ve = $?"\n' +
-          'echo "--- khong nhay:"\n' +
+          'echo "--- unquoted:"\n' +
           'ls -l $f;   echo "ma tra ve = $?"\n' +
           'EOF\n' +
-          'bash tachtu.sh' },
+          'bash word-splitting.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '--- co nhay:\n' +
-          '-rw-r--r-- 1 shinarus shinarus 0 Aug  1 18:02 thumuc/ten co khoang trang.txt\n' +
+          '--- quoted:\n' +
+          '-rw-r--r-- 1 shinarus shinarus 0 Aug  6 08:29 folder/file with spaces.txt\n' +
           'ma tra ve = 0\n' +
-          '--- khong nhay:\n' +
-          'ls: cannot access \'thumuc/ten\': No such file or directory\n' +
-          'ls: cannot access \'co\': No such file or directory\n' +
-          'ls: cannot access \'khoang\': No such file or directory\n' +
-          'ls: cannot access \'trang.txt\': No such file or directory\n' +
+          '--- unquoted:\n' +
+          'ls: cannot access \'folder/file\': No such file or directory\n' +
+          'ls: cannot access \'with\': No such file or directory\n' +
+          'ls: cannot access \'spaces.txt\': No such file or directory\n' +
           'ma tra ve = 2' },
 
         { t: 'cal', kind: 'why', title: 'Bốn thông báo lỗi cho một file — đó là tách từ đang diễn ra', x:
@@ -688,35 +687,35 @@ Lesson.register({
           'sách file.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > sao.sh <<\'EOF\'\n' +
+          'cat > glob-star.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'cd thumuc || exit 1\n' +
-          'mau="*.txt"\n' +
-          'echo "co nhay   : $mau"\n' +
-          'echo "khong nhay: " $mau\n' +
+          'cd folder || exit 1\n' +
+          'pattern="*.txt"\n' +
+          'echo "quoted   : $pattern"\n' +
+          'echo "unquoted : " $pattern\n' +
           'EOF\n' +
-          'bash sao.sh' },
+          'bash glob-star.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'co nhay   : *.txt\n' +
-          'khong nhay:  ten co khoang trang.txt' },
+          'quoted   : *.txt\n' +
+          'unquoted :  file with spaces.txt' },
 
         { t: 'p', x:
           'Và cuối cùng, chứng minh trực quan điều nguy hiểm nhất — không xoá gì thật, chỉ in ra ' +
           'lệnh <b>sẽ</b> được chạy.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > nguyhiem.sh <<\'EOF\'\n' +
+          'cat > dangerous-rm.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'duong=""\n' +
-          'echo "lenh se chay: rm -rf $duong/"\n' +
-          'echo "voi nhay    : rm -rf \\"$duong/\\""\n' +
+          'path=""\n' +
+          'echo "command that will run: rm -rf $path/"\n' +
+          'echo "with quotes           : rm -rf \\"$path/\\""\n' +
           'EOF\n' +
-          'bash nguyhiem.sh' },
+          'bash dangerous-rm.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'lenh se chay: rm -rf /\n' +
-          'voi nhay    : rm -rf "/"' },
+          'command that will run: rm -rf /\n' +
+          'with quotes           : rm -rf "/"' },
 
         { t: 'cal', kind: 'danger', title: 'Nhìn kỹ dòng đầu tiên', x:
           '<p>Biến rỗng cộng với dấu <code>/</code> viết sát sau nó tạo ra chính xác ' +
@@ -725,38 +724,38 @@ Lesson.register({
           '<p>Dấu nháy giúp lộ ra vấn đề (<code>rm -rf "/"</code> vẫn là thảm hoạ, nhưng ít nhất ' +
           'bạn thấy nó), còn thứ thật sự chặn được là <code>set -u</code> ở bước 5 và một dòng ' +
           'kiểm tra:</p>' +
-          '<p><code>[ -n "$duong" ] || { echo "duong rong"; exit 1; }</code></p>' +
+          '<p><code>[ -n "$path" ] || { echo "path is empty"; exit 1; }</code></p>' +
           '<p>Ba lớp bảo vệ này tốn ba giây để viết. Hãy tập thành phản xạ ngay từ script đầu ' +
           'tiên, chứ đừng đợi tới lúc script của bạn chạy trên máy build của công ty.</p>' },
 
         { t: 'p', x: 'Vài phép biến đổi chuỗi tiện dụng bạn sẽ dùng ở bước 6:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > chuadat.sh <<\'EOF\'\n' +
+          'cat > param-expansion.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'echo "gia tri : [$khongtontai]"\n' +
-          'echo "mac dinh: [${khongtontai:-arm64}]"\n' +
-          'ten="linux"\n' +
-          'echo "do dai  : ${#ten}"\n' +
-          'echo "hoa     : ${ten^^}"\n' +
-          'echo "thay    : ${ten/linux/embedded}"\n' +
+          'echo "value   : [$undefined_var]"\n' +
+          'echo "default : [${undefined_var:-arm64}]"\n' +
+          'name="linux"\n' +
+          'echo "length  : ${#name}"\n' +
+          'echo "upper   : ${name^^}"\n' +
+          'echo "replace : ${name/linux/embedded}"\n' +
           'EOF\n' +
-          'bash chuadat.sh' },
+          'bash param-expansion.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'gia tri : []\n' +
-          'mac dinh: [arm64]\n' +
-          'do dai  : 5\n' +
-          'hoa     : LINUX\n' +
-          'thay    : embedded' },
+          'value   : []\n' +
+          'default : [arm64]\n' +
+          'length  : 5\n' +
+          'upper   : LINUX\n' +
+          'replace : embedded' },
 
         { t: 'cal', kind: 'tip', title: '${x:-mặc định} là cách xử lý tham số tuỳ chọn', x:
           '<p>Dòng thứ nhất cho thấy hành vi mặc định của bash: biến chưa đặt được thay bằng ' +
           '<b>chuỗi rỗng</b>, im lặng, không cảnh báo. Chính sự im lặng đó là nguồn gốc của thảm ' +
           'hoạ vừa xem ở trên.</p>' +
-          '<p><code>${khongtontai:-arm64}</code> nói: "dùng giá trị của biến, nhưng nếu nó chưa ' +
+          '<p><code>${undefined_var:-arm64}</code> nói: "dùng giá trị của biến, nhưng nếu nó chưa ' +
           'đặt hoặc rỗng thì dùng <code>arm64</code>". Ở bước 6 bạn sẽ viết ' +
-          '<code>KIEN_TRUC="${1:-arm64}"</code> — nghĩa là "lấy tham số thứ nhất, không có thì ' +
+          '<code>ARCH="${1:-arm64}"</code> — nghĩa là "lấy tham số thứ nhất, không có thì ' +
           'mặc định arm64". Một dòng, xử lý gọn toàn bộ trường hợp người dùng không truyền tham ' +
           'số.</p>' }
       ]},
@@ -767,24 +766,24 @@ Lesson.register({
           'Trước khi viết <code>if</code>, hãy nhìn thấy thứ mà <code>if</code> thật sự đọc.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > mtv.sh <<\'EOF\'\n' +
+          'cat > exit-codes.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'ls /etc/hostname > /dev/null\n' +
-          'echo "ls thanh cong  -> $?"\n' +
-          'ls /khong/ton/tai > /dev/null 2>&1\n' +
-          'echo "ls that bai    -> $?"\n' +
+          'echo "ls succeeded   -> $?"\n' +
+          'ls /no/such/path > /dev/null 2>&1\n' +
+          'echo "ls failed      -> $?"\n' +
           'grep -q root /etc/passwd\n' +
-          'echo "grep tim thay  -> $?"\n' +
-          'grep -q khongcogi /etc/passwd\n' +
-          'echo "grep khong thay-> $?"\n' +
+          'echo "grep found     -> $?"\n' +
+          'grep -q doesnotexist /etc/passwd\n' +
+          'echo "grep not found -> $?"\n' +
           'EOF\n' +
-          'bash mtv.sh' },
+          'bash exit-codes.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'ls thanh cong  -> 0\n' +
-          'ls that bai    -> 2\n' +
-          'grep tim thay  -> 0\n' +
-          'grep khong thay-> 1' },
+          'ls succeeded   -> 0\n' +
+          'ls failed      -> 2\n' +
+          'grep found     -> 0\n' +
+          'grep not found -> 1' },
 
         { t: 'cal', kind: 'info', title: 'grep trả về 1 không phải là lỗi', x:
           '<p>Bạn đã biết điều này từ Bài 11: mã <b>1</b> của <code>grep</code> nghĩa là "chạy ' +
@@ -798,27 +797,27 @@ Lesson.register({
           'Giờ tới <code>if</code>, và bằng chứng rằng <code>[</code> chỉ là một lệnh.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > ifla.sh <<\'EOF\'\n' +
+          'cat > if-test.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'if grep -q root /etc/passwd; then\n' +
-          '  echo "co nguoi dung root"\n' +
+          '  echo "root user exists"\n' +
           'fi\n' +
           'if [ -f /etc/hostname ]; then\n' +
-          '  echo "/etc/hostname la file thuong"\n' +
+          '  echo "/etc/hostname is a regular file"\n' +
           'fi\n' +
-          'if [ ! -d /khong/co ]; then\n' +
-          '  echo "/khong/co khong phai thu muc"\n' +
+          'if [ ! -d /no/such/dir ]; then\n' +
+          '  echo "/no/such/dir is not a directory"\n' +
           'fi\n' +
           'EOF\n' +
-          'bash ifla.sh\n' +
+          'bash if-test.sh\n' +
           'type [\n' +
           'ls -l /usr/bin/[\n' +
           'type -a [[' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'co nguoi dung root\n' +
-          '/etc/hostname la file thuong\n' +
-          '/khong/co khong phai thu muc\n' +
+          'root user exists\n' +
+          '/etc/hostname is a regular file\n' +
+          '/no/such/dir is not a directory\n' +
           '[ is a shell builtin\n' +
           'lrwxrwxrwx 1 root root 28 Mar 30 23:50 /usr/bin/[ -> ../lib/cargo/bin/coreutils/[\n' +
           '[[ is a shell keyword' },
@@ -838,25 +837,29 @@ Lesson.register({
         { t: 'p', x: 'Bây giờ là cái bẫy đắt giá nhất trong bài. Hãy chạy và quan sát kỹ.' },
 
         { t: 'code', where: 'wsl', code:
-          'ls\n' +
-          'bash -c \'so=15; if [ "$so" > 10 ]; then echo "nhanh then da chay"; fi\'\n' +
-          'ls' },
+          'ls -C\n' +
+          'bash -c \'n=15; if [ "$n" > 10 ]; then echo "then branch ran"; fi\'\n' +
+          'ls -C' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'chuachmod.sh  cochao.sh  crlf.sh  ifla.sh  khongco.sh  mtv.sh\n' +
-          'nguyhiem.sh   nhay.sh    sai.sh   sao.sh   sosanh.sh   tachtu.sh  thumuc\n' +
-          'nhanh then da chay\n' +
-          '10            chuachmod.sh  cochao.sh  crlf.sh  ifla.sh  khongco.sh  mtv.sh\n' +
-          'nguyhiem.sh   nhay.sh       sai.sh     sao.sh   sosanh.sh  tachtu.sh  thumuc' },
+          'bad-shebang.sh   exit-codes.sh  no-shebang.sh       with-shebang.sh\n' +
+          'bash-vs-sh.sh    folder         not-executable.sh   word-splitting.sh\n' +
+          'crlf.sh          glob-star.sh   param-expansion.sh\n' +
+          'dangerous-rm.sh  if-test.sh     quoting.sh\n' +
+          'then branch ran\n' +
+          '10               dangerous-rm.sh  if-test.sh          quoting.sh\n' +
+          'bad-shebang.sh   exit-codes.sh    no-shebang.sh       with-shebang.sh\n' +
+          'bash-vs-sh.sh    folder           not-executable.sh   word-splitting.sh\n' +
+          'crlf.sh          glob-star.sh     param-expansion.sh' },
 
         { t: 'cal', kind: 'danger', title: 'Một file tên "10" vừa xuất hiện trong thư mục của bạn', x:
           '<p>Bash không hề so sánh gì. Nó đọc <code>&gt; 10</code> là <b>chuyển hướng đầu ra ' +
           'vào file tên <code>10</code></b>, tạo file đó ra, rồi chạy phần còn lại là ' +
           '<code>[ "15" ]</code> — nghĩa là "chuỗi này có nội dung không?" — và câu trả lời ' +
           'luôn là có.</p>' +
-          '<p>Đổi <code>so=15</code> thành <code>so=3</code> thì nhánh <code>then</code> ' +
+          '<p>Đổi <code>n=15</code> thành <code>n=3</code> thì nhánh <code>then</code> ' +
           '<b>vẫn</b> chạy. Điều kiện của bạn hoàn toàn vô nghĩa, mà script không hề báo lỗi.</p>' +
-          '<p>Viết đúng: <code>[ "$so" -gt 10 ]</code>. Hoặc <code>(( so &gt; 10 ))</code> nếu ' +
+          '<p>Viết đúng: <code>[ "$n" -gt 10 ]</code>. Hoặc <code>(( n &gt; 10 ))</code> nếu ' +
           'bạn thích ký hiệu toán học — trong ngoặc kép đó, <code>&gt;</code> mang đúng nghĩa ' +
           '"lớn hơn". Xoá file rác đi bằng <code>rm 10</code>.</p>' },
 
@@ -866,11 +869,11 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'rm -f 10\n' +
           'bash -c \'x=""; if [ $x = "abc" ]; then echo yes; fi\'\n' +
-          'bash -c \'x=""; if [ "$x" = "abc" ]; then echo yes; else echo "co nhay: chay binh thuong"; fi\'' },
+          'bash -c \'x=""; if [ "$x" = "abc" ]; then echo yes; else echo "quoted: runs normally"; fi\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'bash: line 1: [: =: unary operator expected\n' +
-          'co nhay: chay binh thuong' },
+          'quoted: runs normally' },
 
         { t: 'cal', kind: 'why', title: 'Vì sao thiếu nháy lại thành lỗi cú pháp', x:
           '<p>Biến rỗng, không nháy, nên nó <b>biến mất hoàn toàn</b> khỏi dòng lệnh. ' +
@@ -887,12 +890,12 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'cat > case.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'for kt in arm64 armhf x86_64 mips; do\n' +
-          '  case "$kt" in\n' +
-          '    arm64)        echo "$kt -> aarch64-linux-gnu-gcc" ;;\n' +
-          '    armhf|arm)    echo "$kt -> arm-linux-gnueabihf-gcc" ;;\n' +
-          '    x86_64|amd64) echo "$kt -> gcc" ;;\n' +
-          '    *)            echo "$kt -> chua ho tro" ;;\n' +
+          'for arch in arm64 armhf x86_64 mips; do\n' +
+          '  case "$arch" in\n' +
+          '    arm64)        echo "$arch -> aarch64-linux-gnu-gcc" ;;\n' +
+          '    armhf|arm)    echo "$arch -> arm-linux-gnueabihf-gcc" ;;\n' +
+          '    x86_64|amd64) echo "$arch -> gcc" ;;\n' +
+          '    *)            echo "$arch -> not supported" ;;\n' +
           '  esac\n' +
           'done\n' +
           'EOF\n' +
@@ -902,37 +905,37 @@ Lesson.register({
           'arm64 -> aarch64-linux-gnu-gcc\n' +
           'armhf -> arm-linux-gnueabihf-gcc\n' +
           'x86_64 -> gcc\n' +
-          'mips -> chua ho tro' },
+          'mips -> not supported' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > lap.sh <<\'EOF\'\n' +
+          'cat > loops.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'for f in *.sh; do\n' +
-          '  printf "%-14s %s dong\\n" "$f" "$(wc -l < "$f")"\n' +
+          '  printf "%-14s %s lines\\n" "$f" "$(wc -l < "$f")"\n' +
           'done | head -5\n' +
-          'echo "--- while doc tung dong"\n' +
-          'head -3 /etc/passwd | while IFS=: read -r ten _ uid _; do\n' +
-          '  echo "nguoi dung $ten co UID $uid"\n' +
+          'echo "--- while reading line by line"\n' +
+          'head -3 /etc/passwd | while IFS=: read -r user _ uid _; do\n' +
+          '  echo "user $user has UID $uid"\n' +
           'done\n' +
           'EOF\n' +
-          'bash lap.sh' },
+          'bash loops.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'case.sh        9 dong\n' +
-          'chuachmod.sh   2 dong\n' +
-          'chuadat.sh     7 dong\n' +
-          'cochao.sh      2 dong\n' +
-          'crlf.sh        2 dong\n' +
-          '--- while doc tung dong\n' +
-          'nguoi dung root co UID 0\n' +
-          'nguoi dung daemon co UID 1\n' +
-          'nguoi dung bin co UID 2' },
+          'bad-shebang.sh 2 lines\n' +
+          'bash-vs-sh.sh  3 lines\n' +
+          'case.sh        9 lines\n' +
+          'crlf.sh        2 lines\n' +
+          'dangerous-rm.sh 4 lines\n' +
+          '--- while reading line by line\n' +
+          'user root has UID 0\n' +
+          'user daemon has UID 1\n' +
+          'user bin has UID 2' },
 
-        { t: 'cmdx', cmd: 'while IFS=: read -r ten _ uid _; do … done', title: 'Mẫu đọc file theo dòng — học một lần, dùng mãi',
+        { t: 'cmdx', cmd: 'while IFS=: read -r user _ uid _; do … done', title: 'Mẫu đọc file theo dòng — học một lần, dùng mãi',
           rows: [
             ['<code>IFS=:</code>', 'Đặt ký tự phân tách <b>chỉ cho lệnh này</b>', '<code>/etc/passwd</code> ngăn trường bằng dấu hai chấm'],
             ['<code>read -r</code>', 'Đọc một dòng, cắt theo IFS, gán vào các biến', '<b><code>-r</code> là bắt buộc</b>: không có nó, dấu <code>\\</code> trong dữ liệu bị nuốt'],
-            ['<code>ten _ uid _</code>', 'Bốn biến. <code>_</code> là quy ước "không quan tâm"', 'Biến <b>cuối cùng</b> nhận hết phần dư của dòng'],
+            ['<code>user _ uid _</code>', 'Bốn biến. <code>_</code> là quy ước "không quan tâm"', 'Biến <b>cuối cùng</b> nhận hết phần dư của dòng'],
             ['<code>for</code> hay <code>while</code>?', '<code>for</code> duyệt danh sách <b>đã biết</b>, <code>while read</code> duyệt <b>dòng</b>', 'Đừng dùng <code>for dong in $(cat f)</code> — nó tách theo khoảng trắng chứ không theo dòng']
           ]}
       ]},
@@ -945,44 +948,44 @@ Lesson.register({
           'mà không cần sửa gì.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > ham.sh <<\'EOF\'\n' +
+          'cat > functions.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'log() {\n' +
           '  echo "[$(date +%H:%M:%S)] $*"\n' +
           '}\n' +
-          'kiem_tra_lenh() {\n' +
-          '  local lenh="$1"\n' +
-          '  if command -v "$lenh" > /dev/null 2>&1; then\n' +
-          '    echo "co    : $lenh -> $(command -v "$lenh")"\n' +
+          'check_tool() {\n' +
+          '  local tool="$1"\n' +
+          '  if command -v "$tool" > /dev/null 2>&1; then\n' +
+          '    echo "found  : $tool -> $(command -v "$tool")"\n' +
           '    return 0\n' +
           '  else\n' +
-          '    echo "thieu : $lenh"\n' +
+          '    echo "missing: $tool"\n' +
           '    return 1\n' +
           '  fi\n' +
           '}\n' +
-          'log "bat dau kiem tra"\n' +
-          'kiem_tra_lenh gcc\n' +
-          'kiem_tra_lenh aarch64-linux-gnu-gcc\n' +
-          'kiem_tra_lenh congcukhongtontai\n' +
-          'echo "ma tra ve cua lan cuoi = $?"\n' +
-          'log "xong"\n' +
+          'log "starting checks"\n' +
+          'check_tool gcc\n' +
+          'check_tool aarch64-linux-gnu-gcc\n' +
+          'check_tool notarealtool\n' +
+          'echo "exit code of last call = $?"\n' +
+          'log "done"\n' +
           'EOF\n' +
-          'bash ham.sh' },
+          'bash functions.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '[18:03:15] bat dau kiem tra\n' +
-          'co    : gcc -> /usr/bin/gcc\n' +
-          'co    : aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
-          'thieu : congcukhongtontai\n' +
-          'ma tra ve cua lan cuoi = 1\n' +
-          '[18:03:15] xong' },
+          '[08:29:36] starting checks\n' +
+          'found  : gcc -> /usr/bin/gcc\n' +
+          'found  : aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
+          'missing: notarealtool\n' +
+          'exit code of last call = 1\n' +
+          '[08:29:37] done' },
 
-        { t: 'cmdx', cmd: 'kiem_tra_lenh()', title: 'Bốn quyết định thiết kế trong mười dòng',
+        { t: 'cmdx', cmd: 'check_tool()', title: 'Bốn quyết định thiết kế trong mười dòng',
           rows: [
-            ['<code>local lenh="$1"</code>', 'Đặt tên cho tham số ngay dòng đầu', 'Đọc dễ hơn hẳn việc rải <code>$1</code> khắp hàm. <code>local</code> ngăn nó rò ra ngoài'],
+            ['<code>local tool="$1"</code>', 'Đặt tên cho tham số ngay dòng đầu', 'Đọc dễ hơn hẳn việc rải <code>$1</code> khắp hàm. <code>local</code> ngăn nó rò ra ngoài'],
             ['<code>command -v</code>', 'Hỏi "lệnh này có tồn tại không" và in đường dẫn', '<b>Chuẩn POSIX</b>, chạy được cả trên dash. <code>which</code> thì không phải lúc nào cũng có'],
             ['<code>&gt; /dev/null 2&gt;&amp;1</code>', 'Vứt cả đầu ra lẫn báo lỗi', 'Ta chỉ cần <b>mã trả về</b>, không cần chữ'],
-            ['<code>return 0</code> / <code>return 1</code>', 'Hàm trả về <b>trạng thái</b>, không phải giá trị', 'Nhờ đó gọi được <code>if kiem_tra_lenh gcc; then …</code>']
+            ['<code>return 0</code> / <code>return 1</code>', 'Hàm trả về <b>trạng thái</b>, không phải giá trị', 'Nhờ đó gọi được <code>if check_tool gcc; then …</code>']
           ]},
 
         { t: 'cal', kind: 'why', title: 'Hàm bash trả về trạng thái, không trả về giá trị', x:
@@ -990,7 +993,7 @@ Lesson.register({
           '<b>không</b> trả số 1 cho người gọi — nó đặt mã trạng thái, đọc bằng ' +
           '<code>$?</code>.</p>' +
           '<p>Muốn hàm trả về một <i>giá trị</i> thì <code>echo</code> nó ra và người gọi bắt lấy ' +
-          'bằng <code>ket_qua="$(ten_ham)"</code>. Đó là lý do hàm <code>kiem_tra_lenh</code> ở ' +
+          'bằng <code>result="$(my_function)"</code>. Đó là lý do hàm <code>check_tool</code> ở ' +
           'trên phải nuốt đầu ra của <code>command -v</code> — nếu để nó in bừa, mọi lời gọi ' +
           'kiểu <code>$(…)</code> sẽ nhận rác.</p>' +
           '<p>Nhớ: <code>return</code> thoát khỏi <b>hàm</b>, <code>exit</code> thoát khỏi ' +
@@ -999,54 +1002,54 @@ Lesson.register({
         { t: 'p', x: 'Bây giờ tới tham số dòng lệnh, thứ biến script thành công cụ dùng lại được.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > thamso.sh <<\'EOF\'\n' +
+          'cat > parameters.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'echo "ten script : $0"\n' +
-          'echo "tham so 1  : $1"\n' +
-          'echo "tham so 2  : $2"\n' +
-          'echo "so tham so : $#"\n' +
-          'echo "tat ca     : $@"\n' +
-          'for t in "$@"; do\n' +
-          '  echo "  [$t]"\n' +
+          'echo "script name : $0"\n' +
+          'echo "argument 1  : $1"\n' +
+          'echo "argument 2  : $2"\n' +
+          'echo "arg count   : $#"\n' +
+          'echo "all args    : $@"\n' +
+          'for a in "$@"; do\n' +
+          '  echo "  [$a]"\n' +
           'done\n' +
           'EOF\n' +
-          'chmod +x thamso.sh\n' +
-          './thamso.sh arm64 "ban dung nhieu tu"' },
+          'chmod +x parameters.sh\n' +
+          './parameters.sh arm64 "you used many words"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'ten script : ./thamso.sh\n' +
-          'tham so 1  : arm64\n' +
-          'tham so 2  : ban dung nhieu tu\n' +
-          'so tham so : 2\n' +
-          'tat ca     : arm64 ban dung nhieu tu\n' +
+          'script name : ./parameters.sh\n' +
+          'argument 1  : arm64\n' +
+          'argument 2  : you used many words\n' +
+          'arg count   : 2\n' +
+          'all args    : arm64 you used many words\n' +
           '  [arm64]\n' +
-          '  [ban dung nhieu tu]' },
+          '  [you used many words]' },
 
         { t: 'p', x:
           'Chú ý <code>$#</code> bằng <b>2</b> chứ không phải 5: dấu nháy khi <i>gọi</i> script ' +
-          'đã giữ "ban dung nhieu tu" thành một tham số. Bây giờ so sánh ' +
+          'đã giữ "you used many words" thành một tham số. Bây giờ so sánh ' +
           '<code>"$@"</code> với <code>"$*"</code>.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > saoat.sh <<\'EOF\'\n' +
+          'cat > at-vs-star.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'echo \'dung "$@":\'\n' +
-          'for t in "$@"; do echo "  [$t]"; done\n' +
-          'echo \'dung "$*":\'\n' +
-          'for t in "$*"; do echo "  [$t]"; done\n' +
+          'echo \'using "$@":\'\n' +
+          'for a in "$@"; do echo "  [$a]"; done\n' +
+          'echo \'using "$*":\'\n' +
+          'for a in "$*"; do echo "  [$a]"; done\n' +
           'EOF\n' +
-          'bash saoat.sh mot "hai ba" bon' },
+          'bash at-vs-star.sh one "two three" four' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'dung "$@":\n' +
-          '  [mot]\n' +
-          '  [hai ba]\n' +
-          '  [bon]\n' +
-          'dung "$*":\n' +
-          '  [mot hai ba bon]' },
+          'using "$@":\n' +
+          '  [one]\n' +
+          '  [two three]\n' +
+          '  [four]\n' +
+          'using "$*":\n' +
+          '  [one two three four]' },
 
         { t: 'cal', kind: 'warn', title: 'Ba dòng so với một dòng — ranh giới tham số đã biến mất', x:
-          '<p><code>"$@"</code> giữ nguyên ba tham số, trong đó <code>hai ba</code> vẫn liền ' +
+          '<p><code>"$@"</code> giữ nguyên ba tham số, trong đó <code>two three</code> vẫn liền ' +
           'khối. <code>"$*"</code> nối tất cả thành một chuỗi và <b>không có cách nào khôi ' +
           'phục</b> ranh giới ban đầu.</p>' +
           '<p>Hậu quả thật: script của bạn nhận danh sách tên file rồi chuyển tiếp cho ' +
@@ -1063,20 +1066,20 @@ Lesson.register({
           'thức mê tín. Bắt đầu bằng một script <b>không</b> có chúng.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > khongset.sh <<\'EOF\'\n' +
+          'cat > no-set-e.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'thumuc="/khong/ton/tai"\n' +
-          'cd "$thumuc"\n' +
-          'echo "van chay tiep, va bay gio dang o: $(pwd)"\n' +
-          'echo "gia su o day co lenh rm -rf ./build"\n' +
+          'dir="/no/such/dir"\n' +
+          'cd "$dir"\n' +
+          'echo "still continues, and now at: $(pwd)"\n' +
+          'echo "suppose here there is a command rm -rf ./build"\n' +
           'EOF\n' +
-          'bash khongset.sh\n' +
+          'bash no-set-e.sh\n' +
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'khongset.sh: line 3: cd: /khong/ton/tai: No such file or directory\n' +
-          'van chay tiep, va bay gio dang o: /home/shinarus/b13\n' +
-          'gia su o day co lenh rm -rf ./build\n' +
+          'no-set-e.sh: line 3: cd: /no/such/dir: No such file or directory\n' +
+          'still continues, and now at: /home/shinarus/b13\n' +
+          'suppose here there is a command rm -rf ./build\n' +
           'rc=0' },
 
         { t: 'cal', kind: 'danger', title: 'Đọc lại dòng thứ hai của kết quả — đó là toàn bộ vấn đề', x:
@@ -1090,18 +1093,18 @@ Lesson.register({
         { t: 'p', x: 'Thêm đúng một dòng <code>set -e</code>:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > coset.sh <<\'EOF\'\n' +
+          'cat > with-set-e.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'set -e\n' +
-          'thumuc="/khong/ton/tai"\n' +
-          'cd "$thumuc"\n' +
-          'echo "dong nay khong bao gio in ra"\n' +
+          'dir="/no/such/dir"\n' +
+          'cd "$dir"\n' +
+          'echo "this line never prints"\n' +
           'EOF\n' +
-          'bash coset.sh\n' +
+          'bash with-set-e.sh\n' +
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'coset.sh: line 4: cd: /khong/ton/tai: No such file or directory\n' +
+          'with-set-e.sh: line 4: cd: /no/such/dir: No such file or directory\n' +
           'rc=1' },
 
         { t: 'p', x:
@@ -1109,23 +1112,23 @@ Lesson.register({
           'gõ nhầm tên biến — hãy nhìn kỹ, trong script dưới đây có một chữ cái bị thiếu.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > setu.sh <<\'EOF\'\n' +
+          'cat > unbound-var.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'set -u\n' +
-          'thu_muc_build="/tmp/build-test"\n' +
-          'echo "chuan bi xoa: $thu_muc_buld"\n' +
+          'build_dir="/tmp/build-test"\n' +
+          'echo "about to remove: $buld_dir"\n' +
           'EOF\n' +
-          'bash setu.sh\n' +
+          'bash unbound-var.sh\n' +
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'setu.sh: line 4: thu_muc_buld: unbound variable\n' +
+          'unbound-var.sh: line 4: buld_dir: unbound variable\n' +
           'rc=1' },
 
         { t: 'cal', kind: 'why', title: 'set -u chính là lớp bảo vệ đã thiếu ở bước 2', x:
-          '<p>Biến tên <code>thu_muc_buld</code> (thiếu chữ <code>i</code>) chưa từng được gán. ' +
+          '<p>Biến tên <code>buld_dir</code> (thiếu chữ <code>i</code>) chưa từng được gán. ' +
           'Không có <code>set -u</code>, bash lặng lẽ thay nó bằng chuỗi rỗng — và ' +
-          '<code>rm -rf $thu_muc_buld/</code> sẽ thành <code>rm -rf /</code>, đúng thảm hoạ bạn ' +
+          '<code>rm -rf $buld_dir/</code> sẽ thành <code>rm -rf /</code>, đúng thảm hoạ bạn ' +
           'đã thấy ở bước 2.</p>' +
           '<p>Có <code>set -u</code>, script chết ngay tại dòng đó với thông báo chỉ thẳng vào ' +
           'tên biến sai. Một dòng cấu hình đổi lấy cả một lớp lỗi.</p>' +
@@ -1140,20 +1143,20 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'cat > pipe.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
-          'echo "--- khong co pipefail"\n' +
+          'echo "--- without pipefail"\n' +
           'false | true\n' +
           'echo "ma tra ve = $?"\n' +
           'set -o pipefail\n' +
-          'echo "--- co pipefail"\n' +
+          'echo "--- with pipefail"\n' +
           'false | true\n' +
           'echo "ma tra ve = $?"\n' +
           'EOF\n' +
           'bash pipe.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '--- khong co pipefail\n' +
+          '--- without pipefail\n' +
           'ma tra ve = 0\n' +
-          '--- co pipefail\n' +
+          '--- with pipefail\n' +
           'ma tra ve = 1' },
 
         { t: 'cal', kind: 'warn', title: 'Vì sao pipefail là bắt buộc với người làm nhúng', x:
@@ -1171,22 +1174,22 @@ Lesson.register({
           'kiểm chứng, nếu không sẽ tưởng nó hỏng:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > baye.sh <<\'EOF\'\n' +
+          'cat > set-e-exception.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'set -e\n' +
-          'if grep -q khongcogi /etc/passwd; then\n' +
-          '  echo "tim thay"\n' +
+          'if grep -q doesnotexist /etc/passwd; then\n' +
+          '  echo "found"\n' +
           'else\n' +
-          '  echo "khong tim thay - va script VAN chay tiep"\n' +
+          '  echo "not found - and script STILL continues"\n' +
           'fi\n' +
-          'echo "den cuoi script"\n' +
+          'echo "reached end of script"\n' +
           'EOF\n' +
-          'bash baye.sh\n' +
+          'bash set-e-exception.sh\n' +
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'khong tim thay - va script VAN chay tiep\n' +
-          'den cuoi script\n' +
+          'not found - and script STILL continues\n' +
+          'reached end of script\n' +
           'rc=0' },
 
         { t: 'cal', kind: 'info', title: 'grep trả về 1 nhưng script không chết — đúng như thiết kế', x:
@@ -1207,29 +1210,29 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'cat > heredoc.sh <<\'OUTER\'\n' +
           '#!/bin/bash\n' +
-          'ten="arm64"\n' +
-          'cat > cauhinh.txt <<EOF\n' +
-          'kien truc = $ten\n' +
-          'ngay tao  = $(date +%Y-%m-%d)\n' +
+          'arch="arm64"\n' +
+          'cat > config.txt <<EOF\n' +
+          'architecture = $arch\n' +
+          'created      = $(date +%Y-%m-%d)\n' +
           'EOF\n' +
-          'echo "--- co thay the bien:"\n' +
-          'cat cauhinh.txt\n' +
-          'cat > nguyenban.txt <<\'EOF\'\n' +
-          'kien truc = $ten\n' +
-          'lenh      = $(date)\n' +
+          'echo "--- with variable substitution:"\n' +
+          'cat config.txt\n' +
+          'cat > literal.txt <<\'EOF\'\n' +
+          'architecture = $arch\n' +
+          'command      = $(date)\n' +
           'EOF\n' +
-          'echo "--- KHONG thay the (nhay quanh EOF):"\n' +
-          'cat nguyenban.txt\n' +
+          'echo "--- NOT substituted (quotes around EOF):"\n' +
+          'cat literal.txt\n' +
           'OUTER\n' +
           'bash heredoc.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '--- co thay the bien:\n' +
-          'kien truc = arm64\n' +
-          'ngay tao  = 2026-08-01\n' +
-          '--- KHONG thay the (nhay quanh EOF):\n' +
-          'kien truc = $ten\n' +
-          'lenh      = $(date)' },
+          '--- with variable substitution:\n' +
+          'architecture = arm64\n' +
+          'created      = 2026-08-06\n' +
+          '--- NOT substituted (quotes around EOF):\n' +
+          'architecture = $arch\n' +
+          'command      = $(date)' },
 
         { t: 'cal', kind: 'tip', title: 'Dấu nháy quanh EOF quyết định tất cả', x:
           '<p><code>&lt;&lt;EOF</code> — bash thay thế biến và lệnh. Dùng khi bạn muốn <b>nhúng ' +
@@ -1249,27 +1252,27 @@ Lesson.register({
           'cat > trapfail.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'set -euo pipefail\n' +
-          'tam="$(mktemp -d)"\n' +
-          'trap \'echo "  [trap] don dep $tam"; rm -rf "$tam"\' EXIT\n' +
-          'echo "thu muc tam: $tam"\n' +
+          'tmpdir="$(mktemp -d)"\n' +
+          'trap \'echo "  [trap] cleaning up $tmpdir"; rm -rf "$tmpdir"\' EXIT\n' +
+          'echo "temp dir: $tmpdir"\n' +
           'false\n' +
-          'echo "khong bao gio in ra"\n' +
+          'echo "this never prints"\n' +
           'EOF\n' +
           'bash trapfail.sh\n' +
           'echo "rc=$?"\n' +
           'ls -d /tmp/tmp.* 2>/dev/null | wc -l' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'thu muc tam: /tmp/tmp.tDL53NGosZ\n' +
-          '  [trap] don dep /tmp/tmp.tDL53NGosZ\n' +
+          'temp dir: /tmp/tmp.gr4L6R8t5w\n' +
+          '  [trap] cleaning up /tmp/tmp.gr4L6R8t5w\n' +
           'rc=1\n' +
           '0' },
 
-        { t: 'cmdx', cmd: 'trap \'rm -rf "$tam"\' EXIT', title: 'Bốn chi tiết làm nên sự khác biệt',
+        { t: 'cmdx', cmd: 'trap \'rm -rf "$tmpdir"\' EXIT', title: 'Bốn chi tiết làm nên sự khác biệt',
           rows: [
             ['<code>mktemp -d</code>', 'Nhân tạo một thư mục tên <b>ngẫu nhiên</b>, không trùng', 'Tự viết <code>/tmp/build</code> là mời gọi hai lần chạy song song giẫm lên nhau'],
             ['<code>trap … EXIT</code>', 'Chạy lệnh này khi script kết thúc, <b>bằng mọi cách</b>', 'Thành công, thất bại, hay <kbd>Ctrl</kbd>+<kbd>C</kbd> — đều chạy'],
-            ['Nháy <b>đơn</b> quanh lệnh trap', 'Hoãn việc thay <code>$tam</code> tới <b>lúc trap chạy</b>', 'Nháy kép sẽ chốt giá trị ngay lúc đăng ký — hỏng nếu biến đổi sau đó'],
+            ['Nháy <b>đơn</b> quanh lệnh trap', 'Hoãn việc thay <code>$tmpdir</code> tới <b>lúc trap chạy</b>', 'Nháy kép sẽ chốt giá trị ngay lúc đăng ký — hỏng nếu biến đổi sau đó'],
             ['Đặt trap ngay sau mktemp', 'Không để khoảng trống nào giữa "tạo" và "hẹn xoá"', 'Bất kỳ lệnh nào chen vào giữa cũng có thể chết và bỏ lại rác']
           ]},
 
@@ -1298,7 +1301,7 @@ Lesson.register({
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    printf("Xin chao tu Embedded Linux\\n");\n' +
+          '    printf("Hello from Embedded Linux\\n");\n' +
           '    return 0;\n' +
           '}\n' +
           'EOF' },
@@ -1307,39 +1310,39 @@ Lesson.register({
           '#!/bin/bash\n' +
           'set -euo pipefail\n' +
           '\n' +
-          'KIEN_TRUC="${1:-arm64}"\n' +
-          'NGUON="${2:-hello.c}"\n' +
+          'ARCH="${1:-arm64}"\n' +
+          'SRC="${2:-hello.c}"\n' +
           '\n' +
-          'TAM="$(mktemp -d)"\n' +
-          'trap \'rm -rf "$TAM"\' EXIT\n' +
+          'TMPDIR="$(mktemp -d)"\n' +
+          'trap \'rm -rf "$TMPDIR"\' EXIT\n' +
           '\n' +
           'log() { printf \'[%s] %s\\n\' "$(date +%H:%M:%S)" "$*"; }\n' +
-          'loi() { printf \'[LOI] %s\\n\' "$*" >&2; exit 1; }\n' +
+          'die() { printf \'[ERROR] %s\\n\' "$*" >&2; exit 1; }\n' +
           '\n' +
-          'can_co() {\n' +
-          '  local lenh="$1"\n' +
-          '  command -v "$lenh" > /dev/null 2>&1 || loi "thieu cong cu: $lenh"\n' +
-          '  log "co $lenh -> $(command -v "$lenh")"\n' +
+          'have_tool() {\n' +
+          '  local tool="$1"\n' +
+          '  command -v "$tool" > /dev/null 2>&1 || die "missing tool: $tool"\n' +
+          '  log "found $tool -> $(command -v "$tool")"\n' +
           '}\n' +
           '\n' +
-          'case "$KIEN_TRUC" in\n' +
-          '  arm64)      CC="aarch64-linux-gnu-gcc"; CO_THEM=(-static) ;;\n' +
-          '  x86|amd64)  CC="gcc";                   CO_THEM=() ;;\n' +
-          '  *)          loi "kien truc chua ho tro: $KIEN_TRUC" ;;\n' +
+          'case "$ARCH" in\n' +
+          '  arm64)      CC="aarch64-linux-gnu-gcc"; EXTRA_FLAGS=(-static) ;;\n' +
+          '  x86|amd64)  CC="gcc";                   EXTRA_FLAGS=() ;;\n' +
+          '  *)          die "unsupported architecture: $ARCH" ;;\n' +
           'esac\n' +
           '\n' +
-          'can_co "$CC"\n' +
-          '[ -f "$NGUON" ] || loi "khong tim thay ma nguon: $NGUON"\n' +
+          'have_tool "$CC"\n' +
+          '[ -f "$SRC" ] || die "source file not found: $SRC"\n' +
           '\n' +
-          'DICH="$TAM/hello-$KIEN_TRUC"\n' +
-          'log "bien dich $NGUON cho $KIEN_TRUC"\n' +
-          '"$CC" "${CO_THEM[@]}" -o "$DICH" "$NGUON"\n' +
+          'OUT="$TMPDIR/hello-$ARCH"\n' +
+          'log "compiling $SRC for $ARCH"\n' +
+          '"$CC" "${EXTRA_FLAGS[@]}" -o "$OUT" "$SRC"\n' +
           '\n' +
-          'log "kich thuoc: $(stat -c %s "$DICH") byte"\n' +
-          'log "dinh dang : $(file -b "$DICH" | cut -d, -f1-2)"\n' +
+          'log "size    : $(stat -c %s "$OUT") bytes"\n' +
+          'log "format  : $(file -b "$OUT" | cut -d, -f1-2)"\n' +
           '\n' +
-          'cp "$DICH" "./hello-$KIEN_TRUC"\n' +
-          'log "ket qua   : ./hello-$KIEN_TRUC"',
+          'cp "$OUT" "./hello-$ARCH"\n' +
+          'log "output  : ./hello-$ARCH"',
           notes: [
             'Tạo file này bằng trình soạn thảo, hoặc bằng here-doc <code>cat &gt; build.sh &lt;&lt;\'EOF\'</code> — <b>nhớ dấu nháy quanh EOF</b>, nếu không mọi <code>$1</code> và <code>$(date)</code> sẽ bị thay thế ngay lúc tạo file.',
             'Sau khi tạo xong, nhớ <code>chmod +x build.sh</code>.'
@@ -1348,16 +1351,16 @@ Lesson.register({
         { t: 'cmdx', cmd: 'build.sh', title: 'Từng dòng, và nó đến từ bước nào',
           rows: [
             ['<code>set -euo pipefail</code>', 'Ba công tắc an toàn', 'Bước 5'],
-            ['<code>KIEN_TRUC="${1:-arm64}"</code>', 'Tham số 1, mặc định <code>arm64</code>', 'Bước 2 (giá trị mặc định) + bước 4 (tham số)'],
-            ['<code>TAM="$(mktemp -d)"</code>', 'Thư mục tạm riêng cho lần chạy này', 'Bước 5'],
-            ['<code>trap \'rm -rf "$TAM"\' EXIT</code>', 'Hẹn xoá, chạy dù thành công hay thất bại', 'Bước 5'],
-            ['<code>log()</code> / <code>loi()</code>', 'Hai hàm in thông báo. <code>loi()</code> ghi ra <b>stderr</b> rồi <code>exit 1</code>', 'Bước 4'],
-            ['<code>can_co()</code>', 'Kiểm tra công cụ, chết ngay nếu thiếu', 'Bước 4'],
-            ['<code>case "$KIEN_TRUC" in</code>', 'Chọn trình biên dịch theo kiến trúc', 'Bước 3'],
-            ['<code>CO_THEM=(-static)</code>', 'Một <b>mảng</b> chứa cờ thêm', 'ARM64 dùng <code>-static</code> vì WSL không có thư viện ARM64 — Bài 3'],
-            ['<code>"${CO_THEM[@]}"</code>', 'Bung mảng thành các tham số riêng biệt', 'Cùng nguyên lý <code>"$@"</code> ở bước 4'],
-            ['<code>[ -f "$NGUON" ] || loi …</code>', 'Kiểm tra file tồn tại', 'Bước 3, dạng viết tắt của <code>if</code>'],
-            ['<code>cp "$DICH" "./hello-…"</code>', 'Chỉ chép kết quả ra ngoài <b>khi đã thành công</b>', 'Nếu biên dịch hỏng, không có file rác nào xuất hiện']
+            ['<code>ARCH="${1:-arm64}"</code>', 'Tham số 1, mặc định <code>arm64</code>', 'Bước 2 (giá trị mặc định) + bước 4 (tham số)'],
+            ['<code>TMPDIR="$(mktemp -d)"</code>', 'Thư mục tạm riêng cho lần chạy này', 'Bước 5'],
+            ['<code>trap \'rm -rf "$TMPDIR"\' EXIT</code>', 'Hẹn xoá, chạy dù thành công hay thất bại', 'Bước 5'],
+            ['<code>log()</code> / <code>die()</code>', 'Hai hàm in thông báo. <code>die()</code> ghi ra <b>stderr</b> rồi <code>exit 1</code>', 'Bước 4'],
+            ['<code>have_tool()</code>', 'Kiểm tra công cụ, chết ngay nếu thiếu', 'Bước 4'],
+            ['<code>case "$ARCH" in</code>', 'Chọn trình biên dịch theo kiến trúc', 'Bước 3'],
+            ['<code>EXTRA_FLAGS=(-static)</code>', 'Một <b>mảng</b> chứa cờ thêm', 'ARM64 dùng <code>-static</code> vì WSL không có thư viện ARM64 — Bài 3'],
+            ['<code>"${EXTRA_FLAGS[@]}"</code>', 'Bung mảng thành các tham số riêng biệt', 'Cùng nguyên lý <code>"$@"</code> ở bước 4'],
+            ['<code>[ -f "$SRC" ] || die …</code>', 'Kiểm tra file tồn tại', 'Bước 3, dạng viết tắt của <code>if</code>'],
+            ['<code>cp "$OUT" "./hello-…"</code>', 'Chỉ chép kết quả ra ngoài <b>khi đã thành công</b>', 'Nếu biên dịch hỏng, không có file rác nào xuất hiện']
           ]},
 
         { t: 'p', x: 'Chạy thử. Trước hết là bản x86 quen thuộc:' },
@@ -1368,11 +1371,11 @@ Lesson.register({
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '[18:16:02] co gcc -> /usr/bin/gcc\n' +
-          '[18:16:02] bien dich hello.c cho x86\n' +
-          '[18:16:02] kich thuoc: 15952 byte\n' +
-          '[18:16:02] dinh dang : ELF 64-bit LSB pie executable, x86-64\n' +
-          '[18:16:02] ket qua   : ./hello-x86\n' +
+          '[20:41:09] found gcc -> /usr/bin/gcc\n' +
+          '[20:41:09] compiling hello.c for x86\n' +
+          '[20:41:09] size    : 15952 bytes\n' +
+          '[20:41:09] format  : ELF 64-bit LSB pie executable, x86-64\n' +
+          '[20:41:09] output  : ./hello-x86\n' +
           'rc=0' },
 
         { t: 'p', x: 'Bây giờ là điều bài học này hướng tới — biên dịch chéo cho ARM64:' },
@@ -1382,11 +1385,11 @@ Lesson.register({
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '[18:16:02] co aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
-          '[18:16:02] bien dich hello.c cho arm64\n' +
-          '[18:16:03] kich thuoc: 705328 byte\n' +
-          '[18:16:03] dinh dang : ELF 64-bit LSB executable, ARM aarch64\n' +
-          '[18:16:03] ket qua   : ./hello-arm64\n' +
+          '[20:41:09] found aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
+          '[20:41:09] compiling hello.c for arm64\n' +
+          '[20:41:09] size    : 705328 bytes\n' +
+          '[20:41:09] format  : ELF 64-bit LSB executable, ARM aarch64\n' +
+          '[20:41:09] output  : ./hello-arm64\n' +
           'rc=0' },
 
         { t: 'cal', kind: 'info', title: 'Hai con số này bạn đã gặp ở Bài 3 — giờ script tự đo được chúng', x:
@@ -1409,16 +1412,16 @@ Lesson.register({
           'echo "rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '[18:16:03] co aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
-          '[18:16:03] bien dich hello.c cho arm64\n' +
-          '[18:16:03] kich thuoc: 705328 byte\n' +
-          '[18:16:03] dinh dang : ELF 64-bit LSB executable, ARM aarch64\n' +
-          '[18:16:03] ket qua   : ./hello-arm64\n' +
+          '[20:41:09] found aarch64-linux-gnu-gcc -> /usr/bin/aarch64-linux-gnu-gcc\n' +
+          '[20:41:09] compiling hello.c for arm64\n' +
+          '[20:41:10] size    : 705328 bytes\n' +
+          '[20:41:10] format  : ELF 64-bit LSB executable, ARM aarch64\n' +
+          '[20:41:10] output  : ./hello-arm64\n' +
           'rc=0\n' +
-          '[LOI] kien truc chua ho tro: mips\n' +
+          '[ERROR] unsupported architecture: mips\n' +
           'rc=1\n' +
-          '[18:16:03] co gcc -> /usr/bin/gcc\n' +
-          '[LOI] khong tim thay ma nguon: khongco.c\n' +
+          '[20:41:10] found gcc -> /usr/bin/gcc\n' +
+          '[ERROR] source file not found: khongco.c\n' +
           'rc=1' },
 
         { t: 'cal', kind: 'why', title: 'Mã trả về 1 mới là phần quan trọng nhất của ba dòng này', x:
@@ -1442,9 +1445,9 @@ Lesson.register({
           'ls -d /tmp/tmp.* 2>/dev/null | wc -l' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '-rwxr-xr-x 1 shinarus shinarus 705328 Aug  1 18:16 hello-arm64\n' +
-          '-rwxr-xr-x 1 shinarus shinarus  15952 Aug  1 18:16 hello-x86\n' +
-          'Xin chao tu Embedded Linux\n' +
+          '-rwxr-xr-x 1 shinarus shinarus 705328 Aug  5 20:41 hello-arm64\n' +
+          '-rwxr-xr-x 1 shinarus shinarus  15952 Aug  5 20:41 hello-x86\n' +
+          'Hello from Embedded Linux\n' +
           'bash: ./hello-arm64: cannot execute binary file: Exec format error\n' +
           'rc=126\n' +
           '0' },
@@ -1471,19 +1474,19 @@ Lesson.register({
           'vô giá khi script sẽ đụng tới lệnh nguy hiểm.' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > loicuphap.sh <<\'EOF\'\n' +
+          'cat > syntax-error.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'if [ -f /etc/hostname ]; then\n' +
-          '  echo "co file"\n' +
-          'echo "quen fi"\n' +
+          '  echo "file exists"\n' +
+          'echo "missing fi"\n' +
           'EOF\n' +
-          'bash -n loicuphap.sh\n' +
+          'bash -n syntax-error.sh\n' +
           'echo "rc=$?"\n' +
           'bash -n build.sh\n' +
           'echo "build.sh rc=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'loicuphap.sh: line 5: syntax error: unexpected end of file from `if\' command on line 2\n' +
+          'syntax-error.sh: line 5: syntax error: unexpected end of file from `if\' command on line 2\n' +
           'rc=2\n' +
           'build.sh rc=0' },
 
@@ -1495,27 +1498,27 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           '+ set -euo pipefail\n' +
-          '+ KIEN_TRUC=x86\n' +
-          '+ NGUON=hello.c\n' +
+          '+ ARCH=x86\n' +
+          '+ SRC=hello.c\n' +
           '++ mktemp -d\n' +
-          '+ TAM=/tmp/tmp.H1LiZ9A4Rq\n' +
-          '+ trap \'rm -rf "$TAM"\' EXIT\n' +
-          '+ case "$KIEN_TRUC" in\n' +
+          '+ TMPDIR=/tmp/tmp.qWcQRW2Tx1\n' +
+          '+ trap \'rm -rf "$TMPDIR"\' EXIT\n' +
+          '+ case "$ARCH" in\n' +
           '+ CC=gcc\n' +
-          '+ CO_THEM=()\n' +
-          '+ can_co gcc\n' +
-          '+ local lenh=gcc\n' +
+          '+ EXTRA_FLAGS=()\n' +
+          '+ have_tool gcc\n' +
+          '+ local tool=gcc\n' +
           '+ command -v gcc\n' +
           '++ command -v gcc\n' +
-          '+ log \'co gcc -> /usr/bin/gcc\'' },
+          '+ log \'found gcc -> /usr/bin/gcc\'' },
 
         { t: 'cal', kind: 'tip', title: 'Số dấu cộng cho biết bạn đang ở độ sâu nào', x:
           '<p><code>+</code> là lệnh ở mức ngoài cùng. <code>++</code> là lệnh nằm trong một thay ' +
           'thế <code>$(…)</code> hoặc lồng sâu hơn — nhìn dòng ' +
-          '<code>++ mktemp -d</code> theo sau là <code>+ TAM=/tmp/tmp.H1LiZ9A4Rq</code>, bạn ' +
+          '<code>++ mktemp -d</code> theo sau là <code>+ TMPDIR=/tmp/tmp.qWcQRW2Tx1</code>, bạn ' +
           'thấy đúng thứ tự: chạy lệnh trước, gán kết quả sau.</p>' +
           '<p>Điểm mấu chốt: <code>bash -x</code> in ra <b>giá trị đã thay thế</b>, không phải mã ' +
-          'nguồn. <code>+ KIEN_TRUC=x86</code> chứng minh <code>${1:-arm64}</code> đã nhận đúng ' +
+          'nguồn. <code>+ ARCH=x86</code> chứng minh <code>${1:-arm64}</code> đã nhận đúng ' +
           'tham số. Khi một biến trống rỗng gây lỗi, dòng <code>-x</code> sẽ phơi bày ngay.</p>' +
           '<p>Bật giữa chừng bằng <code>set -x</code> và tắt bằng <code>set +x</code> — dấu ' +
           '<code>+</code> tắt công tắc, dấu <code>-</code> bật, ngược với trực giác.</p>' },
@@ -1525,41 +1528,41 @@ Lesson.register({
           'của <code>if</code>, và phân luồng thông báo lỗi:' },
 
         { t: 'code', where: 'wsl', code:
-          'cat > mau.sh <<\'EOF\'\n' +
+          'cat > snippets.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
           'a=705328\n' +
           'b=15952\n' +
-          'echo "hieu   : $((a - b)) byte"\n' +
-          'echo "ty le  : $((a / b)) lan (chia nguyen)"\n' +
-          'printf \'%-12s %8d byte\\n\' "hello-arm64" "$a"\n' +
-          'printf \'%-12s %8d byte\\n\' "hello-x86" "$b"\n' +
-          'command -v gcc > /dev/null && echo "gcc co san"\n' +
-          'command -v congcula > /dev/null || echo "congcula khong co"\n' +
-          'echo "dong binh thuong"\n' +
-          'echo "dong loi" >&2\n' +
+          'echo "diff  : $((a - b)) bytes"\n' +
+          'echo "ratio : $((a / b)) times (integer division)"\n' +
+          'printf \'%-12s %8d bytes\\n\' "hello-arm64" "$a"\n' +
+          'printf \'%-12s %8d bytes\\n\' "hello-x86" "$b"\n' +
+          'command -v gcc > /dev/null && echo "gcc available"\n' +
+          'command -v notarealtool > /dev/null || echo "notarealtool not found"\n' +
+          'echo "normal line"\n' +
+          'echo "error line" >&2\n' +
           'EOF\n' +
-          'bash mau.sh\n' +
-          'echo "--- chi giu stdout:"\n' +
-          'bash mau.sh 2>/dev/null | tail -2\n' +
-          'echo "--- chi giu stderr:"\n' +
-          'bash mau.sh 2>&1 >/dev/null' },
+          'bash snippets.sh\n' +
+          'echo "--- stdout only:"\n' +
+          'bash snippets.sh 2>/dev/null | tail -2\n' +
+          'echo "--- stderr only:"\n' +
+          'bash snippets.sh 2>&1 >/dev/null' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'hieu   : 689376 byte\n' +
-          'ty le  : 44 lan (chia nguyen)\n' +
-          'hello-arm64    705328 byte\n' +
-          'hello-x86       15952 byte\n' +
-          'gcc co san\n' +
-          'congcula khong co\n' +
-          'dong binh thuong\n' +
-          'dong loi\n' +
-          '--- chi giu stdout:\n' +
-          'congcula khong co\n' +
-          'dong binh thuong\n' +
-          '--- chi giu stderr:\n' +
-          'dong loi' },
+          'diff  : 689376 bytes\n' +
+          'ratio : 44 times (integer division)\n' +
+          'hello-arm64    705328 bytes\n' +
+          'hello-x86       15952 bytes\n' +
+          'gcc available\n' +
+          'notarealtool not found\n' +
+          'normal line\n' +
+          'error line\n' +
+          '--- stdout only:\n' +
+          'notarealtool not found\n' +
+          'normal line\n' +
+          '--- stderr only:\n' +
+          'error line' },
 
-        { t: 'cmdx', cmd: 'printf \'%-12s %8d byte\\n\' "hello-x86" 15952', title: 'Vì sao script nghiêm túc dùng printf chứ không dùng echo',
+        { t: 'cmdx', cmd: 'printf \'%-12s %8d bytes\\n\' "hello-x86" 15952', title: 'Vì sao script nghiêm túc dùng printf chứ không dùng echo',
           rows: [
             ['<code>%-12s</code>', 'Chuỗi, căn <b>trái</b>, rộng tối thiểu 12 ký tự', 'Bỏ dấu <code>-</code> thì căn phải'],
             ['<code>%8d</code>', 'Số nguyên, căn phải, rộng 8', 'Nhờ đó các con số thẳng cột, dễ đọc'],
@@ -1575,7 +1578,7 @@ Lesson.register({
           'hình), <i>rồi sau đó</i> đổi luồng 1 sang <code>/dev/null</code>". Luồng 2 đã bị sao ' +
           'chép đích rồi nên không đổi theo.</p>' +
           '<p>Viết ngược lại thành <code>&gt;/dev/null 2&gt;&amp;1</code> là vứt <b>cả hai</b> — ' +
-          'chính là mẫu bạn dùng trong hàm <code>can_co()</code> ở bước 4. Cùng hai ký hiệu, hai ' +
+          'chính là mẫu bạn dùng trong hàm <code>have_tool()</code> ở bước 6. Cùng hai ký hiệu, hai ' +
           'thứ tự, hai kết quả hoàn toàn khác.</p>' },
 
         { t: 'p', x: 'Dọn dẹp toàn bộ bài thực hành:' },
@@ -1621,11 +1624,11 @@ Lesson.register({
          'File lưu với xuống dòng kiểu Windows (CRLF)',
          '<code>sed -i \'s/\\r$//\' x.sh</code> hoặc <code>dos2unix x.sh</code>. Xem bằng <code>cat -A</code>. Đặt trình soạn thảo dùng LF'],
 
-        ['<code>x.sh: line 1: ten: command not found</code> (mã 127)',
+        ['<code>x.sh: line 1: name: command not found</code> (mã 127)',
          'Có khoảng trắng quanh dấu <code>=</code> khi gán biến',
-         'Viết <code>ten="Linux"</code>, không có khoảng trắng nào ở hai bên dấu bằng'],
+         'Viết <code>name="Linux"</code>, không có khoảng trắng nào ở hai bên dấu bằng'],
 
-        ['<code>ls: cannot access \'thumuc/ten\': No such file…</code> lặp nhiều lần',
+        ['<code>ls: cannot access \'folder/file\': No such file…</code> lặp nhiều lần',
          'Biến chứa khoảng trắng nhưng không được bọc nháy — bash tách thành nhiều tham số',
          'Luôn viết <code>"$bien"</code>. Đây là lỗi phổ biến nhất trong mọi script bash'],
 
@@ -1679,11 +1682,11 @@ Lesson.register({
 
         ['<code>/tmp</code> đầy dần sau nhiều lần chạy script',
          'Script tạo thư mục tạm nhưng chết giữa chừng nên không kịp xoá',
-         '<code>trap \'rm -rf "$TAM"\' EXIT</code> ngay sau <code>mktemp -d</code>. Kiểm tra bằng <code>ls -d /tmp/tmp.*</code>'],
+         '<code>trap \'rm -rf "$TMPDIR"\' EXIT</code> ngay sau <code>mktemp -d</code>. Kiểm tra bằng <code>ls -d /tmp/tmp.*</code>'],
 
         ['<code>trap</code> xoá nhầm thư mục, hoặc không xoá gì',
-         'Dùng nháy kép quanh lệnh trap nên <code>$TAM</code> bị chốt giá trị lúc đăng ký',
-         'Dùng nháy <b>đơn</b>: <code>trap \'rm -rf "$TAM"\' EXIT</code>'],
+         'Dùng nháy kép quanh lệnh trap nên <code>$TMPDIR</code> bị chốt giá trị lúc đăng ký',
+         'Dùng nháy <b>đơn</b>: <code>trap \'rm -rf "$TMPDIR"\' EXIT</code>'],
 
         ['<code>cannot execute binary file: Exec format error</code> (mã 126)',
          'Chạy file ARM64 trên CPU x86 — đúng như Bài 3',
@@ -1705,8 +1708,8 @@ Lesson.register({
       'Shebang <code>#!/bin/bash</code> ở <b>dòng đầu tiên</b> nói cho kernel biết dùng chương trình nào để đọc file. Cộng với <code>chmod +x</code>, nó biến một file văn bản thành một chương trình.',
       '<code>/bin/sh</code> trên máy bạn trỏ tới <b>dash</b>, không phải bash. <code>[[ ]]</code>, mảng và <code>${x^^}</code> đều không tồn tại ở đó — đây là nguồn gốc của lỗi "chạy trên máy tôi nhưng chết trên thiết bị".',
       'Ký tự <b>CRLF</b> của Windows tạo ra <code>/bin/bash^M: bad interpreter</code>, một lỗi vô hình khi nhìn bằng mắt. Xem bằng <code>cat -A</code>, chữa bằng <code>dos2unix</code>.',
-      '<b>Luôn bọc biến trong nháy kép.</b> Không nháy, bash tách chuỗi tại mọi khoảng trắng rồi bung dấu <code>*</code> — bạn đã thấy một file thành bốn thông báo lỗi, và <code>rm -rf $duong/</code> với biến rỗng thành <code>rm -rf /</code>.',
-      'Không có khoảng trắng nào quanh dấu <code>=</code> khi gán. <code>ten = "x"</code> cho mã <b>127</b>, "không tìm thấy lệnh".',
+      '<b>Luôn bọc biến trong nháy kép.</b> Không nháy, bash tách chuỗi tại mọi khoảng trắng rồi bung dấu <code>*</code> — bạn đã thấy một file thành bốn thông báo lỗi, và <code>rm -rf $path/</code> với biến rỗng thành <code>rm -rf /</code>.',
+      'Không có khoảng trắng nào quanh dấu <code>=</code> khi gán. <code>name = "x"</code> cho mã <b>127</b>, "không tìm thấy lệnh".',
       'Mã trả về là ngôn ngữ chung: <b>0</b> thành công, khác 0 là thất bại. <b>126</b> = tìm thấy nhưng không chạy được, <b>127</b> = không tìm thấy, <b>130</b> = bị <kbd>Ctrl</kbd>+<kbd>C</kbd>. Đọc <code>$?</code> <b>ngay lập tức</b>, vì lệnh kế tiếp sẽ ghi đè nó.',
       '<code>if</code> không kiểm tra "đúng/sai" — nó kiểm tra <b>mã trả về bằng 0 hay không</b>. Vì thế <code>if grep -q …</code> chạy được mà không cần dấu ngoặc nào.',
       '<code>[</code> là một <b>chương trình thật</b> (<code>/usr/bin/[</code>), nên phải có khoảng trắng quanh nó. <code>[[</code> là <b>từ khoá</b> của bash, không bị tách từ nhưng cũng không chạy trên dash.',
@@ -1717,7 +1720,7 @@ Lesson.register({
       '<code>set -e</code> dừng khi lệnh thất bại, <code>set -u</code> dừng khi gặp biến chưa đặt, <code>set -o pipefail</code> khiến đường ống thất bại nếu <b>bất kỳ</b> khâu nào hỏng. Ba dòng này chặn ba lớp lỗi im lặng.',
       'Ngoại lệ của <code>set -e</code>: lệnh trong <code>if</code>, <code>while</code>, sau <code>&amp;&amp;</code>, <code>||</code>, <code>!</code> được phép thất bại. Đó là chủ ý, không phải lỗi.',
       '<code>&lt;&lt;EOF</code> thay thế biến, <code>&lt;&lt;\'EOF\'</code> chép nguyên xi. Dấu nháy quanh <code>EOF</code> là chi tiết quyết định khi script sinh ra script khác.',
-      '<code>mktemp -d</code> + <code>trap \'rm -rf "$TAM"\' EXIT</code> là khuôn mẫu dọn dẹp chuẩn. Bạn đã chứng minh nó chạy <b>cả khi script thất bại</b>, để lại <b>0</b> thư mục rác trong <code>/tmp</code>.',
+      '<code>mktemp -d</code> + <code>trap \'rm -rf "$TMPDIR"\' EXIT</code> là khuôn mẫu dọn dẹp chuẩn. Bạn đã chứng minh nó chạy <b>cả khi script thất bại</b>, để lại <b>0</b> thư mục rác trong <code>/tmp</code>.',
       '<code>bash -n</code> kiểm tra cú pháp mà không chạy; <code>bash -x</code> in ra từng lệnh <b>sau khi</b> đã thay thế biến. Hai công cụ này giải quyết phần lớn bí ẩn trong script.',
       'Script <code>build.sh</code> bạn viết đã đo được: x86 động <b>15 952</b> byte, ARM64 tĩnh <b>705 328</b> byte — chênh <b>44,2 lần</b>, khớp với con số ở Bài 3. Chạy trực tiếp file ARM64 cho <code>Exec format error</code>, mã <b>126</b>, đúng như dự đoán.',
       'Ghi thông báo lỗi ra <code>&gt;&amp;2</code>. Nhờ đó lỗi vẫn hiện trên màn hình khi người dùng chuyển hướng đầu ra vào file log.',
@@ -1767,7 +1770,7 @@ Lesson.register({
            'thông báo sẽ là <code>Permission denied</code> — cùng mã 126 nhưng khác nguyên nhân.'
     },
     {
-      q: 'Script chứa <code>duong="$1"</code> rồi <code>rm -rf $duong/</code>. Người dùng chạy ' +
+      q: 'Script chứa <code>path="$1"</code> rồi <code>rm -rf $path/</code>. Người dùng chạy ' +
          'script mà quên truyền tham số. Chuyện gì xảy ra?',
       opts: [
         'Script báo lỗi "tham số bắt buộc" và dừng lại',
@@ -1779,9 +1782,9 @@ Lesson.register({
       why: 'Biến chưa đặt được thay bằng <b>chuỗi rỗng</b>, im lặng. Dấu <code>/</code> viết sát ' +
            'sau đó còn nguyên, nên dòng lệnh thật sự chạy là <code>rm -rf /</code>. Không có lỗi ' +
            'cú pháp nào để bash phàn nàn — script làm đúng những gì được viết. Ba lớp bảo vệ: ' +
-           'bọc nháy <code>"$duong"</code>, bật <code>set -u</code> để bash chết ngay khi gặp ' +
+           'bọc nháy <code>"$path"</code>, bật <code>set -u</code> để bash chết ngay khi gặp ' +
            'biến chưa đặt, và kiểm tra tường minh bằng ' +
-           '<code>[ -n "$duong" ] || exit 1</code>.'
+           '<code>[ -n "$path" ] || exit 1</code>.'
     },
     {
       q: 'Script build của bạn có dòng <code>make 2&gt;&amp;1 | tee build.log</code> và bật ' +
@@ -1810,8 +1813,8 @@ Lesson.register({
         '<code>"$*"</code> giữ nguyên ranh giới tham số, <code>"$@"</code> thì không'
       ],
       a: 2,
-      why: 'Bạn đã chứng minh điều này bằng <code>bash saoat.sh mot "hai ba" bon</code>: vòng lặp ' +
-           'trên <code>"$@"</code> in ra ba dòng, giữ nguyên <code>hai ba</code> thành một khối; ' +
+      why: 'Bạn đã chứng minh điều này bằng <code>bash at-vs-star.sh one "two three" four</code>: vòng lặp ' +
+           'trên <code>"$@"</code> in ra ba dòng, giữ nguyên <code>two three</code> thành một khối; ' +
            'vòng lặp trên <code>"$*"</code> in ra <b>một</b> dòng và ranh giới ban đầu mất vĩnh ' +
            'viễn. Quy tắc thực dụng: <b>chuyển tiếp tham số cho lệnh khác thì luôn dùng ' +
            '<code>"$@"</code></b>; chỉ dùng <code>"$*"</code> khi bạn muốn in ra màn hình, như ' +
@@ -1837,12 +1840,12 @@ Lesson.register({
            '<code>(( so &gt; 10 ))</code>.'
     },
     {
-      q: 'Script của bạn tạo thư mục tạm bằng <code>TAM="$(mktemp -d)"</code> và xoá nó bằng ' +
-         '<code>rm -rf "$TAM"</code> ở <b>dòng cuối</b>. Sau vài tuần, <code>/tmp</code> đầy ' +
+      q: 'Script của bạn tạo thư mục tạm bằng <code>TMPDIR="$(mktemp -d)"</code> và xoá nó bằng ' +
+         '<code>rm -rf "$TMPDIR"</code> ở <b>dòng cuối</b>. Sau vài tuần, <code>/tmp</code> đầy ' +
          'hàng chục thư mục <code>tmp.XXXXXX</code>. Cách sửa đúng là gì?',
       opts: [
         'Chuyển sang tên cố định <code>/tmp/build</code> để mỗi lần chạy đều ghi đè lên lần trước',
-        'Thêm <code>trap \'rm -rf "$TAM"\' EXIT</code> ngay sau dòng <code>mktemp</code>, dùng nháy đơn',
+        'Thêm <code>trap \'rm -rf "$TMPDIR"\' EXIT</code> ngay sau dòng <code>mktemp</code>, dùng nháy đơn',
         'Thêm <code>set -e</code> để script không bao giờ chạy tới dòng cuối khi có lỗi',
         'Đặt một tác vụ định kỳ dọn <code>/tmp</code> mỗi đêm'
       ],
@@ -1852,7 +1855,7 @@ Lesson.register({
            'bại, hay <kbd>Ctrl</kbd>+<kbd>C</kbd> — nên đúng vấn đề. Bạn đã kiểm chứng: script ' +
            'chết ở dòng <code>false</code>, mã trả về 1, mà thư mục tạm vẫn được xoá, ' +
            '<code>ls -d /tmp/tmp.*</code> đếm được 0. Nháy <b>đơn</b> là bắt buộc để hoãn việc ' +
-           'thay <code>$TAM</code> tới lúc trap thật sự chạy. Tên cố định lại tạo ra lỗi mới: ' +
+           'thay <code>$TMPDIR</code> tới lúc trap thật sự chạy. Tên cố định lại tạo ra lỗi mới: ' +
            'hai lần chạy song song sẽ giẫm lên nhau. <code>set -e</code> làm vấn đề <i>tệ hơn</i> ' +
            'vì script dừng sớm hơn nữa.'
     }

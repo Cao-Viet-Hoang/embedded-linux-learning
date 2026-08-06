@@ -109,7 +109,7 @@ Lesson.register({
         '<path class="d-arrow" d="M360 92 l-6 -10 h12 z"/>' +
 
         '<rect class="d-box-w" x="272" y="92" width="176" height="38" rx="6"/>' +
-        '<text class="d-tm" x="308" y="116">pid_t kq = fork();</text>' +
+        '<text class="d-tm" x="308" y="116">pid_t rc = fork();</text>' +
 
         '<line class="d-line" x1="300" y1="130" x2="180" y2="164"/>' +
         '<path class="d-arrow" d="M172 166 l12 -3 l-3 12 z"/>' +
@@ -118,69 +118,70 @@ Lesson.register({
 
         '<rect class="d-box-a" x="40" y="168" width="270" height="82" rx="6"/>' +
         '<text class="d-t" x="58" y="190">CHA — pid vẫn là 448</text>' +
-        '<text class="d-tm" x="58" y="212">kq == 449</text>' +
+        '<text class="d-tm" x="58" y="212">rc == 449</text>' +
         '<text class="d-ts" x="58" y="232">nhận PID của con; thường gọi wait()</text>' +
 
         '<rect class="d-box-g" x="410" y="168" width="270" height="82" rx="6"/>' +
         '<text class="d-t" x="428" y="190">CON — pid mới là 449</text>' +
-        '<text class="d-tm" x="428" y="212">kq == 0</text>' +
+        '<text class="d-tm" x="428" y="212">rc == 0</text>' +
         '<text class="d-ts" x="428" y="232">ppid = 448; thường gọi exec()</text>' +
 
         '<text class="d-ts" x="40" y="278">Ai chạy trước là không xác định — bộ lập lịch quyết định. Mã của bạn không được phép giả định thứ tự.</text>' +
         '</svg>' },
 
-    { t: 'code', where: 'file', name: 'haichieu.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'fork_twice.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <unistd.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    printf("truoc fork: pid=%d\\n", getpid());\n' +
-      '    fflush(stdout);                     /* xa dem TRUOC khi fork */\n' +
+      '    printf("before fork: pid=%d\\n", getpid());\n' +
+      '    fflush(stdout);                     /* flush buffer BEFORE fork */\n' +
       '\n' +
-      '    pid_t kq = fork();\n' +
+      '    pid_t rc = fork();\n' +
       '\n' +
-      '    if (kq < 0) {\n' +
+      '    if (rc < 0) {\n' +
       '        perror("fork");\n' +
       '        return 1;\n' +
-      '    } else if (kq == 0) {\n' +
-      '        printf("  CON : fork tra ve %d, pid=%d, ppid=%d\\n",\n' +
-      '               kq, getpid(), getppid());\n' +
+      '    } else if (rc == 0) {\n' +
+      '        printf("  CHILD : fork returned %d, pid=%d, ppid=%d\\n",\n' +
+      '               rc, getpid(), getppid());\n' +
       '    } else {\n' +
-      '        printf("  CHA : fork tra ve %d, pid=%d, ppid=%d\\n",\n' +
-      '               kq, getpid(), getppid());\n' +
-      '        wait(NULL);                     /* cho con xong */\n' +
+      '        printf("  PARENT: fork returned %d, pid=%d, ppid=%d\\n",\n' +
+      '               rc, getpid(), getppid());\n' +
+      '        wait(NULL);                     /* wait for child to finish */\n' +
       '    }\n' +
-      '    printf("  ca hai deu chay dong nay (pid=%d)\\n", getpid());\n' +
+      '    printf("  both run this line (pid=%d)\\n", getpid());\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'truoc fork: pid=433\n' +
-      '  CHA : fork tra ve 434, pid=433, ppid=431\n' +
-      '  CON : fork tra ve 0, pid=434, ppid=433\n' +
-      '  ca hai deu chay dong nay (pid=434)\n' +
-      '  ca hai deu chay dong nay (pid=433)',
+      'before fork: pid=13341\n' +
+      '  CHILD : fork returned 0, pid=13342, ppid=13341\n' +
+      '  both run this line (pid=13342)\n' +
+      '  PARENT: fork returned 13342, pid=13341, ppid=13330\n' +
+      '  both run this line (pid=13341)',
       notes: [
         'Số PID trên máy bạn sẽ khác. Điều phải giống là: <b>giá trị fork trả về ở nhánh cha đúng bằng pid của con</b>, và dòng cuối in ra <b>hai</b> lần.',
-        'Thứ tự hai dòng CHA/CON có thể đảo — bộ lập lịch quyết định, không phải mã của bạn.'
+        'Thứ tự hai dòng PARENT/CHILD có thể đảo — bộ lập lịch quyết định, không phải mã của bạn.'
       ]},
 
     { t: 'cal', kind: 'info', title: 'Đọc kỹ ba con số này', x:
-      '<p><b>433</b> là cha, <b>434</b> là con. Ở nhánh cha, <code>fork</code> trả về <b>434</b> ' +
-      '— đúng bằng PID của con. Ở nhánh con, nó trả về <b>0</b>, và <code>getppid()</code> của ' +
-      'con trả về <b>433</b> — đúng bằng cha. Ba con số này khớp nhau chính là bằng chứng quan ' +
-      'hệ cha–con được nhân thiết lập thật.</p>' +
-      '<p>PID <b>431</b> là ông nội — chính là <code>bash</code> hoặc <code>script</code> đã chạy ' +
-      'chương trình của bạn.</p>' +
+      '<p><b>13341</b> là cha, <b>13342</b> là con. Ở nhánh cha, <code>fork</code> trả về ' +
+      '<b>13342</b> — đúng bằng PID của con. Ở nhánh con, nó trả về <b>0</b>, và ' +
+      '<code>getppid()</code> của con trả về <b>13341</b> — đúng bằng cha. Ba con số này khớp ' +
+      'nhau chính là bằng chứng quan hệ cha–con được nhân thiết lập thật.</p>' +
+      '<p>PID <b>13330</b> là ông nội — chính là <code>bash</code> hoặc <code>script</code> đã ' +
+      'chạy chương trình của bạn.</p>' +
       '<p>Dòng cuối in ra <b>hai lần</b> vì sau <code>fork</code> có hai tiến trình cùng chạy ' +
       'tiếp từ đúng chỗ đó. Đây là điểm người mới hay quên nhất: <b>mọi dòng lệnh sau ' +
       '<code>fork</code> đều thuộc về cả hai</b>, trừ khi bạn tách nhánh bằng <code>if</code>.</p>' },
 
     { t: 'cal', kind: 'danger', title: 'fflush trước fork — bỏ đi là chương trình in ra hai lần', x:
-      '<p>Thử bỏ dòng <code>fflush(stdout)</code> rồi chạy <code>./bay &gt; bay.txt</code>. Bạn ' +
-      'sẽ thấy dòng <i>in trước khi fork</i> xuất hiện <b>hai lần</b> trong file.</p>' +
+      '<p>Thử bỏ dòng <code>fflush(stdout)</code> rồi chạy <code>./buffer_trap &gt; ' +
+      'buffer_trap.txt</code>. Bạn sẽ thấy dòng <i>in trước khi fork</i> xuất hiện <b>hai ' +
+      'lần</b> trong file.</p>' +
       '<p>Nguyên nhân nằm gọn trong Bài 19: khi <code>stdout</code> trỏ vào file, nó chuyển sang ' +
       'chế độ <b>đệm toàn phần</b>. Dòng đó chưa được ghi thật, nó còn nằm trong đệm ' +
       '<code>stdio</code> — <b>mà đệm nằm trong bộ nhớ tiến trình</b>. <code>fork</code> nhân đôi ' +
@@ -200,37 +201,37 @@ Lesson.register({
       'Đây là điểm phân biệt tiến trình với luồng (Bài 22). Con là một <b>bản sao</b>, không phải ' +
       'một cái nhìn chung vào cùng dữ liệu. Sửa biến ở con thì cha không thấy gì cả.' },
 
-    { t: 'code', where: 'file', name: 'riengbiet.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'separate_memory.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <unistd.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
-      'int toan_cuc = 100;\n' +
+      'int global_var = 100;\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    int cuc_bo = 200;\n' +
+      '    int local_var = 200;\n' +
       '\n' +
       '    if (fork() == 0) {\n' +
-      '        toan_cuc += 1;\n' +
-      '        cuc_bo   += 1;\n' +
-      '        printf("  CON : toan_cuc=%d cuc_bo=%d  (dia chi %p)\\n",\n' +
-      '               toan_cuc, cuc_bo, (void *)&toan_cuc);\n' +
+      '        global_var += 1;\n' +
+      '        local_var  += 1;\n' +
+      '        printf("  CHILD : global_var=%d local_var=%d  (address %p)\\n",\n' +
+      '               global_var, local_var, (void *)&global_var);\n' +
       '        return 0;\n' +
       '    }\n' +
       '    wait(NULL);\n' +
-      '    printf("  CHA : toan_cuc=%d cuc_bo=%d  (dia chi %p)\\n",\n' +
-      '           toan_cuc, cuc_bo, (void *)&toan_cuc);\n' +
+      '    printf("  PARENT: global_var=%d local_var=%d  (address %p)\\n",\n' +
+      '           global_var, local_var, (void *)&global_var);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '  CON : toan_cuc=101 cuc_bo=201  (dia chi 0x5e73eb56f010)\n' +
-      '  CHA : toan_cuc=100 cuc_bo=200  (dia chi 0x5e73eb56f010)' },
+      '  CHILD : global_var=101 local_var=201  (address 0x5e06c6e64010)\n' +
+      '  PARENT: global_var=100 local_var=200  (address 0x5e06c6e64010)' },
 
     { t: 'cal', kind: 'why', title: 'Cùng một địa chỉ, hai giá trị khác nhau — vì đó là địa chỉ ảo', x:
       '<p>Đây là kết quả quan trọng nhất của cả bài. Hai tiến trình in ra <b>cùng một địa chỉ</b> ' +
-      '<code>0x5e73eb56f010</code> nhưng đọc được <b>hai giá trị khác nhau</b>. Không có gì mâu ' +
+      '<code>0x5e06c6e64010</code> nhưng đọc được <b>hai giá trị khác nhau</b>. Không có gì mâu ' +
       'thuẫn: đó là <b>địa chỉ ảo</b>, và mỗi tiến trình có bảng ánh xạ riêng từ địa chỉ ảo sang ' +
       'khung trang vật lý. Cùng số nhà, khác thành phố.</p>' +
       '<p><b>Copy-on-write.</b> Nhân không thật sự chép bộ nhớ lúc <code>fork</code> — chép 8 MB ' +
@@ -253,28 +254,28 @@ Lesson.register({
       'chạy</b> — trừ khi <code>exec</code> thất bại. Đây là hàm duy nhất trong C mà "chạy tới ' +
       'dòng tiếp theo" đồng nghĩa với "có lỗi".' },
 
-    { t: 'code', where: 'file', name: 'thay.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'exec_demo.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <unistd.h>\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    printf("truoc exec: pid=%d\\n", getpid());\n' +
+      '    printf("before exec: pid=%d\\n", getpid());\n' +
       '    fflush(stdout);\n' +
       '\n' +
-      '    execl("/bin/sh", "sh", "-c", "echo \\"sau  exec: pid=$$\\"", (char *)NULL);\n' +
+      '    execl("/bin/sh", "sh", "-c", "echo \\"after  exec: pid=$$\\"", (char *)NULL);\n' +
       '\n' +
-      '    perror("execl");                    /* chi toi day khi exec THAT BAI */\n' +
-      '    printf("dong nay khong bao gio in ra\\n");\n' +
+      '    perror("execl");                    /* only reached if exec FAILS */\n' +
+      '    printf("this line never prints\\n");\n' +
       '    return 1;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'truoc exec: pid=438\n' +
-      'sau  exec: pid=438' },
+      'before exec: pid=13375\n' +
+      'after  exec: pid=13375' },
 
     { t: 'cal', kind: 'info', title: 'Cùng một PID — bằng chứng exec không tạo tiến trình mới', x:
-      '<p><b>438</b> trước và <b>438</b> sau. Chương trình đã bị thay hoàn toàn — mã, dữ liệu, ' +
+      '<p><b>13375</b> trước và <b>13375</b> sau. Chương trình đã bị thay hoàn toàn — mã, dữ liệu, ' +
       'ngăn xếp, tất cả — nhưng vỏ tiến trình thì nguyên vẹn: cùng PID, cùng PPID, cùng thư mục ' +
       'làm việc, cùng bảng file descriptor.</p>' +
       '<p>Chính vì bảng fd được giữ nguyên mà thủ thuật ở Bước 4 phần thực hành hoạt động: con ' +
@@ -330,35 +331,35 @@ Lesson.register({
     { t: 'table',
       head: ['Lời gọi', 'Chờ ai', 'Ghi chú'],
       rows: [
-        ['<code>wait(&amp;tt)</code>', 'Bất kỳ đứa con nào kết thúc trước', 'Chặn tới khi có một đứa xong'],
-        ['<code>waitpid(pid, &amp;tt, 0)</code>', 'Đúng đứa con có PID đó', 'Cách dùng thông thường'],
-        ['<code>waitpid(-1, &amp;tt, WNOHANG)</code>', 'Bất kỳ đứa nào, <b>không chờ</b>', 'Trả về 0 ngay nếu chưa đứa nào xong. Dùng trong vòng lặp sự kiện và trong bộ xử lý <code>SIGCHLD</code> — Bài 21'],
+        ['<code>wait(&amp;status)</code>', 'Bất kỳ đứa con nào kết thúc trước', 'Chặn tới khi có một đứa xong'],
+        ['<code>waitpid(pid, &amp;status, 0)</code>', 'Đúng đứa con có PID đó', 'Cách dùng thông thường'],
+        ['<code>waitpid(-1, &amp;status, WNOHANG)</code>', 'Bất kỳ đứa nào, <b>không chờ</b>', 'Trả về 0 ngay nếu chưa đứa nào xong. Dùng trong vòng lặp sự kiện và trong bộ xử lý <code>SIGCHLD</code> — Bài 21'],
         ['<code>waitpid(pid, NULL, 0)</code>', 'Đúng đứa đó, không cần biết mã thoát', 'Chỉ để dọn xác']
       ]},
 
     { t: 'cal', kind: 'danger', title: 'Biến trạng thái KHÔNG phải là mã thoát — đừng in nó ra rồi tin', x:
-      '<p>Giá trị mà <code>waitpid</code> điền vào <code>tt</code> là một <b>số nguyên đã đóng ' +
-      'gói</b>, chứa nhiều thông tin nhồi vào các bit khác nhau. Bạn <b>phải</b> giải mã nó bằng ' +
-      'các macro. Đo được ở phần thực hành:</p>' +
+      '<p>Giá trị mà <code>waitpid</code> điền vào <code>status</code> là một <b>số nguyên đã ' +
+      'đóng gói</b>, chứa nhiều thông tin nhồi vào các bit khác nhau. Bạn <b>phải</b> giải mã nó ' +
+      'bằng các macro. Đo được ở phần thực hành:</p>' +
       '<ul>' +
-      '<li><code>echo hello</code> thoát 0 → <code>tt = 0</code> (<code>0x0000</code>)</li>' +
-      '<li><code>false</code> thoát 1 → <code>tt = 256</code> (<code>0x0100</code>)</li>' +
-      '<li>lệnh không tồn tại, con <code>_exit(127)</code> → <code>tt = 32512</code> (<code>0x7f00</code>)</li>' +
-      '<li><code>sleep 30</code> bị <code>kill -9</code> → <code>tt = 9</code> (<code>0x0009</code>)</li>' +
+      '<li><code>echo hello</code> thoát 0 → <code>status = 0</code> (<code>0x0000</code>)</li>' +
+      '<li><code>false</code> thoát 1 → <code>status = 256</code> (<code>0x0100</code>)</li>' +
+      '<li>lệnh không tồn tại, con <code>_exit(127)</code> → <code>status = 32512</code> (<code>0x7f00</code>)</li>' +
+      '<li><code>sleep 30</code> bị <code>kill -9</code> → <code>status = 9</code> (<code>0x0009</code>)</li>' +
       '</ul>' +
       '<p>Nhìn dạng thập lục phân là hiểu ngay quy ước: <b>byte cao chứa mã thoát, byte thấp ' +
       'chứa số hiệu tín hiệu đã giết tiến trình</b>. Nhưng đừng tự dịch bit — bố cục này khác ' +
       'nhau giữa các hệ, và đó chính là lý do POSIX cấp cho bạn bộ macro dưới đây.</p>' },
 
-    { t: 'cmdx', cmd: 'if (WIFEXITED(tt)) printf("ma thoat = %d\\n", WEXITSTATUS(tt));',
+    { t: 'cmdx', cmd: 'if (WIFEXITED(status)) printf("exit code = %d\\n", WEXITSTATUS(status));',
       title: 'Bộ macro giải mã trạng thái — luôn hỏi WIF… trước, rồi mới lấy giá trị',
       rows: [
-        ['<code>WIFEXITED(tt)</code>', 'Đúng nếu con tự thoát bình thường', 'Qua <code>return</code> từ <code>main</code>, <code>exit()</code> hoặc <code>_exit()</code>'],
-        ['<code>WEXITSTATUS(tt)</code>', 'Mã thoát 0–255', '<b>Chỉ có nghĩa</b> khi <code>WIFEXITED</code> đúng'],
-        ['<code>WIFSIGNALED(tt)</code>', 'Đúng nếu con bị tín hiệu giết', 'Trường hợp <code>kill -9</code>, hoặc chương trình sập vì <code>SIGSEGV</code>'],
-        ['<code>WTERMSIG(tt)</code>', 'Số hiệu tín hiệu đã giết nó', '9 = <code>SIGKILL</code>, 11 = <code>SIGSEGV</code>, 15 = <code>SIGTERM</code>'],
-        ['<code>WCOREDUMP(tt)</code>', 'Đúng nếu có sinh file core', 'Cần <code>ulimit -c unlimited</code> mới bật'],
-        ['<code>WIFSTOPPED(tt)</code>', 'Đúng nếu con bị <b>tạm dừng</b>, chưa chết', 'Chỉ thấy khi truyền cờ <code>WUNTRACED</code>']
+        ['<code>WIFEXITED(status)</code>', 'Đúng nếu con tự thoát bình thường', 'Qua <code>return</code> từ <code>main</code>, <code>exit()</code> hoặc <code>_exit()</code>'],
+        ['<code>WEXITSTATUS(status)</code>', 'Mã thoát 0–255', '<b>Chỉ có nghĩa</b> khi <code>WIFEXITED</code> đúng'],
+        ['<code>WIFSIGNALED(status)</code>', 'Đúng nếu con bị tín hiệu giết', 'Trường hợp <code>kill -9</code>, hoặc chương trình sập vì <code>SIGSEGV</code>'],
+        ['<code>WTERMSIG(status)</code>', 'Số hiệu tín hiệu đã giết nó', '9 = <code>SIGKILL</code>, 11 = <code>SIGSEGV</code>, 15 = <code>SIGTERM</code>'],
+        ['<code>WCOREDUMP(status)</code>', 'Đúng nếu có sinh file core', 'Cần <code>ulimit -c unlimited</code> mới bật'],
+        ['<code>WIFSTOPPED(status)</code>', 'Đúng nếu con bị <b>tạm dừng</b>, chưa chết', 'Chỉ thấy khi truyền cờ <code>WUNTRACED</code>']
       ]},
 
     { t: 'cal', kind: 'why', title: 'Vì sao mã thoát chỉ được nằm trong 0–255 và vì sao 127 có nghĩa riêng', x:
@@ -450,13 +451,13 @@ Lesson.register({
       'cha nuôi để sau này vẫn có người gặt. Trên máy bạn, cha nuôi <b>không phải PID 1</b>:' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'cha pid=428 thoat ngay lap tuc\n' +
-      'con pid=429  ppid ban dau=428\n' +
-      'con pid=429  ppid sau khi cha chet=311\n' +
-      '-- cha nuoi la ai --\n' +
+      'parent pid=13442 exits immediately\n' +
+      'child pid=13443  initial ppid=13442\n' +
+      'child pid=13443  ppid after parent died=13328\n' +
+      '-- who is the adoptive parent --\n' +
       '    PID    PPID COMMAND\n' +
-      '    311     310 Relay(312)\n' +
-      '-- PID 1 la ai --\n' +
+      '  13328   13327 Relay(13330)\n' +
+      '-- who is PID 1 --\n' +
       '    PID COMMAND\n' +
       '      1 systemd',
       notes: ['Ba con số PID trên máy bạn sẽ khác, và <b>khác cả giữa hai lần chạy</b> — điều ' +
@@ -468,7 +469,7 @@ Lesson.register({
       'nhất</b> — một tiến trình đã tự đăng ký nhận vai đó bằng ' +
       '<code>prctl(PR_SET_CHILD_SUBREAPER, 1)</code> — và chỉ khi không tìm được ai mới giao cho ' +
       'PID 1.</p>' +
-      '<p>Ở lần chạy trên, kẻ nhận nuôi là <code>Relay(312)</code>, một tiến trình nội bộ của ' +
+      '<p>Ở lần chạy trên, kẻ nhận nuôi là <code>Relay(13330)</code>, một tiến trình nội bộ của ' +
       'WSL; ở một lần chạy khác nó hiện ra là <code>SessionLeader</code>. Cả hai đều là bộ khung ' +
       'quản lý phiên của WSL, và PID của chúng đổi theo mỗi phiên — nên hãy tra bằng ' +
       '<code>ps -o pid,ppid,comm -p &lt;ppid vừa in ra&gt;</code> chứ đừng chép cứng con số. ' +
@@ -498,59 +499,59 @@ Lesson.register({
         ['<code>extern char **environ;</code>', 'Truy cập cả mảng để duyệt', 'Con trỏ có thể đổi sau <code>setenv</code> — đừng lưu lại']
       ]},
 
-    { t: 'code', where: 'file', name: 'moitruong.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'environment.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
       '#include <unistd.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
-      'extern char **environ;                  /* mang moi truong, ket thuc bang NULL */\n' +
+      'extern char **environ;                  /* environment array, terminated by NULL */\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    printf("HOME     = %s\\n", getenv("HOME"));\n' +
-      '    printf("SHELL    = %s\\n", getenv("SHELL"));\n' +
-      '    printf("PATH dai = %zu ky tu\\n", strlen(getenv("PATH")));\n' +
-      '    printf("CHUA_DAT = %s\\n", getenv("CHUA_DAT") ? getenv("CHUA_DAT") : "(NULL)");\n' +
+      '    printf("HOME      = %s\\n", getenv("HOME"));\n' +
+      '    printf("SHELL     = %s\\n", getenv("SHELL"));\n' +
+      '    printf("PATH len  = %zu chars\\n", strlen(getenv("PATH")));\n' +
+      '    printf("UNSET_VAR = %s\\n", getenv("UNSET_VAR") ? getenv("UNSET_VAR") : "(NULL)");\n' +
       '\n' +
       '    int n = 0;\n' +
-      '    while (environ[n]) n++;             /* dem toi khi gap con tro NULL */\n' +
-      '    printf("tong so bien = %d, bien dau tien = %s\\n", n, environ[0]);\n' +
+      '    while (environ[n]) n++;             /* count until NULL pointer */\n' +
+      '    printf("total vars = %d, first var = %s\\n", n, environ[0]);\n' +
       '\n' +
-      '    setenv("THIET_BI", "may-do-nhiet-do", 1);\n' +
-      '    printf("sau setenv: THIET_BI = %s\\n", getenv("THIET_BI"));\n' +
+      '    setenv("DEVICE", "temp-sensor", 1);\n' +
+      '    printf("after setenv: DEVICE = %s\\n", getenv("DEVICE"));\n' +
       '\n' +
-      '    if (fork() == 0) {                  /* con thua huong ban sao moi truong */\n' +
-      '        execlp("sh", "sh", "-c", "echo \\"  [con] THIET_BI=$THIET_BI\\"", (char *)NULL);\n' +
+      '    if (fork() == 0) {                  /* child inherits a copy of the environment */\n' +
+      '        execlp("sh", "sh", "-c", "echo \\"  [child] DEVICE=$DEVICE\\"", (char *)NULL);\n' +
       '        _exit(127);\n' +
       '    }\n' +
       '    wait(NULL);\n' +
-      '    printf("[cha] con da thoat; moi truong cua cha khong doi\\n");\n' +
+      '    printf("[parent] child exited; parent\'s environment unchanged\\n");\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'HOME     = /home/shinarus\n' +
-      'SHELL    = /bin/bash\n' +
-      'PATH dai = 1396 ky tu\n' +
-      'CHUA_DAT = (NULL)\n' +
-      'tong so bien = 22, bien dau tien = SHELL=/bin/bash\n' +
-      'sau setenv: THIET_BI = may-do-nhiet-do\n' +
-      '  [con] THIET_BI=may-do-nhiet-do\n' +
-      '[cha] con da thoat; moi truong cua cha khong doi' },
+      'HOME      = /home/shinarus\n' +
+      'SHELL     = /bin/bash\n' +
+      'PATH len  = 1396 chars\n' +
+      'UNSET_VAR = (NULL)\n' +
+      'total vars = 24, first var = DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus\n' +
+      'after setenv: DEVICE = temp-sensor\n' +
+      '  [child] DEVICE=temp-sensor\n' +
+      '[parent] child exited; parent\'s environment unchanged' },
 
     { t: 'cal', kind: 'why', title: 'Môi trường chảy một chiều: từ cha xuống con, không bao giờ ngược lại', x:
-      '<p>Con thấy được <code>THIET_BI</code> vì cha đặt nó <b>trước</b> khi <code>fork</code>. ' +
+      '<p>Con thấy được <code>DEVICE</code> vì cha đặt nó <b>trước</b> khi <code>fork</code>. ' +
       'Nhưng nếu con gọi <code>setenv</code> thì cha vĩnh viễn không biết — vì đó là bản sao ' +
-      'riêng, hệt như biến <code>toan_cuc</code> ở phần trước.</p>' +
+      'riêng, hệt như biến <code>global_var</code> ở phần trước.</p>' +
       '<p>Đây chính là lý do <code>cd</code> phải là <i>lệnh dựng sẵn</i> của shell chứ không ' +
       'thể là một chương trình rời. Nếu <code>/bin/cd</code> tồn tại, shell sẽ <code>fork</code> ' +
       'ra nó, nó đổi thư mục của <b>chính nó</b> rồi chết — shell cha vẫn đứng nguyên chỗ cũ. ' +
       'Bạn đã gặp <code>cd</code> như một lệnh dựng sẵn từ Bài 4; giờ mới có lời giải thích đầy ' +
       'đủ vì sao nó buộc phải như vậy.</p>' +
       '<p>Trên thiết bị nhúng, đây là mô hình cấu hình được dùng nhiều nhất: file service của ' +
-      'systemd khai <code>Environment="MUC_LOG=/var/log/x"</code>, tiến trình đọc bằng ' +
+      'systemd khai <code>Environment="LOG_PATH=/var/log/x"</code>, tiến trình đọc bằng ' +
       '<code>getenv</code>. Khi daemon chạy sai, việc đầu tiên nên làm là ' +
       '<code>tr \'\\0\' \'\\n\' &lt; /proc/&lt;pid&gt;/environ</code> để xem nó <i>thật sự</i> nhận ' +
       'được những biến gì.</p>' },
@@ -574,40 +575,40 @@ Lesson.register({
       { title: 'Bước 1 — Nhìn tận mắt "một lời gọi, hai giá trị trả về"',
         blocks: [
           { t: 'p', x:
-            'Bạn đã đọc mã <code>haichieu.c</code> ở phần lý thuyết. Giờ gõ lại nó và chạy, vì ' +
+            'Bạn đã đọc mã <code>fork_twice.c</code> ở phần lý thuyết. Giờ gõ lại nó và chạy, vì ' +
             'ba con số PID chỉ thuyết phục khi chính máy bạn in ra.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o haichieu haichieu.c && ./haichieu' },
+            'gcc -Wall -Wextra -o fork_twice fork_twice.c && ./fork_twice' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'truoc fork: pid=433\n' +
-            '  CHA : fork tra ve 434, pid=433, ppid=431\n' +
-            '  CON : fork tra ve 0, pid=434, ppid=433\n' +
-            '  ca hai deu chay dong nay (pid=434)\n' +
-            '  ca hai deu chay dong nay (pid=433)',
-            notes: ['Chạy lại vài lần. Thứ tự hai dòng CHA/CON có thể đảo — đó là bộ lập lịch, ' +
-              'không phải lỗi của bạn.'] },
+            'before fork: pid=13383\n' +
+            '  CHILD : fork returned 0, pid=13384, ppid=13383\n' +
+            '  both run this line (pid=13384)\n' +
+            '  PARENT: fork returned 13384, pid=13383, ppid=13330\n' +
+            '  both run this line (pid=13383)',
+            notes: ['Chạy lại vài lần. Thứ tự hai dòng PARENT/CHILD có thể đảo — đó là bộ lập ' +
+              'lịch, không phải lỗi của bạn.'] },
 
           { t: 'p', x:
             'Bây giờ dựng lại cái bẫy đệm, để bạn thấy nó bằng mắt chứ không chỉ tin lời cảnh ' +
-            'báo. Chép <code>haichieu.c</code> thành <code>bay.c</code> rồi <b>xoá dòng ' +
-            '<code>fflush(stdout);</code></b>:' },
+            'báo. Chép <code>fork_twice.c</code> thành <code>buffer_trap.c</code> rồi <b>xoá ' +
+            'dòng <code>fflush(stdout);</code></b>:' },
 
           { t: 'code', where: 'wsl', code:
-            'sed \'/fflush(stdout)/d\' haichieu.c > bay.c\n' +
-            'gcc -Wall -Wextra -o bay bay.c\n' +
-            './bay | cat            # ra terminal qua ong: khong sao\n' +
-            'echo "----- gio chuyen huong vao file -----"\n' +
-            './bay > bay.txt\n' +
-            'grep -c "truoc fork" bay.txt' },
+            'sed \'/fflush(stdout)/d\' fork_twice.c > buffer_trap.c\n' +
+            'gcc -Wall -Wextra -o buffer_trap buffer_trap.c\n' +
+            './buffer_trap | cat     # piped to terminal: fine\n' +
+            'echo "----- now redirect into a file -----"\n' +
+            './buffer_trap > buffer_trap.txt\n' +
+            'grep -c "before fork" buffer_trap.txt' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '----- gio chuyen huong vao file -----\n' +
+            '----- now redirect into a file -----\n' +
             '2' },
 
           { t: 'cal', kind: 'why', title: 'Con số 2 chính là lỗi', x:
-            '<p><code>grep -c</code> đếm được <b>hai</b> dòng <code>truoc fork</code>, dù trong ' +
+            '<p><code>grep -c</code> đếm được <b>hai</b> dòng <code>before fork</code>, dù trong ' +
             'mã chỉ có <b>một</b> lệnh <code>printf</code>. Dòng đó vẫn còn nằm trong đệm ' +
             '<code>stdio</code> lúc <code>fork</code> chạy, nên nó bị nhân đôi cùng bộ nhớ, và ' +
             'mỗi tiến trình xả một bản khi thoát.</p>' +
@@ -625,7 +626,7 @@ Lesson.register({
             '<code>fork</code> → <code>exec</code> → <code>wait</code> trong 30 dòng. Về bản ' +
             'chất, <code>bash</code> làm đúng như vậy mỗi lần bạn gõ một lệnh.' },
 
-          { t: 'code', where: 'file', name: 'chay.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'runcmd.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <string.h>              /* strsignal */\n' +
             '#include <unistd.h>\n' +
@@ -634,69 +635,69 @@ Lesson.register({
             'int main(int argc, char *argv[])\n' +
             '{\n' +
             '    if (argc < 2) {\n' +
-            '        fprintf(stderr, "Dung: %s <lenh> [tham so...]\\n", argv[0]);\n' +
+            '        fprintf(stderr, "Usage: %s <command> [args...]\\n", argv[0]);\n' +
             '        return 1;\n' +
             '    }\n' +
             '\n' +
-            '    pid_t con = fork();\n' +
-            '    if (con < 0) { perror("fork"); return 1; }\n' +
+            '    pid_t child = fork();\n' +
+            '    if (child < 0) { perror("fork"); return 1; }\n' +
             '\n' +
-            '    if (con == 0) {                       /* tien trinh CON */\n' +
+            '    if (child == 0) {                     /* child process */\n' +
             '        execvp(argv[1], &argv[1]);\n' +
-            '        perror("execvp");                 /* chi chay khi exec that bai */\n' +
+            '        perror("execvp");                 /* only reached if exec fails */\n' +
             '        _exit(127);\n' +
             '    }\n' +
             '\n' +
-            '    int tt;                               /* tien trinh CHA */\n' +
-            '    if (waitpid(con, &tt, 0) < 0) { perror("waitpid"); return 1; }\n' +
+            '    int status;                           /* parent process */\n' +
+            '    if (waitpid(child, &status, 0) < 0) { perror("waitpid"); return 1; }\n' +
             '\n' +
-            '    printf("[cha] con pid=%d ket thuc, tt tho = %d (0x%04x)\\n", con, tt, tt);\n' +
-            '    if (WIFEXITED(tt))\n' +
-            '        printf("[cha] thoat binh thuong, ma thoat = %d\\n", WEXITSTATUS(tt));\n' +
-            '    else if (WIFSIGNALED(tt))\n' +
-            '        printf("[cha] bi giet boi tin hieu %d (%s)\\n",\n' +
-            '               WTERMSIG(tt), strsignal(WTERMSIG(tt)));\n' +
+            '    printf("[parent] child pid=%d exited, raw status = %d (0x%04x)\\n", child, status, status);\n' +
+            '    if (WIFEXITED(status))\n' +
+            '        printf("[parent] exited normally, exit code = %d\\n", WEXITSTATUS(status));\n' +
+            '    else if (WIFSIGNALED(status))\n' +
+            '        printf("[parent] killed by signal %d (%s)\\n",\n' +
+            '               WTERMSIG(status), strsignal(WTERMSIG(status)));\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'cmdx', cmd: 'execvp(argv[1], &argv[1]);',
             title: 'Vì sao lại là &argv[1] chứ không phải argv',
             rows: [
-              ['<code>argv[0]</code>', 'là <code>./chay</code> — tên của chính chương trình bao ngoài', 'Không được truyền xuống'],
+              ['<code>argv[0]</code>', 'là <code>./runcmd</code> — tên của chính chương trình bao ngoài', 'Không được truyền xuống'],
               ['<code>argv[1]</code>', 'là tên lệnh cần chạy, ví dụ <code>echo</code>', 'Vừa là đường dẫn tìm kiếm, vừa là <code>argv[0]</code> của chương trình mới'],
               ['<code>&amp;argv[1]</code>', 'địa chỉ của phần tử thứ 1 = một mảng con bắt đầu từ đó', 'Mảng <code>argv</code> luôn kết thúc bằng <code>NULL</code>, nên mảng con cũng vậy — đúng thứ <code>execvp</code> cần'],
               ['<code>_exit(127)</code>', 'Con báo "không tìm thấy lệnh" theo đúng quy ước shell', 'Dùng <code>_exit</code> để không xả lại đệm thừa hưởng từ cha']
             ]},
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o chay chay.c\n' +
-            './chay echo hello\n' +
-            './chay false\n' +
-            './chay lenh_khong_ton_tai' },
+            'gcc -Wall -Wextra -o runcmd runcmd.c\n' +
+            './runcmd echo hello\n' +
+            './runcmd false\n' +
+            './runcmd nonexistent_command_xyz' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             'hello\n' +
-            '[cha] con pid=461 ket thuc, tt tho = 0 (0x0000)\n' +
-            '[cha] thoat binh thuong, ma thoat = 0\n' +
-            '[cha] con pid=465 ket thuc, tt tho = 256 (0x0100)\n' +
-            '[cha] thoat binh thuong, ma thoat = 1\n' +
+            '[parent] child pid=13400 exited, raw status = 0 (0x0000)\n' +
+            '[parent] exited normally, exit code = 0\n' +
+            '[parent] child pid=13402 exited, raw status = 256 (0x0100)\n' +
+            '[parent] exited normally, exit code = 1\n' +
             'execvp: No such file or directory\n' +
-            '[cha] con pid=469 ket thuc, tt tho = 32512 (0x7f00)\n' +
-            '[cha] thoat binh thuong, ma thoat = 127' },
+            '[parent] child pid=13404 exited, raw status = 32512 (0x7f00)\n' +
+            '[parent] exited normally, exit code = 127' },
 
           { t: 'p', x:
             'Kiểu kết thúc thứ tư cần hai cửa sổ. Ở cửa sổ thứ nhất chạy một lệnh ngủ lâu, ở cửa ' +
             'sổ thứ hai giết nó bằng <code>SIGKILL</code>:' },
 
           { t: 'code', where: 'wsl', name: 'Cửa sổ 1', code:
-            './chay sleep 30' },
+            './runcmd sleep 30' },
 
           { t: 'code', where: 'wsl', name: 'Cửa sổ 2', code:
             'pkill -9 -x sleep' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[cha] con pid=473 ket thuc, tt tho = 9 (0x0009)\n' +
-            '[cha] bi giet boi tin hieu 9 (Killed)' },
+            '[parent] child pid=13409 exited, raw status = 9 (0x0009)\n' +
+            '[parent] killed by signal 9 (Killed)' },
 
           { t: 'cal', kind: 'info', title: 'Bốn con số, một quy luật', x:
             '<p>Xếp cạnh nhau là thấy ngay bố cục bit:</p>' +
@@ -706,9 +707,9 @@ Lesson.register({
             '<li><code>0x7f00</code> — thoát 127. Byte cao = <code>0x7f</code> = 127.</li>' +
             '<li><code>0x0009</code> — bị tín hiệu 9 giết. Byte cao = 0, byte thấp = 9.</li>' +
             '</ul>' +
-            '<p>Nếu bạn từng "tối ưu" bằng cách viết <code>ma_thoat = tt &gt;&gt; 8</code> thì ba ' +
-            'trường hợp đầu vẫn đúng và trường hợp thứ tư cho <b>0</b> — chương trình bị giết ' +
-            'thẳng tay mà báo cáo là thành công. Đó là lý do phải hỏi <code>WIFEXITED</code> ' +
+            '<p>Nếu bạn từng "tối ưu" bằng cách viết <code>exit_code = status &gt;&gt; 8</code> ' +
+            'thì ba trường hợp đầu vẫn đúng và trường hợp thứ tư cho <b>0</b> — chương trình bị ' +
+            'giết thẳng tay mà báo cáo là thành công. Đó là lý do phải hỏi <code>WIFEXITED</code> ' +
             'trước tiên, luôn luôn.</p>' },
 
           { t: 'p', x:
@@ -716,21 +717,21 @@ Lesson.register({
             'trình con sinh ra sau <code>fork</code>:' },
 
           { t: 'code', where: 'wsl', code:
-            'strace -f -e trace=clone,execve,wait4 -o vet20.txt ./chay echo hi\n' +
-            'cat vet20.txt' },
+            'strace -f -e trace=clone,execve,wait4 -o trace.txt ./runcmd echo hi\n' +
+            'cat trace.txt' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '458   execve("./chay", ["./chay", "echo", "hi"], 0x7ffcceaec018 /* 22 vars */) = 0\n' +
-            '458   clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x7c91eda9fa10) = 459\n' +
-            '458   wait4(459 <unfinished ...>\n' +
-            '459   execve("/usr/local/sbin/echo", ["echo", "hi"], 0x7ffc8ac7ef58 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
-            '459   execve("/usr/local/bin/echo", ["echo", "hi"], 0x7ffc8ac7ef58 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
-            '459   execve("/usr/sbin/echo", ["echo", "hi"], 0x7ffc8ac7ef58 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
-            '459   execve("/usr/bin/echo", ["echo", "hi"], 0x7ffc8ac7ef58 /* 22 vars */) = 0\n' +
-            '459   +++ exited with 0 +++\n' +
-            '458   <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 459\n' +
-            '458   --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=459, si_uid=1000, si_status=0, si_utime=0, si_stime=2 /* 0.02 s */} ---\n' +
-            '458   +++ exited with 0 +++',
+            '13414 execve("./runcmd", ["./runcmd", "echo", "hi"], 0x7ffe2c12ea88 /* 22 vars */) = 0\n' +
+            '13414 clone(child_stack=NULL, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0x717659195a10) = 13415\n' +
+            '13414 wait4(13415 <unfinished ...>\n' +
+            '13415 execve("/usr/local/sbin/echo", ["echo", "hi"], 0x7ffc39a75f68 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
+            '13415 execve("/usr/local/bin/echo", ["echo", "hi"], 0x7ffc39a75f68 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
+            '13415 execve("/usr/sbin/echo", ["echo", "hi"], 0x7ffc39a75f68 /* 22 vars */) = -1 ENOENT (No such file or directory)\n' +
+            '13415 execve("/usr/bin/echo", ["echo", "hi"], 0x7ffc39a75f68 /* 22 vars */) = 0\n' +
+            '13415 +++ exited with 0 +++\n' +
+            '13414 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 13415\n' +
+            '13414 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=13415, si_uid=1000, si_status=0, si_utime=0, si_stime=1 /* 0.01 s */} ---\n' +
+            '13414 +++ exited with 0 +++',
             notes: [
               'Cột đầu là PID, xuất hiện vì có <code>-f</code>. Không có <code>-f</code> thì strace bỏ qua toàn bộ đời sống của con.',
               'Vẫn phải dùng <code>-o</code> như Bài 19: nếu để vết ra màn hình, nó sẽ trộn lẫn với chữ <code>hi</code> mà chương trình in ra.'
@@ -742,7 +743,7 @@ Lesson.register({
             '<code>clone</code>; <code>fork()</code> của thư viện C gọi xuống nó với bộ cờ tối ' +
             'thiểu. Cùng syscall đó, với nhiều cờ <code>CLONE_*</code> hơn, sẽ tạo ra <b>luồng</b> ' +
             '— Bài 22.</li>' +
-            '<li><b><code>clone</code> trả về 459 trong dòng của tiến trình 458.</b> Bạn đang ' +
+            '<li><b><code>clone</code> trả về 13415 trong dòng của tiến trình 13414.</b> Bạn đang ' +
             'nhìn đúng nhánh cha. Nhánh con không có dòng trả về nào vì với nó lời gọi ' +
             '"bắt đầu" từ giá trị 0.</li>' +
             '<li><b>Chữ <code>p</code> trong <code>execvp</code> tốn bốn syscall thất bại.</b> ' +
@@ -762,36 +763,36 @@ Lesson.register({
             'Muốn hiểu zombie thì phải nuôi một con. Chương trình dưới đây <b>cố tình</b> quên ' +
             '<code>wait</code>, đúng như lỗi thật ngoài đời.' },
 
-          { t: 'code', where: 'file', name: 'mabu.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'zombie.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    pid_t con = fork();\n' +
-            '    if (con == 0) {\n' +
-            '        printf("con pid=%d thoat ngay\\n", getpid());\n' +
-            '        return 0;                      /* con chet, cha khong gat */\n' +
+            '    pid_t child = fork();\n' +
+            '    if (child == 0) {\n' +
+            '        printf("child pid=%d exits immediately\\n", getpid());\n' +
+            '        return 0;                      /* child dies, parent never reaps it */\n' +
             '    }\n' +
-            '    printf("cha pid=%d KHONG goi wait, ngu 10 giay\\n", getpid());\n' +
-            '    printf("hay chay:  ps -o pid,ppid,stat,comm -p %d\\n", con);\n' +
+            '    printf("parent pid=%d does NOT call wait, sleeping 10s\\n", getpid());\n' +
+            '    printf("run:  ps -o pid,ppid,stat,comm -p %d\\n", child);\n' +
             '    fflush(stdout);\n' +
             '    sleep(10);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o mabu mabu.c\n' +
-            './mabu &\n' +
+            'gcc -Wall -Wextra -o zombie zombie.c\n' +
+            './zombie &\n' +
             'sleep 1\n' +
             'ps -o pid,ppid,stat,comm --ppid $!' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'cha pid=495 KHONG goi wait, ngu 10 giay\n' +
-            'hay chay:  ps -o pid,ppid,stat,comm -p 497\n' +
-            'con pid=497 thoat ngay\n' +
+            'parent pid=13424 does NOT call wait, sleeping 10s\n' +
+            'run:  ps -o pid,ppid,stat,comm -p 13425\n' +
+            'child pid=13425 exits immediately\n' +
             '    PID    PPID STAT COMMAND\n' +
-            '    497     495 Z+   mabu' },
+            '  13425   13424 Z+   zombie' },
 
           { t: 'cmdx', cmd: 'ps -o pid,ppid,stat,comm --ppid $!',
             title: 'Đọc dòng ps này',
@@ -804,18 +805,18 @@ Lesson.register({
 
           { t: 'p', x:
             'Giờ mổ con zombie qua <code>/proc</code>, đúng kỹ thuật bạn đã dùng ở Bài 19. Thay ' +
-            '<code>497</code> bằng số của máy bạn:' },
+            '<code>13425</code> bằng số của máy bạn:' },
 
           { t: 'code', where: 'wsl', code:
-            'grep -E \'^(Name|State|Tgid|Pid|PPid|VmSize)\' /proc/497/status\n' +
-            'wc -c < /proc/497/cmdline' },
+            'grep -E \'^(Name|State|Tgid|Pid|PPid|VmSize)\' /proc/13425/status\n' +
+            'wc -c < /proc/13425/cmdline' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'Name:\tmabu\n' +
+            'Name:\tzombie\n' +
             'State:\tZ (zombie)\n' +
-            'Tgid:\t497\n' +
-            'Pid:\t497\n' +
-            'PPid:\t495\n' +
+            'Tgid:\t13425\n' +
+            'Pid:\t13425\n' +
+            'PPid:\t13424\n' +
             '0' },
 
           { t: 'cal', kind: 'info', title: 'Hai bằng chứng zombie không còn giữ tài nguyên nào', x:
@@ -823,7 +824,7 @@ Lesson.register({
             'nó không hiện ra — vì tiến trình đã trả lại toàn bộ không gian địa chỉ. Không còn ' +
             'byte RAM nào của nó cả.</p>' +
             '<p><b><code>cmdline</code> dài đúng 0 byte.</b> Chuỗi dòng lệnh nằm trong ngăn xếp ' +
-            'của tiến trình, mà ngăn xếp đã bị giải phóng. Cái tên <code>mabu</code> ở ' +
+            'của tiến trình, mà ngăn xếp đã bị giải phóng. Cái tên <code>zombie</code> ở ' +
             '<code>Name</code> còn đọc được vì nó nằm trong cấu trúc <code>task_struct</code> của ' +
             'nhân, chứ không nằm trong bộ nhớ tiến trình.</p>' +
             '<p>Thứ duy nhất zombie còn chiếm là <b>một ô PID</b>. Vô hại với một con, chết máy ' +
@@ -832,7 +833,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'kill -9 %1\n' +
             'sleep 1\n' +
-            'ps -o pid,stat,comm -p 497' },
+            'ps -o pid,stat,comm -p 13425' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '    PID STAT COMMAND' },
@@ -849,45 +850,45 @@ Lesson.register({
           { t: 'p', x:
             'Đứa mồ côi thì ngược lại. Cho cha thoát trước, rồi hỏi con xem cha mới của nó là ai:' },
 
-          { t: 'code', where: 'file', name: 'mocoi.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'orphan.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    if (fork() == 0) {\n' +
-            '        printf("con pid=%d  ppid ban dau=%d\\n", getpid(), getppid());\n' +
+            '        printf("child pid=%d  initial ppid=%d\\n", getpid(), getppid());\n' +
             '        fflush(stdout);\n' +
-            '        sleep(2);                       /* du lau de cha kip chet */\n' +
-            '        printf("con pid=%d  ppid sau khi cha chet=%d\\n", getpid(), getppid());\n' +
+            '        sleep(2);                       /* long enough for the parent to die first */\n' +
+            '        printf("child pid=%d  ppid after parent died=%d\\n", getpid(), getppid());\n' +
             '        return 0;\n' +
             '    }\n' +
-            '    printf("cha pid=%d thoat ngay lap tuc\\n", getpid());\n' +
+            '    printf("parent pid=%d exits immediately\\n", getpid());\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o mocoi mocoi.c\n' +
-            './mocoi\n' +
+            'gcc -Wall -Wextra -o orphan orphan.c\n' +
+            './orphan\n' +
             'sleep 3' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'cha pid=428 thoat ngay lap tuc\n' +
-            'con pid=429  ppid ban dau=428\n' +
-            'con pid=429  ppid sau khi cha chet=311' },
+            'parent pid=13442 exits immediately\n' +
+            'child pid=13443  initial ppid=13442\n' +
+            'child pid=13443  ppid after parent died=13328' },
 
           { t: 'code', where: 'wsl', code:
-            'ps -o pid,ppid,comm -p 311\n' +
+            'ps -o pid,ppid,comm -p 13328\n' +
             'ps -o pid,comm -p 1' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '    PID    PPID COMMAND\n' +
-            '    311     310 Relay(312)\n' +
+            '  13328   13327 Relay(13330)\n' +
             '    PID COMMAND\n' +
             '      1 systemd',
-            notes: ['Thay <code>311</code> bằng con số máy bạn vừa in ra. Tên tiến trình có thể ' +
-              'là <code>Relay(...)</code> hoặc <code>SessionLeader</code> tuỳ phiên WSL — điểm ' +
-              'chung là nó <b>không phải PID 1</b>.'] },
+            notes: ['Thay <code>13328</code> bằng con số máy bạn vừa in ra. Tên tiến trình có ' +
+              'thể là <code>Relay(...)</code> hoặc <code>SessionLeader</code> tuỳ phiên WSL — ' +
+              'điểm chung là nó <b>không phải PID 1</b>.'] },
 
           { t: 'cal', kind: 'tip', title: 'Mồ côi không phải lỗi', x:
             '<p>Khác zombie, mồ côi hoàn toàn bình thường và còn là <b>kỹ thuật cố ý</b> — bạn ' +
@@ -899,11 +900,11 @@ Lesson.register({
       { title: 'Bước 4 — Tự tay dựng lại phép chuyển hướng > của shell, và đo giá của fork',
         blocks: [
           { t: 'p', x:
-            'Khi bạn gõ <code>ls -l /etc/hostname &gt; ketqua.txt</code>, shell không hề đưa tên ' +
+            'Khi bạn gõ <code>ls -l /etc/hostname &gt; result.txt</code>, shell không hề đưa tên ' +
             'file cho <code>ls</code>. Nó làm ba việc <b>giữa</b> <code>fork</code> và ' +
             '<code>exec</code>. Đây là ba việc đó, viết bằng tay.' },
 
-          { t: 'code', where: 'file', name: 'chuyenhuong.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'redirect.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <fcntl.h>\n' +
             '#include <unistd.h>\n' +
@@ -911,22 +912,22 @@ Lesson.register({
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    pid_t con = fork();\n' +
-            '    if (con == 0) {\n' +
-            '        int fd = open("ketqua.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);\n' +
+            '    pid_t child = fork();\n' +
+            '    if (child == 0) {\n' +
+            '        int fd = open("result.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);\n' +
             '        if (fd < 0) { perror("open"); _exit(1); }\n' +
             '\n' +
-            '        dup2(fd, STDOUT_FILENO);        /* fd 1 gio tro toi ketqua.txt */\n' +
-            '        close(fd);                      /* ban sao goc khong con can */\n' +
+            '        dup2(fd, STDOUT_FILENO);        /* fd 1 now points to result.txt */\n' +
+            '        close(fd);                      /* the original copy is no longer needed */\n' +
             '\n' +
             '        execlp("ls", "ls", "-l", "/etc/hostname", (char *)NULL);\n' +
             '        perror("execlp");\n' +
             '        _exit(127);\n' +
             '    }\n' +
             '    wait(NULL);\n' +
-            '    printf("[cha] noi dung ketqua.txt:\\n");\n' +
+            '    printf("[parent] contents of result.txt:\\n");\n' +
             '    fflush(stdout);\n' +
-            '    execlp("cat", "cat", "ketqua.txt", (char *)NULL);\n' +
+            '    execlp("cat", "cat", "result.txt", (char *)NULL);\n' +
             '    return 0;\n' +
             '}' },
 
@@ -940,11 +941,11 @@ Lesson.register({
             ]},
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o chuyenhuong chuyenhuong.c && ./chuyenhuong' },
+            'gcc -Wall -Wextra -o redirect redirect.c && ./redirect' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[cha] noi dung ketqua.txt:\n' +
-            '-rw-r--r-- 1 root root 9 Aug  3 20:59 /etc/hostname',
+            '[parent] contents of result.txt:\n' +
+            '-rw-r--r-- 1 root root 9 Aug  4 22:42 /etc/hostname',
             notes: ['Ngày giờ và kích thước trên máy bạn sẽ khác.'] },
 
           { t: 'cal', kind: 'why', title: 'Vì sao thứ tự bắt buộc phải là fork → dup2 → exec', x:
@@ -966,7 +967,7 @@ Lesson.register({
             'Việc cuối của bước này: <b>đo</b> giá của <code>fork</code> và <code>exec</code>, ' +
             'thay vì đoán. Con số này quyết định kiến trúc phần mềm của bạn trên thiết bị yếu.' },
 
-          { t: 'code', where: 'file', name: 'giafork.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'fork_cost.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <time.h>\n' +
             '#include <unistd.h>\n' +
@@ -974,14 +975,14 @@ Lesson.register({
             '\n' +
             '#define N 500\n' +
             '\n' +
-            'static double do_thu(int co_exec)\n' +
+            'static double run_trial(int with_exec)\n' +
             '{\n' +
             '    struct timespec t1, t2;\n' +
             '    clock_gettime(CLOCK_MONOTONIC, &t1);\n' +
             '    for (int i = 0; i < N; i++) {\n' +
             '        pid_t p = fork();\n' +
             '        if (p == 0) {\n' +
-            '            if (co_exec) { execl("/bin/true", "true", (char *)NULL); _exit(127); }\n' +
+            '            if (with_exec) { execl("/bin/true", "true", (char *)NULL); _exit(127); }\n' +
             '            _exit(0);\n' +
             '        }\n' +
             '        waitpid(p, NULL, 0);\n' +
@@ -992,29 +993,29 @@ Lesson.register({
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    printf("fork + exit        : %7.1f us/lan\\n", do_thu(0));\n' +
-            '    printf("fork + exec + exit : %7.1f us/lan\\n", do_thu(1));\n' +
+            '    printf("fork + exit        : %7.1f us/call\\n", run_trial(0));\n' +
+            '    printf("fork + exec + exit : %7.1f us/call\\n", run_trial(1));\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -O2 -o giafork giafork.c\n' +
-            'for i in 1 2 3; do ./giafork; echo ---; done' },
+            'gcc -Wall -Wextra -O2 -o fork_cost fork_cost.c\n' +
+            'for i in 1 2 3; do ./fork_cost; echo ---; done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'fork + exit        :   216.3 us/lan\n' +
-            'fork + exec + exit :   826.4 us/lan\n' +
+            'fork + exit        :   250.9 us/call\n' +
+            'fork + exec + exit :   832.2 us/call\n' +
             '---\n' +
-            'fork + exit        :   235.1 us/lan\n' +
-            'fork + exec + exit :   813.7 us/lan\n' +
+            'fork + exit        :   383.2 us/call\n' +
+            'fork + exec + exit :   882.2 us/call\n' +
             '---\n' +
-            'fork + exit        :   215.4 us/lan\n' +
-            'fork + exec + exit :   790.4 us/lan\n' +
+            'fork + exit        :   215.6 us/call\n' +
+            'fork + exec + exit :   841.9 us/call\n' +
             '---' },
 
           { t: 'cal', kind: 'info', title: 'Đọc hai con số này cho đúng nghề', x:
-            '<p><b>fork + wait ≈ 215–235 µs. Thêm exec ≈ 790–830 µs</b>, tức <code>exec</code> ' +
-            'đắt gấp khoảng <b>2,7 lần</b> bản thân <code>fork</code>. Hợp lý: <code>exec</code> ' +
+            '<p><b>fork + wait ≈ 215–385 µs. Thêm exec ≈ 830–885 µs</b>, tức <code>exec</code> ' +
+            'đắt gấp khoảng <b>2 đến 4 lần</b> bản thân <code>fork</code>. Hợp lý: <code>exec</code> ' +
             'phải mở file ELF, ánh xạ các đoạn vào bộ nhớ, nạp <code>ld-linux</code>, liên kết ' +
             'động các thư viện — trong khi <code>fork</code> chỉ chép bảng trang nhờ ' +
             'copy-on-write.</p>' +
@@ -1045,17 +1046,17 @@ Lesson.register({
             '#include <fcntl.h>\n' +
             '#include <sys/stat.h>\n' +
             '\n' +
-            'static void thanh_daemon(void)\n' +
+            'static void daemonize(void)\n' +
             '{\n' +
-            '    pid_t p = fork();                 /* fork lan 1 */\n' +
+            '    pid_t p = fork();                 /* fork #1 */\n' +
             '    if (p < 0) exit(1);\n' +
-            '    if (p > 0) exit(0);               /* cha thoat -> con thanh mo coi */\n' +
+            '    if (p > 0) exit(0);               /* parent exits -> child becomes an orphan */\n' +
             '\n' +
-            '    if (setsid() < 0) exit(1);        /* tao phien moi, roi khoi terminal */\n' +
+            '    if (setsid() < 0) exit(1);        /* create new session, detach from terminal */\n' +
             '\n' +
-            '    p = fork();                       /* fork lan 2 */\n' +
+            '    p = fork();                       /* fork #2 */\n' +
             '    if (p < 0) exit(1);\n' +
-            '    if (p > 0) exit(0);               /* khong con la truong phien */\n' +
+            '    if (p > 0) exit(0);               /* no longer session leader */\n' +
             '\n' +
             '    umask(0);\n' +
             '    if (chdir("/") < 0) exit(1);\n' +
@@ -1068,14 +1069,14 @@ Lesson.register({
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    thanh_daemon();\n' +
+            '    daemonize();\n' +
             '\n' +
-            '    FILE *log = fopen("/tmp/nhietke.log", "a");\n' +
+            '    FILE *log = fopen("/tmp/sensor.log", "a");\n' +
             '    if (!log) return 1;\n' +
-            '    setvbuf(log, NULL, _IOLBF, 0);    /* xa theo dong, khong mat log */\n' +
+            '    setvbuf(log, NULL, _IOLBF, 0);    /* line-buffered, no lost log lines */\n' +
             '\n' +
             '    for (int i = 0; i < 5; i++) {\n' +
-            '        fprintf(log, "pid=%d ppid=%d nhip %d\\n", getpid(), getppid(), i);\n' +
+            '        fprintf(log, "pid=%d ppid=%d tick %d\\n", getpid(), getppid(), i);\n' +
             '        sleep(1);\n' +
             '    }\n' +
             '    fclose(log);\n' +
@@ -1095,48 +1096,54 @@ Lesson.register({
 
           { t: 'code', where: 'wsl', code:
             'gcc -Wall -Wextra -o daemon daemon.c\n' +
-            'rm -f /tmp/nhietke.log\n' +
+            'rm -f /tmp/sensor.log\n' +
             './daemon\n' +
-            'echo "lenh ./daemon da tra ve ngay, exit=$?"\n' +
+            'echo "./daemon returned immediately, exit=$?"\n' +
             'sleep 1\n' +
             'DPID=$(pgrep -x daemon | head -1)\n' +
             'ps -o pid,ppid,pgid,sid,tty,stat,comm -p $DPID' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'lenh ./daemon da tra ve ngay, exit=0\n' +
+            './daemon returned immediately, exit=0\n' +
             '    PID    PPID    PGID     SID TT       STAT COMMAND\n' +
-            '    470     323     469     469 ?        S    daemon' },
+            '  16499   13328   16498   16498 ?        S    daemon' },
 
           { t: 'cal', kind: 'why', title: 'Dấu ? ở cột TT là bằng chứng bạn đã daemon hoá thành công', x:
             '<p>Cột <code>TT</code> là terminal điều khiển. Mọi chương trình bạn chạy từ shell ' +
             'đều hiện <code>pts/0</code> hoặc tương tự. Daemon hiện <b><code>?</code></b> — nó ' +
             'không thuộc về terminal nào. Đóng cửa sổ WSL, nó vẫn chạy tiếp.</p>' +
-            '<p>Hai cột <code>PGID</code> và <code>SID</code> đều bằng <b>469</b> nhưng ' +
-            '<code>PID</code> là <b>470</b>. Đọc ngược lại được cả câu chuyện: 469 là tiến trình ' +
-            'đã gọi <code>setsid()</code> — nó lập ra phiên 469 và nhóm 469 rồi ' +
-            '<code>fork</code> lần hai ra 470 và tự thoát. 470 <b>ở trong</b> phiên đó nhưng ' +
+            '<p>Hai cột <code>PGID</code> và <code>SID</code> đều bằng <b>16498</b> nhưng ' +
+            '<code>PID</code> là <b>16499</b>. Đọc ngược lại được cả câu chuyện: 16498 là tiến ' +
+            'trình đã gọi <code>setsid()</code> — nó lập ra phiên 16498 và nhóm 16498 rồi ' +
+            '<code>fork</code> lần hai ra 16499 và tự thoát. 16499 <b>ở trong</b> phiên đó nhưng ' +
             '<b>không phải trưởng phiên</b>. Đúng ý đồ.</p>' +
-            '<p><code>PPID = 323</code> chính là subreaper của Bước 3, không phải shell đã chạy ' +
+            '<p><code>PPID = 13328</code> chính là subreaper của Bước 3, không phải shell đã chạy ' +
             'nó. Shell đã quên nó từ lâu.</p>' },
 
           { t: 'code', where: 'wsl', code:
             'ls -l /proc/$DPID/fd\n' +
             'ls -l /proc/$DPID/cwd\n' +
             'sleep 5\n' +
-            'cat /tmp/nhietke.log' },
+            'cat /tmp/sensor.log' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             'total 0\n' +
-            'lr-x------ 1 shinarus shinarus 64 Aug  3 20:59 0 -> /dev/null\n' +
-            'l-wx------ 1 shinarus shinarus 64 Aug  3 20:59 1 -> /dev/null\n' +
-            'l-wx------ 1 shinarus shinarus 64 Aug  3 20:59 2 -> /dev/null\n' +
-            'l-wx------ 1 shinarus shinarus 64 Aug  3 20:59 3 -> /tmp/nhietke.log\n' +
-            'lrwxrwxrwx 1 shinarus shinarus 0 Aug  3 20:59 /proc/470/cwd -> /\n' +
-            'pid=470 ppid=469 nhip 0\n' +
-            'pid=470 ppid=323 nhip 1\n' +
-            'pid=470 ppid=323 nhip 2\n' +
-            'pid=470 ppid=323 nhip 3\n' +
-            'pid=470 ppid=323 nhip 4' },
+            'lr-x------ 1 shinarus shinarus 64 Aug  5 22:18 0 -> /dev/null\n' +
+            'l-wx------ 1 shinarus shinarus 64 Aug  5 22:18 1 -> /dev/null\n' +
+            'l-wx------ 1 shinarus shinarus 64 Aug  5 22:18 2 -> /dev/null\n' +
+            'l-wx------ 1 shinarus shinarus 64 Aug  5 22:18 3 -> /tmp/sensor.log\n' +
+            'lrwx------ 1 shinarus shinarus 64 Aug  5 22:18 7 -> /dev/ptmx\n' +
+            'lrwxrwxrwx 1 shinarus shinarus 0 Aug  5 22:18 /proc/16499/cwd -> /\n' +
+            'pid=16499 ppid=13328 tick 0\n' +
+            'pid=16499 ppid=13328 tick 1\n' +
+            'pid=16499 ppid=13328 tick 2\n' +
+            'pid=16499 ppid=13328 tick 3\n' +
+            'pid=16499 ppid=13328 tick 4',
+            notes: ['fd <b>7</b> trỏ tới <code>/dev/ptmx</code> — một descriptor thừa hưởng từ ' +
+              'phiên WSL đang chạy lệnh này, <b>không</b> phải do <code>daemon.c</code> mở. Nghi ' +
+              'thức sáu bước chỉ đóng fd 0,1,2; nó <i>không</i> đóng các fd khác đang mở sẵn — ' +
+              'một daemon viết cẩn thận trong thực tế nên đóng mọi fd tới <code>sysconf(_SC_OPEN_MAX)</code> ' +
+              'hoặc dùng <code>close_range()</code> để không rò rỉ chúng vào tiến trình sau khi mồ côi.'] },
 
           { t: 'cal', kind: 'info', title: 'Ba chi tiết đáng dừng lại trong log này', x:
             '<p><b>fd 0, 1, 2 đều là <code>/dev/null</code>, fd 3 là file log.</b> Đúng như thiết ' +
@@ -1144,12 +1151,11 @@ Lesson.register({
             'sẵn bằng <code>/dev/null</code>.</p>' +
             '<p><b><code>cwd -&gt; /</code></b> — <code>chdir("/")</code> đã có hiệu lực, dù bạn ' +
             'chạy lệnh từ <code>~/embedded/bai20</code>.</p>' +
-            '<p><b>Dòng đầu ghi <code>ppid=469</code>, các dòng sau ghi <code>ppid=323</code>.</b> ' +
-            'Đây là chi tiết tinh tế nhất của cả bài: ở nhịp 0, tiến trình trung gian 469 <i>còn ' +
-            'chưa kịp thoát</i>; tới nhịp 1 nó đã thoát và daemon được subreaper nhận nuôi. Bạn ' +
-            'vừa bắt được khoảnh khắc tái gán cha xảy ra, ghi lại bằng dấu thời gian một giây. ' +
-            'Nếu máy bạn ghi <code>ppid=323</code> ngay từ nhịp 0 thì cũng đúng — chỉ là bộ lập ' +
-            'lịch đã cho 469 thoát sớm hơn.</p>' },
+            '<p><b>Mọi dòng log đều ghi cùng <code>ppid=13328</code>, từ nhịp 0.</b> Ở lần chạy ' +
+            'này, tiến trình trung gian đã kịp thoát và daemon đã được subreaper nhận nuôi ' +
+            '<i>trước khi</i> nhịp 0 chạy tới — bộ lập lịch quyết định việc này, nên máy bạn có ' +
+            'thể thấy PPID khác nhau ở nhịp 0 rồi ổn định từ nhịp 1, giống ví dụ gốc của bài. Cả ' +
+            'hai kết quả đều đúng.</p>' },
 
           { t: 'cal', kind: 'tip', title: 'Ngoài đời bạn sẽ không viết đoạn mã này nữa', x:
             '<p>Nghi thức sáu bước trên là cách làm <b>truyền thống</b>, và bạn cần hiểu nó vì ' +
@@ -1172,7 +1178,7 @@ Lesson.register({
       head: ['Thông báo', 'Nguyên nhân', 'Cách xử lý'],
       rows: [
         ['<code>implicit declaration of function \'strsignal\'</code>',
-         'Thiếu <code>#include &lt;string.h&gt;</code> trong <code>chay.c</code>. Gặp thật khi biên dịch bài này.',
+         'Thiếu <code>#include &lt;string.h&gt;</code> trong <code>runcmd.c</code>. Gặp thật khi biên dịch bài này.',
          'Thêm <code>#include &lt;string.h&gt;</code>. Đừng chữa bằng <code>-D_GNU_SOURCE</code> — hàm này thuộc POSIX chuẩn, chỉ là bạn quên header.'],
 
         ['<code>ignoring return value of \'write\' declared with attribute \'warn_unused_result\'</code>',
@@ -1204,7 +1210,7 @@ Lesson.register({
          'Luôn kiểm tra: <code>const char *v = getenv("X"); if (!v) v = "mac-dinh";</code>'],
 
         ['Mã thoát của con luôn bằng 0 dù chương trình rõ ràng thất bại',
-         'Hoặc <code>return</code> một số lớn hơn 255 (chỉ một byte được giữ), hoặc tự dịch bit <code>tt &gt;&gt; 8</code> mà không hỏi <code>WIFEXITED</code> trước.',
+         'Hoặc <code>return</code> một số lớn hơn 255 (chỉ một byte được giữ), hoặc tự dịch bit <code>status &gt;&gt; 8</code> mà không hỏi <code>WIFEXITED</code> trước.',
          'Giữ mã thoát trong 1–125. Luôn hỏi <code>WIFEXITED</code>/<code>WIFSIGNALED</code> trước khi lấy giá trị.'],
 
         ['<code>./daemon</code> treo terminal, không trả lại dấu nhắc',
@@ -1226,21 +1232,21 @@ Lesson.register({
     { t: 'recap', title: 'Tóm tắt Bài 20', items: [
       'Trên Linux, <b>tạo tiến trình</b> và <b>chạy chương trình</b> là hai việc tách rời: <code>fork</code> nhân bản, <code>exec</code> thay ruột. Mọi shell đều là vòng lặp <code>fork</code> → <code>exec</code> → <code>wait</code>.',
       '<code>fork()</code> trả về <b>hai lần</b>: <b>0</b> cho con, <b>PID của con</b> cho cha, <b>-1</b> khi lỗi. Mọi dòng sau <code>fork</code> đều thuộc về cả hai tiến trình.',
-      'Cha và con in ra <b>cùng một địa chỉ</b> <code>0x5e73eb56f010</code> nhưng đọc được <b>hai giá trị khác nhau</b> — bằng chứng của địa chỉ ảo và <b>copy-on-write</b>. Không có biến nào dùng chung.',
+      'Cha và con in ra <b>cùng một địa chỉ</b> <code>0x5e06c6e64010</code> nhưng đọc được <b>hai giá trị khác nhau</b> — bằng chứng của địa chỉ ảo và <b>copy-on-write</b>. Không có biến nào dùng chung.',
       '<code>exec</code> <b>giữ nguyên PID</b>, giữ nguyên bảng file descriptor, và <b>không bao giờ trả về</b> khi thành công. Chạy tới dòng sau nó nghĩa là đã lỗi.',
       'Biến trạng thái của <code>waitpid</code> là số <b>đã đóng gói</b>: <code>0x0100</code> = thoát 1, <code>0x7f00</code> = thoát 127, <code>0x0009</code> = bị tín hiệu 9 giết. Luôn giải mã bằng <code>WIFEXITED</code>/<code>WEXITSTATUS</code>/<code>WIFSIGNALED</code>/<code>WTERMSIG</code>.',
       'Mã thoát chỉ có <b>1 byte</b> (0–255). Quy ước: <b>0</b> thành công, <b>126</b> không chạy được, <b>127</b> không tìm thấy lệnh, <b>128+n</b> bị tín hiệu <i>n</i> giết.',
       '<b>Zombie</b> = con chết chưa được gặt: mất hết <code>VmSize</code>, <code>cmdline</code> còn <b>0</b> byte, chỉ chiếm một ô PID. Vô hại một con, cạn bảng PID với hàng vạn con.',
       '<b>Mồ côi</b> = cha chết trước; nhân giao con cho <b>subreaper gần nhất</b> — trên WSL là <code>Relay(...)</code>/<code>SessionLeader</code>, <b>không phải PID 1</b>.',
       'Phép chuyển hướng <code>&gt;</code> của shell chính là <code>fork</code> → <code>open</code> → <code>dup2(fd, 1)</code> → <code>close</code> → <code>exec</code>. Chương trình được chạy hoàn toàn không biết gì.',
-      'Đo được trên máy bạn: <code>fork</code>+<code>wait</code> ≈ <b>215–235 µs</b>; thêm <code>exec</code> ≈ <b>790–830 µs</b>, đắt hơn khoảng <b>2,7 lần</b>. Trên SoC ARM còn chậm hơn 5–10 lần — đừng <code>fork</code> trong vòng lặp nóng.',
+      'Đo được trên máy bạn: <code>fork</code>+<code>wait</code> ≈ <b>215–385 µs</b>; thêm <code>exec</code> ≈ <b>830–885 µs</b>, đắt hơn khoảng <b>2–4 lần</b>. Trên SoC ARM còn chậm hơn 5–10 lần — đừng <code>fork</code> trong vòng lặp nóng.',
       'Nghi thức daemon hoá: <code>fork</code> → <code>setsid</code> → <code>fork</code> → <code>umask(0)</code> → <code>chdir("/")</code> → nối 0/1/2 vào <code>/dev/null</code>. Dấu <b><code>?</code></b> ở cột <code>TT</code> của <code>ps</code> là bằng chứng đã thành công.',
       '<code>strace -f</code> cho thấy không có syscall nào tên <code>fork</code> — chỉ có <b><code>clone</code></b>; và <code>execvp</code> tốn <b>4</b> lần <code>execve</code> thất bại vì phải dò <code>PATH</code>.'
     ]},
 
     { t: 'cal', kind: 'info', title: 'Bài tiếp theo', x:
       '<p><b>Bài 21 — Tín hiệu và tắt máy êm.</b> Trong bản ghi <code>strace</code> ở Bước 2 có ' +
-      'một dòng bạn đã lướt qua: <code>--- SIGCHLD {si_code=CLD_EXITED, si_pid=459} ---</code>. ' +
+      'một dòng bạn đã lướt qua: <code>--- SIGCHLD {si_code=CLD_EXITED, si_pid=13415} ---</code>. ' +
       'Đó là nhân gõ cửa tiến trình cha để báo con đã chết. Bài 21 sẽ dạy bạn mở cửa: bắt ' +
       '<code>SIGCHLD</code> để dọn zombie tự động, phân biệt <code>SIGTERM</code> (xin phép) với ' +
       '<code>SIGKILL</code> (không thương lượng), và hiểu vì sao gọi <code>printf</code> trong ' +
@@ -1257,7 +1263,7 @@ Lesson.register({
       a: 2,
       why: 'Con nhận <b>0</b>, cha nhận PID của con. Lý do bất đối xứng: con muốn biết PID của mình đã có <code>getpid()</code>, muốn biết cha đã có <code>getppid()</code> — nên giá trị trả về ở nhánh con là dư thừa và được dùng làm cờ nhận biết. Ngược lại, cha <b>không có cách nào khác</b> để biết PID của đứa con vừa sinh, nên giá trị đó bắt buộc phải đi qua đường trả về.' },
 
-    { q: 'Cha in địa chỉ của biến toàn cục ra <code>0x5e73eb56f010</code>, con cũng in ra đúng <code>0x5e73eb56f010</code>, nhưng hai bên đọc được hai giá trị khác nhau. Vì sao?',
+    { q: 'Cha in địa chỉ của biến toàn cục ra <code>0x5e06c6e64010</code>, con cũng in ra đúng <code>0x5e06c6e64010</code>, nhưng hai bên đọc được hai giá trị khác nhau. Vì sao?',
       opts: [
         'Vì có lỗi trong chương trình, hai tiến trình đang ghi đè lên nhau',
         'Vì đó là địa chỉ ảo; mỗi tiến trình có bảng trang riêng ánh xạ tới khung vật lý khác nhau',
@@ -1267,7 +1273,7 @@ Lesson.register({
       a: 1,
       why: 'Mọi con trỏ trong chương trình người dùng đều là <b>địa chỉ ảo</b>. Nhân duy trì cho mỗi tiến trình một bảng trang riêng, nên cùng một số địa chỉ có thể trỏ tới hai khung bộ nhớ vật lý hoàn toàn khác nhau. Đây cũng là điểm phân biệt tiến trình với luồng: hai luồng dùng chung bảng trang nên thấy chung biến, còn hai tiến trình thì không bao giờ.' },
 
-    { q: 'Sau <code>waitpid(con, &tt, 0)</code>, biến <code>tt</code> bằng <code>32512</code> (<code>0x7f00</code>). Điều này nghĩa là gì?',
+    { q: 'Sau <code>waitpid(child, &status, 0)</code>, biến <code>status</code> bằng <code>32512</code> (<code>0x7f00</code>). Điều này nghĩa là gì?',
       opts: [
         'Con bị giết bởi tín hiệu số 32512',
         'Con thoát bình thường với mã thoát 127 — theo quy ước là "không tìm thấy lệnh"',
@@ -1305,9 +1311,9 @@ Lesson.register({
         'Để tiến trình được PID 1 nhận nuôi'
       ],
       a: 2,
-      why: '<code>setsid()</code> biến tiến trình thành <b>trưởng phiên</b>, và chỉ trưởng phiên mới có khả năng mở một thiết bị terminal rồi biến nó thành terminal điều khiển của mình — kéo theo việc lại nhận <code>SIGHUP</code>/<code>SIGINT</code> từ terminal đó. <code>fork</code> lần hai sinh ra một tiến trình <i>ở trong</i> phiên nhưng <i>không phải</i> trưởng phiên, nên khả năng đó bị đóng vĩnh viễn. Bạn kiểm chứng được bằng <code>ps</code>: <code>SID</code> = 469 nhưng <code>PID</code> = 470.' },
+      why: '<code>setsid()</code> biến tiến trình thành <b>trưởng phiên</b>, và chỉ trưởng phiên mới có khả năng mở một thiết bị terminal rồi biến nó thành terminal điều khiển của mình — kéo theo việc lại nhận <code>SIGHUP</code>/<code>SIGINT</code> từ terminal đó. <code>fork</code> lần hai sinh ra một tiến trình <i>ở trong</i> phiên nhưng <i>không phải</i> trưởng phiên, nên khả năng đó bị đóng vĩnh viễn. Bạn kiểm chứng được bằng <code>ps</code>: <code>SID</code> = 16498 nhưng <code>PID</code> = 16499.' },
 
-    { q: 'Bản ghi <code>strace -f</code> của <code>./chay echo hi</code> cho thấy <b>bốn</b> lời gọi <code>execve</code> trả về <code>ENOENT</code> trước khi <code>/usr/bin/echo</code> thành công. Vì sao?',
+    { q: 'Bản ghi <code>strace -f</code> của <code>./runcmd echo hi</code> cho thấy <b>bốn</b> lời gọi <code>execve</code> trả về <code>ENOENT</code> trước khi <code>/usr/bin/echo</code> thành công. Vì sao?',
       opts: [
         'Vì <code>strace</code> ghi lặp lại cùng một lời gọi',
         'Vì <code>execvp</code> có chữ <code>p</code> nên phải thử lần lượt từng thư mục trong <code>PATH</code> cho tới khi tìm thấy file',

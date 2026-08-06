@@ -40,17 +40,17 @@ Lesson.register({
     { t: 'table',
       head: ['Loại', '<code>Type</code> trong header', 'Ví dụ bạn đã tạo', 'Ai đọc nó'],
       rows: [
-        ['File đối tượng', '<code>REL</code>', '<code>cong.o</code> (Bài 15)', 'Trình liên kết'],
-        ['Chương trình PIE', '<code>DYN</code>', '<code>hello</code>, <code>ct_dong</code>', 'Kernel + <code>ld.so</code>'],
-        ['Chương trình tĩnh', '<code>EXEC</code>', '<code>hello_tinh</code> (Bài 17)', 'Kernel'],
-        ['Thư viện dùng chung', '<code>DYN</code>', '<code>libphep.so</code> (Bài 17)', '<code>ld.so</code>'],
+        ['File đối tượng', '<code>REL</code>', '<code>add.o</code> (Bài 15)', 'Trình liên kết'],
+        ['Chương trình PIE', '<code>DYN</code>', '<code>hello</code>, <code>prog_dynamic</code>', 'Kernel + <code>ld.so</code>'],
+        ['Chương trình tĩnh', '<code>EXEC</code>', '<code>hello_static</code> (Bài 17)', 'Kernel'],
+        ['Thư viện dùng chung', '<code>DYN</code>', '<code>libops.so</code> (Bài 17)', '<code>ld.so</code>'],
         ['Core dump', '<code>CORE</code>', 'sinh ra khi chương trình sập', '<code>gdb</code>']
       ]},
 
     { t: 'cal', kind: 'info', title: 'Kernel Linux và module kernel cũng là ELF', x:
       '<p><code>vmlinux</code> — nhân Linux chưa nén — là một file ELF loại <code>EXEC</code>. ' +
       'Mỗi module <code>.ko</code> là một file ELF loại <code>REL</code>, tức là cùng loại với ' +
-      '<code>cong.o</code> của bạn.</p>' +
+      '<code>add.o</code> của bạn.</p>' +
       '<p>Đó là lý do mọi công cụ bạn học trong bài này dùng được nguyên vẹn ở ' +
       '<b>Chặng 10</b> khi bạn soi module kernel, và ở <b>Chặng 07</b> khi bạn xem xét ' +
       '<code>vmlinux</code> sau khi biên dịch nhân. Bốn mươi lăm phút bỏ ra ở đây sẽ được ' +
@@ -60,12 +60,12 @@ Lesson.register({
       'Cách nhanh nhất để biết một file là gì — và đây là lệnh đầu tiên nên gõ khi cầm một ' +
       'file nhị phân lạ:' },
 
-    { t: 'code', where: 'wsl', code: 'file mau' },
+    { t: 'code', where: 'wsl', code: 'file sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mau: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2d59c73b3852a54df33f948c219f244c4feec540, for GNU/Linux 3.2.0, not stripped' },
+      'sample: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7449f0dd46fd68fb9c2897326b42e25dd3f8b6b6, for GNU/Linux 3.2.0, not stripped' },
 
-    { t: 'cmdx', cmd: 'file mau', title: 'Đọc từng mảnh của dòng trả lời',
+    { t: 'cmdx', cmd: 'file sample', title: 'Đọc từng mảnh của dòng trả lời',
       rows: [
         ['<code>ELF 64-bit</code>', 'Định dạng ELF, con trỏ và địa chỉ dài 64 bit', 'Máy 32 bit sẽ là <code>ELF 32-bit</code> — rất phổ biến trên ARM nhúng'],
         ['<code>LSB</code>', '<b>Least Significant Byte first</b> = little-endian', 'x86 và ARM hiện đại đều little-endian; một số chip mạng cũ là <code>MSB</code>'],
@@ -82,8 +82,9 @@ Lesson.register({
       '<p>Linux <b>không</b> dùng đuôi file để xác định loại. <code>file</code> mở file ra, đọc ' +
       'vài byte đầu và tra một cơ sở dữ liệu "số phù thuỷ" (<i>magic number</i>) đặt tại ' +
       '<code>/usr/share/misc/magic.mgc</code>.</p>' +
-      '<p>Bạn có thể đổi tên <code>mau</code> thành <code>mau.txt</code>, <code>mau.exe</code> ' +
-      'hay không đuôi gì — <code>file</code> vẫn trả lời y hệt, và chương trình vẫn chạy y hệt. ' +
+      '<p>Bạn có thể đổi tên <code>sample</code> thành <code>sample.txt</code>, ' +
+      '<code>sample.exe</code> hay không đuôi gì — <code>file</code> vẫn trả lời y hệt, và ' +
+      'chương trình vẫn chạy y hệt. ' +
       'Đây là điểm khác biệt cơ bản so với Windows, nơi đuôi <code>.exe</code> mang ý nghĩa ' +
       'thật sự.</p>' },
 
@@ -96,7 +97,7 @@ Lesson.register({
       'Mọi file ELF bắt đầu bằng một header cố định 64 byte (với ELF64). Header này không ' +
       'chứa mã hay dữ liệu — nó chỉ nói cho người đọc biết <b>phần còn lại nằm ở đâu</b>.' },
 
-    { t: 'code', where: 'wsl', code: 'readelf -h mau' },
+    { t: 'code', where: 'wsl', code: 'readelf -h sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'ELF Header:\n' +
@@ -122,7 +123,7 @@ Lesson.register({
 
     { t: 'p', x: 'Mười sáu byte đầu — gọi là <code>e_ident</code> — có thể xem trực tiếp:' },
 
-    { t: 'code', where: 'wsl', code: 'xxd -l 16 mau' },
+    { t: 'code', where: 'wsl', code: 'xxd -l 16 sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '00000000: 7f45 4c46 0201 0100 0000 0000 0000 0000  .ELF............' },
@@ -170,7 +171,7 @@ Lesson.register({
       '<p>Cùng ý tưởng đó xuất hiện khắp nơi: PNG bắt đầu bằng <code>89 50 4e 47</code> (byte ' +
       'cao rồi mới đến "PNG"), file <code>.class</code> của Java bắt đầu bằng ' +
       '<code>cafebabe</code>.</p>' +
-      '<p>Đây cũng chính là thứ kernel kiểm tra đầu tiên khi bạn gõ <code>./mau</code>. Sai ' +
+      '<p>Đây cũng chính là thứ kernel kiểm tra đầu tiên khi bạn gõ <code>./sample</code>. Sai ' +
       'chữ ký → <code>Exec format error</code>, đúng lỗi bạn đã cố tình gây ra ở Bài 3.</p>' },
 
     { t: 'p', x:
@@ -178,10 +179,10 @@ Lesson.register({
       'trong 16 byte đầu, nhưng chúng quyết định file chạy được ở đâu:' },
 
     { t: 'code', where: 'wsl', code:
-      'aarch64-linux-gnu-gcc -O2 -static -o mau_arm mau.c\n' +
-      'xxd -l 16 mau\n' +
-      'xxd -l 16 mau_arm\n' +
-      'readelf -h mau_arm | grep -E \'OS/ABI|Type|Machine|Entry\'' },
+      'aarch64-linux-gnu-gcc -O2 -static -o sample_arm sample.c\n' +
+      'xxd -l 16 sample\n' +
+      'xxd -l 16 sample_arm\n' +
+      'readelf -h sample_arm | grep -E \'OS/ABI|Type|Machine|Entry\'' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '00000000: 7f45 4c46 0201 0100 0000 0000 0000 0000  .ELF............\n' +
@@ -197,7 +198,7 @@ Lesson.register({
       '<p>Trường <code>Machine</code> nằm ở <b>byte 18–19</b>, ngay sau <code>e_ident</code>. ' +
       'Đó mới là thứ kernel đối chiếu với CPU. Trên máy bạn nó là ' +
       '<code>Advanced Micro Devices X86-64</code>; bản ARM64 là <code>AArch64</code> — nên ' +
-      '<code>./mau_arm</code> cho <code>Exec format error</code>, thoát <b>126</b>, đúng như ' +
+      '<code>./sample_arm</code> cho <code>Exec format error</code>, thoát <b>126</b>, đúng như ' +
       'Bài 3 và Bài 13 đã đo.</p>' +
       '<p>Chú ý thêm: bản ARM64 có <code>Type: EXEC</code> và điểm vào <b>cố định</b> ' +
       '<code>0x400600</code>, còn bản x86 có <code>Type: DYN</code> và điểm vào ' +
@@ -213,33 +214,33 @@ Lesson.register({
       'File dùng làm ví dụ suốt bài này cố tình có mỗi loại dữ liệu một biến, để bạn tìm được ' +
       'chúng ở đúng chỗ:' },
 
-    { t: 'code', where: 'file', name: '~/bai18/mau.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: '~/bai18/sample.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <string.h>\n' +
       '\n' +
-      'int    dem_khoitao   = 42;\n' +
-      'int    dem_bang_khong;\n' +
-      'char   bo_dem[16384];\n' +
-      'const char *ten = "thiet bi nhung";\n' +
-      'static int rieng_tu = 7;\n' +
+      'int    init_count   = 42;\n' +
+      'int    zero_count;\n' +
+      'char   buffer[16384];\n' +
+      'const char *name = "embedded device";\n' +
+      'static int private_val = 7;\n' +
       '\n' +
-      'int tang(void) { return ++dem_khoitao; }\n' +
+      'int increment(void) { return ++init_count; }\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    memset(bo_dem, 0, sizeof bo_dem);\n' +
-      '    printf("%s: %d %d\\n", ten, tang(), rieng_tu);\n' +
+      '    memset(buffer, 0, sizeof buffer);\n' +
+      '    printf("%s: %d %d\\n", name, increment(), private_val);\n' +
       '    return 0;\n' +
       '}',
       notes: ['Năm biến toàn cục, mỗi biến sẽ rơi vào một section khác nhau: ' +
-              '<code>dem_khoitao</code> và <code>rieng_tu</code> có giá trị khác 0 → ' +
-              '<code>.data</code>; <code>dem_bang_khong</code> và <code>bo_dem</code> ngầm ' +
-              'bằng 0 → <code>.bss</code>; chuỗi <code>"thiet bi nhung"</code> → ' +
+              '<code>init_count</code> và <code>private_val</code> có giá trị khác 0 → ' +
+              '<code>.data</code>; <code>zero_count</code> và <code>buffer</code> ngầm ' +
+              'bằng 0 → <code>.bss</code>; chuỗi <code>"embedded device"</code> → ' +
               '<code>.rodata</code>.'] },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -O2 -o mau mau.c\n' +
-      'readelf -S -W mau' },
+      'gcc -O2 -o sample sample.c\n' +
+      'readelf -S -W sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'There are 31 section headers, starting at offset 0x3778:\n' +
@@ -257,7 +258,7 @@ Lesson.register({
       '  [11] .plt              PROGBITS        0000000000001020 001020 000030 10  AX  0   0 16\n' +
       '  [14] .text             PROGBITS        0000000000001080 001080 000164 00  AX  0   0 16\n' +
       '  [15] .fini             PROGBITS        00000000000011e4 0011e4 00000d 00  AX  0   0  4\n' +
-      '  [16] .rodata           PROGBITS        0000000000002000 002000 00001e 00   A  0   0  4\n' +
+      '  [16] .rodata           PROGBITS        0000000000002000 002000 00001f 00   A  0   0  4\n' +
       '  [21] .init_array       INIT_ARRAY      0000000000003db0 002db0 000008 08  WA  0   0  8\n' +
       '  [23] .dynamic          DYNAMIC         0000000000003dc0 002dc0 0001f0 10  WA  5   0  8\n' +
       '  [24] .got              PROGBITS        0000000000003fb0 002fb0 000050 08  WA  0   0  8\n' +
@@ -265,20 +266,20 @@ Lesson.register({
       '  [26] .bss              NOBITS          0000000000004020 003020 004028 00  WA  0   0 32\n' +
       '  [27] .comment          PROGBITS        0000000000000000 003020 000026 01  MS  0   0  1\n' +
       '  [28] .symtab           SYMTAB          0000000000000000 003048 0003f0 18     29  18  8\n' +
-      '  [29] .strtab           STRTAB          0000000000000000 003438 00021f 00      0   0  1\n' +
-      '  [30] .shstrtab         STRTAB          0000000000000000 003657 00011a 00      0   0  1',
+      '  [29] .strtab           STRTAB          0000000000000000 003438 000223 00      0   0  1\n' +
+      '  [30] .shstrtab         STRTAB          0000000000000000 00365b 00011a 00      0   0  1',
       notes: ['Đây là bản rút gọn — file thật có <b>31</b> section. Cờ <code>-W</code> ' +
               '(<i>wide</i>) ngăn <code>readelf</code> ngắt dòng, gần như luôn nên dùng.'] },
 
     { t: 'p', x: 'Những section bạn cần thuộc lòng, theo đúng thứ tự xuất hiện:' },
 
     { t: 'table',
-      head: ['Section', 'Chứa gì', 'Cờ', 'Ví dụ trong <code>mau.c</code>'],
+      head: ['Section', 'Chứa gì', 'Cờ', 'Ví dụ trong <code>sample.c</code>'],
       rows: [
-        ['<code>.text</code>', 'Mã máy', '<code>AX</code> — nạp, <b>thi hành được</b>, chỉ đọc', 'Thân của <code>main</code> và <code>tang</code>'],
-        ['<code>.rodata</code>', 'Hằng chỉ đọc', '<code>A</code> — nạp, <b>không ghi được</b>', 'Chuỗi <code>"thiet bi nhung"</code> và <code>"%s: %d %d\\n"</code>'],
-        ['<code>.data</code>', 'Biến toàn cục có giá trị khởi tạo khác 0', '<code>WA</code> — nạp, <b>ghi được</b>', '<code>dem_khoitao = 42</code>, <code>rieng_tu = 7</code>, con trỏ <code>ten</code>'],
-        ['<code>.bss</code>', 'Biến toàn cục bằng 0', '<code>WA</code> + kiểu <b><code>NOBITS</code></b>', '<code>dem_bang_khong</code>, <code>bo_dem[16384]</code>'],
+        ['<code>.text</code>', 'Mã máy', '<code>AX</code> — nạp, <b>thi hành được</b>, chỉ đọc', 'Thân của <code>main</code> và <code>increment</code>'],
+        ['<code>.rodata</code>', 'Hằng chỉ đọc', '<code>A</code> — nạp, <b>không ghi được</b>', 'Chuỗi <code>"embedded device"</code> và <code>"%s: %d %d\\n"</code>'],
+        ['<code>.data</code>', 'Biến toàn cục có giá trị khởi tạo khác 0', '<code>WA</code> — nạp, <b>ghi được</b>', '<code>init_count = 42</code>, <code>private_val = 7</code>, con trỏ <code>name</code>'],
+        ['<code>.bss</code>', 'Biến toàn cục bằng 0', '<code>WA</code> + kiểu <b><code>NOBITS</code></b>', '<code>zero_count</code>, <code>buffer[16384]</code>'],
         ['<code>.interp</code>', 'Đường dẫn trình thông dịch động', '<code>A</code>', '<code>/lib64/ld-linux-x86-64.so.2</code>'],
         ['<code>.dynamic</code>', 'Bảng <code>NEEDED</code>, <code>SONAME</code>, <code>RUNPATH</code>…', '<code>WA</code>', 'Chính là thứ <code>readelf -d</code> in ra ở Bài 17'],
         ['<code>.got</code>', 'Global Offset Table', '<code>WA</code>', 'Bảng địa chỉ mà mã PIC tra cứu — Bài 17'],
@@ -309,13 +310,13 @@ Lesson.register({
       'Đây là chi tiết tạo ra nghịch lý mà bài mở đầu đã nêu:' },
 
     { t: 'code', where: 'wsl', code:
-      'size mau\n' +
-      'stat -c \'%s %n\' mau' },
+      'size sample\n' +
+      'stat -c \'%s %n\' sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-      '   1650\t    624\t  16424\t  18698\t   490a\tmau\n' +
-      '16184 mau' },
+      '   1651\t    624\t  16424\t  18699\t   490b\tsample\n' +
+      '16184 sample' },
 
     { t: 'cal', kind: 'info', title: 'bss = 16 424 byte, nhưng cả file chỉ nặng 16 184 byte', x:
       '<p>Phần <code>.bss</code> <b>lớn hơn toàn bộ file chứa nó</b>. Không có phép màu nào ' +
@@ -330,21 +331,23 @@ Lesson.register({
     { t: 'p', x: 'Chứng minh trực tiếp — tăng mảng từ 16 KB lên <b>1 MB</b> và đo lại:' },
 
     { t: 'code', where: 'wsl', code:
-      'sed \'s/bo_dem\\[16384\\]/bo_dem[1048576]/\' mau.c > mau_to.c\n' +
-      'gcc -O2 -o mau_to mau_to.c\n' +
-      'stat -c \'%s %n\' mau mau_to\n' +
-      'size mau mau_to' },
+      'sed \'s/buffer\\[16384\\]/buffer[1048576]/\' sample.c > sample_big.c\n' +
+      'gcc -O2 -o sample_big sample_big.c\n' +
+      'stat -c \'%s %n\' sample sample_big\n' +
+      'size sample_big' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '16184 mau\n' +
-      '16184 mau_to\n' +
+      '16184 sample\n' +
+      '16192 sample_big\n' +
       '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-      '   1650\t    624\t  16424\t  18698\t   490a\tmau\n' +
-      '   1650\t    624\t1048616\t1050890\t 10090a\tmau_to' },
+      '   1651\t    624\t1048616\t1050891\t 10090b\tsample_big' },
 
-    { t: 'cal', kind: 'why', title: 'Thêm 1 MB biến mà file không to lên một byte nào', x:
-      '<p><code>bss</code> nhảy từ <b>16 424</b> lên <b>1 048 616</b> byte. Kích thước file: ' +
-      '<b>16 184</b> — <i>y hệt</i>, không lệch một byte.</p>' +
+    { t: 'cal', kind: 'why', title: 'Thêm 1 MB biến mà file gần như không to thêm', x:
+      '<p><code>bss</code> nhảy từ <b>16 424</b> lên <b>1 048 616</b> byte — tăng hơn ' +
+      '<b>1 triệu</b> byte. Kích thước file: từ <b>16 184</b> lên <b>16 192</b> byte — chỉ ' +
+      '<b>lệch 8 byte</b>, và 8 byte đó không liên quan gì tới mảng: nó đến từ bảng ký hiệu ' +
+      '(<code>.strtab</code>) đổi kích thước theo cách trình liên kết sắp xếp chuỗi tên, một ' +
+      'chi tiết cực nhỏ so với 1 048 576 byte mà mảng đã "biến mất".</p>' +
       '<p>Lý do rất thực dụng: một mảng 1 MB toàn số 0 nếu lưu thật vào file thì đó là 1 MB ' +
       'số 0 vô nghĩa. Ghi lại <i>con số</i> 1 048 576 tốn 8 byte là đủ.</p>' +
       '<p>Trong nhúng, điều này có nghĩa: một bộ đệm lớn khai báo toàn cục ' +
@@ -354,26 +357,26 @@ Lesson.register({
 
     { t: 'p', x: 'Đối chứng — cùng dung lượng nhưng là biến <b>có khởi tạo</b>:' },
 
-    { t: 'code', where: 'file', name: '~/bai18/mau_data.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: '~/bai18/sample_data.c', lang: 'c', code:
       '#include <stdio.h>\n' +
-      'int bo_dem[262144] = { 1 };\n' +
-      'int main(void) { printf("%d\\n", bo_dem[0]); return 0; }' },
+      'int buffer[262144] = { 1 };\n' +
+      'int main(void) { printf("%d\\n", buffer[0]); return 0; }' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -O2 -o mau_data mau_data.c\n' +
-      'stat -c \'%s %n\' mau_data\n' +
-      'size mau_data' },
+      'gcc -O2 -o sample_data sample_data.c\n' +
+      'stat -c \'%s %n\' sample_data\n' +
+      'size sample_data' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '1064584 mau_data\n' +
+      '1064592 sample_data\n' +
       '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-      '   1412\t1049192\t      8\t1050612\t 1007f4\tmau_data' },
+      '   1412\t1049192\t      8\t1050612\t 1007f4\tsample_data' },
 
     { t: 'cal', kind: 'danger', title: 'Một phần tử khác 0 đẩy cả mảng 1 MB vào file', x:
       '<p><code>= { 1 }</code> khởi tạo phần tử đầu bằng 1, 262 143 phần tử còn lại bằng 0. ' +
       'Nhưng vì mảng có <i>bộ khởi tạo</i>, toàn bộ nó rơi vào <code>.data</code> — và ' +
       '<code>.data</code> là <code>PROGBITS</code>, phải nằm thật trong file.</p>' +
-      '<p>Kết quả: file phình từ <b>16 184</b> lên <b>1 064 584</b> byte — <b>gấp 65,8 lần</b>, ' +
+      '<p>Kết quả: file phình từ <b>16 184</b> lên <b>1 064 592</b> byte — <b>gấp 65,8 lần</b>, ' +
       'chỉ vì một số 1.</p>' +
       '<p>Đây là cái bẫy dung lượng phổ biến nhất trong firmware nhúng. Nếu bạn thấy ảnh ' +
       'firmware to bất thường, <code>size</code> và <code>readelf -S</code> là hai lệnh đầu ' +
@@ -393,7 +396,7 @@ Lesson.register({
       '<b>vùng nào của file phải đưa vào bộ nhớ, ở địa chỉ nào, với quyền gì</b>. Cách nhìn ' +
       'đó gọi là <b>segment</b>.' },
 
-    { t: 'code', where: 'wsl', code: 'readelf -l -W mau | head -22' },
+    { t: 'code', where: 'wsl', code: 'readelf -l -W sample | head -29' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'Elf file type is DYN (Position-Independent Executable file)\n' +
@@ -411,6 +414,8 @@ Lesson.register({
       '  LOAD           0x002db0 0x0000000000003db0 0x0000000000003db0 0x000270 0x004298 RW  0x1000\n' +
       '  DYNAMIC        0x002dc0 0x0000000000003dc0 0x0000000000003dc0 0x0001f0 0x0001f0 RW  0x8\n' +
       '  NOTE           0x000350 0x0000000000000350 0x0000000000000350 0x000024 0x000024 R   0x4\n' +
+      '  NOTE           0x002118 0x0000000000002118 0x0000000000002118 0x000030 0x000030 R   0x8\n' +
+      '  NOTE           0x002148 0x0000000000002148 0x0000000000002148 0x000020 0x000020 R   0x4\n' +
       '  GNU_PROPERTY   0x002118 0x0000000000002118 0x0000000000002118 0x000030 0x000030 R   0x8\n' +
       '  GNU_EH_FRAME   0x002020 0x0000000000002020 0x0000000000002020 0x00003c 0x00003c R   0x4\n' +
       '  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10\n' +
@@ -418,7 +423,18 @@ Lesson.register({
       '\n' +
       ' Section to Segment mapping:\n' +
       '  Segment Sections...\n' +
+      '   00     \n' +
+      '   01     .interp \n' +
+      '   02     .note.gnu.build-id .interp .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt \n' +
       '   03     .init .plt .plt.got .plt.sec .text .fini' },
+
+    { t: 'cal', kind: 'info', title: 'Ba dòng NOTE thay vì một — vì sao', x:
+      '<p>Toolchain hiện tại của bạn (GCC/binutils cập nhật) tách siêu dữ liệu ' +
+      '<code>.note.gnu.build-id</code>, <code>.note.gnu.property</code> và ' +
+      '<code>.note.ABI-tag</code> thành <b>ba</b> segment <code>NOTE</code> riêng thay vì gộp ' +
+      'chung một segment như các bản binutils cũ hơn. Đây thuần tuý là cách trình liên kết tổ ' +
+      'chức <i>metadata</i>, không ảnh hưởng gì tới <code>LOAD</code> — segment mà chương ' +
+      'trình thật sự cần để chạy vẫn y nguyên bốn đoạn như phần tiếp theo phân tích.</p>' },
 
     { t: 'cal', kind: 'why', title: 'Dòng LOAD thứ tư chứa lời giải thích cuối cùng cho .bss', x:
       '<p>Nhìn đoạn <code>LOAD</code> có cờ <code>RW</code>:</p>' +
@@ -499,7 +515,7 @@ Lesson.register({
       'Section <code>.interp</code> chứa đúng chuỗi mà bạn đã gặp ở cuối output ' +
       '<code>ldd</code> trong Bài 17:' },
 
-    { t: 'code', where: 'wsl', code: 'readelf -p .interp mau' },
+    { t: 'code', where: 'wsl', code: 'readelf -p .interp sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'String dump of section \'.interp\':\n' +
@@ -509,7 +525,7 @@ Lesson.register({
       '<p>Ở Bài 17 bạn thấy <code>/lib64/ld-linux-x86-64.so.2</code> trong output ' +
       '<code>ldd</code> mà không rõ nó từ đâu ra. Giờ thì rõ: nó là một chuỗi <b>28 byte ghi ' +
       'cứng trong file</b>, ở section <code>.interp</code>.</p>' +
-      '<p>Trình tự đầy đủ khi bạn gõ <code>./mau</code>: kernel kiểm tra magic <code>7f ELF</code> ' +
+      '<p>Trình tự đầy đủ khi bạn gõ <code>./sample</code>: kernel kiểm tra magic <code>7f ELF</code> ' +
       '→ thấy có segment <code>INTERP</code> → đọc chuỗi trong đó → nạp ' +
       '<code>ld.so</code> → trao quyền cho <code>ld.so</code> → <code>ld.so</code> nạp các ' +
       '<code>.so</code> theo <code>NEEDED</code> → cuối cùng mới nhảy tới điểm vào của chương ' +
@@ -528,49 +544,76 @@ Lesson.register({
       'chỉnh: <b>mỗi chữ cái là một section</b>.' },
 
     { t: 'code', where: 'wsl', code:
-      'nm mau | grep -E \' [BbDdRrTtUuVvWw] \' | sort -k3 | head -20' },
+      'nm sample | grep -E \' [BbDdRrTtUuVvWw] \' | sort -k3' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '                 U __libc_start_main@GLIBC_2.34\n' +
       '                 U __printf_chk@GLIBC_2.3.4\n' +
       '                 U memset@GLIBC_2.2.5\n' +
+      '                 w _ITM_deregisterTMCloneTable\n' +
+      '                 w _ITM_registerTMCloneTable\n' +
       '                 w __cxa_finalize@GLIBC_2.2.5\n' +
       '                 w __gmon_start__\n' +
+      '0000000000003dc0 d _DYNAMIC\n' +
+      '0000000000003fb0 d _GLOBAL_OFFSET_TABLE_\n' +
       '0000000000002000 R _IO_stdin_used\n' +
+      '0000000000002114 r __FRAME_END__\n' +
+      '0000000000002020 r __GNU_EH_FRAME_HDR\n' +
+      '0000000000004020 D __TMC_END__\n' +
+      '0000000000002148 r __abi_tag\n' +
       '0000000000004020 B __bss_start\n' +
       '0000000000004000 D __data_start\n' +
+      '0000000000001180 t __do_global_dtors_aux\n' +
+      '0000000000003db8 d __do_global_dtors_aux_fini_array_entry\n' +
+      '0000000000004008 D __dso_handle\n' +
+      '0000000000003db0 d __frame_dummy_init_array_entry\n' +
+      '0000000000004020 D _edata\n' +
       '0000000000008048 B _end\n' +
       '00000000000011e4 T _fini\n' +
       '0000000000001000 T _init\n' +
       '00000000000010e0 T _start\n' +
-      '0000000000004040 B bo_dem\n' +
-      '0000000000008040 B dem_bang_khong\n' +
-      '0000000000004010 D dem_khoitao\n' +
+      '0000000000004040 B buffer\n' +
+      '0000000000004020 b completed.0\n' +
+      '0000000000004000 W data_start\n' +
+      '0000000000001110 t deregister_tm_clones\n' +
+      '00000000000011c0 t frame_dummy\n' +
+      '00000000000011d0 T increment\n' +
+      '0000000000004010 D init_count\n' +
       '0000000000001080 T main\n' +
-      '00000000000011d0 T tang\n' +
-      '0000000000004018 D ten' },
+      '0000000000004018 D name\n' +
+      '0000000000001140 t register_tm_clones\n' +
+      '0000000000008040 B zero_count' },
+
+    { t: 'cal', kind: 'info', title: 'Nhiều ký hiệu lạ hơn bạn tưởng — đó là bộ máy khởi động của glibc', x:
+      '<p>Danh sách đầy đủ dài hơn năm biến bạn khai báo rất nhiều: <code>_ITM_*</code>, ' +
+      '<code>_DYNAMIC</code>, <code>_GLOBAL_OFFSET_TABLE_</code>, <code>__frame_dummy...</code>, ' +
+      '<code>register_tm_clones</code>… đều do <code>crt1.o</code>/<code>crti.o</code> và GCC ' +
+      'chèn vào, không phải do bạn viết. Đừng cố nhớ hết — chỉ cần nhận ra <b>sáu ký hiệu của ' +
+      'riêng bạn</b>: <code>main</code>, <code>increment</code>, <code>init_count</code>, ' +
+      '<code>name</code>, <code>buffer</code>, <code>zero_count</code>.</p>' },
 
     { t: 'table',
       head: ['Chữ', 'Section', 'Ý nghĩa', 'Trong ví dụ'],
       rows: [
-        ['<code>T</code>', '<code>.text</code>', 'Hàm, <b>xuất ra ngoài</b> (chữ hoa = global)', '<code>main</code>, <code>tang</code>, <code>_start</code>'],
+        ['<code>T</code>', '<code>.text</code>', 'Hàm, <b>xuất ra ngoài</b> (chữ hoa = global)', '<code>main</code>, <code>increment</code>, <code>_start</code>'],
         ['<code>t</code>', '<code>.text</code>', 'Hàm, <b>chỉ dùng nội bộ</b> (<code>static</code>)', '<code>frame_dummy</code>, <code>register_tm_clones</code>'],
-        ['<code>D</code>', '<code>.data</code>', 'Biến có khởi tạo, ghi được', '<code>dem_khoitao</code>, <code>ten</code>'],
-        ['<code>B</code>', '<code>.bss</code>', 'Biến bằng 0', '<code>bo_dem</code>, <code>dem_bang_khong</code>'],
+        ['<code>D</code>', '<code>.data</code>', 'Biến có khởi tạo, ghi được', '<code>init_count</code>, <code>name</code>'],
+        ['<code>B</code>', '<code>.bss</code>', 'Biến bằng 0', '<code>buffer</code>, <code>zero_count</code>'],
         ['<code>R</code>', '<code>.rodata</code>', 'Dữ liệu chỉ đọc', '<code>_IO_stdin_used</code>'],
         ['<code>U</code>', '<i>chưa xác định</i>', '<b>Cần</b> nhưng chưa có — phải do thư viện cung cấp', '<code>memset</code>, <code>__printf_chk</code>'],
         ['<code>w</code>', '—', '<b>Weak</b> — dùng nếu có, bỏ qua nếu không, không báo lỗi', '<code>__gmon_start__</code>']
       ]},
 
-    { t: 'cal', kind: 'info', title: 'rieng_tu biến mất, printf đổi tên, và bo_dem cách dem_bang_khong 16 KB', x:
-      '<p><b><code>rieng_tu</code> không xuất hiện.</b> Nó là <code>static</code> và chỉ được ' +
-      'đọc một lần, nên <code>-O2</code> đã thay nó bằng hằng số <code>7</code> ngay trong mã. ' +
-      'Biến biến mất hoàn toàn — một minh chứng rằng tối ưu hoá thay đổi cả bảng ký hiệu.</p>' +
+    { t: 'cal', kind: 'info', title: 'private_val biến mất, printf đổi tên, và buffer cách zero_count 16 KB', x:
+      '<p><b><code>private_val</code> không xuất hiện.</b> Nó là <code>static</code> và chỉ ' +
+      'được đọc một lần, nên <code>-O2</code> đã thay nó bằng hằng số <code>7</code> ngay ' +
+      'trong mã. Biến biến mất hoàn toàn — một minh chứng rằng tối ưu hoá thay đổi cả bảng ký ' +
+      'hiệu.</p>' +
       '<p><b><code>printf</code> thành <code>__printf_chk</code>.</b> Ubuntu bật sẵn ' +
       '<code>_FORTIFY_SOURCE</code>: khi biết trước kích thước bộ đệm, GCC gọi phiên bản có ' +
       'kiểm tra tràn. Bạn <i>viết</i> <code>printf</code> nhưng <i>gọi</i> hàm khác.</p>' +
-      '<p><b>Địa chỉ nói lên bố cục.</b> <code>bo_dem</code> ở <code>0x4040</code>, ' +
-      '<code>dem_bang_khong</code> ở <code>0x8040</code> — cách nhau đúng <code>0x4000</code> ' +
+      '<p><b>Địa chỉ nói lên bố cục.</b> <code>buffer</code> ở <code>0x4040</code>, ' +
+      '<code>zero_count</code> ở <code>0x8040</code> — cách nhau đúng <code>0x4000</code> ' +
       '= 16 384 byte, đúng kích thước mảng. Và <code>_end</code> ở <code>0x8048</code> đánh ' +
       'dấu điểm kết thúc của mọi dữ liệu tĩnh.</p>' },
 
@@ -579,28 +622,28 @@ Lesson.register({
       '(hex) hoặc <code>-p</code> (chuỗi):' },
 
     { t: 'code', where: 'wsl', code:
-      'readelf -x .rodata mau\n' +
-      'readelf -x .data mau' },
+      'readelf -x .rodata sample\n' +
+      'readelf -x .data sample' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'Hex dump of section \'.rodata\':\n' +
-      '  0x00002000 01000200 25733a20 25642025 640a0074 ....%s: %d %d..t\n' +
-      '  0x00002010 68696574 20626920 6e68756e 6700     hiet bi nhung.\n' +
+      '  0x00002000 01000200 25733a20 25642025 640a0065 ....%s: %d %d..e\n' +
+      '  0x00002010 6d626564 64656420 64657669 636500   mbedded device.\n' +
       '\n' +
       'Hex dump of section \'.data\':\n' +
       '  0x00004000 00000000 00000000 08400000 00000000 .........@......\n' +
       '  0x00004010 2a000000 00000000 0f200000 00000000 *........ ......' },
 
     { t: 'cal', kind: 'tip', title: 'Tìm số 42 trong đống byte đó', x:
-      '<p>Ở địa chỉ <code>0x4010</code> — đúng nơi <code>nm</code> báo <code>dem_khoitao</code> ' +
+      '<p>Ở địa chỉ <code>0x4010</code> — đúng nơi <code>nm</code> báo <code>init_count</code> ' +
       'nằm — bạn thấy <code>2a 00 00 00</code>. <code>0x2a</code> = <b>42</b>. Đó chính là giá ' +
       'trị bạn viết trong mã nguồn, nằm nguyên vẹn trong file trên đĩa.</p>' +
       '<p>Bốn byte <code>00</code> theo sau là phần đệm căn lề 8 byte. Và thứ tự ' +
       '<code>2a 00 00 00</code> chứ không phải <code>00 00 00 2a</code> chính là ' +
       '<b>little-endian</b> mà ELF header đã khai báo — byte thấp trước.</p>' +
       '<p>Ở <code>0x4018</code> có <code>0f 20 00 00</code> = <code>0x200f</code>: đó là con ' +
-      'trỏ <code>ten</code>, trỏ vào giữa <code>.rodata</code> — đúng vị trí chuỗi ' +
-      '<code>"thiet bi nhung"</code> bắt đầu.</p>' },
+      'trỏ <code>name</code>, trỏ vào giữa <code>.rodata</code> — đúng vị trí chuỗi ' +
+      '<code>"embedded device"</code> bắt đầu.</p>' },
 
     /* ══════════════════════════════════════════════
        7. _START
@@ -613,9 +656,9 @@ Lesson.register({
       'là điểm bắt đầu thật?' },
 
     { t: 'code', where: 'wsl', code:
-      'readelf -h mau | grep Entry\n' +
-      'nm mau | grep -E \' T (main|_start)$\'\n' +
-      'objdump -d --start-address=0x10e0 --stop-address=0x1100 mau | tail -5' },
+      'readelf -h sample | grep Entry\n' +
+      'nm sample | grep -E \' T (main|_start)$\'\n' +
+      'objdump -d --start-address=0x10e0 --stop-address=0x1100 sample | tail -5' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '  Entry point address:               0x10e0\n' +
@@ -653,33 +696,33 @@ Lesson.register({
       'thiết bị nhúng, đó là mấy chục KB nằm không trên flash. <code>strip</code> cắt chúng đi:' },
 
     { t: 'code', where: 'wsl', code:
-      'cp mau mau_strip && strip mau_strip\n' +
-      'stat -c \'%s %n\' mau mau_strip\n' +
-      './mau_strip\n' +
-      'nm mau_strip' },
+      'cp sample sample_strip && strip sample_strip\n' +
+      'stat -c \'%s %n\' sample sample_strip\n' +
+      './sample_strip\n' +
+      'nm sample_strip' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '16184 mau\n' +
-      '14480 mau_strip\n' +
-      'thiet bi nhung: 43 7\n' +
-      'nm: mau_strip: no symbols' },
+      '16184 sample\n' +
+      '14480 sample_strip\n' +
+      'embedded device: 43 7\n' +
+      'nm: sample_strip: no symbols' },
 
     { t: 'p', x: 'Hiệu quả rõ hơn nhiều trên bản liên kết tĩnh:' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -O2 -static -o mau_tinh mau.c\n' +
-      'cp mau_tinh mau_tinh_strip && strip mau_tinh_strip\n' +
-      'stat -c \'%s %n\' mau_tinh mau_tinh_strip' },
+      'gcc -O2 -static -o sample_static sample.c\n' +
+      'cp sample_static sample_static_strip && strip sample_static_strip\n' +
+      'stat -c \'%s %n\' sample_static sample_static_strip' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '817000 mau_tinh\n' +
-      '735512 mau_tinh_strip' },
+      '816992 sample_static\n' +
+      '735512 sample_static_strip' },
 
     { t: 'table',
       head: ['File', 'Trước <code>strip</code>', 'Sau <code>strip</code>', 'Giảm'],
       rows: [
-        ['<code>mau</code> (động)', '16 184 B', '14 480 B', '1 704 B — <b>10,5 %</b>'],
-        ['<code>mau_tinh</code> (tĩnh)', '817 000 B', '735 512 B', '81 488 B — <b>10,0 %</b>']
+        ['<code>sample</code> (động)', '16 184 B', '14 480 B', '1 704 B — <b>10,5 %</b>'],
+        ['<code>sample_static</code> (tĩnh)', '816 992 B', '735 512 B', '81 480 B — <b>10,0 %</b>']
       ]},
 
     { t: 'cal', kind: 'warn', title: 'strip không làm chương trình chạy nhanh hơn hay tốn ít RAM hơn', x:
@@ -698,42 +741,42 @@ Lesson.register({
       'kết chỉ lấy nguyên một file <code>.o</code>; cặp cờ dưới đây đẩy độ mịn xuống <b>từng ' +
       'hàm</b>:' },
 
-    { t: 'code', where: 'file', name: '~/bai18/nhieuham.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: '~/bai18/multi_func.c', lang: 'c', code:
       '#include <stdio.h>\n' +
-      'int ham_a(int x) { return x + 1; }\n' +
-      'int ham_b(int x) { return x * 2; }\n' +
-      'int ham_c(int x) { return x - 3; }\n' +
-      'int ham_d(int x) { return x / 4; }\n' +
-      'int ham_e(int x) { return x % 5; }\n' +
-      'int main(void) { printf("%d\\n", ham_a(10)); return 0; }' },
+      'int func_a(int x) { return x + 1; }\n' +
+      'int func_b(int x) { return x * 2; }\n' +
+      'int func_c(int x) { return x - 3; }\n' +
+      'int func_d(int x) { return x / 4; }\n' +
+      'int func_e(int x) { return x % 5; }\n' +
+      'int main(void) { printf("%d\\n", func_a(10)); return 0; }' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -O2 -o nhieu_thuong nhieuham.c\n' +
-      'gcc -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -o nhieu_gc nhieuham.c\n' +
-      'stat -c \'%s %n\' nhieu_thuong nhieu_gc\n' +
-      'nm nhieu_thuong | grep -c \' T ham_\'\n' +
-      'nm nhieu_gc | grep -c \' T ham_\'' },
+      'gcc -O2 -o multi_normal multi_func.c\n' +
+      'gcc -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -o multi_gc multi_func.c\n' +
+      'stat -c \'%s %n\' multi_normal multi_gc\n' +
+      'nm multi_normal | grep -c \' T func_\'\n' +
+      'nm multi_gc | grep -c \' T func_\'' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '16112 nhieu_thuong\n' +
-      '15856 nhieu_gc\n' +
+      '16120 multi_normal\n' +
+      '15856 multi_gc\n' +
       '5\n' +
       '0' },
 
     { t: 'cmdx', cmd: 'gcc -ffunction-sections -fdata-sections -Wl,--gc-sections',
       title: 'Ba cờ phải đi cùng nhau',
       rows: [
-        ['<code>-ffunction-sections</code>', 'Đặt <b>mỗi hàm vào một section riêng</b>: <code>.text.ham_a</code>, <code>.text.ham_b</code>…', 'Không có nó, cả năm hàm nằm chung trong <code>.text</code> và không thể tách rời'],
+        ['<code>-ffunction-sections</code>', 'Đặt <b>mỗi hàm vào một section riêng</b>: <code>.text.func_a</code>, <code>.text.func_b</code>…', 'Không có nó, cả năm hàm nằm chung trong <code>.text</code> và không thể tách rời'],
         ['<code>-fdata-sections</code>', 'Tương tự cho biến toàn cục', 'Cần khi có nhiều bảng dữ liệu lớn không dùng tới'],
         ['<code>-Wl,--gc-sections</code>', 'Bảo trình liên kết <b>vứt bỏ section nào không ai tham chiếu tới</b>', 'Đây mới là cờ thật sự cắt. Hai cờ trên chỉ tạo điều kiện'],
         ['<code>-Wl,--print-gc-sections</code>', 'In ra danh sách những gì bị vứt', 'Rất nên thêm khi mới dùng, để thấy nó cắt đúng cái mình nghĩ']
       ]},
 
-    { t: 'cal', kind: 'info', title: 'Cả 5 hàm biến mất, nhưng chỉ tiết kiệm 256 byte — vì sao đáng bàn', x:
+    { t: 'cal', kind: 'info', title: 'Cả 5 hàm biến mất, nhưng chỉ tiết kiệm 264 byte — vì sao đáng bàn', x:
       '<p>Bản thường giữ đủ <b>5</b> hàm dù chỉ dùng một. Bản <code>--gc-sections</code> còn ' +
-      '<b>0</b> — <code>ham_a</code> đã được <code>-O2</code> nội tuyến thẳng vào ' +
+      '<b>0</b> — <code>func_a</code> đã được <code>-O2</code> nội tuyến thẳng vào ' +
       '<code>main</code>, bốn hàm còn lại bị vứt.</p>' +
-      '<p>Nhưng kích thước chỉ giảm từ <b>16 112</b> xuống <b>15 856</b> byte — <b>1,6 %</b>. ' +
+      '<p>Nhưng kích thước chỉ giảm từ <b>16 120</b> xuống <b>15 856</b> byte — <b>1,6 %</b>. ' +
       'Vì bốn hàm cộng lại chỉ vài chục byte, còn phần lớn file là bộ khởi động của glibc.</p>' +
       '<p>Con số này đổi hoàn toàn khi bạn liên kết tĩnh với một thư viện lớn mà chỉ dùng vài ' +
       'hàm — trường hợp rất điển hình trong firmware nhúng. <b>Chặng 09</b> sẽ dùng đúng cặp ' +
@@ -757,34 +800,34 @@ Lesson.register({
       { title: 'Dựng chương trình mẫu và đọc ELF header', blocks: [
         { t: 'code', where: 'wsl', code: 'mkdir -p ~/bai18-th && cd ~/bai18-th' },
 
-        { t: 'code', where: 'file', name: '~/bai18-th/mau.c', lang: 'c', code:
+        { t: 'code', where: 'file', name: '~/bai18-th/sample.c', lang: 'c', code:
           '#include <stdio.h>\n' +
           '#include <string.h>\n' +
           '\n' +
-          'int    dem_khoitao   = 42;\n' +
-          'int    dem_bang_khong;\n' +
-          'char   bo_dem[16384];\n' +
-          'const char *ten = "thiet bi nhung";\n' +
-          'static int rieng_tu = 7;\n' +
+          'int    init_count   = 42;\n' +
+          'int    zero_count;\n' +
+          'char   buffer[16384];\n' +
+          'const char *name = "embedded device";\n' +
+          'static int private_val = 7;\n' +
           '\n' +
-          'int tang(void) { return ++dem_khoitao; }\n' +
+          'int increment(void) { return ++init_count; }\n' +
           '\n' +
           'int main(void)\n' +
           '{\n' +
-          '    memset(bo_dem, 0, sizeof bo_dem);\n' +
-          '    printf("%s: %d %d\\n", ten, tang(), rieng_tu);\n' +
+          '    memset(buffer, 0, sizeof buffer);\n' +
+          '    printf("%s: %d %d\\n", name, increment(), private_val);\n' +
           '    return 0;\n' +
           '}' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -O2 -o mau mau.c\n' +
-          './mau\n' +
-          'file mau\n' +
-          'readelf -h mau | grep -E \'Magic|Class|Data|Type|Machine|Entry|Number of\'' },
+          'gcc -O2 -o sample sample.c\n' +
+          './sample\n' +
+          'file sample\n' +
+          'readelf -h sample | grep -E \'Magic|Class|Data|Type|Machine|Entry|Number of\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          'thiet bi nhung: 43 7\n' +
-          'mau: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=2d59c73b3852a54df33f948c219f244c4feec540, for GNU/Linux 3.2.0, not stripped\n' +
+          'embedded device: 43 7\n' +
+          'sample: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=7449f0dd46fd68fb9c2897326b42e25dd3f8b6b6, for GNU/Linux 3.2.0, not stripped\n' +
           '  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 \n' +
           '  Class:                             ELF64\n' +
           '  Data:                              2\'s complement, little endian\n' +
@@ -796,22 +839,22 @@ Lesson.register({
 
         { t: 'cal', kind: 'tip', title: 'BuildID của bạn sẽ khác', x:
           '<p>Chuỗi <code>BuildID[sha1]=…</code> là mã băm tính từ nội dung file. Nếu bạn gõ ' +
-          'lại <code>mau.c</code> giống hệt từng ký tự, BuildID sẽ trùng; lệch một dấu cách ' +
+          'lại <code>sample.c</code> giống hệt từng ký tự, BuildID sẽ trùng; lệch một dấu cách ' +
           'là nó khác. Các số khác (<code>0x10e0</code>, <code>31</code>, <code>14</code>) ' +
           'phải trùng — chúng chỉ phụ thuộc trình biên dịch và cờ.</p>' +
-          '<p><code>43</code> trong output là <code>42 + 1</code> vì <code>tang()</code> tăng ' +
-          '<code>dem_khoitao</code> trước khi trả về.</p>' }
+          '<p><code>43</code> trong output là <code>42 + 1</code> vì <code>increment()</code> ' +
+          'tăng <code>init_count</code> trước khi trả về.</p>' }
       ]},
 
       /* ---- Bước 2 ---- */
       { title: 'Tìm mỗi biến trong đúng section của nó', blocks: [
         { t: 'code', where: 'wsl', code:
-          'readelf -S -W mau | grep -E \'\\[Nr\\]|\\.text|\\.rodata|\\.data|\\.bss|\\.symtab\'' },
+          'readelf -S -W sample | grep -E \'\\[Nr\\]|\\.text|\\.rodata|\\.data|\\.bss|\\.symtab\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al\n' +
           '  [14] .text             PROGBITS        0000000000001080 001080 000164 00  AX  0   0 16\n' +
-          '  [16] .rodata           PROGBITS        0000000000002000 002000 00001e 00   A  0   0  4\n' +
+          '  [16] .rodata           PROGBITS        0000000000002000 002000 00001f 00   A  0   0  4\n' +
           '  [25] .data             PROGBITS        0000000000004000 003000 000020 00  WA  0   0  8\n' +
           '  [26] .bss              NOBITS          0000000000004020 003020 004028 00  WA  0   0 32\n' +
           '  [28] .symtab           SYMTAB          0000000000000000 003048 0003f0 18     29  18  8' },
@@ -819,28 +862,28 @@ Lesson.register({
         { t: 'p', x: 'Bây giờ đối chiếu từng biến với dải địa chỉ của section:' },
 
         { t: 'code', where: 'wsl', code:
-          'nm mau | grep -E \' [BDRT] (bo_dem|dem_khoitao|dem_bang_khong|ten|main|tang|rieng_tu)$\' | sort' },
+          'nm sample | grep -E \' [BDRT] (buffer|init_count|zero_count|name|main|increment|private_val)$\' | sort' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '0000000000001080 T main\n' +
-          '00000000000011d0 T tang\n' +
-          '0000000000004010 D dem_khoitao\n' +
-          '0000000000004018 D ten\n' +
-          '0000000000004040 B bo_dem\n' +
-          '0000000000008040 B dem_bang_khong' },
+          '00000000000011d0 T increment\n' +
+          '0000000000004010 D init_count\n' +
+          '0000000000004018 D name\n' +
+          '0000000000004040 B buffer\n' +
+          '0000000000008040 B zero_count' },
 
         { t: 'table',
           head: ['Ký hiệu', 'Địa chỉ', 'Nằm trong section', 'Vì sao'],
           rows: [
-            ['<code>main</code>, <code>tang</code>', '<code>0x1080</code>, <code>0x11d0</code>', '<code>.text</code> (<code>0x1080</code>+<code>0x164</code>)', 'Là mã máy'],
-            ['<code>dem_khoitao</code>, <code>ten</code>', '<code>0x4010</code>, <code>0x4018</code>', '<code>.data</code> (<code>0x4000</code>+<code>0x20</code>)', 'Có giá trị khởi tạo khác 0'],
-            ['<code>bo_dem</code>, <code>dem_bang_khong</code>', '<code>0x4040</code>, <code>0x8040</code>', '<code>.bss</code> (<code>0x4020</code>+<code>0x4028</code>)', 'Ngầm bằng 0'],
-            ['<code>rieng_tu</code>', '<i>không có</i>', '—', '<code>static</code> + <code>-O2</code> → bị thay bằng hằng số <code>7</code>']
+            ['<code>main</code>, <code>increment</code>', '<code>0x1080</code>, <code>0x11d0</code>', '<code>.text</code> (<code>0x1080</code>+<code>0x164</code>)', 'Là mã máy'],
+            ['<code>init_count</code>, <code>name</code>', '<code>0x4010</code>, <code>0x4018</code>', '<code>.data</code> (<code>0x4000</code>+<code>0x20</code>)', 'Có giá trị khởi tạo khác 0'],
+            ['<code>buffer</code>, <code>zero_count</code>', '<code>0x4040</code>, <code>0x8040</code>', '<code>.bss</code> (<code>0x4020</code>+<code>0x4028</code>)', 'Ngầm bằng 0'],
+            ['<code>private_val</code>', '<i>không có</i>', '—', '<code>static</code> + <code>-O2</code> → bị thay bằng hằng số <code>7</code>']
           ]},
 
         { t: 'p', x: 'Đọc dữ liệu thô của <code>.data</code> để nhìn tận mắt số 42:' },
 
-        { t: 'code', where: 'wsl', code: 'readelf -x .data mau' },
+        { t: 'code', where: 'wsl', code: 'readelf -x .data sample' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'Hex dump of section \'.data\':\n' +
@@ -849,70 +892,73 @@ Lesson.register({
 
         { t: 'cal', kind: 'why', title: 'Ba con số cần đọc ra ở đây', x:
           '<p><b><code>0x4010</code> → <code>2a 00 00 00</code></b>. <code>nm</code> báo ' +
-          '<code>dem_khoitao</code> ở <code>0x4010</code>; <code>0x2a</code> = <b>42</b>. Đây ' +
+          '<code>init_count</code> ở <code>0x4010</code>; <code>0x2a</code> = <b>42</b>. Đây ' +
           'là giá trị bạn viết trong mã nguồn, nằm nguyên trong file.</p>' +
           '<p><b>Thứ tự byte.</b> <code>2a 00 00 00</code> chứ không phải ' +
           '<code>00 00 00 2a</code> — byte thấp trước, đúng như ELF header khai ' +
           '<code>little endian</code>.</p>' +
           '<p><b><code>0x4018</code> → <code>0f 20 00 00</code></b> = <code>0x200f</code>. Đó là ' +
-          'con trỏ <code>ten</code>, trỏ vào <code>.rodata</code> (bắt đầu ở ' +
-          '<code>0x2000</code>) — chính là nơi chuỗi <code>"thiet bi nhung"</code> nằm.</p>' }
+          'con trỏ <code>name</code>, trỏ vào <code>.rodata</code> (bắt đầu ở ' +
+          '<code>0x2000</code>) — chính là nơi chuỗi <code>"embedded device"</code> nằm.</p>' }
       ]},
 
       /* ---- Bước 3 ---- */
       { title: 'Chứng minh .bss không tốn byte nào trên đĩa', blocks: [
         { t: 'code', where: 'wsl', code:
-          'size mau\n' +
-          'stat -c \'%s %n\' mau' },
+          'size sample\n' +
+          'stat -c \'%s %n\' sample' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-          '   1650\t    624\t  16424\t  18698\t   490a\tmau\n' +
-          '16184 mau' },
+          '   1651\t    624\t  16424\t  18699\t   490b\tsample\n' +
+          '16184 sample' },
 
         { t: 'p', x: 'Tăng mảng lên 1 MB rồi đo lại — đây là phép thử quyết định:' },
 
         { t: 'code', where: 'wsl', code:
-          'sed \'s/bo_dem\\[16384\\]/bo_dem[1048576]/\' mau.c > mau_to.c\n' +
-          'gcc -O2 -o mau_to mau_to.c\n' +
-          'stat -c \'%s %n\' mau mau_to\n' +
-          'size mau_to' },
+          'sed \'s/buffer\\[16384\\]/buffer[1048576]/\' sample.c > sample_big.c\n' +
+          'gcc -O2 -o sample_big sample_big.c\n' +
+          'stat -c \'%s %n\' sample sample_big\n' +
+          'size sample_big' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '16184 mau\n' +
-          '16184 mau_to\n' +
+          '16184 sample\n' +
+          '16192 sample_big\n' +
           '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-          '   1650\t    624\t1048616\t1050890\t 10090a\tmau_to' },
+          '   1651\t    624\t1048616\t1050891\t 10090b\tsample_big' },
 
         { t: 'p', x: 'Đối chứng: cùng dung lượng nhưng là biến <b>có khởi tạo</b>:' },
 
-        { t: 'code', where: 'file', name: '~/bai18-th/mau_data.c', lang: 'c', code:
+        { t: 'code', where: 'file', name: '~/bai18-th/sample_data.c', lang: 'c', code:
           '#include <stdio.h>\n' +
-          'int bo_dem[262144] = { 1 };\n' +
-          'int main(void) { printf("%d\\n", bo_dem[0]); return 0; }' },
+          'int buffer[262144] = { 1 };\n' +
+          'int main(void) { printf("%d\\n", buffer[0]); return 0; }' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -O2 -o mau_data mau_data.c\n' +
-          'stat -c \'%s %n\' mau_data\n' +
-          'size mau_data' },
+          'gcc -O2 -o sample_data sample_data.c\n' +
+          'stat -c \'%s %n\' sample_data\n' +
+          'size sample_data' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '1064584 mau_data\n' +
+          '1064592 sample_data\n' +
           '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
-          '   1412\t1049192\t      8\t1050612\t 1007f4\tmau_data' },
+          '   1412\t1049192\t      8\t1050612\t 1007f4\tsample_data' },
 
         { t: 'cal', kind: 'info', title: 'Ba con số cạnh nhau', x:
           '<p><b>16 184</b> — 16 KB mảng trong <code>.bss</code>.<br>' +
-          '<b>16 184</b> — 1 MB mảng trong <code>.bss</code>. <i>Không đổi.</i><br>' +
-          '<b>1 064 584</b> — 1 MB mảng trong <code>.data</code>. <b>Gấp 65,8 lần.</b></p>' +
-          '<p>Khác biệt duy nhất giữa hai trường hợp cuối là bốn ký tự <code>= { 1 }</code>.</p>' +
+          '<b>16 192</b> — 1 MB mảng trong <code>.bss</code>. <i>Gần như không đổi</i> ' +
+          '(lệch 8 byte so với dòng trên, do bảng ký hiệu — không liên quan tới kích thước ' +
+          'mảng).<br>' +
+          '<b>1 064 592</b> — 1 MB mảng trong <code>.data</code>. <b>Gấp 65,8 lần</b> so với ' +
+          'chương trình gốc.</p>' +
+          '<p>Khác biệt lớn giữa hai trường hợp cuối chỉ là bốn ký tự <code>= { 1 }</code>.</p>' +
           '<p>Hãy nhớ kỹ điều này khi sau này bạn thấy một ảnh firmware phình bất thường.</p>' }
       ]},
 
       /* ---- Bước 4 ---- */
       { title: 'Nhìn file bằng con mắt của kernel', blocks: [
         { t: 'code', where: 'wsl', code:
-          'readelf -l -W mau | grep -E \'LOAD|INTERP|GNU_STACK|GNU_RELRO|interpreter\'' },
+          'readelf -l -W sample | grep -E \'LOAD|INTERP|GNU_STACK|GNU_RELRO|interpreter\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '  INTERP         0x000374 0x0000000000000374 0x0000000000000374 0x00001c 0x00001c R   0x1\n' +
@@ -930,7 +976,7 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'python3 -c "print(\'MemSiz - FileSiz =\', 0x4298 - 0x270)"\n' +
-          'readelf -S -W mau | grep \'\\.bss\'' },
+          'readelf -S -W sample | grep \'\\.bss\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'MemSiz - FileSiz = 16424\n' +
@@ -947,7 +993,7 @@ Lesson.register({
 
         { t: 'p', x: 'Cuối cùng, đọc chuỗi trong <code>.interp</code>:' },
 
-        { t: 'code', where: 'wsl', code: 'readelf -p .interp mau' },
+        { t: 'code', where: 'wsl', code: 'readelf -p .interp sample' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'String dump of section \'.interp\':\n' +
@@ -956,34 +1002,34 @@ Lesson.register({
         { t: 'cal', kind: 'tip', title: 'Đây là dòng cuối trong output ldd của Bài 17', x:
           '<p>Bạn vừa tìm ra nguồn gốc của nó: một chuỗi ghi cứng trong file, chiếm ' +
           '<code>0x1c</code> = 28 byte.</p>' +
-          '<p>Thử ngay để thấy khác biệt: <code>gcc -O2 -static -o mau_tinh mau.c</code> rồi ' +
-          '<code>readelf -l -W mau_tinh | grep INTERP</code> — <b>không có kết quả</b>. Bản ' +
-          'tĩnh không cần trình thông dịch nào, nên kernel nhảy thẳng vào chương trình.</p>' }
+          '<p>Thử ngay để thấy khác biệt: <code>gcc -O2 -static -o sample_static sample.c</code> ' +
+          'rồi <code>readelf -l -W sample_static | grep INTERP</code> — <b>không có kết quả</b>. ' +
+          'Bản tĩnh không cần trình thông dịch nào, nên kernel nhảy thẳng vào chương trình.</p>' }
       ]},
 
       /* ---- Bước 5 ---- */
       { title: 'Tìm điểm bắt đầu thật của chương trình', blocks: [
         { t: 'code', where: 'wsl', code:
-          'readelf -h mau | grep Entry\n' +
-          'nm mau | grep -E \' T (main|_start)$\'\n' +
-          'objdump -d --start-address=0x10e0 --stop-address=0x1100 mau | tail -5' },
+          'readelf -h sample | grep Entry\n' +
+          'nm sample | grep -E \' T (main|_start)$\'\n' +
+          'objdump -d --start-address=0x10e0 --stop-address=0x1100 sample | tail -5' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '  Entry point address:               0x10e0\n' +
           '00000000000010e0 T _start\n' +
           '0000000000001080 T main\n' +
+          '    10f1:\t50                   \tpush   %rax\n' +
           '    10f2:\t54                   \tpush   %rsp\n' +
           '    10f3:\t45 31 c0             \txor    %r8d,%r8d\n' +
           '    10f6:\t31 c9                \txor    %ecx,%ecx\n' +
-          '    10f8:\t48 8d 3d 81 ff ff ff \tlea    -0x7f(%rip),%rdi        # 1080 <main>\n' +
-          '    10ff:\tff                   \t.byte 0xff' },
+          '    10f8:\t48 8d 3d 81 ff ff ff \tlea    -0x7f(%rip),%rdi        # 1080 <main>' },
 
-        { t: 'cmdx', cmd: 'objdump -d --start-address=0x10e0 --stop-address=0x1100 mau',
+        { t: 'cmdx', cmd: 'objdump -d --start-address=0x10e0 --stop-address=0x1100 sample',
           title: 'Dịch ngược một khoảng địa chỉ',
           rows: [
             ['<code>-d</code>', '<i>disassemble</i> — dịch mã máy ngược thành hợp ngữ', 'Chỉ dịch các section có cờ <code>X</code>'],
             ['<code>--start-address</code>', 'Bắt đầu từ địa chỉ này', 'Rất hữu ích khi chỉ muốn xem một hàm, tránh hàng nghìn dòng'],
-            ['<code>--stop-address</code>', 'Dừng ở địa chỉ này', 'Dòng <code>.byte 0xff</code> cuối là do cắt giữa một lệnh — bình thường'],
+            ['<code>--stop-address</code>', 'Dừng ở địa chỉ này', 'Nếu điểm cắt rơi giữa một lệnh nhiều byte, dòng cuối sẽ hiện <code>.byte</code> thay vì hợp ngữ đầy đủ — bình thường, không phải lỗi'],
             ['<code>-D</code>', 'Dịch <b>mọi</b> section, kể cả dữ liệu', 'Dùng khi nghi ngờ có mã giấu trong section dữ liệu'],
             ['<code>-S</code>', 'Xen mã nguồn C vào giữa hợp ngữ', 'Chỉ hoạt động khi biên dịch với <code>-g</code>']
           ]},
@@ -1003,62 +1049,62 @@ Lesson.register({
       /* ---- Bước 6 ---- */
       { title: 'Đo strip và --gc-sections', blocks: [
         { t: 'code', where: 'wsl', code:
-          'cp mau mau_strip && strip mau_strip\n' +
-          'stat -c \'%s %n\' mau mau_strip\n' +
-          './mau_strip\n' +
-          'nm mau_strip' },
+          'cp sample sample_strip && strip sample_strip\n' +
+          'stat -c \'%s %n\' sample sample_strip\n' +
+          './sample_strip\n' +
+          'nm sample_strip' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '16184 mau\n' +
-          '14480 mau_strip\n' +
-          'thiet bi nhung: 43 7\n' +
-          'nm: mau_strip: no symbols' },
+          '16184 sample\n' +
+          '14480 sample_strip\n' +
+          'embedded device: 43 7\n' +
+          'nm: sample_strip: no symbols' },
 
         { t: 'p', x: 'Trên bản liên kết tĩnh, con số lớn hơn nhiều:' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -O2 -static -o mau_tinh mau.c\n' +
-          'cp mau_tinh mau_tinh_strip && strip mau_tinh_strip\n' +
-          'stat -c \'%s %n\' mau_tinh mau_tinh_strip' },
+          'gcc -O2 -static -o sample_static sample.c\n' +
+          'cp sample_static sample_static_strip && strip sample_static_strip\n' +
+          'stat -c \'%s %n\' sample_static sample_static_strip' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '817000 mau_tinh\n' +
-          '735512 mau_tinh_strip' },
+          '816992 sample_static\n' +
+          '735512 sample_static_strip' },
 
-        { t: 'cal', kind: 'info', title: 'Cắt 81 488 byte mà chương trình vẫn chạy y nguyên', x:
-          '<p><b>10,0 %</b> dung lượng biến mất, và <code>./mau_strip</code> vẫn in đúng ' +
-          '<code>thiet bi nhung: 43 7</code>. Vì những gì bị cắt (<code>.symtab</code>, ' +
+        { t: 'cal', kind: 'info', title: 'Cắt 81 480 byte mà chương trình vẫn chạy y nguyên', x:
+          '<p><b>10,0 %</b> dung lượng biến mất, và <code>./sample_strip</code> vẫn in đúng ' +
+          '<code>embedded device: 43 7</code>. Vì những gì bị cắt (<code>.symtab</code>, ' +
           '<code>.strtab</code>) vốn không có cờ <code>A</code> — chưa bao giờ được nạp.</p>' +
           '<p>Giá phải trả hiện ra ngay: <code>nm</code> báo <code>no symbols</code>. Nếu ' +
           'chương trình này sập trên thiết bị, bạn sẽ chỉ nhận được địa chỉ trần.</p>' },
 
         { t: 'p', x: 'Bây giờ thử loại bỏ những hàm không ai gọi:' },
 
-        { t: 'code', where: 'file', name: '~/bai18-th/nhieuham.c', lang: 'c', code:
+        { t: 'code', where: 'file', name: '~/bai18-th/multi_func.c', lang: 'c', code:
           '#include <stdio.h>\n' +
-          'int ham_a(int x) { return x + 1; }\n' +
-          'int ham_b(int x) { return x * 2; }\n' +
-          'int ham_c(int x) { return x - 3; }\n' +
-          'int ham_d(int x) { return x / 4; }\n' +
-          'int ham_e(int x) { return x % 5; }\n' +
-          'int main(void) { printf("%d\\n", ham_a(10)); return 0; }' },
+          'int func_a(int x) { return x + 1; }\n' +
+          'int func_b(int x) { return x * 2; }\n' +
+          'int func_c(int x) { return x - 3; }\n' +
+          'int func_d(int x) { return x / 4; }\n' +
+          'int func_e(int x) { return x % 5; }\n' +
+          'int main(void) { printf("%d\\n", func_a(10)); return 0; }' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -O2 -o nhieu_thuong nhieuham.c\n' +
-          'gcc -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -o nhieu_gc nhieuham.c\n' +
-          'stat -c \'%s %n\' nhieu_thuong nhieu_gc\n' +
-          'nm nhieu_thuong | grep -c \' T ham_\'\n' +
-          'nm nhieu_gc | grep -c \' T ham_\'' },
+          'gcc -O2 -o multi_normal multi_func.c\n' +
+          'gcc -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -o multi_gc multi_func.c\n' +
+          'stat -c \'%s %n\' multi_normal multi_gc\n' +
+          'nm multi_normal | grep -c \' T func_\'\n' +
+          'nm multi_gc | grep -c \' T func_\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
-          '16112 nhieu_thuong\n' +
-          '15856 nhieu_gc\n' +
+          '16120 multi_normal\n' +
+          '15856 multi_gc\n' +
           '5\n' +
           '0' },
 
         { t: 'cal', kind: 'tip', title: 'Đo được 1,6 % — và đó cũng là một kết quả', x:
           '<p>Năm hàm giữ nguyên ở bản thường, biến sạch ở bản <code>--gc-sections</code>. ' +
-          'Nhưng file chỉ nhỏ đi <b>256 byte</b>, vì bốn hàm bị vứt vốn rất bé.</p>' +
+          'Nhưng file chỉ nhỏ đi <b>264 byte</b>, vì bốn hàm bị vứt vốn rất bé.</p>' +
           '<p>Đừng bỏ qua kết quả này. Nó dạy một thói quen quan trọng hơn cả kỹ thuật: ' +
           '<b>đo trước khi tin</b>. Cùng cặp cờ đó, khi áp lên một thư viện tĩnh lớn ở ' +
           'Chặng 09, sẽ cắt hàng trăm KB.</p>' }
@@ -1070,11 +1116,11 @@ Lesson.register({
           'Bước cuối nối bài này với Bài 3 và Bài 13. Biên dịch chéo cho ARM64 rồi so header:' },
 
         { t: 'code', where: 'wsl', code:
-          'aarch64-linux-gnu-gcc -O2 -static -o mau_arm mau.c\n' +
-          'readelf -h mau_arm | grep -E \'Type|Machine|Entry\'\n' +
-          'xxd -l 16 mau\n' +
-          'xxd -l 16 mau_arm\n' +
-          './mau_arm\n' +
+          'aarch64-linux-gnu-gcc -O2 -static -o sample_arm sample.c\n' +
+          'readelf -h sample_arm | grep -E \'Type|Machine|Entry\'\n' +
+          'xxd -l 16 sample\n' +
+          'xxd -l 16 sample_arm\n' +
+          './sample_arm\n' +
           'echo "exit=$?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
@@ -1083,7 +1129,7 @@ Lesson.register({
           '  Entry point address:               0x400600\n' +
           '00000000: 7f45 4c46 0201 0100 0000 0000 0000 0000  .ELF............\n' +
           '00000000: 7f45 4c46 0201 0103 0000 0000 0000 0000  .ELF............\n' +
-          'bash: ./mau_arm: cannot execute binary file: Exec format error\n' +
+          'bash: ./sample_arm: cannot execute binary file: Exec format error\n' +
           'exit=126' },
 
         { t: 'cal', kind: 'why', title: 'Vòng tròn khép lại: Bài 3 hỏi, Bài 18 trả lời', x:
@@ -1138,7 +1184,7 @@ Lesson.register({
          'File không phải ELF — bốn byte đầu không phải <code>7f 45 4c 46</code>',
          'Chạy <code>file</code> trước. Nếu là script shell thì mở bằng trình soạn thảo, nếu là ảnh nén thì giải nén trước'],
 
-        ['<code>nm: mau_strip: no symbols</code>',
+        ['<code>nm: sample_strip: no symbols</code>',
          'File đã bị <code>strip</code>, section <code>.symtab</code> không còn',
          'Với thư viện động, dùng <code>nm -D</code>. Với file thực thi đã strip, không lấy lại được — giữ bản chưa strip trên máy build'],
 
@@ -1150,7 +1196,7 @@ Lesson.register({
          'Nhầm lẫn phổ biến: <code>strip</code> chỉ cắt <code>.symtab</code>/<code>.strtab</code>, <b>không</b> đụng tới <code>.rodata</code> và <code>.comment</code>',
          'Muốn bỏ chuỗi phiên bản: <code>strip -R .comment</code>. Chuỗi trong <code>.rodata</code> thì không bỏ được — chương trình cần chúng'],
 
-        ['<code>./mau_arm: cannot execute binary file: Exec format error</code> (thoát <b>126</b>)',
+        ['<code>./sample_arm: cannot execute binary file: Exec format error</code> (thoát <b>126</b>)',
          'Trường <code>Machine</code> trong ELF header không khớp CPU',
          'Kiểm tra bằng <code>readelf -h | grep Machine</code>. Cần QEMU (Chặng 05) hoặc thiết bị thật để chạy'],
 
@@ -1171,10 +1217,10 @@ Lesson.register({
       'Bốn byte đầu <b><code>7f 45 4c 46</code></b> là chữ ký kernel kiểm tra trước khi nạp. Byte 5 = độ rộng con trỏ, byte 6 = thứ tự byte; trường <b><code>Machine</code></b> (byte 18–19) mới quyết định file chạy được trên CPU nào.',
       '<b>Section</b> là cách trình liên kết nhìn file (31 mảnh có tên); <b>segment</b> là cách kernel nhìn file (4 đoạn <code>LOAD</code>). Cùng một dữ liệu, hai góc nhìn phục vụ hai mục đích.',
       'Cột <code>Flg</code> là chính sách bảo mật: <code>A</code> = được nạp vào RAM, <code>W</code> = ghi được, <code>X</code> = thi hành được. <b>Không section nào vừa <code>W</code> vừa <code>X</code></b> — nguyên tắc W^X.',
-      '<code>.bss</code> có kiểu <b><code>NOBITS</code></b>: chỉ ghi lại <i>kích thước</i>, không ghi dữ liệu. Bạn đã tự chứng minh: mảng 1 MB trong <code>.bss</code> giữ file ở <b>16 184</b> byte, cùng mảng đó trong <code>.data</code> đẩy file lên <b>1 064 584</b> byte — <b>gấp 65,8 lần</b>, chỉ vì <code>= { 1 }</code>.',
+      '<code>.bss</code> có kiểu <b><code>NOBITS</code></b>: chỉ ghi lại <i>kích thước</i>, không ghi dữ liệu. Bạn đã tự chứng minh: mảng 1 MB trong <code>.bss</code> giữ file gần như nguyên (<b>16 192</b> so với <b>16 184</b> byte ban đầu — lệch 8 byte không liên quan tới mảng), trong khi cùng mảng đó trong <code>.data</code> đẩy file lên <b>1 064 592</b> byte — <b>gấp 65,8 lần</b>, chỉ vì <code>= { 1 }</code>.',
       'Cơ chế <code>.bss</code> nằm ở chênh lệch <b><code>MemSiz</code> − <code>FileSiz</code></b> của đoạn <code>LOAD</code> ghi được: <b>17 048 − 624 = 16 424</b> byte, đúng bằng kích thước <code>.bss</code>. Kernel cấp bấy nhiêu bộ nhớ và điền số 0.',
       'Điểm vào chương trình là <b><code>_start</code></b> (<code>0x10e0</code>) chứ không phải <code>main</code> (<code>0x1080</code>). <code>_start</code> truyền địa chỉ <code>main</code> cho <code>__libc_start_main</code> — đó là lý do bản tĩnh nặng 816 912 byte.',
-      '<code>strip</code> cắt <b>10 %</b> dung lượng (817 000 → 735 512 byte trên bản tĩnh) nhưng <b>không giảm RAM</b>, vì <code>.symtab</code> vốn không có cờ <code>A</code>. Giữ bản chưa strip để gỡ lỗi, ghép lại bằng <code>BuildID</code>.',
+      '<code>strip</code> cắt <b>10 %</b> dung lượng (816 992 → 735 512 byte trên bản tĩnh) nhưng <b>không giảm RAM</b>, vì <code>.symtab</code> vốn không có cờ <code>A</code>. Giữ bản chưa strip để gỡ lỗi, ghép lại bằng <code>BuildID</code>.',
       '<code>-ffunction-sections -fdata-sections -Wl,--gc-sections</code> vứt bỏ hàm không ai gọi — ở ví dụ này chỉ được <b>1,6 %</b>, nhưng sẽ đáng kể khi liên kết tĩnh với thư viện lớn. <b>Luôn đo trước khi tin.</b>',
       'Bộ công cụ soi file nhị phân: <code>file</code> (đây là gì) → <code>readelf -h</code> (header) → <code>readelf -S -W</code> (section) → <code>readelf -l -W</code> (segment) → <code>nm</code> (ký hiệu) → <code>size</code> (dung lượng) → <code>objdump -d</code> (mã máy) → <code>strings</code> (chuỗi).'
     ]},
@@ -1200,7 +1246,7 @@ Lesson.register({
 
   quiz: [
     {
-      q: 'Chương trình của bạn khai báo <code>char bo_dem[1048576];</code> ở phạm vi toàn cục. Sau khi biên dịch, file thực thi vẫn chỉ nặng 16 184 byte. Vì sao?',
+      q: 'Chương trình của bạn khai báo <code>char buffer[1048576];</code> ở phạm vi toàn cục. Sau khi biên dịch, file thực thi vẫn chỉ nặng gần như trước (16 192 so với 16 184 byte của bản gốc). Vì sao?',
       opts: [
         'Trình biên dịch đã nén mảng đó lại',
         'Mảng rơi vào <code>.bss</code> — section kiểu <code>NOBITS</code> chỉ ghi lại kích thước, kernel cấp bộ nhớ và điền số 0 lúc nạp',
@@ -1211,7 +1257,7 @@ Lesson.register({
       why: 'Biến toàn cục không có bộ khởi tạo (hoặc khởi tạo bằng 0) rơi vào <code>.bss</code>. Kiểu <code>NOBITS</code> nghĩa là "không có byte nào trong file" — chỉ trường <code>Size</code> được ghi lại. Bạn kiểm chứng được ở tầng segment: đoạn <code>LOAD</code> ghi được có <code>FileSiz</code> 624 byte nhưng <code>MemSiz</code> 17 048 byte, chênh đúng bằng <code>.bss</code>. Lưu ý quan trọng cho nhúng: nó <b>không</b> tốn flash nhưng <b>vẫn</b> tốn RAM.'
     },
     {
-      q: 'Cùng mảng đó, bạn đổi thành <code>char bo_dem[1048576] = { 1 };</code>. Điều gì xảy ra với kích thước file?',
+      q: 'Cùng mảng đó, bạn đổi thành <code>char buffer[1048576] = { 1 };</code>. Điều gì xảy ra với kích thước file?',
       opts: [
         'Không đổi — chỉ có một phần tử khác 0',
         'Tăng thêm đúng 1 byte',
@@ -1219,7 +1265,7 @@ Lesson.register({
         'Giảm xuống, vì trình biên dịch tối ưu được nhiều hơn'
       ],
       a: 2,
-      why: 'Quy tắc là <b>có bộ khởi tạo hay không</b>, không phải <i>bao nhiêu phần tử khác 0</i>. Có <code>= { 1 }</code> thì cả mảng vào <code>.data</code>, mà <code>.data</code> có kiểu <code>PROGBITS</code> nên toàn bộ nội dung — kể cả 262 143 số 0 — phải được ghi thật vào file. Đo trên máy bạn: <b>16 184</b> byte thành <b>1 064 584</b> byte, gấp <b>65,8 lần</b>. Đây là nguyên nhân số một khiến ảnh firmware phình bất thường.'
+      why: 'Quy tắc là <b>có bộ khởi tạo hay không</b>, không phải <i>bao nhiêu phần tử khác 0</i>. Có <code>= { 1 }</code> thì cả mảng vào <code>.data</code>, mà <code>.data</code> có kiểu <code>PROGBITS</code> nên toàn bộ nội dung — kể cả 262 143 số 0 — phải được ghi thật vào file. Đo trên máy bạn: <b>16 184</b> byte thành <b>1 064 592</b> byte, gấp <b>65,8 lần</b>. Đây là nguyên nhân số một khiến ảnh firmware phình bất thường.'
     },
     {
       q: 'Section và segment khác nhau thế nào?',
@@ -1252,7 +1298,7 @@ Lesson.register({
         'Nguy hiểm, vì chương trình sẽ không chạy được sau khi strip'
       ],
       a: 1,
-      why: 'Đo được trên máy bạn: 817 000 → 735 512 byte, giảm <b>10,0 %</b> — với 7,6 MB firmware thì đó là khoảng 760 KB flash, rất đáng kể ở ngưỡng 8 MB. Nhưng RAM không đổi một byte, vì <code>.symtab</code> và <code>.strtab</code> <b>không có cờ <code>A</code></b> nên chưa bao giờ được nạp (loại đáp án C). Chương trình vẫn chạy bình thường (loại D). Cái mất là backtrace có tên hàm — nên cách làm chuẩn là lưu bản chưa strip trên máy build và ghép lại qua <code>BuildID</code> khi cần.'
+      why: 'Đo được trên máy bạn: 816 992 → 735 512 byte, giảm <b>10,0 %</b> — với 7,6 MB firmware thì đó là khoảng 760 KB flash, rất đáng kể ở ngưỡng 8 MB. Nhưng RAM không đổi một byte, vì <code>.symtab</code> và <code>.strtab</code> <b>không có cờ <code>A</code></b> nên chưa bao giờ được nạp (loại đáp án C). Chương trình vẫn chạy bình thường (loại D). Cái mất là backtrace có tên hàm — nên cách làm chuẩn là lưu bản chưa strip trên máy build và ghép lại qua <code>BuildID</code> khi cần.'
     },
     {
       q: 'Bạn nhận một file nhị phân lạ từ thiết bị của khách hàng, chưa biết nó là gì và không dám chạy. Thứ tự lệnh nào hợp lý nhất?',

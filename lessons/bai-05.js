@@ -183,21 +183,21 @@ Lesson.register({
       head: ['Ký hiệu', 'Nghĩa', 'Ví dụ'],
       rows: [
         ['<code>/</code>', 'Gốc của cây, hoặc dấu ngăn giữa các cấp', '<code>/usr/bin/gcc</code>'],
-        ['<code>.</code>', 'Thư mục hiện tại', '<code>./chao.sh</code> — chạy script ở ngay đây'],
+        ['<code>.</code>', 'Thư mục hiện tại', '<code>./hello.sh</code> — chạy script ở ngay đây'],
         ['<code>..</code>', 'Thư mục cha', '<code>cd ../..</code> — lùi hai cấp'],
         ['<code>~</code>', 'Thư mục nhà của bạn', '<code>~/embedded</code> ≡ <code>/home/shinarus/embedded</code>'],
         ['<code>-</code>', 'Thư mục <b>vừa rời khỏi</b>', '<code>cd -</code> — nhảy qua nhảy lại hai chỗ'],
-        ['Không có tiền tố', 'Tương đối, tính từ chỗ đang đứng', '<code>cd tai-lieu</code>']
+        ['Không có tiền tố', 'Tương đối, tính từ chỗ đang đứng', '<code>cd docs</code>']
       ]},
 
-    { t: 'cal', kind: 'warn', title: 'Vì sao phải viết ./chao.sh mà không phải chao.sh', x:
+    { t: 'cal', kind: 'warn', title: 'Vì sao phải viết ./hello.sh mà không phải hello.sh', x:
       '<p>Nhớ lại Bài 4: bash tìm lệnh trong <code>$PATH</code>, và <b>thư mục hiện tại không nằm trong ' +
-      '<code>$PATH</code></b>. Gõ trống không <code>chao.sh</code> sẽ nhận ' +
+      '<code>$PATH</code></b>. Gõ trống không <code>hello.sh</code> sẽ nhận ' +
       '<code>command not found</code> dù file nằm ngay trước mắt.</p>' +
       '<p>Đây <b>không phải</b> thiếu sót — đó là một quyết định bảo mật cố ý. Nếu thư mục hiện tại nằm ' +
       'trong <code>$PATH</code>, kẻ tấn công chỉ cần đặt một file tên <code>ls</code> vào thư mục dùng ' +
       'chung và chờ ai đó gõ <code>ls</code> ở đó.</p>' +
-      '<p>Viết <code>./chao.sh</code> là nói rõ "chạy file ở đúng chỗ này", không liên quan gì đến ' +
+      '<p>Viết <code>./hello.sh</code> là nói rõ "chạy file ở đúng chỗ này", không liên quan gì đến ' +
       '<code>$PATH</code>.</p>' },
 
     { t: 'cal', kind: 'tip', title: 'Quy tắc dùng trong script', x:
@@ -572,7 +572,7 @@ Lesson.register({
 
           { t: 'p', x: 'Thử hai thiết bị nổi tiếng nhất:' },
           { t: 'code', where: 'wsl', code:
-            'echo "chu nay se bien mat" > /dev/null\n' +
+            'echo "this line disappears" > /dev/null\n' +
             'echo $?\n' +
             'head -c 8 /dev/zero | od -An -tx1' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
@@ -650,12 +650,12 @@ Lesson.register({
     { t: 'table',
       head: ['Thông báo', 'Nguyên nhân', 'Cách xử lý'],
       rows: [
-        ['<code>bash: cd: tai-lieu: No such file or directory</code>',
+        ['<code>bash: cd: docs: No such file or directory</code>',
          'Đường dẫn tương đối nhưng bạn đang đứng ở thư mục khác',
          '<code>pwd</code> để biết mình ở đâu, rồi <code>ls</code> xem có gì'],
-        ['<code>chao.sh: command not found</code> dù file nằm ngay đó',
+        ['<code>hello.sh: command not found</code> dù file nằm ngay đó',
          'Thư mục hiện tại không nằm trong <code>$PATH</code> — cố ý vì lý do bảo mật',
-         'Viết <code>./chao.sh</code>'],
+         'Viết <code>./hello.sh</code>'],
         ['<code>du: cannot read directory \'/proc/1/fd\': Permission denied</code>',
          'Bạn đang đọc thư mục của tiến trình thuộc user khác',
          'Bình thường. Thêm <code>2>/dev/null</code> để bỏ qua, hoặc dùng <code>sudo</code>'],
@@ -754,17 +754,17 @@ Lesson.register({
            'đăng ký một major cho driver của mình.'
     },
     {
-      q: 'Vì sao gõ <code>chao.sh</code> báo <code>command not found</code> dù file nằm ngay trong thư mục hiện tại?',
+      q: 'Vì sao gõ <code>hello.sh</code> báo <code>command not found</code> dù file nằm ngay trong thư mục hiện tại?',
       opts: [
         'Vì file thiếu quyền thực thi',
-        'Vì thư mục hiện tại cố ý không nằm trong <code>$PATH</code> — phải viết <code>./chao.sh</code>',
+        'Vì thư mục hiện tại cố ý không nằm trong <code>$PATH</code> — phải viết <code>./hello.sh</code>',
         'Vì tên file phải kết thúc bằng <code>.sh</code>',
         'Vì bash chỉ chạy được file nhị phân'
       ],
       a: 1,
       why: 'Bash tìm lệnh theo <code>$PATH</code>, và thư mục hiện tại bị loại ra một cách cố ý: nếu có ' +
            'nó, kẻ tấn công chỉ cần đặt một file tên <code>ls</code> vào thư mục dùng chung rồi chờ. ' +
-           'Viết <code>./chao.sh</code> là chỉ đích danh đường dẫn, không đụng tới <code>$PATH</code>. ' +
+           'Viết <code>./hello.sh</code> là chỉ đích danh đường dẫn, không đụng tới <code>$PATH</code>. ' +
            'Nếu thiếu quyền thực thi thì thông báo sẽ là <code>Permission denied</code> với mã 126 ' +
            '(Bài 4), không phải <code>command not found</code>.'
     },

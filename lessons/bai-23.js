@@ -142,7 +142,7 @@ Lesson.register({
       'Mỗi lần bạn gõ <code>ls | grep txt</code> từ Bài 6 đến giờ, shell đã gọi ' +
       '<code>pipe()</code> giúp bạn. Giờ bạn tự gọi nó.' },
 
-    { t: 'code', where: 'file', name: 'ong.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'pipe_demo.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
@@ -153,34 +153,36 @@ Lesson.register({
       '{\n' +
       '    int fd[2];\n' +
       '    if (pipe(fd) == -1) { perror("pipe"); exit(1); }\n' +
-      '    printf("pipe() tao ra fd[0]=%d (doc), fd[1]=%d (ghi)\\n", fd[0], fd[1]);\n' +
+      '    printf("pipe() created fd[0]=%d (read), fd[1]=%d (write)\\n", fd[0], fd[1]);\n' +
+      '    fflush(stdout);\n' +
       '\n' +
       '    pid_t p = fork();\n' +
       '    if (p == -1) { perror("fork"); exit(1); }\n' +
       '\n' +
-      '    if (p == 0) {                       /* con: chi doc */\n' +
+      '    if (p == 0) {                       /* child: read only */\n' +
       '        close(fd[1]);\n' +
       '        char buf[128];\n' +
       '        ssize_t n;\n' +
       '        while ((n = read(fd[0], buf, sizeof buf - 1)) > 0) {\n' +
       '            buf[n] = \'\\0\';\n' +
-      '            printf("  [con  pid=%d] nhan %zd byte: %s", getpid(), n, buf);\n' +
+      '            printf("  [child pid=%d] received %zd bytes: %s", getpid(), n, buf);\n' +
       '            fflush(stdout);\n' +
       '        }\n' +
-      '        printf("  [con  pid=%d] read tra ve %zd -> ben ghi da dong\\n", getpid(), n);\n' +
+      '        printf("  [child pid=%d] read returned %zd -> write end closed\\n", getpid(), n);\n' +
       '        fflush(stdout);\n' +
       '        close(fd[0]);\n' +
       '        _exit(0);\n' +
       '    }\n' +
       '\n' +
-      '    close(fd[0]);                       /* cha: chi ghi */\n' +
-      '    const char *m1 = "nhiet do 42.5\\n";\n' +
-      '    const char *m2 = "nhiet do 43.1\\n";\n' +
-      '    write(fd[1], m1, strlen(m1));\n' +
+      '    close(fd[0]);                       /* parent: write only */\n' +
+      '    const char *msg1 = "temperature 42.5\\n";\n' +
+      '    const char *msg2 = "temperature 43.1\\n";\n' +
+      '    write(fd[1], msg1, strlen(msg1));\n' +
       '    usleep(200000);\n' +
-      '    write(fd[1], m2, strlen(m2));\n' +
+      '    write(fd[1], msg2, strlen(msg2));\n' +
       '    usleep(200000);\n' +
-      '    printf("[cha  pid=%d] dong dau ghi\\n", getpid());\n' +
+      '    printf("[parent pid=%d] closing write end\\n", getpid());\n' +
+      '    fflush(stdout);\n' +
       '    close(fd[1]);\n' +
       '    waitpid(p, NULL, 0);\n' +
       '    return 0;\n' +
@@ -188,14 +190,14 @@ Lesson.register({
 
     { t: 'code', where: 'wsl', code:
       'mkdir -p ~/embedded/bai23 && cd ~/embedded/bai23\n' +
-      'gcc -Wall -Wextra -o ong ong.c && ./ong' },
+      'gcc -Wall -Wextra -o pipe_demo pipe_demo.c && ./pipe_demo' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'pipe() tao ra fd[0]=3 (doc), fd[1]=4 (ghi)\n' +
-      '  [con  pid=430] nhan 14 byte: nhiet do 42.5\n' +
-      '  [con  pid=430] nhan 14 byte: nhiet do 43.1\n' +
-      '[cha  pid=429] dong dau ghi\n' +
-      '  [con  pid=430] read tra ve 0 -> ben ghi da dong' },
+      'pipe() created fd[0]=3 (read), fd[1]=4 (write)\n' +
+      '  [child pid=809] received 17 bytes: temperature 42.5\n' +
+      '  [child pid=809] received 17 bytes: temperature 43.1\n' +
+      '[parent pid=808] closing write end\n' +
+      '  [child pid=809] read returned 0 -> write end closed' },
 
     { t: 'cmdx', cmd: 'int fd[2]; pipe(fd);',
       title: 'Một lời gọi, hai mô tả file',
@@ -220,8 +222,8 @@ Lesson.register({
       'khác.</b></p>' },
 
     { t: 'cal', kind: 'info', title: 'Dòng cuối cùng đến sau — và đó là điều đúng', x:
-      '<p>Để ý thứ tự output: <code>[cha] dong dau ghi</code> in ra <i>trước</i> ' +
-      '<code>[con] read tra ve 0</code>. Đúng như vậy: chừng nào cha chưa ' +
+      '<p>Để ý thứ tự output: <code>[parent] closing write end</code> in ra <i>trước</i> ' +
+      '<code>[child] read returned 0</code>. Đúng như vậy: chừng nào cha chưa ' +
       '<code>close(fd[1])</code>, <code>read()</code> trong con vẫn <b>chặn</b>, chờ có thể còn ' +
       'dữ liệu nữa. Chỉ khi đầu ghi cuối cùng đóng lại, nhân mới trả về 0.</p>' +
       '<p><code>read()</code> trả về <b>0</b> nghĩa là "hết file" (EOF), không phải lỗi. Đây là ' +
@@ -238,8 +240,8 @@ Lesson.register({
       'con số đó rất quan trọng, vì nó quyết định lúc nào <code>write()</code> sẽ <b>chặn</b> ' +
       'chương trình của bạn lại.' },
 
-    { t: 'code', where: 'file', name: 'succhua.c', lang: 'c', code:
-      '#define _GNU_SOURCE                 /* can cho F_GETPIPE_SZ */\n' +
+    { t: 'code', where: 'file', name: 'pipe_capacity.c', lang: 'c', code:
+      '#define _GNU_SOURCE                 /* needed for F_GETPIPE_SZ */\n' +
       '#include <stdio.h>\n' +
       '#include <unistd.h>\n' +
       '#include <fcntl.h>\n' +
@@ -248,25 +250,25 @@ Lesson.register({
       '{\n' +
       '    int fd[2];\n' +
       '    if (pipe(fd) == -1) { perror("pipe"); return 1; }\n' +
-      '    printf("F_GETPIPE_SZ = %d byte = %d KB\\n",\n' +
+      '    printf("F_GETPIPE_SZ = %d bytes = %d KB\\n",\n' +
       '           fcntl(fd[1], F_GETPIPE_SZ), fcntl(fd[1], F_GETPIPE_SZ) / 1024);\n' +
       '\n' +
-      '    /* do bang cach ghi khong chan cho den khi day */\n' +
+      '    /* measure by writing non-blocking until the pipe fills up */\n' +
       '    fcntl(fd[1], F_SETFL, O_NONBLOCK);\n' +
       '    char c = \'x\';\n' +
-      '    long tong = 0;\n' +
-      '    while (write(fd[1], &c, 1) == 1) tong++;\n' +
-      '    printf("ghi duoc %ld byte thi pipe day (EAGAIN)\\n", tong);\n' +
+      '    long total = 0;\n' +
+      '    while (write(fd[1], &c, 1) == 1) total++;\n' +
+      '    printf("wrote %ld bytes before the pipe filled (EAGAIN)\\n", total);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o succhua succhua.c && ./succhua\n' +
+      'gcc -Wall -Wextra -o pipe_capacity pipe_capacity.c && ./pipe_capacity\n' +
       'cat /proc/sys/fs/pipe-max-size' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'F_GETPIPE_SZ = 65536 byte = 64 KB\n' +
-      'ghi duoc 65536 byte thi pipe day (EAGAIN)\n' +
+      'F_GETPIPE_SZ = 65536 bytes = 64 KB\n' +
+      'wrote 65536 bytes before the pipe filled (EAGAIN)\n' +
       '1048576' },
 
     { t: 'cal', kind: 'info', title: 'Hai con số cần nhớ: 64 KB và 4096 byte', x:
@@ -290,7 +292,7 @@ Lesson.register({
     { t: 'p', x:
       'Bây giờ tình huống ngược lại — ghi vào một pipe mà <b>không còn ai đọc</b>:' },
 
-    { t: 'code', where: 'file', name: 'vo.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'broken_pipe.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <string.h>                 /* strerror */\n' +
       '#include <unistd.h>\n' +
@@ -304,26 +306,26 @@ Lesson.register({
       '    if (pipe(fd) == -1) { perror("pipe"); return 1; }\n' +
       '\n' +
       '    pid_t p = fork();\n' +
-      '    if (p == 0) { close(fd[0]); close(fd[1]); _exit(0); }   /* con dong ngay */\n' +
-      '    close(fd[0]);                                            /* cha cung dong dau doc */\n' +
+      '    if (p == 0) { close(fd[0]); close(fd[1]); _exit(0); }   /* child closes right away */\n' +
+      '    close(fd[0]);                                             /* parent closes its read end too */\n' +
       '    waitpid(p, NULL, 0);\n' +
       '    sleep(1);\n' +
       '\n' +
-      '    signal(SIGPIPE, SIG_IGN);          /* bo qua de nhin thay errno */\n' +
+      '    signal(SIGPIPE, SIG_IGN);          /* ignore so we can observe errno */\n' +
       '    ssize_t n = write(fd[1], "abc", 3);\n' +
-      '    printf("write tra ve %zd, errno = %d (%s)\\n", n, errno, strerror(errno));\n' +
+      '    printf("write returned %zd, errno = %d (%s)\\n", n, errno, strerror(errno));\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o vo vo.c && ./vo\n' +
-      'sed \'s|signal(SIGPIPE, SIG_IGN);|/* khong bo qua */|\' vo.c > vo2.c\n' +
-      'gcc -Wall -Wextra -o vo2 vo2.c && ./vo2\n' +
-      'echo "ma thoat = $?"' },
+      'gcc -Wall -Wextra -o broken_pipe broken_pipe.c && ./broken_pipe\n' +
+      'sed \'s|signal(SIGPIPE, SIG_IGN);|/* not ignored */|\' broken_pipe.c > broken_pipe_default.c\n' +
+      'gcc -Wall -Wextra -o broken_pipe_default broken_pipe_default.c && ./broken_pipe_default\n' +
+      'echo "exit code = $?"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'write tra ve -1, errno = 32 (Broken pipe)\n' +
-      'ma thoat = 141' },
+      'write returned -1, errno = 32 (Broken pipe)\n' +
+      'exit code = 141' },
 
     { t: 'cal', kind: 'danger', title: 'Mã 141: chương trình của bạn vừa bị giết mà không hề báo lỗi', x:
       '<p>Hai lần chạy, hai kết cục hoàn toàn khác nhau, từ <b>cùng một mã nguồn</b> trừ một ' +
@@ -359,13 +361,13 @@ Lesson.register({
       'thế là bất cứ ai có quyền cũng mở được.' },
 
     { t: 'code', where: 'wsl', code:
-      'mkfifo /tmp/ongcoten\n' +
-      'ls -l /tmp/ongcoten\n' +
-      'stat -c \'kieu=%F  quyen=%A  kich thuoc=%s\' /tmp/ongcoten' },
+      'mkfifo /tmp/named_pipe\n' +
+      'ls -l /tmp/named_pipe\n' +
+      'stat -c \'type=%F  perm=%A  size=%s\' /tmp/named_pipe' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'prw-r--r-- 1 shinarus shinarus 0 Aug  3 21:57 /tmp/ongcoten\n' +
-      'kieu=fifo  quyen=prw-r--r--  kich thuoc=0' },
+      'prw-r--r-- 1 shinarus shinarus 0 Aug  5 22:59 /tmp/named_pipe\n' +
+      'type=fifo  perm=prw-r--r--  size=0' },
 
     { t: 'cmdx', cmd: 'prw-r--r-- 1 shinarus shinarus 0',
       title: 'Đọc kỹ dòng ls: hai chi tiết tiết lộ toàn bộ bản chất',
@@ -373,22 +375,22 @@ Lesson.register({
         ['<code>p</code>', 'Ký tự đầu là <b>p</b> = pipe', 'So với <code>-</code> (file thường), <code>d</code> (thư mục), <code>c</code> (thiết bị ký tự) mà bạn đã học ở Bài 7'],
         ['<code>rw-r--r--</code>', 'Quyền như file thường, và <b>có tác dụng thật</b>', 'Đây là ưu điểm lớn của FIFO: bạn dùng quyền Unix để kiểm soát ai được gửi, ai được nhận'],
         ['<code>0</code>', 'Kích thước <b>luôn</b> bằng 0', 'Dữ liệu <b>không</b> nằm trên đĩa. Cái tên chỉ là điểm hẹn; dữ liệu vẫn ở bộ đệm 64 KB trong RAM của nhân'],
-        ['<code>/tmp/ongcoten</code>', 'Chỗ đặt tên', 'Trên thiết bị thật hãy đặt trong <code>/run</code> — đó là tmpfs, đúng chuẩn FHS cho dữ liệu thời gian chạy, và sạch sau mỗi lần khởi động']
+        ['<code>/tmp/named_pipe</code>', 'Chỗ đặt tên', 'Trên thiết bị thật hãy đặt trong <code>/run</code> — đó là tmpfs, đúng chuẩn FHS cho dữ liệu thời gian chạy, và sạch sau mỗi lần khởi động']
       ]},
 
     { t: 'p', x:
       'Thử ngay bằng hai lệnh shell, không cần viết chương trình nào:' },
 
     { t: 'code', where: 'wsl', code:
-      '( sleep 0.3; echo "cam bien 1: 42.5" > /tmp/ongcoten ) &\n' +
-      'timeout 3 cat /tmp/ongcoten\n' +
-      'rm -f /tmp/ongcoten' },
+      '( sleep 0.3; echo "sensor 1: 42.5" > /tmp/named_pipe ) &\n' +
+      'timeout 3 cat /tmp/named_pipe\n' +
+      'rm -f /tmp/named_pipe' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'cam bien 1: 42.5' },
+      'sensor 1: 42.5' },
 
     { t: 'cal', kind: 'warn', title: 'Mở FIFO là một hành động chặn — và điều này làm nhiều người mất buổi chiều', x:
-      '<p><code>open("/tmp/ongcoten", O_RDONLY)</code> sẽ <b>đứng im</b> cho tới khi có ai đó ' +
+      '<p><code>open("/tmp/named_pipe", O_RDONLY)</code> sẽ <b>đứng im</b> cho tới khi có ai đó ' +
       'mở cùng FIFO đó để ghi. Chiều ngược lại cũng vậy. Đó là lý do lệnh trên phải đẩy phần ' +
       'ghi vào nền bằng <code>&amp;</code> — chạy tuần tự thì lệnh đầu treo mãi.</p>' +
       '<p>Hành vi này thực ra là một tính năng: nó tự đồng bộ hai bên, bên nào tới trước thì ' +
@@ -410,98 +412,98 @@ Lesson.register({
       '<code>ftruncate</code> để định kích thước, <code>mmap</code> để đưa nó vào không gian ' +
       'địa chỉ của mình.' },
 
-    { t: 'code', where: 'file', name: 'ghi_shm.c — bên ghi', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'shm_writer.c — writer side', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <unistd.h>\n' +
       '#include <fcntl.h>\n' +
       '#include <sys/mman.h>\n' +
       '\n' +
-      '#define TEN  "/dulieu_cambien"        /* PHAI bat dau bang mot dau / */\n' +
+      '#define NAME  "/sensor_data"        /* MUST start with a single / */\n' +
       '\n' +
-      'struct goi {\n' +
-      '    unsigned long dem;\n' +
-      '    double nhiet_do;\n' +
-      '    char  ten[32];\n' +
+      'struct packet {\n' +
+      '    unsigned long count;\n' +
+      '    double temperature;\n' +
+      '    char  label[32];\n' +
       '};\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    int fd = shm_open(TEN, O_CREAT | O_RDWR, 0600);\n' +
+      '    int fd = shm_open(NAME, O_CREAT | O_RDWR, 0600);\n' +
       '    if (fd == -1) { perror("shm_open"); exit(1); }\n' +
-      '    printf("shm_open(\\"%s\\") -> fd=%d\\n", TEN, fd);\n' +
+      '    printf("shm_open(\\"%s\\") -> fd=%d\\n", NAME, fd);\n' +
       '\n' +
-      '    if (ftruncate(fd, sizeof(struct goi)) == -1) { perror("ftruncate"); exit(1); }\n' +
-      '    printf("ftruncate -> %zu byte\\n", sizeof(struct goi));\n' +
+      '    if (ftruncate(fd, sizeof(struct packet)) == -1) { perror("ftruncate"); exit(1); }\n' +
+      '    printf("ftruncate -> %zu bytes\\n", sizeof(struct packet));\n' +
       '\n' +
-      '    struct goi *g = mmap(NULL, sizeof *g, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
-      '    if (g == MAP_FAILED) { perror("mmap"); exit(1); }\n' +
-      '    printf("mmap -> dia chi %p\\n", (void *)g);\n' +
+      '    struct packet *p = mmap(NULL, sizeof *p, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
+      '    if (p == MAP_FAILED) { perror("mmap"); exit(1); }\n' +
+      '    printf("mmap -> address %p\\n", (void *)p);\n' +
       '\n' +
-      '    close(fd);                       /* fd khong con can sau khi da mmap */\n' +
+      '    close(fd);                       /* fd is no longer needed once mmap\'d */\n' +
       '\n' +
       '    for (int i = 1; i <= 3; i++) {\n' +
-      '        g->dem = i;\n' +
-      '        g->nhiet_do = 42.0 + i * 0.5;\n' +
-      '        snprintf(g->ten, sizeof g->ten, "cam bien %d", i);\n' +
-      '        printf("  [ghi] dem=%lu nhiet=%.1f ten=%s\\n", g->dem, g->nhiet_do, g->ten);\n' +
+      '        p->count = i;\n' +
+      '        p->temperature = 42.0 + i * 0.5;\n' +
+      '        snprintf(p->label, sizeof p->label, "sensor %d", i);\n' +
+      '        printf("  [write] count=%lu temp=%.1f label=%s\\n", p->count, p->temperature, p->label);\n' +
       '        fflush(stdout);\n' +
       '        sleep(1);\n' +
       '    }\n' +
-      '    munmap(g, sizeof *g);\n' +
+      '    munmap(p, sizeof *p);\n' +
       '    return 0;\n' +
       '}' },
 
-    { t: 'code', where: 'file', name: 'doc_shm.c — bên đọc', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'shm_reader.c — reader side', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <unistd.h>\n' +
       '#include <fcntl.h>\n' +
       '#include <sys/mman.h>\n' +
       '\n' +
-      '#define TEN  "/dulieu_cambien"\n' +
+      '#define NAME  "/sensor_data"\n' +
       '\n' +
-      'struct goi { unsigned long dem; double nhiet_do; char ten[32]; };\n' +
+      'struct packet { unsigned long count; double temperature; char label[32]; };\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    int fd = shm_open(TEN, O_RDONLY, 0);\n' +
+      '    int fd = shm_open(NAME, O_RDONLY, 0);\n' +
       '    if (fd == -1) { perror("shm_open"); exit(1); }\n' +
       '\n' +
-      '    struct goi *g = mmap(NULL, sizeof *g, PROT_READ, MAP_SHARED, fd, 0);\n' +
-      '    if (g == MAP_FAILED) { perror("mmap"); exit(1); }\n' +
+      '    struct packet *p = mmap(NULL, sizeof *p, PROT_READ, MAP_SHARED, fd, 0);\n' +
+      '    if (p == MAP_FAILED) { perror("mmap"); exit(1); }\n' +
       '    close(fd);\n' +
       '\n' +
       '    for (int i = 0; i < 3; i++) {\n' +
-      '        printf("             [doc] dem=%lu nhiet=%.1f ten=%s\\n",\n' +
-      '               g->dem, g->nhiet_do, g->ten);\n' +
+      '        printf("             [read] count=%lu temp=%.1f label=%s\\n",\n' +
+      '               p->count, p->temperature, p->label);\n' +
       '        fflush(stdout);\n' +
       '        sleep(1);\n' +
       '    }\n' +
-      '    munmap(g, sizeof *g);\n' +
+      '    munmap(p, sizeof *p);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o ghi_shm ghi_shm.c\n' +
-      'gcc -Wall -Wextra -o doc_shm doc_shm.c\n' +
-      './ghi_shm &\n' +
+      'gcc -Wall -Wextra -o shm_writer shm_writer.c\n' +
+      'gcc -Wall -Wextra -o shm_reader shm_reader.c\n' +
+      './shm_writer &\n' +
       'sleep 0.4\n' +
-      './doc_shm\n' +
+      './shm_reader\n' +
       'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'shm_open("/dulieu_cambien") -> fd=3\n' +
-      'ftruncate -> 48 byte\n' +
-      'mmap -> dia chi 0x758e38471000\n' +
-      '  [ghi] dem=1 nhiet=42.5 ten=cam bien 1\n' +
-      '             [doc] dem=1 nhiet=42.5 ten=cam bien 1\n' +
-      '  [ghi] dem=2 nhiet=43.0 ten=cam bien 2\n' +
-      '             [doc] dem=2 nhiet=43.0 ten=cam bien 2\n' +
-      '  [ghi] dem=3 nhiet=43.5 ten=cam bien 3\n' +
-      '             [doc] dem=3 nhiet=43.5 ten=cam bien 3' },
+      'shm_open("/sensor_data") -> fd=3\n' +
+      'ftruncate -> 48 bytes\n' +
+      'mmap -> address 0x7ceb34afa000\n' +
+      '  [write] count=1 temp=42.5 label=sensor 1\n' +
+      '             [read] count=1 temp=42.5 label=sensor 1\n' +
+      '  [write] count=2 temp=43.0 label=sensor 2\n' +
+      '             [read] count=2 temp=43.0 label=sensor 2\n' +
+      '  [write] count=3 temp=43.5 label=sensor 3\n' +
+      '             [read] count=3 temp=43.5 label=sensor 3' },
 
-    { t: 'cmdx', cmd: 'shm_open(TEN, O_CREAT | O_RDWR, 0600) → ftruncate(fd, n) → mmap(...)',
+    { t: 'cmdx', cmd: 'shm_open(NAME, O_CREAT | O_RDWR, 0600) → ftruncate(fd, n) → mmap(...)',
       title: 'Ba bước, và vì sao thiếu bước nào cũng hỏng',
       rows: [
         ['<code>shm_open</code>', 'Tạo hoặc mở một đối tượng bộ nhớ chia sẻ, trả về một mô tả file thường', 'Tên <b>bắt buộc</b> bắt đầu bằng <code>/</code> và không được chứa dấu <code>/</code> nào khác'],
@@ -521,7 +523,7 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       'total 4\n' +
-      '-rw------- 1 shinarus shinarus 48 Aug  3 21:57 dulieu_cambien\n' +
+      '-rw------- 1 shinarus shinarus 48 Aug  5 22:49 sensor_data\n' +
       'none            2.5G  4.0K  2.5G   1% /dev/shm' },
 
     { t: 'cal', kind: 'why', title: 'Nó chỉ là một file trong RAM — và điều đó giải thích tất cả', x:
@@ -531,7 +533,7 @@ Lesson.register({
       '<p>Ba hệ quả rất thực tế:</p>' +
       '<ol>' +
       '<li><b>Bạn gỡ lỗi được bằng công cụ thường.</b> <code>ls -l</code>, <code>rm</code>, ' +
-      '<code>hexdump -C /dev/shm/dulieu_cambien</code> đều hoạt động. Không cần công cụ đặc ' +
+      '<code>hexdump -C /dev/shm/sensor_data</code> đều hoạt động. Không cần công cụ đặc ' +
       'biệt nào để soi bộ nhớ chia sẻ.</li>' +
       '<li><b>Nó chiếm RAM thật.</b> Ở đây <code>/dev/shm</code> được cấp <b>2,5 GB</b> — bằng ' +
       'một nửa RAM, đúng mặc định của Linux. Trên thiết bị 64 MB, một vùng chia sẻ 8 MB là một ' +
@@ -541,7 +543,7 @@ Lesson.register({
       '</ol>' },
 
     { t: 'cal', kind: 'warn', title: 'Kiên trì là con dao hai lưỡi — nhớ shm_unlink', x:
-      '<p>Đối tượng chia sẻ sống tới khi có ai gọi <code>shm_unlink("/dulieu_cambien")</code> ' +
+      '<p>Đối tượng chia sẻ sống tới khi có ai gọi <code>shm_unlink("/sensor_data")</code> ' +
       'hoặc tới khi khởi động lại máy. Nghe thì tiện: daemon khởi động lại vẫn thấy dữ liệu cũ.</p>' +
       '<p>Nhưng nó cũng có nghĩa là một daemon sập giữa chừng sẽ để lại rác trong RAM ' +
       '<b>vĩnh viễn</b>. Chạy đi chạy lại một chương trình lỗi trên thiết bị 64 MB là cách rất ' +
@@ -561,87 +563,87 @@ Lesson.register({
       'phải tự quy ước. Hàng đợi thông điệp POSIX cho bạn thứ khác hẳn: các gói <b>rời rạc</b>, ' +
       'mỗi gói mang một <b>độ ưu tiên</b>, và gói ưu tiên cao được lấy ra trước bất kể đến sau.' },
 
-    { t: 'code', where: 'file', name: 'mq_gui.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'mq_sender.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
       '#include <fcntl.h>\n' +
       '#include <mqueue.h>\n' +
       '\n' +
-      '#define TEN "/hang_canh_bao"\n' +
+      '#define NAME "/alert_queue"\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    struct mq_attr at = { .mq_flags = 0, .mq_maxmsg = 10,\n' +
       '                          .mq_msgsize = 64, .mq_curmsgs = 0 };\n' +
-      '    mqd_t q = mq_open(TEN, O_CREAT | O_WRONLY, 0600, &at);\n' +
+      '    mqd_t q = mq_open(NAME, O_CREAT | O_WRONLY, 0600, &at);\n' +
       '    if (q == (mqd_t)-1) { perror("mq_open"); exit(1); }\n' +
       '\n' +
-      '    struct { const char *t; unsigned p; } ds[] = {\n' +
-      '        { "nhiet do binh thuong 42.5", 1 },\n' +
-      '        { "CANH BAO qua nhiet 91.0",   9 },      /* gui THU HAI, uu tien cao */\n' +
-      '        { "nhiet do binh thuong 43.0", 1 },\n' +
+      '    struct { const char *text; unsigned prio; } msgs[] = {\n' +
+      '        { "normal temperature 42.5", 1 },\n' +
+      '        { "ALERT overheating 91.0",  9 },      /* sent SECOND, high priority */\n' +
+      '        { "normal temperature 43.0", 1 },\n' +
       '    };\n' +
       '    for (unsigned i = 0; i < 3; i++) {\n' +
-      '        if (mq_send(q, ds[i].t, strlen(ds[i].t) + 1, ds[i].p) == -1) perror("mq_send");\n' +
-      '        printf("  [gui] uu tien %u: %s\\n", ds[i].p, ds[i].t);\n' +
+      '        if (mq_send(q, msgs[i].text, strlen(msgs[i].text) + 1, msgs[i].prio) == -1) perror("mq_send");\n' +
+      '        printf("  [send] priority %u: %s\\n", msgs[i].prio, msgs[i].text);\n' +
       '    }\n' +
       '    mq_getattr(q, &at);\n' +
-      '    printf("  hang dang chua %ld thong diep\\n", at.mq_curmsgs);\n' +
+      '    printf("  queue now holds %ld messages\\n", at.mq_curmsgs);\n' +
       '    mq_close(q);\n' +
       '    return 0;\n' +
       '}' },
 
-    { t: 'code', where: 'file', name: 'mq_nhan.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'mq_receiver.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <mqueue.h>\n' +
       '\n' +
-      '#define TEN "/hang_canh_bao"\n' +
+      '#define NAME "/alert_queue"\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    mqd_t q = mq_open(TEN, O_RDONLY);\n' +
+      '    mqd_t q = mq_open(NAME, O_RDONLY);\n' +
       '    if (q == (mqd_t)-1) { perror("mq_open"); exit(1); }\n' +
       '\n' +
       '    struct mq_attr at;\n' +
       '    mq_getattr(q, &at);\n' +
-      '    char *buf = malloc(at.mq_msgsize);      /* PHAI du lon bang mq_msgsize */\n' +
+      '    char *buf = malloc(at.mq_msgsize);      /* MUST be at least mq_msgsize */\n' +
       '\n' +
       '    for (int i = 0; i < 3; i++) {\n' +
-      '        unsigned p;\n' +
-      '        ssize_t n = mq_receive(q, buf, at.mq_msgsize, &p);\n' +
+      '        unsigned prio;\n' +
+      '        ssize_t n = mq_receive(q, buf, at.mq_msgsize, &prio);\n' +
       '        if (n == -1) { perror("mq_receive"); exit(1); }\n' +
-      '        printf("             [nhan] uu tien %u (%zd byte): %s\\n", p, n, buf);\n' +
+      '        printf("             [recv] priority %u (%zd bytes): %s\\n", prio, n, buf);\n' +
       '    }\n' +
       '    mq_close(q);\n' +
-      '    mq_unlink(TEN);\n' +
+      '    mq_unlink(NAME);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o mq_gui mq_gui.c\n' +
-      'gcc -Wall -Wextra -o mq_nhan mq_nhan.c\n' +
-      './mq_gui\n' +
+      'gcc -Wall -Wextra -o mq_sender mq_sender.c\n' +
+      'gcc -Wall -Wextra -o mq_receiver mq_receiver.c\n' +
+      './mq_sender\n' +
       'ls -l /dev/mqueue/\n' +
-      'cat /dev/mqueue/hang_canh_bao\n' +
-      './mq_nhan' },
+      'cat /dev/mqueue/alert_queue\n' +
+      './mq_receiver' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '  [gui] uu tien 1: nhiet do binh thuong 42.5\n' +
-      '  [gui] uu tien 9: CANH BAO qua nhiet 91.0\n' +
-      '  [gui] uu tien 1: nhiet do binh thuong 43.0\n' +
-      '  hang dang chua 3 thong diep\n' +
+      '  [send] priority 1: normal temperature 42.5\n' +
+      '  [send] priority 9: ALERT overheating 91.0\n' +
+      '  [send] priority 1: normal temperature 43.0\n' +
+      '  queue now holds 3 messages\n' +
       'total 0\n' +
-      '-rw------- 1 shinarus shinarus 80 Aug  3 21:58 hang_canh_bao\n' +
-      'QSIZE:76         NOTIFY:0     SIGNO:0     NOTIFY_PID:0\n' +
-      '             [nhan] uu tien 9 (24 byte): CANH BAO qua nhiet 91.0\n' +
-      '             [nhan] uu tien 1 (26 byte): nhiet do binh thuong 42.5\n' +
-      '             [nhan] uu tien 1 (26 byte): nhiet do binh thuong 43.0' },
+      '-rw------- 1 shinarus shinarus 80 Aug  5 22:49 alert_queue\n' +
+      'QSIZE:71         NOTIFY:0     SIGNO:0     NOTIFY_PID:0\n' +
+      '             [recv] priority 9 (23 bytes): ALERT overheating 91.0\n' +
+      '             [recv] priority 1 (24 bytes): normal temperature 42.5\n' +
+      '             [recv] priority 1 (24 bytes): normal temperature 43.0' },
 
     { t: 'cal', kind: 'why', title: 'Cảnh báo được gửi thứ hai nhưng nhận ra đầu tiên', x:
       '<p>Đây là tính chất khiến hàng đợi thông điệp đáng dùng. Thông điệp ' +
-      '<code>CANH BAO qua nhiet 91.0</code> vào hàng ở vị trí thứ <b>2</b>, nhưng vì mang ưu ' +
+      '<code>ALERT overheating 91.0</code> vào hàng ở vị trí thứ <b>2</b>, nhưng vì mang ưu ' +
       'tiên <b>9</b> nên nó ra <b>đầu tiên</b>. Hai thông điệp ưu tiên 1 giữ nguyên thứ tự đến ' +
       'giữa chúng với nhau — trong cùng một mức ưu tiên thì đúng là vào trước ra trước.</p>' +
       '<p>Với pipe, muốn có hành vi này bạn phải tự viết bộ đệm sắp xếp, tự đánh dấu ranh giới ' +
@@ -671,7 +673,7 @@ Lesson.register({
       '<ul>' +
       '<li>Gửi thông điệp dài hơn <code>mq_msgsize</code> đã khai báo.</li>' +
       '<li><b>Nhận</b> với bộ đệm nhỏ hơn <code>mq_msgsize</code> — kể cả khi thông điệp thực ' +
-      'tế rất ngắn. Đó là lý do <code>mq_nhan.c</code> phải hỏi <code>mq_getattr</code> rồi mới ' +
+      'tế rất ngắn. Đó là lý do <code>mq_receiver.c</code> phải hỏi <code>mq_getattr</code> rồi mới ' +
       '<code>malloc</code>, chứ không dùng <code>char buf[64]</code> đoán bừa.</li>' +
       '</ul>' +
       '<p>Trên thiết bị thật, hãy nâng trần trong <code>/etc/sysctl.d/</code> chứ đừng sửa bằng ' +
@@ -680,7 +682,7 @@ Lesson.register({
     { t: 'cal', kind: 'info', title: '-lrt: lại một thư viện nữa đã biến mất', x:
       '<p>Sách và bài viết trên mạng đều dặn phải thêm <code>-lrt</code> khi dùng ' +
       '<code>shm_open</code> hoặc <code>mq_*</code>. Trên máy này thì không cần — ' +
-      '<code>ldd ghi_shm</code> chỉ liệt kê <code>libc.so.6</code>, không có ' +
+      '<code>ldd shm_writer</code> chỉ liệt kê <code>libc.so.6</code>, không có ' +
       '<code>librt.so.1</code> nào.</p>' +
       '<p>Nguyên nhân giống hệt chuyện <code>libpthread</code> ở Bài 22: từ glibc <b>2.34</b>, ' +
       '<code>librt</code> đã được gộp thẳng vào <code>libc.so.6</code>. Máy này chạy glibc ' +
@@ -707,33 +709,33 @@ Lesson.register({
       '#include <semaphore.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
-      '#define TEN "/khoa_uart"\n' +
+      '#define NAME "/uart_lock"\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    sem_unlink(TEN);                                 /* don rac lan chay truoc */\n' +
-      '    sem_t *s = sem_open(TEN, O_CREAT, 0600, 1);      /* dem = 1 -> nhu mot mutex */\n' +
+      '    sem_unlink(NAME);                                 /* clean up leftovers from a previous run */\n' +
+      '    sem_t *s = sem_open(NAME, O_CREAT, 0600, 1);      /* count = 1 -> acts like a mutex */\n' +
       '    if (s == SEM_FAILED) { perror("sem_open"); exit(1); }\n' +
       '\n' +
       '    for (int i = 0; i < 3; i++)\n' +
       '        if (fork() == 0) {\n' +
-      '            sem_wait(s);                             /* giam 1; neu dang 0 thi ngu cho */\n' +
+      '            sem_wait(s);                             /* decrement; sleep if it\'s already 0 */\n' +
       '            int v; sem_getvalue(s, &v);\n' +
-      '            printf("  [con %d] vao vung toi han, sem = %d\\n", i, v);\n' +
+      '            printf("  [child %d] entering critical section, sem = %d\\n", i, v);\n' +
       '            fflush(stdout);\n' +
-      '            usleep(300000);                          /* gia vo dung UART */\n' +
-      '            printf("  [con %d] roi vung toi han\\n", i);\n' +
+      '            usleep(300000);                          /* pretend to use the UART */\n' +
+      '            printf("  [child %d] leaving critical section\\n", i);\n' +
       '            fflush(stdout);\n' +
-      '            sem_post(s);                             /* tang 1; danh thuc nguoi cho */\n' +
+      '            sem_post(s);                             /* increment; wakes up waiters */\n' +
       '            sem_close(s);\n' +
       '            _exit(0);\n' +
       '        }\n' +
       '\n' +
       '    for (int i = 0; i < 3; i++) wait(NULL);\n' +
       '    int v; sem_getvalue(s, &v);\n' +
-      '    printf("cuoi cung sem = %d\\n", v);\n' +
+      '    printf("final sem = %d\\n", v);\n' +
       '    sem_close(s);\n' +
-      '    sem_unlink(TEN);\n' +
+      '    sem_unlink(NAME);\n' +
       '    return 0;\n' +
       '}' },
 
@@ -741,13 +743,13 @@ Lesson.register({
       'gcc -Wall -Wextra -o sem_demo sem_demo.c && ./sem_demo' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '  [con 0] vao vung toi han, sem = 0\n' +
-      '  [con 0] roi vung toi han\n' +
-      '  [con 1] vao vung toi han, sem = 0\n' +
-      '  [con 1] roi vung toi han\n' +
-      '  [con 2] vao vung toi han, sem = 0\n' +
-      '  [con 2] roi vung toi han\n' +
-      'cuoi cung sem = 1' },
+      '  [child 0] entering critical section, sem = 0\n' +
+      '  [child 0] leaving critical section\n' +
+      '  [child 1] entering critical section, sem = 0\n' +
+      '  [child 1] leaving critical section\n' +
+      '  [child 2] entering critical section, sem = 0\n' +
+      '  [child 2] leaving critical section\n' +
+      'final sem = 1' },
 
     { t: 'cal', kind: 'info', title: 'Đọc output theo cặp — không cặp nào lồng vào cặp nào', x:
       '<p>Mỗi "vào" luôn đi liền với "rời" của <b>cùng</b> tiến trình trước khi tiến trình khác ' +
@@ -759,14 +761,28 @@ Lesson.register({
       'bằng N thì cho phép tối đa N bên cùng vào — ví dụ giới hạn số kết nối đồng thời tới một ' +
       'daemon.</p>' },
 
+    { t: 'p', x:
+      'Chương trình tự <code>sem_unlink</code> khi thoát bình thường, nên muốn nhìn thấy đối ' +
+      'tượng semaphore còn sống, hãy kiểm tra <code>/dev/shm/</code> <i>trong khi</i> nó đang chạy:' },
+
     { t: 'code', where: 'wsl', code:
-      'ls -l /dev/shm/' },
+      './sem_demo &\n' +
+      'sleep 0.2\n' +
+      'ls -l /dev/shm/\n' +
+      'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
+      '  [child 0] entering critical section, sem = 0\n' +
       'total 4\n' +
-      '-rw------- 1 shinarus shinarus 32 Aug  3 21:58 sem.khoa_uart' },
+      '-rw------- 1 shinarus shinarus 32 Aug  5 22:51 sem.uart_lock\n' +
+      '  [child 0] leaving critical section\n' +
+      '  [child 1] entering critical section, sem = 0\n' +
+      '  [child 1] leaving critical section\n' +
+      '  [child 2] entering critical section, sem = 0\n' +
+      '  [child 2] leaving critical section\n' +
+      'final sem = 1' },
 
-    { t: 'cal', kind: 'tip', title: 'sem.khoa_uart — semaphore cũng chỉ là một file 32 byte trong RAM', x:
+    { t: 'cal', kind: 'tip', title: 'sem.uart_lock — semaphore cũng chỉ là một file 32 byte trong RAM', x:
       '<p>Semaphore POSIX có tên được cài đặt ngay trên <code>/dev/shm</code>, với tiền tố ' +
       '<code>sem.</code> thêm vào tên bạn đặt. Nó cũng <b>kiên trì</b> đúng như bộ nhớ chia sẻ ' +
       '— và đó là nguồn gốc của một lỗi kinh điển.</p>' +
@@ -775,7 +791,7 @@ Lesson.register({
       '<code>sem_open</code> đúng cái semaphore cũ, thấy 0, và treo ngay lập tức. Trên thiết ' +
       'bị, triệu chứng là "dịch vụ không khởi động lại được sau khi crash, phải reboot mới ' +
       'chạy".</p>' +
-      '<p>Cách chữa chính là dòng đầu tiên trong chương trình trên: <code>sem_unlink(TEN)</code> ' +
+      '<p>Cách chữa chính là dòng đầu tiên trong chương trình trên: <code>sem_unlink(NAME)</code> ' +
       '<b>trước</b> khi <code>sem_open</code>. Và <code>rm /dev/shm/sem.*</code> là mẹo cấp cứu ' +
       'đáng nhớ khi gỡ lỗi tại hiện trường.</p>' },
 
@@ -790,48 +806,49 @@ Lesson.register({
       'tiến trình thật.' },
 
     { t: 'code', where: 'wsl', code:
-      './dosuc' },
+      './ipc_bench' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'chuyen 20000 khoi x 4096 byte = 78.1 MB\n' +
+      'transferring 20000 blocks x 4096 bytes = 78.1 MB\n' +
       '\n' +
-      'co che           thoi gian   thong luong      do tre\n' +
+      'mechanism        time        throughput      latency\n' +
       '---------------------------------------------------------\n' +
-      'pipe               0.031 s     2490.2 MB/s     1.57 us/khoi\n' +
-      'FIFO               0.033 s     2383.8 MB/s     1.64 us/khoi\n' +
-      'message queue      0.045 s     1741.6 MB/s     2.24 us/khoi\n' +
-      'shared memory      0.007 s    10533.0 MB/s     0.37 us/khoi',
-      notes: ['Mã nguồn đầy đủ của <code>dosuc.c</code> nằm ở bước 3 phần thực hành.',
-        'Chạy 5 lần rồi lấy khoảng, đừng tin một lần chạy — bạn sẽ thấy ngay vì sao ở bảng dưới.'] },
+      'pipe               0.026 s     3044.0 MB/s     1.28 us/block\n' +
+      'FIFO               0.035 s     2215.8 MB/s     1.76 us/block\n' +
+      'message queue      0.040 s     1957.9 MB/s     2.00 us/block\n' +
+      'shared memory      0.007 s    10832.2 MB/s     0.36 us/block',
+      notes: ['Mã nguồn đầy đủ của <code>ipc_bench.c</code> nằm ở bước 3 phần thực hành.',
+        'Chạy nhiều lần rồi lấy khoảng, đừng tin một lần chạy — bạn sẽ thấy ngay vì sao ở bảng dưới.'] },
 
-    { t: 'table', head: ['Cơ chế', 'Thông lượng (5 lần chạy)', 'Độ trễ mỗi khối', 'Số syscall / 1000 khối'],
+    { t: 'table', head: ['Cơ chế', 'Thông lượng (16 lần chạy)', 'Độ trễ mỗi khối', 'Số syscall / 1000 khối'],
       rows: [
-        ['<b>Bộ nhớ chia sẻ</b>', '<b>8 177 – 10 533 MB/s</b>', '<b>0,37 – 0,48 µs</b>', '<b>1</b>'],
-        ['pipe', '670 – 2 490 MB/s', '1,57 – 5,83 µs', '2 001'],
-        ['FIFO', '1 372 – 2 711 MB/s', '1,44 – 2,85 µs', '2 001'],
-        ['message queue', '928 – 2 131 MB/s', '1,83 – 4,21 µs', '2 000']
+        ['<b>Bộ nhớ chia sẻ</b>', '<b>4 826 – 11 874 MB/s</b> (điển hình)', '<b>0,36 – 0,81 µs</b>', '<b>1</b>'],
+        ['pipe', '518 – 3 969 MB/s', '0,98 – 7,55 µs', '2 001'],
+        ['FIFO', '447 – 3 105 MB/s', '1,26 – 8,75 µs', '2 001'],
+        ['message queue', '965 – 2 239 MB/s', '1,74 – 4,05 µs', '2 000']
       ]},
 
     { t: 'p', x:
-      'Con số cuối cùng — số syscall — không phải suy đoán. <code>strace -c</code> đếm hộ:' },
+      'Con số cuối cùng — số syscall — không phải suy đoán. <code>strace -c</code> đếm hộ, dùng ' +
+      'hai bản rút gọn chỉ chuyển 1000 khối (<code>pipe_1k</code>, <code>shm_1k</code>):' },
 
     { t: 'code', where: 'wsl', code:
-      'strace -f -c -e trace=read,write ./n_pipe 2>&1 | tail -6\n' +
-      'strace -f -c -e trace=read,write ./n_shm  2>&1 | tail -6' },
+      'strace -f -c -e trace=read,write ./pipe_1k 2>&1 | tail -6\n' +
+      'strace -f -c -e trace=read,write ./shm_1k  2>&1 | tail -6' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '% time     seconds  usecs/call     calls    errors syscall\n' +
       '------ ----------- ----------- --------- --------- ----------------\n' +
-      ' 66.36    0.028646          28      1001           read\n' +
-      ' 33.64    0.014519          14      1000           write\n' +
+      ' 73.30    0.032277          32      1001           read\n' +
+      ' 26.70    0.011755          11      1000           write\n' +
       '------ ----------- ----------- --------- --------- ----------------\n' +
-      '100.00    0.043165          21      2001           total\n' +
+      '100.00    0.044032          22      2001           total\n' +
       '\n' +
       '% time     seconds  usecs/call     calls    errors syscall\n' +
       '------ ----------- ----------- --------- --------- ----------------\n' +
-      '  0.00    0.000000           0         1           read\n' +
+      '100.00    0.000033          33         1           read\n' +
       '------ ----------- ----------- --------- --------- ----------------\n' +
-      '100.00    0.000000           0         1           total' },
+      '100.00    0.000033          33         1           total' },
 
     { t: 'cal', kind: 'why', title: '2001 so với 1 — cả bảng tốc độ nằm trong hai con số này', x:
       '<p>Cùng chuyển 1000 khối 4 KB. Pipe tốn <b>2001</b> lần vượt ranh giới user/kernel — ' +
@@ -839,21 +856,30 @@ Lesson.register({
       '<code>read</code> lúc nạp chương trình, không liên quan gì tới truyền dữ liệu).</p>' +
       '<p>Sau <code>mmap</code>, chép dữ liệu qua bộ nhớ chia sẻ chỉ là <code>memcpy</code> ' +
       'thuần tuý trong không gian người dùng. Nhân <b>hoàn toàn không biết</b> chuyện đó đang ' +
-      'xảy ra. Đó là lý do nó nhanh hơn khoảng <b>4–5 lần</b> về thông lượng.</p>' +
+      'xảy ra. Đó là lý do nó nhanh hơn khoảng <b>4–5 lần</b> ở thông lượng điển hình, và con số ' +
+      'này <b>không đổi</b> giữa các lần chạy — khác với thông lượng đo bằng đồng hồ, số syscall ' +
+      'chỉ phụ thuộc vào mã nguồn, không phụ thuộc tải máy.</p>' +
       '<p>Nhưng hãy nhìn cột "thông lượng" kỹ hơn — có một điều còn quan trọng hơn tốc độ.</p>' },
 
     { t: 'cal', kind: 'tip', title: 'Với hệ thời gian thực, tính ổn định quan trọng hơn tốc độ', x:
-      '<p>Qua 5 lần chạy, pipe dao động từ <b>670</b> tới <b>2 490 MB/s</b> — chênh nhau ' +
-      '<b>3,7 lần</b>. Bộ nhớ chia sẻ dao động từ <b>8 177</b> tới <b>10 533 MB/s</b> — chỉ ' +
-      '<b>1,3 lần</b>.</p>' +
-      '<p>Vì sao? Mỗi syscall là một cơ hội để bộ lập lịch cướp CPU của bạn. 2001 syscall = ' +
-      '2001 cơ hội. Độ trễ mỗi khối của pipe vì thế trải từ 1,57 tới 5,83 µs tuỳ lúc máy bận ' +
-      'hay rảnh.</p>' +
+      '<p>Qua 16 lần chạy, pipe dao động từ <b>518</b> tới <b>3 969 MB/s</b> — chênh nhau ' +
+      'khoảng <b>7,7 lần</b>. Bộ nhớ chia sẻ, trong 15/16 lần, chỉ dao động từ <b>4 826</b> tới ' +
+      '<b>11 874 MB/s</b> — chênh <b>2,5 lần</b>. Máy này đang chạy trên WSL2 chia sẻ CPU với ' +
+      'Windows, nên độ dao động tuyệt đối cao hơn một máy Linux trần trụi — nhưng <i>tỉ lệ</i> ' +
+      'giữa hai cơ chế vẫn kể đúng câu chuyện.</p>' +
+      '<p>Một lần hiếm hoi trong 16 lần đó, bộ nhớ chia sẻ vọt lên tới <b>32 912 MB/s</b> ' +
+      '(0,12 µs/khối) — nhanh gấp ba mức điển hình. Đây không phải lỗi đo: vòng chờ bận ' +
+      '(<i>busy-wait</i>) giữa hai tiến trình thỉnh thoảng gặp may về vị trí lõi CPU và trạng ' +
+      'thái cache, khiến việc trao đổi cờ hiệu gần như không tốn gì. Đừng lấy lần may mắn đó làm ' +
+      'chuẩn — bài học đúng vẫn là chỉ tin vào khoảng đo được qua nhiều lần chạy.</p>' +
+      '<p>Vì sao có dao động? Mỗi syscall là một cơ hội để bộ lập lịch cướp CPU của bạn. 2001 ' +
+      'syscall = 2001 cơ hội. Độ trễ mỗi khối của pipe vì thế trải từ 0,98 tới 7,55 µs tuỳ lúc ' +
+      'máy bận hay rảnh.</p>' +
       '<p>Trong điều khiển thời gian thực, câu hỏi không phải "trung bình nhanh bao nhiêu" mà ' +
-      '<b>"lần chậm nhất chậm đến đâu"</b>. Một vòng điều khiển động cơ chấp nhận được 5 µs ổn ' +
-      'định, nhưng không chấp nhận được 1 µs mà thỉnh thoảng vọt lên 50 µs. Đây là lý do sâu xa ' +
-      'nhất khiến bộ nhớ chia sẻ vẫn được dùng dù nó phiền phức — và <b>độ jitter</b> sẽ là chủ ' +
-      'đề trung tâm của <b>Chặng 12</b>.</p>' },
+      '<b>"lần chậm nhất chậm đến đâu"</b>. Một vòng điều khiển động cơ chấp nhận được vài µs ổn ' +
+      'định, nhưng không chấp nhận được độ trễ thỉnh thoảng vọt lên gấp chục lần bình thường. Đây ' +
+      'là lý do sâu xa nhất khiến bộ nhớ chia sẻ vẫn được dùng dù nó phiền phức — và <b>độ ' +
+      'jitter</b> sẽ là chủ đề trung tâm của <b>Chặng 12</b>.</p>' },
 
     /* ══════════════════════════════════════════════
        9. CÁI GIÁ CỦA BỘ NHỚ CHIA SẺ
@@ -865,7 +891,7 @@ Lesson.register({
       'những gì một lời <code>write</code> đặt vào, không lẫn lộn. Bộ nhớ chia sẻ vứt bỏ bảo ' +
       'đảm đó cùng với việc vứt bỏ nhân. Kết quả: mọi bài học ở Bài 22 quay lại nguyên vẹn.' },
 
-    { t: 'code', where: 'file', name: 'dua_lien.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'race_unsafe.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <unistd.h>\n' +
@@ -877,43 +903,46 @@ Lesson.register({
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    shm_unlink("/dua_lien");\n' +
-      '    int fd = shm_open("/dua_lien", O_CREAT | O_RDWR, 0600);\n' +
+      '    shm_unlink("/race_unsafe");\n' +
+      '    int fd = shm_open("/race_unsafe", O_CREAT | O_RDWR, 0600);\n' +
       '    if (ftruncate(fd, sizeof(long))) { perror("ftruncate"); exit(1); }\n' +
-      '    long *dem = mmap(NULL, sizeof(long), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
+      '    long *counter = mmap(NULL, sizeof(long), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
       '    close(fd);\n' +
-      '    *dem = 0;\n' +
+      '    *counter = 0;\n' +
       '\n' +
       '    for (int i = 0; i < 2; i++)\n' +
       '        if (fork() == 0) {\n' +
-      '            for (int j = 0; j < N; j++) (*dem)++;      /* KHONG bao ve */\n' +
+      '            for (int j = 0; j < N; j++) (*counter)++;      /* NOT protected */\n' +
       '            _exit(0);\n' +
       '        }\n' +
       '    for (int i = 0; i < 2; i++) wait(NULL);\n' +
       '\n' +
-      '    printf("mong doi %d, thuc te %ld, mat %ld\\n", 2 * N, *dem, 2L * N - *dem);\n' +
-      '    munmap(dem, sizeof(long));\n' +
-      '    shm_unlink("/dua_lien");\n' +
+      '    printf("expected %d, actual %ld, lost %ld\\n", 2 * N, *counter, 2L * N - *counter);\n' +
+      '    munmap(counter, sizeof(long));\n' +
+      '    shm_unlink("/race_unsafe");\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -O0 -o dua_lien dua_lien.c\n' +
-      'for i in 1 2 3; do ./dua_lien; done' },
+      'gcc -Wall -Wextra -O0 -o race_unsafe race_unsafe.c\n' +
+      'for i in 1 2 3; do ./race_unsafe; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mong doi 400000, thuc te 220650, mat 179350\n' +
-      'mong doi 400000, thuc te 400000, mat 0\n' +
-      'mong doi 400000, thuc te 301309, mat 98691' },
+      'expected 400000, actual 272646, lost 127354\n' +
+      'expected 400000, actual 204146, lost 195854\n' +
+      'expected 400000, actual 203165, lost 196835' },
 
-    { t: 'cal', kind: 'danger', title: 'Lần chạy thứ hai ra đúng — và đó là lần đáng sợ nhất', x:
-      '<p>Ba lần chạy: sai, <b>đúng</b>, sai. Nếu bạn xui và chỉ chạy đúng một lần — lần thứ ' +
-      'hai — bạn sẽ kết luận chương trình không có lỗi và mang nó ra sản xuất.</p>' +
+    { t: 'cal', kind: 'danger', title: 'Ba lần chạy, ba con số khác nhau — không lần nào đoán trước được', x:
+      '<p>Số bị mất dao động thất thường: <b>127 354</b>, rồi <b>195 854</b>, rồi <b>196 835</b> ' +
+      '— tức từ khoảng <b>32%</b> tới gần <b>49%</b> tổng số lần tăng biến mất tuỳ theo lần chạy, ' +
+      'từ <b>cùng một mã nguồn</b>, không đổi gì cả. Chạy đủ nhiều lần, thỉnh thoảng bạn sẽ còn ' +
+      'gặp kết quả gần đúng hơn nhiều, thậm chí đúng tuyệt đối — hoàn toàn do may rủi lịch trình, ' +
+      'không do chương trình "đã sửa xong".</p>' +
       '<p>Đây chính xác là cái bẫy <code>-O2</code> ở Bài 22, khoác một bộ áo khác. Bài học ' +
-      'lặp lại y nguyên: <b>một lần chạy đúng không chứng minh được gì cả về race condition.</b> ' +
-      'Chỉ có phân tích mã và công cụ mới chứng minh được.</p>' +
+      'lặp lại y nguyên: <b>một lần chạy đúng — nếu bạn có gặp — không chứng minh được gì cả về ' +
+      'race condition.</b> Chỉ có phân tích mã và công cụ mới chứng minh được.</p>' +
       '<p>Và lưu ý điều mới ở đây: hai <b>tiến trình</b> riêng biệt, mỗi cái có không gian địa ' +
-      'chỉ độc lập, MMU vẫn canh gác đầy đủ — nhưng vẫn tranh nhau. Vì <code>(*dem)++</code> ' +
+      'chỉ độc lập, MMU vẫn canh gác đầy đủ — nhưng vẫn tranh nhau. Vì <code>(*counter)++</code> ' +
       'trỏ vào <b>cùng một khung trang vật lý</b>, nên nó vẫn là <code>mov</code> / ' +
       '<code>add</code> / <code>mov</code> không nguyên tử, y hệt như hai luồng.</p>' },
 
@@ -921,7 +950,7 @@ Lesson.register({
       'Cách sửa đẹp nhất: đặt luôn một <code>pthread_mutex_t</code> <b>bên trong</b> vùng chia ' +
       'sẻ, và khai báo nó thuộc loại dùng chung giữa các tiến trình.' },
 
-    { t: 'code', where: 'file', name: 'khoa_lien.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'race_locked.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <unistd.h>\n' +
@@ -932,64 +961,64 @@ Lesson.register({
       '\n' +
       '#define N 200000\n' +
       '\n' +
-      'struct vung {\n' +
-      '    pthread_mutex_t khoa;        /* khoa nam NGAY TRONG vung chia se */\n' +
-      '    long dem;\n' +
+      'struct shared_state {\n' +
+      '    pthread_mutex_t lock;        /* the lock lives INSIDE the shared region */\n' +
+      '    long counter;\n' +
       '};\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    shm_unlink("/khoa_lien");\n' +
-      '    int fd = shm_open("/khoa_lien", O_CREAT | O_RDWR, 0600);\n' +
-      '    if (ftruncate(fd, sizeof(struct vung))) { perror("ftruncate"); exit(1); }\n' +
-      '    struct vung *v = mmap(NULL, sizeof *v, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
+      '    shm_unlink("/race_locked");\n' +
+      '    int fd = shm_open("/race_locked", O_CREAT | O_RDWR, 0600);\n' +
+      '    if (ftruncate(fd, sizeof(struct shared_state))) { perror("ftruncate"); exit(1); }\n' +
+      '    struct shared_state *s = mmap(NULL, sizeof *s, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);\n' +
       '    close(fd);\n' +
       '\n' +
       '    pthread_mutexattr_t at;\n' +
       '    pthread_mutexattr_init(&at);\n' +
-      '    pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);   /* <-- mau chot */\n' +
-      '    pthread_mutex_init(&v->khoa, &at);\n' +
+      '    pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);   /* <-- the crucial line */\n' +
+      '    pthread_mutex_init(&s->lock, &at);\n' +
       '    pthread_mutexattr_destroy(&at);\n' +
-      '    v->dem = 0;\n' +
+      '    s->counter = 0;\n' +
       '\n' +
       '    for (int i = 0; i < 2; i++)\n' +
       '        if (fork() == 0) {\n' +
       '            for (int j = 0; j < N; j++) {\n' +
-      '                pthread_mutex_lock(&v->khoa);\n' +
-      '                v->dem++;\n' +
-      '                pthread_mutex_unlock(&v->khoa);\n' +
+      '                pthread_mutex_lock(&s->lock);\n' +
+      '                s->counter++;\n' +
+      '                pthread_mutex_unlock(&s->lock);\n' +
       '            }\n' +
       '            _exit(0);\n' +
       '        }\n' +
       '    for (int i = 0; i < 2; i++) wait(NULL);\n' +
       '\n' +
-      '    printf("mong doi %d, thuc te %ld\\n", 2 * N, v->dem);\n' +
-      '    pthread_mutex_destroy(&v->khoa);\n' +
-      '    munmap(v, sizeof *v);\n' +
-      '    shm_unlink("/khoa_lien");\n' +
+      '    printf("expected %d, actual %ld\\n", 2 * N, s->counter);\n' +
+      '    pthread_mutex_destroy(&s->lock);\n' +
+      '    munmap(s, sizeof *s);\n' +
+      '    shm_unlink("/race_locked");\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -O0 -o khoa_lien khoa_lien.c\n' +
-      'for i in 1 2 3; do ./khoa_lien; done' },
+      'gcc -Wall -Wextra -pthread -O0 -o race_locked race_locked.c\n' +
+      'for i in 1 2 3; do ./race_locked; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mong doi 400000, thuc te 400000\n' +
-      'mong doi 400000, thuc te 400000\n' +
-      'mong doi 400000, thuc te 400000' },
+      'expected 400000, actual 400000\n' +
+      'expected 400000, actual 400000\n' +
+      'expected 400000, actual 400000' },
 
     { t: 'p', x:
       'Bỏ đúng một dòng — dòng <code>setpshared</code> — rồi chạy lại:' },
 
     { t: 'code', where: 'wsl', code:
-      'sed \'s|pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);|/* quen dong nay */|\' khoa_lien.c > quen.c\n' +
-      'gcc -Wall -Wextra -pthread -O0 -o quen quen.c\n' +
-      './quen' },
+      'sed \'s|pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);|/* forgot this line */|\' race_locked.c > forgot_pshared.c\n' +
+      'gcc -Wall -Wextra -pthread -O0 -o forgot_pshared forgot_pshared.c\n' +
+      './forgot_pshared' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       'Fatal glibc error: pthread_mutex_lock.c:88 (___pthread_mutex_lock): assertion failed: mutex->__data.__owner == 0\n' +
-      'mong doi 400000, thuc te 204703' },
+      'expected 400000, actual 217666' },
 
     { t: 'cal', kind: 'why', title: 'Vì sao mutex "bình thường" không dùng được giữa hai tiến trình?', x:
       '<p>Mutex mặc định là <code>PTHREAD_PROCESS_PRIVATE</code>. glibc được phép tối ưu dựa ' +
@@ -997,7 +1026,7 @@ Lesson.register({
       'danh luồng sở hữu, thứ chỉ có ý nghĩa nội bộ, và đặt cờ futex ở chế độ riêng tư.</p>' +
       '<p>Khi hai tiến trình khác nhau cùng dùng nó, các giả định đó vỡ. glibc phát hiện ra và ' +
       'bắn ra <code>Fatal glibc error … assertion failed</code>, rồi kết quả sai luôn: ' +
-      '<b>204 703</b> thay vì 400 000.</p>' +
+      '<b>217 666</b> thay vì 400 000.</p>' +
       '<p><code>pthread_mutexattr_setpshared(&amp;at, PTHREAD_PROCESS_SHARED)</code> báo cho ' +
       'glibc biết sự thật, để nó dùng futex chia sẻ và bỏ mọi tối ưu riêng tư. Đây là dòng dễ ' +
       'quên nhất trong toàn bộ lập trình IPC — và nó không sinh cảnh báo lúc biên dịch, chỉ nổ ' +
@@ -1136,7 +1165,7 @@ Lesson.register({
       'địa chỉ vật lý</b> của máy. Byte thứ <code>0x3F200000</code> của file này chính là ô nhớ ' +
       'vật lý <code>0x3F200000</code> — trên Raspberry Pi 2/3 đó là thanh ghi điều khiển GPIO.' },
 
-    { t: 'code', where: 'file', name: 'docmem.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'read_devmem.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
@@ -1147,39 +1176,39 @@ Lesson.register({
       '\n' +
       'int main(int argc, char **argv)\n' +
       '{\n' +
-      '    off_t dc = (argc > 1) ? strtoull(argv[1], NULL, 0) : 0x0;\n' +
-      '    long  ts = sysconf(_SC_PAGESIZE);\n' +
+      '    off_t addr = (argc > 1) ? strtoull(argv[1], NULL, 0) : 0x0;\n' +
+      '    long  page = sysconf(_SC_PAGESIZE);\n' +
       '\n' +
-      '    int fd = open("/dev/mem", O_RDONLY | O_SYNC);   /* O_SYNC: khong dung cache */\n' +
-      '    if (fd == -1) { printf("open(/dev/mem) that bai: %s\\n", strerror(errno)); return 1; }\n' +
-      '    printf("mo /dev/mem thanh cong, fd=%d, trang = %ld byte\\n", fd, ts);\n' +
+      '    int fd = open("/dev/mem", O_RDONLY | O_SYNC);   /* O_SYNC: bypass the cache */\n' +
+      '    if (fd == -1) { printf("open(/dev/mem) failed: %s\\n", strerror(errno)); return 1; }\n' +
+      '    printf("opened /dev/mem successfully, fd=%d, page size = %ld bytes\\n", fd, page);\n' +
       '\n' +
-      '    off_t nen = dc & ~(off_t)(ts - 1);              /* lam tron xuong bien trang */\n' +
-      '    void *m = mmap(NULL, ts, PROT_READ, MAP_SHARED, fd, nen);\n' +
+      '    off_t base = addr & ~(off_t)(page - 1);          /* round down to the page boundary */\n' +
+      '    void *m = mmap(NULL, page, PROT_READ, MAP_SHARED, fd, base);\n' +
       '    if (m == MAP_FAILED) {\n' +
-      '        printf("mmap tai 0x%llx that bai: %s\\n",\n' +
-      '               (unsigned long long)nen, strerror(errno));\n' +
+      '        printf("mmap at 0x%llx failed: %s\\n",\n' +
+      '               (unsigned long long)base, strerror(errno));\n' +
       '        close(fd); return 2;\n' +
       '    }\n' +
       '\n' +
-      '    volatile unsigned int *r = (unsigned int *)((char *)m + (dc - nen));\n' +
-      '    printf("dia chi vat ly 0x%08llx = 0x%08x\\n", (unsigned long long)dc, *r);\n' +
+      '    volatile unsigned int *r = (unsigned int *)((char *)m + (addr - base));\n' +
+      '    printf("physical address 0x%08llx = 0x%08x\\n", (unsigned long long)addr, *r);\n' +
       '\n' +
-      '    munmap(m, ts);\n' +
+      '    munmap(m, page);\n' +
       '    close(fd);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o docmem docmem.c\n' +
+      'gcc -Wall -Wextra -o read_devmem read_devmem.c\n' +
       'ls -l /dev/mem\n' +
-      './docmem 0x0\n' +
-      'echo "ma thoat = $?"' },
+      './read_devmem 0x0\n' +
+      'echo "exit code = $?"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'crw-r----- 1 root kmem 1, 1 Aug  4 21:36 /dev/mem\n' +
-      'open(/dev/mem) that bai: Permission denied\n' +
-      'ma thoat = 1' },
+      'crw-r----- 1 root kmem 1, 1 Aug  5 23:07 /dev/mem\n' +
+      'open(/dev/mem) failed: Permission denied\n' +
+      'exit code = 1' },
 
     { t: 'cal', kind: 'info', title: 'Thất bại này là kết quả đúng, và nó dạy được ba điều', x:
       '<p>Chương trình không chạy được trên máy của bạn — hãy đọc kỹ vì sao, vì mỗi lý do đều ' +
@@ -1194,19 +1223,19 @@ Lesson.register({
       'phép. Đây là hàng rào ngăn một tiến trình root moi khoá mật mã ra khỏi RAM của tiến ' +
       'trình khác.</li>' +
       '<li><b>WSL2 không có ngoại vi.</b> Máy ảo này không có GPIO, không có I2C, không có ' +
-      'thanh ghi ngoại vi nào để chạm vào. Bạn sẽ chạy được <code>docmem</code> thật khi có ' +
+      'thanh ghi ngoại vi nào để chạm vào. Bạn sẽ chạy được <code>read_devmem</code> thật khi có ' +
       'thiết bị hoặc khi dùng máy QEMU có mô phỏng ngoại vi ở <b>Chặng 05</b>.</li>' +
       '</ol>' +
       '<p>Cũng thử <code>head -12 /proc/iomem</code> — bạn sẽ thấy mọi địa chỉ đều là ' +
       '<code>00000000-00000000</code>. Nhân cố tình giấu địa chỉ vật lý thật với người dùng ' +
       'không đặc quyền, cùng một lý do bảo mật.</p>' },
 
-    { t: 'cmdx', cmd: 'open("/dev/mem", O_RDONLY | O_SYNC) → mmap(NULL, ts, PROT_READ, MAP_SHARED, fd, nen)',
+    { t: 'cmdx', cmd: 'open("/dev/mem", O_RDONLY | O_SYNC) → mmap(NULL, page, PROT_READ, MAP_SHARED, fd, base)',
       title: 'Bốn chi tiết bắt buộc khi ánh xạ thanh ghi (và vì sao)',
       rows: [
         ['<code>O_SYNC</code>', 'Yêu cầu ánh xạ <b>không qua cache</b>', 'Bắt buộc. Thanh ghi phần cứng đổi giá trị mà CPU không hay; đọc qua cache sẽ trả về giá trị cũ vĩnh viễn'],
-        ['<code>nen = dc &amp; ~(ts-1)</code>', 'Làm tròn địa chỉ xuống biên trang 4096 byte', '<code>mmap</code> <b>bắt buộc</b> offset chia hết cho kích thước trang, nếu không trả <code>EINVAL</code>'],
-        ['<code>m + (dc - nen)</code>', 'Cộng lại phần dư để trỏ đúng thanh ghi', 'Bạn ánh xạ cả trang chứa thanh ghi, rồi tự đi tới vị trí trong trang'],
+        ['<code>base = addr &amp; ~(page-1)</code>', 'Làm tròn địa chỉ xuống biên trang 4096 byte', '<code>mmap</code> <b>bắt buộc</b> offset chia hết cho kích thước trang, nếu không trả <code>EINVAL</code>'],
+        ['<code>m + (addr - base)</code>', 'Cộng lại phần dư để trỏ đúng thanh ghi', 'Bạn ánh xạ cả trang chứa thanh ghi, rồi tự đi tới vị trí trong trang'],
         ['<code>volatile unsigned int *</code>', 'Cấm trình biên dịch tối ưu các lần đọc/ghi', 'Đây là một trong số rất ít chỗ <code>volatile</code> <b>thật sự</b> đúng — khác hẳn việc dùng nó chống race ở Bài 22, vốn là sai']
       ]},
 
@@ -1243,30 +1272,30 @@ Lesson.register({
       { title: 'Bước 1 — Pipe: chứng minh vì sao phải đóng đầu ống không dùng',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>ong.c</code> ở phần lý thuyết và chạy để có bản chuẩn. Sau đó cố tình ' +
+            'Gõ lại <code>pipe_demo.c</code> ở phần lý thuyết và chạy để có bản chuẩn. Sau đó cố tình ' +
             'phá nó theo đúng cách mà người mới hay phá.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o ong ong.c && ./ong\n' +
-            'echo "--- ban HONG: con quen close(fd[1]) ---"\n' +
-            'sed \'s|        close(fd\\[1\\]);|        /* QUEN close(fd[1]) */|\' ong.c > ong_hong.c\n' +
-            'gcc -Wall -Wextra -o ong_hong ong_hong.c\n' +
-            'timeout 5 ./ong_hong\n' +
-            'echo "ma thoat = $?"' },
+            'gcc -Wall -Wextra -o pipe_demo pipe_demo.c && ./pipe_demo\n' +
+            'echo "--- broken build: child forgot close(fd[1]) ---"\n' +
+            'sed \'s|        close(fd\\[1\\]);|        /* forgot close(fd[1]) */|\' pipe_demo.c > pipe_demo_broken.c\n' +
+            'gcc -Wall -Wextra -o pipe_demo_broken pipe_demo_broken.c\n' +
+            'timeout 5 ./pipe_demo_broken\n' +
+            'echo "exit code = $?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pipe() tao ra fd[0]=3 (doc), fd[1]=4 (ghi)\n' +
-            '  [con  pid=430] nhan 14 byte: nhiet do 42.5\n' +
-            '  [con  pid=430] nhan 14 byte: nhiet do 43.1\n' +
-            '[cha  pid=429] dong dau ghi\n' +
-            '  [con  pid=430] read tra ve 0 -> ben ghi da dong\n' +
-            '--- ban HONG: con quen close(fd[1]) ---\n' +
-            'pipe() tao ra fd[0]=3 (doc), fd[1]=4 (ghi)\n' +
-            '  [con  pid=465] nhan 14 byte: nhiet do 42.5\n' +
-            '  [con  pid=465] nhan 14 byte: nhiet do 43.1\n' +
-            '[cha  pid=464] dong dau ghi\n' +
-            'ma thoat = 124',
-            notes: ['Bản hỏng nhận đủ dữ liệu rồi <b>treo</b>: dòng "read tra ve 0" không bao ' +
+            'pipe() created fd[0]=3 (read), fd[1]=4 (write)\n' +
+            '  [child pid=809] received 17 bytes: temperature 42.5\n' +
+            '  [child pid=809] received 17 bytes: temperature 43.1\n' +
+            '[parent pid=808] closing write end\n' +
+            '  [child pid=809] read returned 0 -> write end closed\n' +
+            '--- broken build: child forgot close(fd[1]) ---\n' +
+            'pipe() created fd[0]=3 (read), fd[1]=4 (write)\n' +
+            '  [child pid=818] received 17 bytes: temperature 42.5\n' +
+            '  [child pid=818] received 17 bytes: temperature 43.1\n' +
+            '[parent pid=817] closing write end\n' +
+            'exit code = 124',
+            notes: ['Bản hỏng nhận đủ dữ liệu rồi <b>treo</b>: dòng "read returned 0" không bao ' +
               'giờ xuất hiện, và <code>timeout</code> phải giết nó — mã <b>124</b>, đúng con ' +
               'số bạn đã gặp khi gây deadlock ở Bài 22.',
               'Con số PID trên máy bạn sẽ khác. Điều cần đối chiếu là <i>số dòng</i> và ' +
@@ -1291,9 +1320,9 @@ Lesson.register({
         blocks: [
           { t: 'p', x:
             'Dựng một đường ống thật giữa hai tiến trình không họ hàng: một bên "đo nhiệt độ", ' +
-            'một bên "ghi log". Chúng chỉ biết nhau qua cái tên <code>/tmp/dolieu</code>.' },
+            'một bên "ghi log". Chúng chỉ biết nhau qua cái tên <code>/tmp/sensor_fifo</code>.' },
 
-          { t: 'code', where: 'file', name: 'ghi_fifo.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'fifo_writer.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <stdlib.h>\n' +
             '#include <string.h>\n' +
@@ -1303,59 +1332,59 @@ Lesson.register({
             '#include <signal.h>\n' +
             '#include <sys/stat.h>\n' +
             '\n' +
-            '#define TEN "/tmp/dolieu"\n' +
+            '#define NAME "/tmp/sensor_fifo"\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    signal(SIGPIPE, SIG_IGN);            /* bat buoc, xem phan ly thuyet */\n' +
+            '    signal(SIGPIPE, SIG_IGN);            /* required, see the theory section */\n' +
             '\n' +
-            '    if (mkfifo(TEN, 0600) == -1 && errno != EEXIST) { perror("mkfifo"); exit(1); }\n' +
-            '    printf("[ghi] cho ben doc mo FIFO...\\n");\n' +
+            '    if (mkfifo(NAME, 0600) == -1 && errno != EEXIST) { perror("mkfifo"); exit(1); }\n' +
+            '    printf("[write] waiting for a reader to open the FIFO...\\n");\n' +
             '    fflush(stdout);\n' +
             '\n' +
-            '    int fd = open(TEN, O_WRONLY);        /* CHAN cho toi khi co nguoi doc */\n' +
+            '    int fd = open(NAME, O_WRONLY);        /* BLOCKS until someone opens it for reading */\n' +
             '    if (fd == -1) { perror("open"); exit(1); }\n' +
-            '    printf("[ghi] da noi duoc, bat dau gui\\n");\n' +
+            '    printf("[write] connected, sending data\\n");\n' +
             '    fflush(stdout);\n' +
             '\n' +
             '    for (int i = 1; i <= 5; i++) {\n' +
-            '        char dong[64];\n' +
-            '        int n = snprintf(dong, sizeof dong, "do %d: %.1f do C\\n", i, 41.0 + i * 0.5);\n' +
-            '        if (write(fd, dong, n) == -1) { perror("write"); break; }\n' +
-            '        printf("[ghi] gui: %s", dong);\n' +
+            '        char line[64];\n' +
+            '        int n = snprintf(line, sizeof line, "reading %d: %.1f deg C\\n", i, 41.0 + i * 0.5);\n' +
+            '        if (write(fd, line, n) == -1) { perror("write"); break; }\n' +
+            '        printf("[write] sent: %s", line);\n' +
             '        fflush(stdout);\n' +
             '        usleep(300000);\n' +
             '    }\n' +
             '    close(fd);\n' +
-            '    unlink(TEN);\n' +
+            '    unlink(NAME);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o ghi_fifo ghi_fifo.c\n' +
-            './ghi_fifo &\n' +
+            'gcc -Wall -Wextra -o fifo_writer fifo_writer.c\n' +
+            './fifo_writer &\n' +
             'sleep 1\n' +
-            'echo "--- ben doc chi la mot lenh cat ---"\n' +
-            'cat /tmp/dolieu\n' +
+            'echo "--- reader is just cat ---"\n' +
+            'cat /tmp/sensor_fifo\n' +
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[ghi] cho ben doc mo FIFO...\n' +
-            '--- ben doc chi la mot lenh cat ---\n' +
-            '[ghi] da noi duoc, bat dau gui\n' +
-            '[ghi] gui: do 1: 41.5 do C\n' +
-            'do 1: 41.5 do C\n' +
-            '[ghi] gui: do 2: 42.0 do C\n' +
-            'do 2: 42.0 do C\n' +
-            '[ghi] gui: do 3: 42.5 do C\n' +
-            'do 3: 42.5 do C\n' +
-            '[ghi] gui: do 4: 43.0 do C\n' +
-            'do 4: 43.0 do C\n' +
-            '[ghi] gui: do 5: 43.5 do C\n' +
-            'do 5: 43.5 do C',
+            '[write] waiting for a reader to open the FIFO...\n' +
+            '--- reader is just cat ---\n' +
+            '[write] connected, sending data\n' +
+            '[write] sent: reading 1: 41.5 deg C\n' +
+            'reading 1: 41.5 deg C\n' +
+            '[write] sent: reading 2: 42.0 deg C\n' +
+            'reading 2: 42.0 deg C\n' +
+            '[write] sent: reading 3: 42.5 deg C\n' +
+            'reading 3: 42.5 deg C\n' +
+            '[write] sent: reading 4: 43.0 deg C\n' +
+            'reading 4: 43.0 deg C\n' +
+            '[write] sent: reading 5: 43.5 deg C\n' +
+            'reading 5: 43.5 deg C',
             notes: ['Thứ tự xen kẽ giữa hai tiến trình có thể khác chút trên máy bạn — chúng ' +
               'chạy song song thật.',
-              'Điểm cần thấy: dòng <code>[ghi] da noi duoc</code> chỉ xuất hiện <b>sau</b> khi ' +
+              'Điểm cần thấy: dòng <code>[write] connected</code> chỉ xuất hiện <b>sau</b> khi ' +
               '<code>cat</code> chạy. Đó là <code>open()</code> đang chặn, đúng như phần lý ' +
               'thuyết đã cảnh báo.'] },
 
@@ -1380,7 +1409,7 @@ Lesson.register({
             'hàm cùng khuôn: tạo kênh, <code>fork</code>, cha gửi 20 000 khối, con nhận đủ ' +
             '20 000 khối, đo thời gian.' },
 
-          { t: 'code', where: 'file', name: 'dosuc.c — phần khung', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'ipc_bench.c — khung chương trình', lang: 'c', code:
             '#define _GNU_SOURCE\n' +
             '#include <stdio.h>\n' +
             '#include <stdlib.h>\n' +
@@ -1393,94 +1422,94 @@ Lesson.register({
             '#include <sys/wait.h>\n' +
             '#include <sys/stat.h>\n' +
             '\n' +
-            '#define KHOI   4096          /* moi lan chuyen 4 KB */\n' +
-            '#define LAN    20000         /* 20000 lan -> ~78 MB */\n' +
+            '#define BLOCK  4096          /* transfer 4 KB each time */\n' +
+            '#define COUNT  20000         /* 20000 times -> ~78 MB */\n' +
             '\n' +
-            'static double giay(void)\n' +
+            'static double seconds(void)\n' +
             '{\n' +
             '    struct timespec t;\n' +
             '    clock_gettime(CLOCK_MONOTONIC, &t);\n' +
             '    return t.tv_sec + t.tv_nsec / 1e9;\n' +
             '}\n' +
             '\n' +
-            'static void bao(const char *ten, double dt)\n' +
+            'static void report(const char *name, double dt)\n' +
             '{\n' +
-            '    double mb = (double)KHOI * LAN / (1024.0 * 1024.0);\n' +
-            '    printf("%-16s %7.3f s   %8.1f MB/s   %6.2f us/khoi\\n",\n' +
-            '           ten, dt, mb / dt, dt / LAN * 1e6);\n' +
+            '    double mb = (double)BLOCK * COUNT / (1024.0 * 1024.0);\n' +
+            '    printf("%-16s %7.3f s   %8.1f MB/s   %6.2f us/block\\n",\n' +
+            '           name, dt, mb / dt, dt / COUNT * 1e6);\n' +
             '    fflush(stdout);\n' +
             '}' },
 
-          { t: 'code', where: 'file', name: 'dosuc.c — pipe và bộ nhớ chia sẻ', lang: 'c', code:
-            'static void thu_pipe(void)\n' +
+          { t: 'code', where: 'file', name: 'ipc_bench.c — pipe và bộ nhớ chia sẻ', lang: 'c', code:
+            'static void bench_pipe(void)\n' +
             '{\n' +
             '    int fd[2];\n' +
             '    if (pipe(fd)) { perror("pipe"); return; }\n' +
-            '    char *buf = malloc(KHOI);\n' +
-            '    memset(buf, \'A\', KHOI);\n' +
+            '    char *buf = malloc(BLOCK);\n' +
+            '    memset(buf, \'A\', BLOCK);\n' +
             '\n' +
-            '    double t0 = giay();\n' +
+            '    double t0 = seconds();\n' +
             '    pid_t p = fork();\n' +
             '    if (p == 0) {\n' +
             '        close(fd[1]);\n' +
-            '        char *r = malloc(KHOI);\n' +
-            '        for (int i = 0; i < LAN; i++) {\n' +
-            '            size_t con = KHOI;\n' +
-            '            while (con) {                       /* read co the tra ve it hon */\n' +
-            '                ssize_t n = read(fd[0], r, con);\n' +
+            '        char *r = malloc(BLOCK);\n' +
+            '        for (int i = 0; i < COUNT; i++) {\n' +
+            '            size_t left = BLOCK;\n' +
+            '            while (left) {                       /* read may return less than asked */\n' +
+            '                ssize_t n = read(fd[0], r, left);\n' +
             '                if (n <= 0) _exit(1);\n' +
-            '                con -= n;\n' +
+            '                left -= n;\n' +
             '            }\n' +
             '        }\n' +
             '        _exit(0);\n' +
             '    }\n' +
             '    close(fd[0]);\n' +
-            '    for (int i = 0; i < LAN; i++) {\n' +
-            '        size_t con = KHOI; char *q = buf;\n' +
-            '        while (con) {\n' +
-            '            ssize_t n = write(fd[1], q, con);\n' +
+            '    for (int i = 0; i < COUNT; i++) {\n' +
+            '        size_t left = BLOCK; char *q = buf;\n' +
+            '        while (left) {\n' +
+            '            ssize_t n = write(fd[1], q, left);\n' +
             '            if (n <= 0) exit(1);\n' +
-            '            con -= n; q += n;\n' +
+            '            left -= n; q += n;\n' +
             '        }\n' +
             '    }\n' +
             '    close(fd[1]);\n' +
             '    waitpid(p, NULL, 0);\n' +
-            '    bao("pipe", giay() - t0);\n' +
+            '    report("pipe", seconds() - t0);\n' +
             '    free(buf);\n' +
             '}\n' +
             '\n' +
-            'struct vung { volatile int co; char data[KHOI]; };\n' +
+            'struct shared_buf { volatile int flag; char data[BLOCK]; };\n' +
             '\n' +
-            'static void thu_shm(void)\n' +
+            'static void bench_shm(void)\n' +
             '{\n' +
             '    shm_unlink("/bench_shm");\n' +
             '    int fd = shm_open("/bench_shm", O_CREAT | O_RDWR, 0600);\n' +
-            '    if (ftruncate(fd, sizeof(struct vung))) { perror("ftruncate"); return; }\n' +
-            '    struct vung *v = mmap(NULL, sizeof *v, PROT_READ | PROT_WRITE,\n' +
+            '    if (ftruncate(fd, sizeof(struct shared_buf))) { perror("ftruncate"); return; }\n' +
+            '    struct shared_buf *v = mmap(NULL, sizeof *v, PROT_READ | PROT_WRITE,\n' +
             '                          MAP_SHARED, fd, 0);\n' +
             '    close(fd);\n' +
-            '    v->co = 0;\n' +
+            '    v->flag = 0;\n' +
             '\n' +
-            '    double t0 = giay();\n' +
+            '    double t0 = seconds();\n' +
             '    pid_t p = fork();\n' +
-            '    if (p == 0) {                               /* con: doi co roi ha co */\n' +
-            '        for (int i = 0; i < LAN; i++) {\n' +
-            '            while (__atomic_load_n(&v->co, __ATOMIC_ACQUIRE) == 0) ;\n' +
-            '            __atomic_store_n(&v->co, 0, __ATOMIC_RELEASE);\n' +
+            '    if (p == 0) {                               /* child: wait for flag then clear it */\n' +
+            '        for (int i = 0; i < COUNT; i++) {\n' +
+            '            while (__atomic_load_n(&v->flag, __ATOMIC_ACQUIRE) == 0) ;\n' +
+            '            __atomic_store_n(&v->flag, 0, __ATOMIC_RELEASE);\n' +
             '        }\n' +
             '        _exit(0);\n' +
             '    }\n' +
-            '    for (int i = 0; i < LAN; i++) {             /* cha: ghi roi dung co */\n' +
-            '        memset(v->data, \'A\', KHOI);\n' +
-            '        __atomic_store_n(&v->co, 1, __ATOMIC_RELEASE);\n' +
-            '        while (__atomic_load_n(&v->co, __ATOMIC_ACQUIRE) == 1) ;\n' +
+            '    for (int i = 0; i < COUNT; i++) {             /* parent: write then raise the flag */\n' +
+            '        memset(v->data, \'A\', BLOCK);\n' +
+            '        __atomic_store_n(&v->flag, 1, __ATOMIC_RELEASE);\n' +
+            '        while (__atomic_load_n(&v->flag, __ATOMIC_ACQUIRE) == 1) ;\n' +
             '    }\n' +
             '    waitpid(p, NULL, 0);\n' +
-            '    bao("shared memory", giay() - t0);\n' +
+            '    report("shared memory", seconds() - t0);\n' +
             '    munmap(v, sizeof *v);\n' +
             '    shm_unlink("/bench_shm");\n' +
             '}',
-            notes: ['Hai hàm còn lại, <code>thu_fifo</code> và <code>thu_mq</code>, viết theo ' +
+            notes: ['Hai hàm còn lại, <code>bench_fifo</code> và <code>bench_mq</code>, viết theo ' +
               'đúng khuôn này — hãy tự viết trước khi đọc gợi ý ở phần "Lỗi thường gặp".',
               'Hàm <code>main</code> chỉ gọi lần lượt bốn hàm rồi in tiêu đề bảng.'] },
 
@@ -1497,55 +1526,55 @@ Lesson.register({
             'lại quy tắc này ngay từ dòng đầu.</p>' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -O2 -o dosuc dosuc.c\n' +
-            'for i in 1 2 3 4 5; do ./dosuc | tail -4; echo "  ---"; done' },
+            'gcc -Wall -Wextra -O2 -o ipc_bench ipc_bench.c\n' +
+            'for i in 1 2 3 4 5; do ./ipc_bench | tail -4; echo "  ---"; done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pipe               0.041 s     1894.4 MB/s     2.06 us/khoi\n' +
-            'FIFO               0.032 s     2424.6 MB/s     1.61 us/khoi\n' +
-            'message queue      0.037 s     2130.5 MB/s     1.83 us/khoi\n' +
-            'shared memory      0.008 s     9877.9 MB/s     0.40 us/khoi\n' +
+            'pipe               0.041 s     1897.3 MB/s     2.06 us/block\n' +
+            'FIFO               0.049 s     1608.9 MB/s     2.43 us/block\n' +
+            'message queue      0.060 s     1308.2 MB/s     2.99 us/block\n' +
+            'shared memory      0.011 s     7256.8 MB/s     0.54 us/block\n' +
             '  ---\n' +
-            'pipe               0.031 s     2490.2 MB/s     1.57 us/khoi\n' +
-            'FIFO               0.033 s     2383.8 MB/s     1.64 us/khoi\n' +
-            'message queue      0.045 s     1741.6 MB/s     2.24 us/khoi\n' +
-            'shared memory      0.007 s    10533.0 MB/s     0.37 us/khoi\n' +
+            'pipe               0.026 s     2988.7 MB/s     1.31 us/block\n' +
+            'FIFO               0.035 s     2223.9 MB/s     1.76 us/block\n' +
+            'message queue      0.059 s     1315.7 MB/s     2.97 us/block\n' +
+            'shared memory      0.007 s    10654.4 MB/s     0.37 us/block\n' +
             '  ---\n' +
-            'pipe               0.117 s      670.5 MB/s     5.83 us/khoi\n' +
-            'FIFO               0.043 s     1823.2 MB/s     2.14 us/khoi\n' +
-            'message queue      0.046 s     1682.5 MB/s     2.32 us/khoi\n' +
-            'shared memory      0.008 s     9835.5 MB/s     0.40 us/khoi',
+            'pipe               0.111 s      702.5 MB/s     5.56 us/block\n' +
+            'FIFO               0.175 s      446.6 MB/s     8.75 us/block\n' +
+            'message queue      0.070 s     1118.4 MB/s     3.49 us/block\n' +
+            'shared memory      0.016 s     4826.0 MB/s     0.81 us/block',
             notes: ['Rút gọn còn 3/5 lần chạy. Hãy ghi lại <b>khoảng</b> của máy bạn, đừng ghi ' +
               'một con số duy nhất.',
-              'Để ý lần chạy thứ ba: pipe tụt xuống 670 MB/s trong khi bộ nhớ chia sẻ gần như ' +
-              'không đổi. Đó là bài học thật của bước này.'] },
+              'Để ý lần chạy thứ ba: pipe và FIFO tụt mạnh (702 và 446 MB/s) trong khi bộ nhớ ' +
+              'chia sẻ chỉ giảm nhẹ (4826 MB/s, vẫn gấp nhiều lần). Đó là bài học thật của bước này.'] },
 
           { t: 'p', x:
             'Giờ chứng minh nguyên nhân bằng cách <b>đếm</b> chứ không phỏng đoán:' },
 
           { t: 'code', where: 'wsl', code:
-            'strace -f -c -e trace=read,write ./n_pipe 2>&1 | tail -3\n' +
-            'strace -f -c -e trace=read,write ./n_shm  2>&1 | tail -3\n' +
+            'strace -f -c -e trace=read,write ./pipe_1k 2>&1 | tail -3\n' +
+            'strace -f -c -e trace=read,write ./shm_1k  2>&1 | tail -3\n' +
             'echo "--- shm_open thuc chat la gi? ---"\n' +
-            'strace -e trace=openat,ftruncate,mmap ./n_shm 2>&1 | grep -E "n_shm|ftruncate" | head -3' },
+            'strace -e trace=openat,ftruncate,mmap ./shm_1k 2>&1 | grep -E "shm_1k|ftruncate" | head -3' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '------ ----------- ----------- --------- --------- ----------------\n' +
-            '100.00    0.043165          21      2001           total\n' +
+            '100.00    0.044032          22      2001           total\n' +
             '------ ----------- ----------- --------- --------- ----------------\n' +
-            '100.00    0.000000           0         1           total\n' +
+            '100.00    0.000033          33         1           total\n' +
             '--- shm_open thuc chat la gi? ---\n' +
-            'openat(AT_FDCWD, "/dev/shm/n_shm", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 3\n' +
+            'openat(AT_FDCWD, "/dev/shm/shm_1k", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 3\n' +
             'ftruncate(3, 4100)                      = 0\n' +
             'mmap(NULL, 4100, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0) = 0x71cda56c2000',
-            notes: ['<code>n_pipe</code> và <code>n_shm</code> là hai bản rút gọn chỉ chuyển ' +
-              '1000 khối — bạn tự viết bằng cách cắt <code>thu_pipe</code> và ' +
-              '<code>thu_shm</code> ra khỏi <code>dosuc.c</code>.'] },
+            notes: ['<code>pipe_1k</code> và <code>shm_1k</code> là hai bản rút gọn chỉ chuyển ' +
+              '1000 khối — bạn tự viết bằng cách cắt <code>bench_pipe</code> và ' +
+              '<code>bench_shm</code> ra khỏi <code>ipc_bench.c</code>.'] },
 
           { t: 'cal', kind: 'info', title: 'shm_open không phải syscall — nó là openat trên /dev/shm', x:
             '<p>Dòng <code>strace</code> cuối cùng phơi bày toàn bộ bí mật: ' +
-            '<code>shm_open("/n_shm", ...)</code> chỉ là ' +
-            '<code>openat(AT_FDCWD, "/dev/shm/n_shm", ...)</code>. Không có syscall nào tên ' +
+            '<code>shm_open("/shm_1k", ...)</code> chỉ là ' +
+            '<code>openat(AT_FDCWD, "/dev/shm/shm_1k", ...)</code>. Không có syscall nào tên ' +
             '<code>shm_open</code> cả — nếu bạn thử <code>strace -e trace=shm_open</code> thì ' +
             '<code>strace</code> sẽ báo <code>invalid system call</code>.</p>' +
             '<p>Cờ <code>O_NOFOLLOW</code> đáng chú ý: nó ngăn kẻ tấn công đặt một symlink ở ' +
@@ -1559,50 +1588,50 @@ Lesson.register({
       { title: 'Bước 4 — Bộ nhớ chia sẻ: tự gây race giữa hai tiến trình, rồi sửa đúng cách',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>dua_lien.c</code> và <code>khoa_lien.c</code> ở phần lý thuyết. Chạy ' +
+            'Gõ lại <code>race_unsafe.c</code> và <code>race_locked.c</code> ở phần lý thuyết. Chạy ' +
             'bản chưa khoá <b>ít nhất 5 lần</b> — đây là điểm mấu chốt của bước này.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -O0 -o dua_lien dua_lien.c\n' +
-            'gcc -Wall -Wextra -pthread -O0 -o khoa_lien khoa_lien.c\n' +
-            'echo "=== chua khoa ==="\n' +
-            'for i in 1 2 3 4 5; do ./dua_lien; done\n' +
-            'echo "=== co mutex PROCESS_SHARED ==="\n' +
-            'for i in 1 2 3; do ./khoa_lien; done' },
+            'gcc -Wall -Wextra -O0 -o race_unsafe race_unsafe.c\n' +
+            'gcc -Wall -Wextra -pthread -O0 -o race_locked race_locked.c\n' +
+            'echo "=== unprotected ==="\n' +
+            'for i in 1 2 3 4 5; do ./race_unsafe; done\n' +
+            'echo "=== with PROCESS_SHARED mutex ==="\n' +
+            'for i in 1 2 3; do ./race_locked; done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '=== chua khoa ===\n' +
-            'mong doi 400000, thuc te 264823, mat 135177\n' +
-            'mong doi 400000, thuc te 260204, mat 139796\n' +
-            'mong doi 400000, thuc te 310452, mat 89548\n' +
-            'mong doi 400000, thuc te 327319, mat 72681\n' +
-            'mong doi 400000, thuc te 247353, mat 152647\n' +
-            '=== co mutex PROCESS_SHARED ===\n' +
-            'mong doi 400000, thuc te 400000\n' +
-            'mong doi 400000, thuc te 400000\n' +
-            'mong doi 400000, thuc te 400000',
+            '=== unprotected ===\n' +
+            'expected 400000, actual 287821, lost 112179\n' +
+            'expected 400000, actual 228928, lost 171072\n' +
+            'expected 400000, actual 385769, lost 14231\n' +
+            'expected 400000, actual 322369, lost 77631\n' +
+            'expected 400000, actual 232896, lost 167104\n' +
+            '=== with PROCESS_SHARED mutex ===\n' +
+            'expected 400000, actual 400000\n' +
+            'expected 400000, actual 400000\n' +
+            'expected 400000, actual 400000',
             notes: ['Số của bạn sẽ khác — miễn là chúng <i>khác nhau giữa các lần chạy</i>, ' +
               'bạn đã tái hiện đúng hiện tượng.',
-              'Trong loạt 5 lần này không lần nào tình cờ ra đúng. Nhưng ở loạt chạy tại phần ' +
-              'lý thuyết phía trên, <b>cùng chương trình đó</b> đã ra đúng <code>400000</code> ' +
-              'ở lần thứ hai. Chạy thêm vài loạt nữa rồi bạn sẽ tự gặp. Đó chính là điều khiến ' +
-              'race condition đáng sợ.'] },
+              'Để ý lần chạy thứ ba trong loạt "unprotected": chỉ mất <b>14 231</b> lần tăng — ' +
+              'gần đúng hơn hẳn bốn lần còn lại. Chạy đủ nhiều loạt, đôi khi bạn sẽ gặp một lần ' +
+              'ra <i>đúng tuyệt đối</i> hoàn toàn do may rủi lịch trình, không phải vì chương ' +
+              'trình đã đúng. Đó chính là điều khiến race condition đáng sợ.'] },
 
           { t: 'p', x:
             'Bây giờ bỏ đúng một dòng để thấy glibc bắt lỗi tận tay:' },
 
           { t: 'code', where: 'wsl', code:
-            'sed \'s|pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);|/* quen dong nay */|\' khoa_lien.c > quen.c\n' +
-            'gcc -Wall -Wextra -pthread -O0 -o quen quen.c\n' +
-            'for i in 1 2 3; do ./quen; done' },
+            'sed \'s|pthread_mutexattr_setpshared(&at, PTHREAD_PROCESS_SHARED);|/* forgot this line */|\' race_locked.c > forgot_pshared.c\n' +
+            'gcc -Wall -Wextra -pthread -O0 -o forgot_pshared forgot_pshared.c\n' +
+            'for i in 1 2 3; do ./forgot_pshared; done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             'Fatal glibc error: pthread_mutex_lock.c:88 (___pthread_mutex_lock): assertion failed: mutex->__data.__owner == 0\n' +
-            'mong doi 400000, thuc te 204703\n' +
+            'expected 400000, actual 218256\n' +
             'Fatal glibc error: pthread_mutex_lock.c:88 (___pthread_mutex_lock): assertion failed: mutex->__data.__owner == 0\n' +
-            'mong doi 400000, thuc te 222049\n' +
+            'expected 400000, actual 240973\n' +
             'Fatal glibc error: pthread_mutex_lock.c:88 (___pthread_mutex_lock): assertion failed: mutex->__data.__owner == 0\n' +
-            'mong doi 400000, thuc te 231430' },
+            'expected 400000, actual 208080' },
 
           { t: 'cal', kind: 'danger', title: 'Chương trình biên dịch sạch, không cảnh báo, và vẫn sai', x:
             '<p><code>gcc -Wall -Wextra</code> không nói một lời. Không thể nói được: một ' +
@@ -1622,30 +1651,30 @@ Lesson.register({
       { title: 'Bước 5 — Hàng đợi ưu tiên, semaphore, và dọn rác',
         blocks: [
           { t: 'p', x:
-            '<b>5a.</b> Gõ lại <code>mq_gui.c</code> và <code>mq_nhan.c</code>, rồi kiểm chứng ' +
+            '<b>5a.</b> Gõ lại <code>mq_sender.c</code> và <code>mq_receiver.c</code>, rồi kiểm chứng ' +
             'điều quan trọng nhất: thông điệp ưu tiên cao <b>vượt lên trước</b>.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -o mq_gui mq_gui.c && gcc -Wall -Wextra -o mq_nhan mq_nhan.c\n' +
-            './mq_gui\n' +
-            'ls -l /dev/mqueue/ && cat /dev/mqueue/hang_canh_bao\n' +
-            './mq_nhan' },
+            'gcc -Wall -Wextra -o mq_sender mq_sender.c && gcc -Wall -Wextra -o mq_receiver mq_receiver.c\n' +
+            './mq_sender\n' +
+            'ls -l /dev/mqueue/ && cat /dev/mqueue/alert_queue\n' +
+            './mq_receiver' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '  [gui] uu tien 1: nhiet do binh thuong 42.5\n' +
-            '  [gui] uu tien 9: CANH BAO qua nhiet 91.0\n' +
-            '  [gui] uu tien 1: nhiet do binh thuong 43.0\n' +
-            '  hang dang chua 3 thong diep\n' +
-            '-rw------- 1 shinarus shinarus 80 Aug  3 21:58 hang_canh_bao\n' +
-            'QSIZE:76         NOTIFY:0     SIGNO:0     NOTIFY_PID:0\n' +
-            '             [nhan] uu tien 9 (24 byte): CANH BAO qua nhiet 91.0\n' +
-            '             [nhan] uu tien 1 (26 byte): nhiet do binh thuong 42.5\n' +
-            '             [nhan] uu tien 1 (26 byte): nhiet do binh thuong 43.0' },
+            '  [send] priority 1: normal temperature 42.5\n' +
+            '  [send] priority 9: ALERT overheating 91.0\n' +
+            '  [send] priority 1: normal temperature 43.0\n' +
+            '  queue now holds 3 messages\n' +
+            '-rw------- 1 shinarus shinarus 80 Aug  5 22:49 alert_queue\n' +
+            'QSIZE:71         NOTIFY:0     SIGNO:0     NOTIFY_PID:0\n' +
+            '             [recv] priority 9 (23 bytes): ALERT overheating 91.0\n' +
+            '             [recv] priority 1 (24 bytes): normal temperature 42.5\n' +
+            '             [recv] priority 1 (24 bytes): normal temperature 43.0' },
 
-          { t: 'cmdx', cmd: 'cat /dev/mqueue/hang_canh_bao',
+          { t: 'cmdx', cmd: 'cat /dev/mqueue/alert_queue',
             title: 'Một file "nội dung" không phải nội dung, mà là bảng trạng thái',
             rows: [
-              ['<code>QSIZE:76</code>', 'Tổng số byte đang nằm trong hàng', '76 = 24 + 26 + 26, đúng bằng ba thông điệp cộng lại. Kiểm tra được bằng tay'],
+              ['<code>QSIZE:71</code>', 'Tổng số byte đang nằm trong hàng', '71 = 23 + 24 + 24, đúng bằng ba thông điệp cộng lại. Kiểm tra được bằng tay'],
               ['<code>NOTIFY:0</code>', 'Chưa ai đăng ký nhận thông báo bất đồng bộ', 'Đặt bằng <code>mq_notify()</code> — cách để được đánh thức bằng tín hiệu khi có thông điệp mới, thay vì ngồi chặn'],
               ['<code>NOTIFY_PID:0</code>', 'PID của tiến trình đã đăng ký nhận thông báo', 'Rất hữu ích khi gỡ lỗi: cho biết ai đang lắng nghe hàng đợi này'],
               ['kích thước 80', 'Kích thước file mà <code>ls</code> báo', 'Không liên quan tới dữ liệu — chỉ là độ dài của chính dòng trạng thái ở trên']
@@ -1659,17 +1688,18 @@ Lesson.register({
             'gcc -Wall -Wextra -o sem_demo sem_demo.c && ./sem_demo' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '  [con 0] vao vung toi han, sem = 0\n' +
-            '  [con 0] roi vung toi han\n' +
-            '  [con 1] vao vung toi han, sem = 0\n' +
-            '  [con 1] roi vung toi han\n' +
-            '  [con 2] vao vung toi han, sem = 0\n' +
-            '  [con 2] roi vung toi han\n' +
-            'cuoi cung sem = 1' },
+            '  [child 0] entering critical section, sem = 0\n' +
+            '  [child 0] leaving critical section\n' +
+            '  [child 1] entering critical section, sem = 0\n' +
+            '  [child 1] leaving critical section\n' +
+            '  [child 2] entering critical section, sem = 0\n' +
+            '  [child 2] leaving critical section\n' +
+            'final sem = 1' },
 
           { t: 'p', x:
             '<b>5c.</b> Bước cuối cùng, và là thói quen quan trọng nhất mà bài này muốn bạn ' +
-            'mang theo: <b>kiểm tra rác</b>.' },
+            'mang theo: <b>kiểm tra rác</b>. Nếu mọi chương trình ở trên chạy xong bình thường ' +
+            '(không bị <code>Ctrl-C</code> giữa chừng), hệ thống phải sạch — hãy tự kiểm chứng.' },
 
           { t: 'code', where: 'wsl', code:
             'echo "--- bo nho chia se va semaphore con sot lai ---"\n' +
@@ -1677,25 +1707,54 @@ Lesson.register({
             'echo "--- hang doi thong diep con sot lai ---"\n' +
             'ls -l /dev/mqueue/\n' +
             'echo "--- FIFO con sot lai ---"\n' +
-            'ls -l /tmp/*.fifo /tmp/dolieu /tmp/ongcoten 2>/dev/null || echo "  (khong con cai nao)"\n' +
-            'echo "--- don sach ---"\n' +
-            'rm -f /dev/shm/* /dev/mqueue/* 2>/dev/null\n' +
-            'ls -l /dev/shm/ /dev/mqueue/' },
+            'ls -l /tmp/*.fifo /tmp/sensor_fifo /tmp/named_pipe 2>/dev/null || echo "  (khong con cai nao)"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '--- bo nho chia se va semaphore con sot lai ---\n' +
-            'total 4\n' +
-            '-rw------- 1 shinarus shinarus 32 Aug  3 21:58 sem.khoa_uart\n' +
+            'total 0\n' +
             '--- hang doi thong diep con sot lai ---\n' +
             'total 0\n' +
             '--- FIFO con sot lai ---\n' +
-            '  (khong con cai nao)\n' +
-            '--- don sach ---\n' +
-            'total 0\n' +
-            'total 0',
-            notes: ['Nếu máy bạn còn sót nhiều hơn, đó là vì một lần chạy nào đó đã bị ' +
-              '<code>Ctrl-C</code> giữa chừng — chính xác là kịch bản mà lý thuyết đã cảnh ' +
-              'báo.'] },
+            '  (khong con cai nao)',
+            notes: ['Sạch tuyệt đối, vì mọi chương trình ở Bài này đều tự <code>*_unlink</code> ' +
+              'khi thoát bình thường — đây là kết quả <b>đúng</b> cần thấy, không phải điều gây ' +
+              'ngạc nhiên.',
+              'Rác chỉ xuất hiện khi một chương trình <b>không kịp chạy tới dòng unlink</b> — ' +
+              'ví dụ bị giết giữa chừng. Hãy tự gây ra tình huống đó để thấy tận mắt.'] },
+
+          { t: 'p', x:
+            'Giờ tự tay tạo ra rác thật, đúng kịch bản daemon sập giữa chừng mà phần lý thuyết ' +
+            'đã cảnh báo: giết <code>sem_demo</code> bằng <code>SIGKILL</code> trước khi nó kịp ' +
+            '<code>sem_unlink</code>.' },
+
+          { t: 'code', where: 'wsl', code:
+            './sem_demo &\n' +
+            'PID=$!\n' +
+            'sleep 0.15\n' +
+            'kill -9 $PID\n' +
+            'wait $PID 2>/dev/null\n' +
+            'echo "--- sem_demo bi giet giua chung, chua kip sem_unlink ---"\n' +
+            'ls -l /dev/shm/' },
+
+          { t: 'code', where: 'out', nocopy: true, code:
+            '  [child 0] entering critical section, sem = 0\n' +
+            '--- sem_demo bi giet giua chung, chua kip sem_unlink ---\n' +
+            'total 4\n' +
+            '-rw------- 1 shinarus shinarus 32 Aug  5 23:13 sem.uart_lock',
+            notes: ['<code>kill -9</code> giết đúng tiến trình cha đang giữ vòng lặp cuối — nó ' +
+              'không bao giờ chạy tới dòng <code>sem_unlink</code> ở cuối <code>main</code>. ' +
+              'Ba tiến trình con vẫn tự chạy xong độc lập, nhưng không đứa nào có nhiệm vụ dọn ' +
+              'dẹp.'] },
+
+          { t: 'p', x:
+            'Dọn rác vừa tạo ra, đúng thói quen nên có khi gỡ lỗi tại hiện trường:' },
+
+          { t: 'code', where: 'wsl', code:
+            'rm -f /dev/shm/sem.uart_lock\n' +
+            'ls -l /dev/shm/' },
+
+          { t: 'code', where: 'out', nocopy: true, code:
+            'total 0' },
 
           { t: 'cal', kind: 'why', title: 'Ba thư mục đáng nhớ suốt đời làm nghề', x:
             '<p>Khi một thiết bị báo "hết bộ nhớ" mà <code>ps</code> không chỉ ra thủ phạm nào, ' +
@@ -1762,13 +1821,13 @@ Lesson.register({
          'Đặt <code>pthread_mutex_t</code> vào bộ nhớ chia sẻ nhưng quên <code>PTHREAD_PROCESS_SHARED</code>',
          'Thêm <code>pthread_mutexattr_setpshared(&amp;at, PTHREAD_PROCESS_SHARED)</code>. Lưu ý chương trình <b>vẫn chạy tiếp</b> sau dòng này và cho kết quả sai'],
 
-        ['<code>open(/dev/mem) that bai: Permission denied</code>',
+        ['<code>open(/dev/mem) failed: Permission denied</code>',
          '<code>/dev/mem</code> thuộc <code>root:kmem</code>, chế độ <code>crw-r-----</code>',
          'Trên thiết bị thật thì chạy bằng <code>root</code>. Nhưng hãy cân nhắc <code>libgpiod</code> thay thế — xem cảnh báo ở phần lý thuyết'],
 
         ['<code>strace: invalid system call \'shm_open\'</code>',
          '<code>shm_open</code> là hàm thư viện, không phải syscall',
-         'Theo dõi bằng <code>strace -e trace=openat</code> — bạn sẽ thấy nó mở <code>/dev/shm/&lt;ten&gt;</code>'],
+         'Theo dõi bằng <code>strace -e trace=openat</code> — bạn sẽ thấy nó mở <code>/dev/shm/&lt;name&gt;</code>'],
 
         ['<code>Segmentation fault</code> hoặc <code>Bus error</code> ngay khi chạm vùng chia sẻ',
          'Quên <code>ftruncate</code>: đối tượng mới <b>luôn</b> dài 0 byte, nên <code>mmap</code> thành công nhưng vùng đó rỗng',
@@ -1802,13 +1861,13 @@ Lesson.register({
       'Ghi vào pipe không còn người đọc: mặc định <code>SIGPIPE</code> <b>giết</b> tiến trình, mã thoát <b>141</b>. Mọi daemon phải mở đầu bằng <code>signal(SIGPIPE, SIG_IGN)</code> rồi kiểm tra <code>EPIPE</code>.',
       'FIFO là pipe có tên: <code>ls -l</code> hiện <code>p</code> ở đầu, kích thước <b>luôn 0</b> vì dữ liệu ở RAM của nhân chứ không trên đĩa. Bên nhận có thể là bất cứ công cụ nào — kể cả <code>cat</code>.',
       'Bộ nhớ chia sẻ luôn gồm ba bước: <code>shm_open</code> → <code>ftruncate</code> → <code>mmap</code> với <code>MAP_SHARED</code>. Bỏ <code>ftruncate</code> thì chạm vào vùng đó cho <code>SIGBUS</code>.',
-      '<code>shm_open</code> không phải syscall — <code>strace</code> cho thấy nó là <code>openat("/dev/shm/&lt;ten&gt;")</code>. Nhờ vậy bạn gỡ lỗi bộ nhớ chia sẻ bằng <code>ls</code>, <code>rm</code>, <code>hexdump</code> như file thường.',
+      '<code>shm_open</code> không phải syscall — <code>strace</code> cho thấy nó là <code>openat("/dev/shm/&lt;name&gt;")</code>. Nhờ vậy bạn gỡ lỗi bộ nhớ chia sẻ bằng <code>ls</code>, <code>rm</code>, <code>hexdump</code> như file thường.',
       'Hàng đợi thông điệp giữ <b>gói rời rạc</b> có ưu tiên. Thông điệp ưu tiên <b>9</b> gửi thứ hai vẫn được nhận <b>đầu tiên</b>. Trần mặc định rất thấp: <b>10</b> thông điệp, <b>8192</b> byte, <b>256</b> hàng.',
-      'Semaphore không chuyển dữ liệu, chỉ đếm chỗ. Khởi tạo 1 thì như mutex liên tiến trình. Nó nằm ở <code>/dev/shm/sem.&lt;ten&gt;</code>, chỉ <b>32</b> byte.',
-      'Đo thật, 78,1 MB qua mỗi kênh: bộ nhớ chia sẻ <b>8 177–10 533 MB/s</b>, pipe <b>670–2 490</b>, FIFO <b>1 372–2 711</b>, hàng đợi <b>928–2 131</b>.',
-      'Nguyên nhân nằm gọn trong hai con số do <code>strace -c</code> đếm: 1000 khối qua pipe tốn <b>2001</b> syscall, qua bộ nhớ chia sẻ tốn <b>1</b>.',
-      'Quan trọng hơn tốc độ là <b>độ ổn định</b>: pipe dao động <b>3,7×</b> giữa các lần chạy, bộ nhớ chia sẻ chỉ <b>1,3×</b>. Với điều khiển thời gian thực, lần chậm nhất mới là con số đáng lo.',
-      'Bộ nhớ chia sẻ trả lại toàn bộ vấn đề của Bài 22: <code>(*dem)++</code> từ hai <b>tiến trình</b> mất 18–38 % số lần tăng, và <b>đôi khi tình cờ ra đúng</b> — lần chạy nguy hiểm nhất.',
+      'Semaphore không chuyển dữ liệu, chỉ đếm chỗ. Khởi tạo 1 thì như mutex liên tiến trình. Nó nằm ở <code>/dev/shm/sem.&lt;name&gt;</code>, chỉ <b>32</b> byte.',
+      'Đo thật, 78,1 MB qua mỗi kênh (16 lần chạy): bộ nhớ chia sẻ <b>4 826–11 874 MB/s</b> (điển hình), pipe <b>518–3 969</b>, FIFO <b>447–3 105</b>, hàng đợi <b>965–2 239</b>.',
+      'Nguyên nhân nằm gọn trong hai con số do <code>strace -c</code> đếm: 1000 khối qua pipe tốn <b>2001</b> syscall, qua bộ nhớ chia sẻ tốn <b>1</b> — con số này không đổi giữa các lần chạy.',
+      'Quan trọng hơn tốc độ là <b>độ ổn định</b>: pipe dao động khoảng <b>7,7×</b> giữa các lần chạy, bộ nhớ chia sẻ thường chỉ <b>2,5×</b>. Với điều khiển thời gian thực, lần chậm nhất mới là con số đáng lo.',
+      'Bộ nhớ chia sẻ trả lại toàn bộ vấn đề của Bài 22: <code>(*counter)++</code> từ hai <b>tiến trình</b> có thể mất từ vài phần trăm tới gần một nửa số lần tăng, dao động thất thường giữa các lần chạy — không lần nào đoán trước được.',
       'Mutex đặt trong vùng chia sẻ <b>bắt buộc</b> có <code>pthread_mutexattr_setpshared(&amp;at, PTHREAD_PROCESS_SHARED)</code>. Quên thì glibc bắn <code>Fatal glibc error</code> nhưng <b>vẫn chạy tiếp</b> và cho kết quả sai.',
       'Đối tượng IPC POSIX <b>kiên trì</b> — chúng sống qua cái chết của tiến trình. Ba lệnh cần nhớ khi gỡ lỗi thiết bị hết RAM: <code>ls -l /dev/shm/</code>, <code>/dev/mqueue/</code>, <code>/run/</code>.',
       '<code>mmap</code> trên <code>/dev/mem</code> chạm thẳng địa chỉ vật lý — cần <code>O_SYNC</code>, cần làm tròn xuống biên trang, cần <code>volatile</code>. Trên máy này nó bị chặn bởi cả quyền <code>root:kmem</code> lẫn <code>CONFIG_STRICT_DEVMEM=y</code>. Ngày nay hãy ưu tiên <code>libgpiod</code> hoặc một driver thật.'

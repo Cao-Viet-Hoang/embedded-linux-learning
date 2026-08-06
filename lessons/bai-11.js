@@ -129,7 +129,7 @@ Lesson.register({
       svg:
         '<svg viewBox="0 0 720 200" width="720" role="img" aria-label="Cấu trúc ba phần của lệnh find: đường dẫn, điều kiện, hành động">' +
         '<rect class="d-box" x="20" y="20" width="680" height="34" rx="4"/>' +
-        '<text class="d-tm" x="34" y="42">find  duan  -type f  -name \'*.c\'  -size +100c  -exec wc -l {} +</text>' +
+        '<text class="d-tm" x="34" y="42">find  project  -type f  -name \'*.c\'  -size +100c  -exec wc -l {} +</text>' +
 
         '<rect class="d-box-p" x="20" y="72" width="90" height="46" rx="6"/>' +
         '<text class="d-t" x="65" y="92" text-anchor="middle">TÌM Ở ĐÂU</text>' +
@@ -166,7 +166,7 @@ Lesson.register({
       ]},
 
     { t: 'cal', kind: 'danger', title: 'Cái bẫy -size -1k khiến bạn tưởng không có file nào', x:
-      '<p>Trên thư mục thử nghiệm gồm 7 file từ 32 đến 198 byte, <code>find duan -type f -size ' +
+      '<p>Trên thư mục thử nghiệm gồm 7 file từ 32 đến 198 byte, <code>find project -type f -size ' +
       '-1k</code> trả về <b>rỗng</b>. Không phải lỗi.</p>' +
       '<p><code>find</code> <b>làm tròn lên</b> trước khi so sánh. Một file 32 byte được tính là ' +
       '1k, mà "nhỏ hơn 1k" thì phải là 0k — không file nào thoả. Muốn so theo byte, dùng hậu tố ' +
@@ -199,13 +199,13 @@ Lesson.register({
       '<code>\\;</code> có thể kéo dài bản dựng thêm hàng chục phút.</p>' },
 
     { t: 'cal', kind: 'warn', title: 'Tên file có dấu cách sẽ phá vỡ xargs', x:
-      '<p>Với một file tên <code>ten co dau cach.c</code>, câu ' +
-      '<code>find bay -name \'*.c\' | xargs ls -l</code> cho ra:</p>' +
-      '<p><code>ls: cannot access \'bay/ten\': No such file or directory</code> — lặp lại bốn ' +
+      '<p>Với một file tên <code>name with a space.c</code>, câu ' +
+      '<code>find trap -name \'*.c\' | xargs ls -l</code> cho ra:</p>' +
+      '<p><code>ls: cannot access \'trap/name\': No such file or directory</code> — lặp lại bốn ' +
       'lần, mã thoát <b>123</b>.</p>' +
       '<p>Vì <code>xargs</code> cắt theo <b>khoảng trắng</b>. Lời giải là đổi ký tự phân cách ' +
       'sang byte 0 — thứ không thể xuất hiện trong tên file:</p>' +
-      '<p><code>find bay -name \'*.c\' -print0 | xargs -0 ls -l</code></p>' +
+      '<p><code>find trap -name \'*.c\' -print0 | xargs -0 ls -l</code></p>' +
       '<p>Hãy tập viết <code>-print0 | xargs -0</code> thành phản xạ. Trên cây mã nguồn thật, ' +
       'sớm muộn cũng có một file tên chứa dấu cách.</p>' },
 
@@ -343,7 +343,7 @@ Lesson.register({
       svg:
         '<svg viewBox="0 0 720 210" width="720" role="img" aria-label="Giải phẫu lệnh thay thế s của sed gồm địa chỉ, mẫu tìm, chuỗi thay và cờ">' +
         '<rect class="d-box" x="20" y="20" width="680" height="34" rx="4"/>' +
-        '<text class="d-tm" x="40" y="42">sed  \'/^baud/  s /ttyS0/ ttyAMA0/ g\'  cauhinh.txt</text>' +
+        '<text class="d-tm" x="40" y="42">sed  \'/^baud/  s /ttyS0/ ttyAMA0/ g\'  config.txt</text>' +
 
         '<rect class="d-box-a" x="20" y="74" width="150" height="46" rx="6"/>' +
         '<text class="d-t" x="95" y="94" text-anchor="middle">ĐỊA CHỈ</text>' +
@@ -391,8 +391,8 @@ Lesson.register({
       'trắng. Hai thói quen bắt buộc:</p>' +
       '<p><b>1.</b> Chạy <b>không</b> có <code>-i</code> trước, đọc kết quả bằng mắt.<br>' +
       '<b>2.</b> Khi chạy thật, dùng <code>-i.bak</code>. Trên máy này ' +
-      '<code>sed -i.bak \'s/9600/57600/\' sua2.txt</code> tạo ra hai file: ' +
-      '<code>sua2.txt</code> đã sửa và <code>sua2.txt.bak</code> còn nguyên.</p>' },
+      '<code>sed -i.bak \'s/9600/57600/\' edit2.txt</code> tạo ra hai file: ' +
+      '<code>edit2.txt</code> đã sửa và <code>edit2.txt.bak</code> còn nguyên.</p>' },
 
     /* ══════════════════════════════════════════════
        6. AWK
@@ -410,7 +410,7 @@ Lesson.register({
       svg:
         '<svg viewBox="0 0 720 230" width="720" role="img" aria-label="Mô hình trường của awk, một dòng log được cắt thành các biến đô-la 1 tới đô-la 5">' +
         '<rect class="d-box" x="20" y="18" width="680" height="30" rx="4"/>' +
-        '<text class="d-tm" x="34" y="38">2026-08-01  10:02:14  ERROR  uart  timeout khi doc 250</text>' +
+        '<text class="d-tm" x="34" y="38">2026-08-01  10:02:14  ERROR  uart  timeout during read 250</text>' +
 
         '<rect class="d-box-p" x="20" y="66" width="120" height="40" rx="5"/>' +
         '<text class="d-tm" x="80" y="84" text-anchor="middle">$1</text>' +
@@ -426,7 +426,7 @@ Lesson.register({
         '<text class="d-ts" x="410" y="99" text-anchor="middle">uart</text>' +
         '<rect class="d-box" x="460" y="66" width="150" height="40" rx="5"/>' +
         '<text class="d-tm" x="535" y="84" text-anchor="middle">$5 $6 $7</text>' +
-        '<text class="d-ts" x="535" y="99" text-anchor="middle">timeout khi doc</text>' +
+        '<text class="d-ts" x="535" y="99" text-anchor="middle">timeout during read</text>' +
         '<rect class="d-box-g" x="620" y="66" width="80" height="40" rx="5"/>' +
         '<text class="d-tm" x="660" y="84" text-anchor="middle">$8 = $NF</text>' +
         '<text class="d-ts" x="660" y="99" text-anchor="middle">250</text>' +
@@ -531,14 +531,14 @@ Lesson.register({
           '<code>.o</code>, một file rỗng, một file cấu hình và một file nhật ký. Dùng here-doc ' +
           'của Bài 10 để tạo nội dung nhiều dòng.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'mkdir -p ~/embedded/bai11/duan/src ~/embedded/bai11/duan/drivers ~/embedded/bai11/duan/include\n' +
+          'mkdir -p ~/embedded/bai11/project/src ~/embedded/bai11/project/drivers ~/embedded/bai11/project/include\n' +
           'cd ~/embedded/bai11\n' +
           '\n' +
-          "cat > duan/src/main.c <<'EOF'\n" +
+          "cat > project/src/main.c <<'EOF'\n" +
           '#include "gpio.h"\n' +
           '#include <stdio.h>\n' +
           '\n' +
-          '/* TODO: doc cau hinh tu file */\n' +
+          '/* TODO: read config from file */\n' +
           'int main(void)\n' +
           '{\n' +
           '    gpio_init();\n' +
@@ -548,7 +548,7 @@ Lesson.register({
           '}\n' +
           'EOF\n' +
           '\n' +
-          "cat > duan/src/uart.c <<'EOF'\n" +
+          "cat > project/src/uart.c <<'EOF'\n" +
           '#include "uart.h"\n' +
           '\n' +
           'int uart_init(int baud)\n' +
@@ -557,7 +557,7 @@ Lesson.register({
           '}\n' +
           'EOF\n' +
           '\n' +
-          "cat > duan/drivers/gpio.c <<'EOF'\n" +
+          "cat > project/drivers/gpio.c <<'EOF'\n" +
           '#include "gpio.h"\n' +
           '\n' +
           'static int gpio_state[64];\n' +
@@ -575,7 +575,7 @@ Lesson.register({
           'EOF' },
         { t: 'p', x: 'Hai header, một file cấu hình và một file nhật ký:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "cat > duan/include/gpio.h <<'EOF'\n" +
+          "cat > project/include/gpio.h <<'EOF'\n" +
           '#ifndef GPIO_H\n' +
           '#define GPIO_H\n' +
           'int gpio_init(void);\n' +
@@ -583,57 +583,57 @@ Lesson.register({
           '#endif\n' +
           'EOF\n' +
           '\n' +
-          "cat > duan/include/uart.h <<'EOF'\n" +
+          "cat > project/include/uart.h <<'EOF'\n" +
           '#ifndef UART_H\n' +
           '#define UART_H\n' +
           'int uart_init(int baud);\n' +
           '#endif\n' +
           'EOF\n' +
           '\n' +
-          "cat > duan/cauhinh.txt <<'EOF'\n" +
-          '# cau hinh thiet bi\n' +
+          "cat > project/config.txt <<'EOF'\n" +
+          '# device configuration\n' +
           'port = /dev/ttyS0\n' +
           'baud = 9600\n' +
           'debug = 0\n' +
           '\n' +
-          '# phan mang\n' +
+          '# network section\n' +
           'ip = 192.168.1.10\n' +
           'EOF\n' +
           '\n' +
-          "cat > duan/nhatky.log <<'EOF'\n" +
-          '2026-08-01 10:02:11 INFO  uart  khoi tao thanh cong 115200\n' +
-          '2026-08-01 10:02:12 INFO  gpio  dang ky 32 chan 32\n' +
-          '2026-08-01 10:02:13 WARN  i2c   khong tim thay thiet bi 0\n' +
-          '2026-08-01 10:02:14 ERROR uart  timeout khi doc 250\n' +
-          '2026-08-01 10:02:15 INFO  gpio  chan 17 len muc cao 1\n' +
-          '2026-08-01 10:02:16 ERROR i2c   loi kiem tra CRC 487\n' +
+          "cat > project/device.log <<'EOF'\n" +
+          '2026-08-01 10:02:11 INFO  uart  init complete baud rate 115200\n' +
+          '2026-08-01 10:02:12 INFO  gpio  registered 32 pins total 32\n' +
+          '2026-08-01 10:02:13 WARN  i2c   could not find any device 0\n' +
+          '2026-08-01 10:02:14 ERROR uart  timeout during read 250\n' +
+          '2026-08-01 10:02:15 INFO  gpio  pin 17 set to high 1\n' +
+          '2026-08-01 10:02:16 ERROR i2c   CRC check failed code 487\n' +
           'EOF' },
         { t: 'p', x:
           'Cuối cùng thêm hai file rỗng để làm mồi cho <code>-empty</code>, và bật nhầm bit ' +
           'thực thi cho một file <code>.c</code> — một lỗi có thật, rất hay gặp khi chép mã ' +
           'nguồn từ phân vùng Windows sang:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'touch duan/src/main.o duan/rong.txt\n' +
-          'chmod +x duan/src/main.c\n' +
-          'find duan | sort' },
+          'touch project/src/main.o project/empty.txt\n' +
+          'chmod +x project/src/main.c\n' +
+          'find project | sort' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan\n' +
-          'duan/cauhinh.txt\n' +
-          'duan/drivers\n' +
-          'duan/drivers/gpio.c\n' +
-          'duan/include\n' +
-          'duan/include/gpio.h\n' +
-          'duan/include/uart.h\n' +
-          'duan/nhatky.log\n' +
-          'duan/rong.txt\n' +
-          'duan/src\n' +
-          'duan/src/main.c\n' +
-          'duan/src/main.o\n' +
-          'duan/src/uart.c' },
+          'project\n' +
+          'project/config.txt\n' +
+          'project/device.log\n' +
+          'project/drivers\n' +
+          'project/drivers/gpio.c\n' +
+          'project/empty.txt\n' +
+          'project/include\n' +
+          'project/include/gpio.h\n' +
+          'project/include/uart.h\n' +
+          'project/src\n' +
+          'project/src/main.c\n' +
+          'project/src/main.o\n' +
+          'project/src/uart.c' },
         { t: 'cal', kind: 'info', title: 'find không có đối số điều kiện nào thì in tất cả', x:
-          '<p><code>find duan</code> tương đương <code>find duan -print</code>: không điều kiện ' +
+          '<p><code>find project</code> tương đương <code>find project -print</code>: không điều kiện ' +
           'nghĩa là mọi thứ đều thoả. Nó in cả thư mục lẫn file, và <b>bắt đầu bằng chính ' +
-          'đường dẫn gốc</b> — dòng <code>duan</code> đầu tiên chính là thư mục <code>duan</code>.</p>' +
+          'đường dẫn gốc</b> — dòng <code>project</code> đầu tiên chính là thư mục <code>project</code>.</p>' +
           '<p>Thứ tự tự nhiên của <code>find</code> phụ thuộc vào thứ tự đĩa trả về, không phải ' +
           'thứ tự chữ cái. Vì thế bài này thêm <code>| sort</code> để bạn và máy này nhìn thấy ' +
           'cùng một thứ tự.</p>' }
@@ -645,31 +645,31 @@ Lesson.register({
           'Giờ tra hỏi cây vừa dựng. Chạy từng câu và đối chiếu với đầu ra bên dưới — mỗi câu ' +
           'minh hoạ đúng một loại điều kiện.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "find duan -type f -name '*.c'\n" +
-          "echo '--- .c hoac .h'\n" +
-          "find duan -type f \\( -name '*.c' -o -name '*.h' \\) | sort\n" +
-          "echo '--- moi thu tru .o'\n" +
-          "find duan -type f ! -name '*.o' | sort" },
+          "find project -type f -name '*.c'\n" +
+          "echo '--- .c or .h'\n" +
+          "find project -type f \\( -name '*.c' -o -name '*.h' \\) | sort\n" +
+          "echo '--- everything except .o'\n" +
+          "find project -type f ! -name '*.o' | sort" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/src/uart.c\n' +
-          'duan/src/main.c\n' +
-          'duan/drivers/gpio.c\n' +
-          '--- .c hoac .h\n' +
-          'duan/drivers/gpio.c\n' +
-          'duan/include/gpio.h\n' +
-          'duan/include/uart.h\n' +
-          'duan/src/main.c\n' +
-          'duan/src/uart.c\n' +
-          '--- moi thu tru .o\n' +
-          'duan/cauhinh.txt\n' +
-          'duan/drivers/gpio.c\n' +
-          'duan/include/gpio.h\n' +
-          'duan/include/uart.h\n' +
-          'duan/nhatky.log\n' +
-          'duan/rong.txt\n' +
-          'duan/src/main.c\n' +
-          'duan/src/uart.c' },
-        { t: 'cmdx', cmd: "find duan -type f \\( -name '*.c' -o -name '*.h' \\)", title: 'Vì sao phải có cặp ngoặc, và vì sao phải thoát nó',
+          'project/src/uart.c\n' +
+          'project/src/main.c\n' +
+          'project/drivers/gpio.c\n' +
+          '--- .c or .h\n' +
+          'project/drivers/gpio.c\n' +
+          'project/include/gpio.h\n' +
+          'project/include/uart.h\n' +
+          'project/src/main.c\n' +
+          'project/src/uart.c\n' +
+          '--- everything except .o\n' +
+          'project/config.txt\n' +
+          'project/device.log\n' +
+          'project/drivers/gpio.c\n' +
+          'project/include/gpio.h\n' +
+          'project/include/uart.h\n' +
+          'project/empty.txt\n' +
+          'project/src/main.c\n' +
+          'project/src/uart.c' },
+        { t: 'cmdx', cmd: "find project -type f \\( -name '*.c' -o -name '*.h' \\)", title: 'Vì sao phải có cặp ngoặc, và vì sao phải thoát nó',
           rows: [
             ['<code>-type f</code>', 'Chỉ file thường', 'Đứng ngoài ngoặc nên áp cho <b>cả hai</b> nhánh'],
             ['<code>\\(</code>', 'Mở nhóm điều kiện', 'Dấu <code>(</code> là ký tự đặc biệt của bash — không thoát thì bash báo lỗi cú pháp'],
@@ -678,18 +678,18 @@ Lesson.register({
           ]},
         { t: 'p', x: 'Bây giờ là ba điều kiện hay dùng nhất khi dọn dẹp một cây build:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'find duan -type f -empty\n' +
-          "echo '--- lon hon 200 byte'\n" +
-          'find duan -type f -size +200c\n' +
-          "echo '--- co bit thuc thi cho chu so huu'\n" +
-          'find duan -type f -perm -u+x' },
+          'find project -type f -empty\n' +
+          "echo '--- larger than 200 bytes'\n" +
+          'find project -type f -size +200c\n' +
+          "echo '--- has execute bit for owner'\n" +
+          'find project -type f -perm -u+x' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/src/main.o\n' +
-          'duan/rong.txt\n' +
-          '--- lon hon 200 byte\n' +
-          'duan/nhatky.log\n' +
-          '--- co bit thuc thi cho chu so huu\n' +
-          'duan/src/main.c' },
+          'project/empty.txt\n' +
+          'project/src/main.o\n' +
+          '--- larger than 200 bytes\n' +
+          'project/device.log\n' +
+          '--- has execute bit for owner\n' +
+          'project/src/main.c' },
         { t: 'cal', kind: 'why', title: 'Câu cuối vừa tìm ra một lỗi thật trong dự án', x:
           '<p>Một file <code>.c</code> <b>không được phép</b> có bit thực thi — nó là văn bản ' +
           'để trình biên dịch đọc, không phải chương trình để kernel chạy. Bit <code>x</code> ' +
@@ -698,25 +698,25 @@ Lesson.register({
           '<p>Hậu quả không phải lý thuyết: <code>git</code> sẽ ghi nhận thay đổi mode ' +
           '<code>100644 → 100755</code> và bạn nhận một bình luận trong code review. Câu lệnh ' +
           'vừa rồi là cách kiểm tra cả cây trong một giây, và cách sửa là ' +
-          '<code>find duan -name \'*.c\' -exec chmod 644 {} +</code>.</p>' },
+          '<code>find project -name \'*.c\' -exec chmod 644 {} +</code>.</p>' },
         { t: 'p', x: 'Còn đây là cái bẫy mà callout ở phần lý thuyết đã cảnh báo:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'find duan -type f -size -1k\n' +
-          "echo '--- doi sang don vi byte'\n" +
-          'find duan -type f -size -1024c | sort' },
+          'find project -type f -size -1k\n' +
+          "echo '--- switch to byte unit'\n" +
+          'find project -type f -size -1024c | sort' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/src/main.o\n' +
-          'duan/rong.txt\n' +
-          '--- doi sang don vi byte\n' +
-          'duan/cauhinh.txt\n' +
-          'duan/drivers/gpio.c\n' +
-          'duan/include/gpio.h\n' +
-          'duan/include/uart.h\n' +
-          'duan/nhatky.log\n' +
-          'duan/rong.txt\n' +
-          'duan/src/main.c\n' +
-          'duan/src/main.o\n' +
-          'duan/src/uart.c' },
+          'project/empty.txt\n' +
+          'project/src/main.o\n' +
+          '--- switch to byte unit\n' +
+          'project/config.txt\n' +
+          'project/device.log\n' +
+          'project/drivers/gpio.c\n' +
+          'project/empty.txt\n' +
+          'project/include/gpio.h\n' +
+          'project/include/uart.h\n' +
+          'project/src/main.c\n' +
+          'project/src/main.o\n' +
+          'project/src/uart.c' },
         { t: 'cal', kind: 'danger', title: 'Hai câu, chín file chênh lệch — và cả hai đều không báo lỗi', x:
           '<p><code>-size -1k</code> chỉ trả về <b>2</b> file, đúng hai file <b>rỗng</b>. ' +
           '<code>-size -1024c</code> trả về cả <b>9</b>.</p>' +
@@ -734,15 +734,15 @@ Lesson.register({
           'Phần lý thuyết nói <code>\\;</code> chậm hơn <code>+</code> khoảng 94 lần. Đừng tin, ' +
           'hãy đo. Trước hết nhìn tận mắt khác biệt về <b>số lần gọi lệnh</b>:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'find duan -type f -name \'*.c\' -exec echo "-- mot lan goi:" {} \\;\n' +
-          "echo '--- doi dau ket thuc thanh +'\n" +
-          'find duan -type f -name \'*.c\' -exec echo "-- mot lan goi:" {} +' },
+          'find project -type f -name \'*.c\' -exec echo "-- single call:" {} \\;\n' +
+          "echo '--- change terminator to +'\n" +
+          'find project -type f -name \'*.c\' -exec echo "-- single call:" {} +' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '-- mot lan goi: duan/src/uart.c\n' +
-          '-- mot lan goi: duan/src/main.c\n' +
-          '-- mot lan goi: duan/drivers/gpio.c\n' +
-          '--- doi dau ket thuc thanh +\n' +
-          '-- mot lan goi: duan/src/uart.c duan/src/main.c duan/drivers/gpio.c' },
+          '-- single call: project/src/uart.c\n' +
+          '-- single call: project/src/main.c\n' +
+          '-- single call: project/drivers/gpio.c\n' +
+          '--- change terminator to +\n' +
+          '-- single call: project/src/uart.c project/src/main.c project/drivers/gpio.c' },
         { t: 'cal', kind: 'info', title: 'Ba dòng so với một dòng — đó là toàn bộ câu chuyện', x:
           '<p>Với <code>\\;</code>, <code>echo</code> chạy <b>ba lần</b>, mỗi lần nhận một tên ' +
           'file. Với <code>+</code>, <code>echo</code> chạy <b>một lần</b> và nhận cả ba tên ' +
@@ -754,32 +754,32 @@ Lesson.register({
         { t: 'code', where: 'wsl', lang: 'bash', code:
           "find /usr/include -name '*.h' 2>/dev/null | wc -l\n" +
           '\n' +
-          "echo '=== 1. moi file mot lan goi grep'\n" +
+          "echo '=== 1. one grep call per file'\n" +
           "time find /usr/include -name '*.h' -exec grep -l ioctl {} \\; 2>/dev/null | wc -l\n" +
-          "echo '=== 2. gom lai, mot lan goi grep'\n" +
+          "echo '=== 2. batched, one grep call'\n" +
           "time find /usr/include -name '*.h' -exec grep -l ioctl {} + 2>/dev/null | wc -l\n" +
-          "echo '=== 3. xargs cung gom lai'\n" +
+          "echo '=== 3. xargs also batches'\n" +
           "time find /usr/include -name '*.h' -print0 2>/dev/null | xargs -0 grep -l ioctl | wc -l\n" +
-          "echo '=== 4. grep tu duyet cay'\n" +
+          "echo '=== 4. grep walks the tree itself'\n" +
           "time grep -rl --include='*.h' ioctl /usr/include 2>/dev/null | wc -l" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           '2062\n' +
-          '=== 1. moi file mot lan goi grep\n' +
+          '=== 1. one grep call per file\n' +
           '281\n' +
           'real\t0m2.607s\n' +
           'user\t0m1.167s\n' +
           'sys\t0m0.791s\n' +
-          '=== 2. gom lai, mot lan goi grep\n' +
+          '=== 2. batched, one grep call\n' +
           '281\n' +
           'real\t0m0.029s\n' +
           'user\t0m0.015s\n' +
           'sys\t0m0.017s\n' +
-          '=== 3. xargs cung gom lai\n' +
+          '=== 3. xargs also batches\n' +
           '281\n' +
           'real\t0m0.026s\n' +
           'user\t0m0.022s\n' +
           'sys\t0m0.010s\n' +
-          '=== 4. grep tu duyet cay\n' +
+          '=== 4. grep walks the tree itself\n' +
           '277\n' +
           'real\t0m0.023s\n' +
           'user\t0m0.014s\n' +
@@ -799,26 +799,26 @@ Lesson.register({
           'Chú ý con số <b>277</b> ở dòng cuối, khác 281 của ba cách trên — đó chính là bốn ' +
           'symlink mà phần lý thuyết đã mổ xẻ. Giờ tới cái bẫy đắt giá nhất của <code>xargs</code>:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          'mkdir -p bay\n' +
-          "printf 'int a;\\n' > 'bay/ten co dau cach.c'\n" +
-          "printf 'int b;\\n' > 'bay/binhthuong.c'\n" +
-          "find bay -name '*.c' | xargs ls -l\n" +
+          'mkdir -p trap\n' +
+          "printf 'int a;\\n' > 'trap/name with a space.c'\n" +
+          "printf 'int b;\\n' > 'trap/normal.c'\n" +
+          "find trap -name '*.c' | xargs ls -l\n" +
           'echo "rc=$?"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          "ls: cannot access 'bay/ten': No such file or directory\n" +
-          "ls: cannot access 'co': No such file or directory\n" +
-          "ls: cannot access 'dau': No such file or directory\n" +
-          "ls: cannot access 'cach.c': No such file or directory\n" +
-          '-rw-r--r-- 1 shinarus shinarus 7 Aug  1 17:27 bay/binhthuong.c\n' +
+          "ls: cannot access 'trap/name': No such file or directory\n" +
+          "ls: cannot access 'with': No such file or directory\n" +
+          "ls: cannot access 'a': No such file or directory\n" +
+          "ls: cannot access 'space.c': No such file or directory\n" +
+          '-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/normal.c\n' +
           'rc=123' },
         { t: 'p', x: 'Một tên file bị xé thành bốn. Cách sửa là đổi ký tự phân cách:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "find bay -name '*.c' -print0 | xargs -0 ls -l\n" +
+          "find trap -name '*.c' -print0 | xargs -0 ls -l\n" +
           'echo "rc=$?"\n' +
-          'rm -rf bay' },
+          'rm -rf trap' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '-rw-r--r-- 1 shinarus shinarus 7 Aug  1 17:27 bay/binhthuong.c\n' +
-          "-rw-r--r-- 1 shinarus shinarus 7 Aug  1 17:27 bay/ten co dau cach.c\n" +
+          "-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/name with a space.c\n" +
+          '-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/normal.c\n' +
           'rc=0' },
         { t: 'cmdx', cmd: "find ... -print0 | xargs -0 lenh", title: 'Vì sao byte 0 là lời giải duy nhất đúng',
           rows: [
@@ -845,51 +845,51 @@ Lesson.register({
           'nguồn lạ và tìm ra chỗ cần sửa. Bắt đầu bằng câu hỏi cơ bản nhất — chuỗi ' +
           '<code>gpio</code> nằm ở đâu:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "grep -rn 'gpio' duan --include='*.c'" },
+          "grep -rn 'gpio' project --include='*.c'" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/src/main.c:1:#include "gpio.h"\n' +
-          'duan/src/main.c:7:    gpio_init();\n' +
-          'duan/src/main.c:8:    gpio_set(17, 1);\n' +
-          'duan/src/main.c:9:    printf("gpio 17 = 1\\n");\n' +
-          'duan/drivers/gpio.c:1:#include "gpio.h"\n' +
-          'duan/drivers/gpio.c:3:static int gpio_state[64];\n' +
-          'duan/drivers/gpio.c:5:int gpio_init(void)\n' +
-          'duan/drivers/gpio.c:10:int gpio_set(int pin, int value)\n' +
-          'duan/drivers/gpio.c:12:    gpio_state[pin] = value;' },
+          'project/src/main.c:1:#include "gpio.h"\n' +
+          'project/src/main.c:7:    gpio_init();\n' +
+          'project/src/main.c:8:    gpio_set(17, 1);\n' +
+          'project/src/main.c:9:    printf("gpio 17 = 1\\n");\n' +
+          'project/drivers/gpio.c:1:#include "gpio.h"\n' +
+          'project/drivers/gpio.c:3:static int gpio_state[64];\n' +
+          'project/drivers/gpio.c:5:int gpio_init(void)\n' +
+          'project/drivers/gpio.c:10:int gpio_set(int pin, int value)\n' +
+          'project/drivers/gpio.c:12:    gpio_state[pin] = value;' },
         { t: 'cal', kind: 'tip', title: 'Định dạng file:dòng:nội dung không phải ngẫu nhiên', x:
           '<p>Cả ba trường ngăn nhau bằng dấu hai chấm là <b>quy ước chung của toàn bộ hệ sinh ' +
           'thái Unix</b>. <code>gcc</code> báo lỗi theo đúng định dạng này, <code>vim</code> ' +
           'và VS Code đọc được nó để nhảy thẳng tới dòng, và ở bước 7 bạn sẽ tách nó bằng ' +
           '<code>awk -F:</code>.</p>' +
-          '<p>Trong <code>vim</code> (Bài 7), gõ <code>:grep -rn gpio duan</code> rồi ' +
+          '<p>Trong <code>vim</code> (Bài 7), gõ <code>:grep -rn gpio project</code> rồi ' +
           '<code>:copen</code> sẽ mở đúng danh sách này thành một cửa sổ bấm được. Đó là lý do ' +
           'nên tập phản xạ luôn thêm <code>-n</code>.</p>' },
         { t: 'p', x:
           'Bốn biến thể trả lời bốn câu hỏi khác nhau. Hãy để ý cùng một chuỗi ' +
           '<code>gpio</code> nhưng số dòng trả về khác hẳn:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "echo '--- file nao co, khong can biet dong nao'\n" +
-          "grep -rl 'gpio' duan\n" +
-          "echo '--- moi file bao nhieu dong'\n" +
-          "grep -rc 'gpio' duan --include='*.c'\n" +
-          "echo '--- chi tron tu gpio, khong tinh gpio_set'\n" +
-          "grep -rnw 'gpio' duan --include='*.c'" },
+          "echo '--- which files have it, not asking which line'\n" +
+          "grep -rl 'gpio' project\n" +
+          "echo '--- how many lines per file'\n" +
+          "grep -rc 'gpio' project --include='*.c'\n" +
+          "echo '--- whole word gpio only, not gpio_set'\n" +
+          "grep -rnw 'gpio' project --include='*.c'" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '--- file nao co, khong can biet dong nao\n' +
-          'duan/src/main.c\n' +
-          'duan/drivers/gpio.c\n' +
-          'duan/nhatky.log\n' +
-          'duan/include/gpio.h\n' +
-          '--- moi file bao nhieu dong\n' +
-          'duan/src/uart.c:0\n' +
-          'duan/src/main.c:4\n' +
-          'duan/drivers/gpio.c:5\n' +
-          '--- chi tron tu gpio, khong tinh gpio_set\n' +
-          'duan/src/main.c:1:#include "gpio.h"\n' +
-          'duan/src/main.c:9:    printf("gpio 17 = 1\\n");\n' +
-          'duan/drivers/gpio.c:1:#include "gpio.h"' },
+          '--- which files have it, not asking which line\n' +
+          'project/device.log\n' +
+          'project/src/main.c\n' +
+          'project/drivers/gpio.c\n' +
+          'project/include/gpio.h\n' +
+          '--- how many lines per file\n' +
+          'project/src/uart.c:0\n' +
+          'project/src/main.c:4\n' +
+          'project/drivers/gpio.c:5\n' +
+          '--- whole word gpio only, not gpio_set\n' +
+          'project/src/main.c:1:#include "gpio.h"\n' +
+          'project/src/main.c:9:    printf("gpio 17 = 1\\n");\n' +
+          'project/drivers/gpio.c:1:#include "gpio.h"' },
         { t: 'cal', kind: 'why', title: 'Ba con số nói ba chuyện khác nhau — đọc kỹ', x:
-          '<p><b>Với <code>-l</code>:</b> có <b>4</b> file, kể cả <code>nhatky.log</code> và ' +
+          '<p><b>Với <code>-l</code>:</b> có <b>4</b> file, kể cả <code>device.log</code> và ' +
           '<code>gpio.h</code>, vì lần này không có <code>--include</code> nên grep xét mọi file.</p>' +
           '<p><b>Với <code>-c</code>:</b> <code>uart.c</code> hiện ra với số <b>0</b>. Nhiều ' +
           'người bất ngờ ở đây: <code>-c</code> báo cáo <b>mọi</b> file nó đã xét, kể cả file ' +
@@ -903,19 +903,19 @@ Lesson.register({
           'Hai cờ cuối cho công việc thật: lọc file cấu hình, và xem ngữ cảnh quanh một lỗi ' +
           'trong nhật ký.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "grep -v '^#' duan/cauhinh.txt | grep -v '^$'\n" +
-          "echo '--- 1 dong truoc va 1 dong sau moi loi'\n" +
-          "grep -n -A 1 -B 1 'ERROR' duan/nhatky.log" },
+          "grep -v '^#' project/config.txt | grep -v '^$'\n" +
+          "echo '--- 1 line before and 1 after each error'\n" +
+          "grep -n -A 1 -B 1 'ERROR' project/device.log" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'port = /dev/ttyS0\n' +
           'baud = 9600\n' +
           'debug = 0\n' +
           'ip = 192.168.1.10\n' +
-          '--- 1 dong truoc va 1 dong sau moi loi\n' +
-          '3-2026-08-01 10:02:13 WARN  i2c   khong tim thay thiet bi 0\n' +
-          '4:2026-08-01 10:02:14 ERROR uart  timeout khi doc 250\n' +
-          '5-2026-08-01 10:02:15 INFO  gpio  chan 17 len muc cao 1\n' +
-          '6:2026-08-01 10:02:16 ERROR i2c   loi kiem tra CRC 487' },
+          '--- 1 line before and 1 after each error\n' +
+          '3-2026-08-01 10:02:13 WARN  i2c   could not find any device 0\n' +
+          '4:2026-08-01 10:02:14 ERROR uart  timeout during read 250\n' +
+          '5-2026-08-01 10:02:15 INFO  gpio  pin 17 set to high 1\n' +
+          '6:2026-08-01 10:02:16 ERROR i2c   CRC check failed code 487' },
         { t: 'cal', kind: 'info', title: 'Dấu hai chấm và dấu gạch ngang phân biệt dòng khớp với dòng ngữ cảnh', x:
           '<p>Dòng <code>4:</code> và <code>6:</code> dùng dấu <b>hai chấm</b> — đó là dòng thật ' +
           'sự khớp. Dòng <code>3-</code> và <code>5-</code> dùng dấu <b>gạch ngang</b> — chúng ' +
@@ -928,14 +928,14 @@ Lesson.register({
           'Cuối cùng, kiểm chứng ba mã thoát mà Bài 4 đã dạy — chúng là nền móng cho ' +
           '<code>if</code> trong Bài 13:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "grep -q 'gpio_init' duan/src/main.c; echo \"tim thay      rc=$?\"\n" +
-          "grep -q 'khongcochuoinay' duan/src/main.c; echo \"khong thay    rc=$?\"\n" +
-          "grep -q 'x' duan/khongton.tai; echo \"file khong co  rc=$?\"" },
+          "grep -q 'gpio_init' project/src/main.c; echo \"found        rc=$?\"\n" +
+          "grep -q 'nosuchstring' project/src/main.c; echo \"not found    rc=$?\"\n" +
+          "grep -q 'x' project/missing.txt; echo \"missing file rc=$?\"" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'tim thay      rc=0\n' +
-          'khong thay    rc=1\n' +
-          'grep: duan/khongton.tai: No such file or directory\n' +
-          'file khong co  rc=2' }
+          'found        rc=0\n' +
+          'not found    rc=1\n' +
+          'grep: project/missing.txt: No such file or directory\n' +
+          'missing file rc=2' }
       ]},
 
       /* ---------- BƯỚC 5 ---------- */
@@ -945,18 +945,18 @@ Lesson.register({
           'board ARM dùng <code>ttyAMA0</code>, đồng thời nâng tốc độ từ 9600 lên 115200. ' +
           '<b>Luôn chạy không có <code>-i</code> trước</b> để đọc kết quả bằng mắt:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "sed 's/ttyS0/ttyAMA0/' duan/cauhinh.txt\n" +
-          "echo '--- file goc van chua bi dung toi'\n" +
-          "grep 'port' duan/cauhinh.txt" },
+          "sed 's/ttyS0/ttyAMA0/' project/config.txt\n" +
+          "echo '--- original file untouched'\n" +
+          "grep 'port' project/config.txt" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '# cau hinh thiet bi\n' +
+          '# device configuration\n' +
           'port = /dev/ttyAMA0\n' +
           'baud = 9600\n' +
           'debug = 0\n' +
           '\n' +
-          '# phan mang\n' +
+          '# network section\n' +
           'ip = 192.168.1.10\n' +
-          '--- file goc van chua bi dung toi\n' +
+          '--- original file untouched\n' +
           'port = /dev/ttyS0' },
         { t: 'cal', kind: 'why', title: 'Mặc định sed không đụng vào file — đó là thiết kế, không phải thiếu sót', x:
           '<p><code>sed</code> đọc file, biến đổi, rồi in ra <b>stdout</b>. File gốc nguyên vẹn. ' +
@@ -967,24 +967,24 @@ Lesson.register({
           '"phá cả cây mã nguồn" chỉ là một ký tự.</p>' },
         { t: 'p', x: 'Bây giờ sửa thật, hai thay thế trong một lần chạy, có giữ bản sao:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "sed -i.bak -e 's|/dev/ttyS0|/dev/ttyAMA0|' -e 's/9600/115200/' duan/cauhinh.txt\n" +
-          'ls duan/cauhinh.txt*\n' +
-          "echo '--- ban da sua'\n" +
-          "grep -E 'port|baud' duan/cauhinh.txt\n" +
-          "echo '--- ban sao con nguyen'\n" +
-          "grep -E 'port|baud' duan/cauhinh.txt.bak" },
+          "sed -i.bak -e 's|/dev/ttyS0|/dev/ttyAMA0|' -e 's/9600/115200/' project/config.txt\n" +
+          'ls project/config.txt*\n' +
+          "echo '--- edited copy'\n" +
+          "grep -E 'port|baud' project/config.txt\n" +
+          "echo '--- backup untouched'\n" +
+          "grep -E 'port|baud' project/config.txt.bak" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/cauhinh.txt\n' +
-          'duan/cauhinh.txt.bak\n' +
-          '--- ban da sua\n' +
+          'project/config.txt\n' +
+          'project/config.txt.bak\n' +
+          '--- edited copy\n' +
           'port = /dev/ttyAMA0\n' +
           'baud = 115200\n' +
-          '--- ban sao con nguyen\n' +
+          '--- backup untouched\n' +
           'port = /dev/ttyS0\n' +
           'baud = 9600' },
-        { t: 'cmdx', cmd: "sed -i.bak -e 's|/dev/ttyS0|/dev/ttyAMA0|' -e 's/9600/115200/' duan/cauhinh.txt", title: 'Mổ xẻ từng mảnh',
+        { t: 'cmdx', cmd: "sed -i.bak -e 's|/dev/ttyS0|/dev/ttyAMA0|' -e 's/9600/115200/' project/config.txt", title: 'Mổ xẻ từng mảnh',
           rows: [
-            ['<code>-i.bak</code>', 'Sửa thẳng vào file, chép bản cũ thành <code>cauhinh.txt.bak</code>', '<b>Không có dấu cách</b> giữa <code>-i</code> và <code>.bak</code>'],
+            ['<code>-i.bak</code>', 'Sửa thẳng vào file, chép bản cũ thành <code>config.txt.bak</code>', '<b>Không có dấu cách</b> giữa <code>-i</code> và <code>.bak</code>'],
             ['<code>-e</code>', 'Mỗi <code>-e</code> là một lệnh sed, chạy tuần tự trên từng dòng', 'Không có <code>-e</code> thì chỉ được một lệnh'],
             ['<code>s|…|…|</code>', 'Dấu phân cách đổi thành <code>|</code>', '<b>Bắt buộc</b> ở đây vì mẫu chứa dấu <code>/</code> của đường dẫn'],
             ['<code>s/9600/115200/</code>', 'Vẫn dùng dấu <code>/</code> vì mẫu không chứa nó', 'Dấu phân cách chỉ cần <b>khác</b> mọi ký tự trong mẫu'],
@@ -1000,22 +1000,22 @@ Lesson.register({
           'Buildroot sửa đường dẫn trong file cấu hình.</p>' },
         { t: 'p', x: 'Ba lệnh sed còn lại đủ dùng cho hầu hết công việc còn lại:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "echo '--- xoa comment va dong trong'\n" +
-          "sed -e '/^#/d' -e '/^$/d' duan/cauhinh.txt\n" +
-          "echo '--- chi in dong 2 den 3 cua log'\n" +
-          "sed -n '2,3p' duan/nhatky.log\n" +
-          "echo '--- dao thu tu bang nhom bat'\n" +
-          "sed -E 's/^([a-z]+) = (.*)$/\\2 <- \\1/' duan/cauhinh.txt.bak | grep -v '^#' | grep -v '^$'" },
+          "echo '--- remove comments and blank lines'\n" +
+          "sed -e '/^#/d' -e '/^$/d' project/config.txt\n" +
+          "echo '--- print only lines 2 to 3 of the log'\n" +
+          "sed -n '2,3p' project/device.log\n" +
+          "echo '--- reorder using capture groups'\n" +
+          "sed -E 's/^([a-z]+) = (.*)$/\\2 <- \\1/' project/config.txt.bak | grep -v '^#' | grep -v '^$'" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '--- xoa comment va dong trong\n' +
+          '--- remove comments and blank lines\n' +
           'port = /dev/ttyAMA0\n' +
           'baud = 115200\n' +
           'debug = 0\n' +
           'ip = 192.168.1.10\n' +
-          '--- chi in dong 2 den 3 cua log\n' +
-          '2026-08-01 10:02:12 INFO  gpio  dang ky 32 chan 32\n' +
-          '2026-08-01 10:02:13 WARN  i2c   khong tim thay thiet bi 0\n' +
-          '--- dao thu tu bang nhom bat\n' +
+          '--- print only lines 2 to 3 of the log\n' +
+          '2026-08-01 10:02:12 INFO  gpio  registered 32 pins total 32\n' +
+          '2026-08-01 10:02:13 WARN  i2c   could not find any device 0\n' +
+          '--- reorder using capture groups\n' +
           '/dev/ttyS0 <- port\n' +
           '9600 <- baud\n' +
           '0 <- debug\n' +
@@ -1034,13 +1034,13 @@ Lesson.register({
       /* ---------- BƯỚC 6 ---------- */
       { title: 'awk: biến nhật ký thành bảng số liệu', blocks: [
         { t: 'p', x:
-          'File <code>nhatky.log</code> có sáu dòng, mỗi dòng nhiều cột: ngày, giờ, mức, phân ' +
+          'File <code>device.log</code> có sáu dòng, mỗi dòng nhiều cột: ngày, giờ, mức, phân ' +
           'hệ, mô tả, và một con số ở cuối. Đây đúng hình dạng của log thật mà bạn sẽ đọc suốt ' +
           'các chặng sau. Bắt đầu bằng việc lấy cột:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "awk '{print $3, $4}' duan/nhatky.log\n" +
-          "echo '--- so thu tu dong, so cot, cot cuoi'\n" +
-          "awk '{print NR, NF, $NF}' duan/nhatky.log" },
+          "awk '{print $3, $4}' project/device.log\n" +
+          "echo '--- record number, field count, last field'\n" +
+          "awk '{print NR, NF, $NF}' project/device.log" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'INFO uart\n' +
           'INFO gpio\n' +
@@ -1048,7 +1048,7 @@ Lesson.register({
           'ERROR uart\n' +
           'INFO gpio\n' +
           'ERROR i2c\n' +
-          '--- so thu tu dong, so cot, cot cuoi\n' +
+          '--- record number, field count, last field\n' +
           '1 9 115200\n' +
           '2 9 32\n' +
           '3 10 0\n' +
@@ -1068,36 +1068,36 @@ Lesson.register({
           'Bây giờ là ba việc mà <code>grep</code> không làm được: lọc theo <b>cột cụ thể</b>, ' +
           'cộng dồn, và đếm theo nhóm.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "awk '$3 == \"ERROR\"' duan/nhatky.log\n" +
-          "echo '--- cong don cot cuoi'\n" +
-          "awk '{tong += $NF} END {print \"tong =\", tong, \"tren\", NR, \"dong\"}' duan/nhatky.log\n" +
-          "echo '--- dem theo muc log'\n" +
-          "awk '{dem[$3]++} END {for (k in dem) print k, dem[k]}' duan/nhatky.log\n" +
-          "echo '--- dem theo phan he, thang hang'\n" +
-          "awk '{dem[$4]++} END {for (k in dem) printf \"%-6s %d\\n\", k, dem[k]}' duan/nhatky.log | sort" },
+          "awk '$3 == \"ERROR\"' project/device.log\n" +
+          "echo '--- sum the last column'\n" +
+          "awk '{total += $NF} END {print \"total =\", total, \"over\", NR, \"lines\"}' project/device.log\n" +
+          "echo '--- count by log level'\n" +
+          "awk '{count[$3]++} END {for (k in count) print k, count[k]}' project/device.log\n" +
+          "echo '--- count by subsystem, aligned'\n" +
+          "awk '{count[$4]++} END {for (k in count) printf \"%-6s %d\\n\", k, count[k]}' project/device.log | sort" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '2026-08-01 10:02:14 ERROR uart  timeout khi doc 250\n' +
-          '2026-08-01 10:02:16 ERROR i2c   loi kiem tra CRC 487\n' +
-          '--- cong don cot cuoi\n' +
-          'tong = 115970 tren 6 dong\n' +
-          '--- dem theo muc log\n' +
+          '2026-08-01 10:02:14 ERROR uart  timeout during read 250\n' +
+          '2026-08-01 10:02:16 ERROR i2c   CRC check failed code 487\n' +
+          '--- sum the last column\n' +
+          'total = 115970 over 6 lines\n' +
+          '--- count by log level\n' +
           'WARN 1\n' +
           'ERROR 2\n' +
           'INFO 3\n' +
-          '--- dem theo phan he, thang hang\n' +
+          '--- count by subsystem, aligned\n' +
           'gpio   2\n' +
           'i2c    2\n' +
           'uart   2' },
-        { t: 'cmdx', cmd: "awk '{dem[$3]++} END {for (k in dem) print k, dem[k]}'", title: 'Mảng kết hợp — thứ mạnh nhất của awk',
+        { t: 'cmdx', cmd: "awk '{count[$3]++} END {for (k in count) print k, count[k]}'", title: 'Mảng kết hợp — thứ mạnh nhất của awk',
           rows: [
-            ['<code>dem[$3]++</code>', 'Lấy cột 3 làm <b>khoá</b>, tăng ô đếm tương ứng lên 1', 'Không phải khai báo mảng, không phải khởi tạo về 0 — awk tự lo'],
+            ['<code>count[$3]++</code>', 'Lấy cột 3 làm <b>khoá</b>, tăng ô đếm tương ứng lên 1', 'Không phải khai báo mảng, không phải khởi tạo về 0 — awk tự lo'],
             ['<code>END { }</code>', 'Khối chạy <b>một lần</b> sau khi đọc hết dòng cuối', 'Cặp với <code>BEGIN { }</code> chạy trước dòng đầu'],
-            ['<code>for (k in dem)</code>', 'Duyệt mọi khoá đã gặp', '<b>Thứ tự không xác định</b> — đó là lý do phải nối thêm <code>| sort</code>'],
+            ['<code>for (k in count)</code>', 'Duyệt mọi khoá đã gặp', '<b>Thứ tự không xác định</b> — đó là lý do phải nối thêm <code>| sort</code>'],
             ['<code>printf "%-6s %d\\n"</code>', 'Căn trái 6 ký tự, rồi một số nguyên', 'Cú pháp y hệt <code>printf</code> của C mà bạn sẽ gặp lại ở Chặng 02'],
-            ['<code>tong += $NF</code>', 'Cộng dồn qua các dòng', 'Biến trong awk <b>không cần khai báo</b> và mặc định bằng 0']
+            ['<code>total += $NF</code>', 'Cộng dồn qua các dòng', 'Biến trong awk <b>không cần khai báo</b> và mặc định bằng 0']
           ]},
         { t: 'cal', kind: 'info', title: 'Ba dòng awk thay cho một chương trình C hai mươi dòng', x:
-          '<p>Câu <code>{dem[$3]++} END {...}</code> vừa làm bốn việc: tách cột, dựng bảng băm, ' +
+          '<p>Câu <code>{count[$3]++} END {...}</code> vừa làm bốn việc: tách cột, dựng bảng băm, ' +
           'đếm, và in kết quả. Viết bằng C sẽ mất hai mươi dòng và một cấu trúc dữ liệu tự cài.</p>' +
           '<p>Đó là lý do <code>awk</code> vẫn sống khoẻ sau năm mươi năm và có mặt trong ' +
           '<b>mọi</b> bản BusyBox. Trên một thiết bị nhúng không có Python, ' +
@@ -1126,57 +1126,57 @@ Lesson.register({
           'thống kê kết quả</i>. Đừng viết cả câu một lần — hãy dựng từng tầng và nhìn kết quả ' +
           'sau mỗi tầng. Đó là cách người làm nghề viết đường ống.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "echo '=== tang 1: file nao co chua chuoi'\n" +
-          "grep -rl --include='*.c' 'gpio' duan\n" +
-          "echo '=== tang 2: dem theo tung file, bo file 0'\n" +
-          "grep -rc --include='*.c' 'gpio' duan | awk -F: '$2 > 0'\n" +
-          "echo '=== tang 3: xep hang theo so dong'\n" +
-          "grep -rc --include='*.c' 'gpio' duan | awk -F: '$2 > 0' | sort -t: -k2 -rn" },
+          "echo '=== layer 1: which files contain the string'\n" +
+          "grep -rl --include='*.c' 'gpio' project\n" +
+          "echo '=== layer 2: count per file, drop zero'\n" +
+          "grep -rc --include='*.c' 'gpio' project | awk -F: '$2 > 0'\n" +
+          "echo '=== layer 3: rank by line count'\n" +
+          "grep -rc --include='*.c' 'gpio' project | awk -F: '$2 > 0' | sort -t: -k2 -rn" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '=== tang 1: file nao co chua chuoi\n' +
-          'duan/src/main.c\n' +
-          'duan/drivers/gpio.c\n' +
-          '=== tang 2: dem theo tung file, bo file 0\n' +
-          'duan/src/main.c:4\n' +
-          'duan/drivers/gpio.c:5\n' +
-          '=== tang 3: xep hang theo so dong\n' +
-          'duan/drivers/gpio.c:5\n' +
-          'duan/src/main.c:4' },
+          '=== layer 1: which files contain the string\n' +
+          'project/src/main.c\n' +
+          'project/drivers/gpio.c\n' +
+          '=== layer 2: count per file, drop zero\n' +
+          'project/src/main.c:4\n' +
+          'project/drivers/gpio.c:5\n' +
+          '=== layer 3: rank by line count\n' +
+          'project/drivers/gpio.c:5\n' +
+          'project/src/main.c:4' },
         { t: 'p', x:
           'Tầng cuối biến danh sách thành một bảng có tổng. Câu lệnh này viết trên nhiều dòng — ' +
           'bash cho phép xuống dòng ngay sau dấu <code>|</code>:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "grep -rc --include='*.c' 'gpio' duan |\n" +
-          "awk -F: '$2 > 0 { tong += $2; n++; printf \"%-24s %3d\\n\", $1, $2 }\n" +
-          "         END { printf \"%-24s %3d trong %d file\\n\", \"TONG\", tong, n }'" },
+          "grep -rc --include='*.c' 'gpio' project |\n" +
+          "awk -F: '$2 > 0 { total += $2; n++; printf \"%-24s %3d\\n\", $1, $2 }\n" +
+          "         END { printf \"%-24s %3d in %d files\\n\", \"TOTAL\", total, n }'" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/src/main.c            4\n' +
-          'duan/drivers/gpio.c        5\n' +
-          'TONG                       9 trong 2 file' },
+          'project/src/main.c         4\n' +
+          'project/drivers/gpio.c     5\n' +
+          'TOTAL                      9 in 2 files' },
         { t: 'p', x:
           'Và biến thể thực dụng hơn: gộp theo <b>thư mục</b>, để biết phân hệ nào của dự án ' +
           'đụng nhiều nhất tới chuỗi đang tìm.' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "grep -rc --include='*.c' 'gpio' duan |\n" +
-          "awk -F: '$2 > 0 { sub(/\\/[^\\/]+$/, \"\", $1); thumuc[$1] += $2 }\n" +
-          "         END { for (d in thumuc) printf \"%-16s %3d\\n\", d, thumuc[d] }' | sort -k2 -rn" },
+          "grep -rc --include='*.c' 'gpio' project |\n" +
+          "awk -F: '$2 > 0 { sub(/\\/[^\\/]+$/, \"\", $1); dir[$1] += $2 }\n" +
+          "         END { for (d in dir) printf \"%-16s %3d\\n\", d, dir[d] }' | sort -k2 -rn" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'duan/drivers       5\n' +
-          'duan/src           4' },
+          'project/drivers    5\n' +
+          'project/src        4' },
         { t: 'cmdx', cmd: 'sub(/\\/[^\\/]+$/, "", $1)', title: 'Cắt tên file để chỉ còn đường dẫn thư mục',
           rows: [
             ['<code>sub(mẫu, thay, biến)</code>', 'Hàm thay thế của awk, sửa <b>trực tiếp</b> vào biến', 'Có <code>gsub</code> nếu muốn thay mọi lần'],
             ['<code>/\\/[^\\/]+$/</code>', 'Dấu gạch chéo cuối cùng và mọi thứ sau nó', '<code>[^\\/]</code> là "ký tự không phải gạch chéo"'],
             ['<code>$</code>', 'Neo vào cuối chuỗi', 'Không có nó, mẫu sẽ khớp dấu gạch chéo đầu tiên và cắt sai'],
-            ['<code>thumuc[$1] += $2</code>', 'Cộng dồn vào ô mang tên thư mục', 'Cùng một cơ chế mảng kết hợp của bước 6']
+            ['<code>dir[$1] += $2</code>', 'Cộng dồn vào ô mang tên thư mục', 'Cùng một cơ chế mảng kết hợp của bước 6']
           ]},
         { t: 'p', x:
           'Bãi tập chỉ có ba file nên con số nhỏ. Hãy thả đúng câu lệnh đó lên quy mô thật — ' +
           '2062 file header của hệ thống:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           "grep -rc --include='*.h' 'ioctl' /usr/include 2>/dev/null |\n" +
-          "awk -F: '$2 > 0 { sub(/\\/[^\\/]+$/, \"\", $1); tong[$1] += $2; sofile[$1]++ }\n" +
-          "         END { for (d in tong) printf \"%6d  %3d file  %s\\n\", tong[d], sofile[d], d }' |\n" +
+          "awk -F: '$2 > 0 { sub(/\\/[^\\/]+$/, \"\", $1); total[$1] += $2; nfiles[$1]++ }\n" +
+          "         END { for (d in total) printf \"%6d  %3d file  %s\\n\", total[d], nfiles[d], d }' |\n" +
           'sort -rn | head -5' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           '  1172  161 file  /usr/include/linux\n' +
@@ -1196,22 +1196,22 @@ Lesson.register({
           'Bài tập cuối — và cũng là một cái bẫy. Đếm xem tên <code>struct</code> nào hay gặp ' +
           'nhất trong toàn bộ header hệ thống. Chạy cả ba câu và so sánh:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
-          "echo '=== lop ky tu chi co chu thuong'\n" +
+          "echo '=== character class: lowercase only'\n" +
           "grep -rhoE --include='*.h' 'struct [a-z_]+' /usr/include 2>/dev/null | sort | uniq -c | sort -rn | head -3\n" +
-          "echo '=== them chu so'\n" +
+          "echo '=== add digits'\n" +
           "grep -rhoE --include='*.h' 'struct [a-z0-9_]+' /usr/include 2>/dev/null | sort | uniq -c | sort -rn | head -3\n" +
-          "echo '=== them ca chu hoa'\n" +
+          "echo '=== add uppercase too'\n" +
           "grep -rhoE --include='*.h' 'struct [A-Za-z0-9_]+' /usr/include 2>/dev/null | sort | uniq -c | sort -rn | head -3" },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          '=== lop ky tu chi co chu thuong\n' +
+          '=== character class: lowercase only\n' +
           '    863 struct _\n' +
           '    451 struct v\n' +
           '    245 struct rkisp\n' +
-          '=== them chu so\n' +
+          '=== add digits\n' +
           '    863 struct _\n' +
           '    164 struct cec_msg\n' +
           '    122 struct timespec\n' +
-          '=== them ca chu hoa\n' +
+          '=== add uppercase too\n' +
           '    164 struct cec_msg\n' +
           '    122 struct timespec\n' +
           '    118 struct in6_addr\n' },
@@ -1233,7 +1233,7 @@ Lesson.register({
           'rm -rf ~/embedded/bai11\n' +
           'ls ~/embedded' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'bai03  bai04  bai05  bai07  images' }
+          'bai03  bai04  bai05  bai19  bai24  images' }
       ]}
     ]},
 
@@ -1251,10 +1251,10 @@ Lesson.register({
         ['<code>find: missing argument to `-exec\'</code>',
          'Dấu <code>+</code> không đứng ngay sau <code>{}</code>',
          'Phải là <code>-exec lenh {} +</code>. Với <code>\\;</code> thì <code>{}</code> đặt đâu cũng được'],
-        ['<code>find duan -size -1k</code> chỉ ra file rỗng, bỏ sót mọi file nhỏ',
+        ['<code>find project -size -1k</code> chỉ ra file rỗng, bỏ sót mọi file nhỏ',
          '<code>find</code> làm tròn <b>lên</b>: file 77 byte được tính là 1k',
          'Dùng đơn vị byte: <code>-size -1024c</code>'],
-        ['<code>ls: cannot access \'bay/ten\': No such file or directory</code>, mã thoát <b>123</b>',
+        ['<code>ls: cannot access \'trap/name\': No such file or directory</code>, mã thoát <b>123</b>',
          '<code>xargs</code> cắt theo khoảng trắng, tên file có dấu cách bị xé nhỏ',
          '<code>find … -print0 | xargs -0 …</code>, hoặc dùng <code>-exec … +</code>'],
         ['<code>grep \'6.18.33\'</code> khớp <b>3</b> dòng thay vì 1',
@@ -1311,7 +1311,7 @@ Lesson.register({
       '<code>sed</code> mặc định <b>không đụng vào file</b> — nó in ra stdout. Cờ <code>-i</code> ghi đè và không có đường lui, nên luôn dùng <code>-i.bak</code>.',
       'Dấu phân cách của <code>s</code> đổi được: dùng <code>s|…|…|</code> khi mẫu chứa đường dẫn. Nhóm bắt <code>(…)</code> gọi lại bằng <code>\\1 \\2</code>.',
       '<code>awk</code> tự cắt dòng thành <code>$1 $2 …</code>; <code>$NF</code> là cột cuối, <code>NR</code> là số thứ tự dòng. Log thật có số cột không đều — dùng <code>$NF</code>, đừng đếm tay.',
-      'Mảng kết hợp <code>{dem[$3]++} END {for (k in dem) …}</code> là ba dòng thay cho hai mươi dòng C. Thứ tự duyệt <b>không xác định</b>, phải nối <code>| sort</code>.',
+      'Mảng kết hợp <code>{count[$3]++} END {for (k in count) …}</code> là ba dòng thay cho hai mươi dòng C. Thứ tự duyệt <b>không xác định</b>, phải nối <code>| sort</code>.',
       '<code>cut</code> cho file có dấu phân cách cố định, <code>awk</code> cho bảng căn cột bằng khoảng trắng. Công thức thống kê phải thuộc: <code>| sort | uniq -c | sort -rn</code>.',
       '<b>Một biểu thức chính quy sai không bao giờ báo lỗi.</b> Ba lớp ký tự khác nhau cho ba câu trả lời khác nhau về cùng một câu hỏi — chỉ câu thứ ba đúng. Luôn nhìn kết quả thô trước khi tin bảng thống kê.'
     ]},

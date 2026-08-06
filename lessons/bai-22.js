@@ -145,77 +145,77 @@ Lesson.register({
       'bằng một <b>luồng</b>, lần sau bằng một <b>tiến trình con</b>. Rồi in ra giá trị biến để ' +
       'xem ai ảnh hưởng được tới ai.' },
 
-    { t: 'code', where: 'file', name: 'chungrieng.c', lang: 'c', code:
-      '#define _GNU_SOURCE                  /* can cho gettid() */\n' +
+    { t: 'code', where: 'file', name: 'shared_vs_separate.c', lang: 'c', code:
+      '#define _GNU_SOURCE                  /* required for gettid() */\n' +
       '#include <stdio.h>\n' +
       '#include <pthread.h>\n' +
       '#include <unistd.h>\n' +
       '#include <sys/wait.h>\n' +
       '\n' +
-      'int bien_toan_cuc = 100;\n' +
+      'int shared_var = 100;\n' +
       '\n' +
-      'static void *than_luong(void *arg)          /* than luong: void* -> void* */\n' +
+      'static void *thread_body(void *arg)         /* thread body: void* -> void* */\n' +
       '{\n' +
       '    (void)arg;\n' +
-      '    bien_toan_cuc = 999;\n' +
-      '    printf("  [luong ] tid=%ld  da dat bien = %d\\n",\n' +
-      '           (long)gettid(), bien_toan_cuc);\n' +
+      '    shared_var = 999;\n' +
+      '    printf("  [thread] tid=%ld  set var = %d\\n",\n' +
+      '           (long)gettid(), shared_var);\n' +
       '    return NULL;\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
-      '    printf("main    pid=%d tid=%ld  bien = %d\\n",\n' +
-      '           getpid(), (long)gettid(), bien_toan_cuc);\n' +
+      '    printf("main    pid=%d tid=%ld  var = %d\\n",\n' +
+      '           getpid(), (long)gettid(), shared_var);\n' +
       '\n' +
-      '    /* --- CACH 1: luong --- */\n' +
+      '    /* --- METHOD 1: thread --- */\n' +
       '    pthread_t t;\n' +
-      '    pthread_create(&t, NULL, than_luong, NULL);\n' +
-      '    pthread_join(t, NULL);                  /* doi luong xong hang */\n' +
-      '    printf("sau pthread_join : bien = %d\\n", bien_toan_cuc);\n' +
+      '    pthread_create(&t, NULL, thread_body, NULL);\n' +
+      '    pthread_join(t, NULL);                  /* wait for the thread to finish */\n' +
+      '    printf("after pthread_join: var = %d\\n", shared_var);\n' +
       '\n' +
-      '    /* --- CACH 2: tien trinh con --- */\n' +
-      '    bien_toan_cuc = 100;                    /* dat lai ve moc ban dau */\n' +
-      '    pid_t con = fork();\n' +
-      '    if (con == 0) {\n' +
-      '        bien_toan_cuc = 999;\n' +
-      '        printf("  [con   ] pid=%d  da dat bien = %d\\n", getpid(), bien_toan_cuc);\n' +
+      '    /* --- METHOD 2: child process --- */\n' +
+      '    shared_var = 100;                       /* reset to the initial value */\n' +
+      '    pid_t child = fork();\n' +
+      '    if (child == 0) {\n' +
+      '        shared_var = 999;\n' +
+      '        printf("  [child ] pid=%d  set var = %d\\n", getpid(), shared_var);\n' +
       '        _exit(0);\n' +
       '    }\n' +
-      '    waitpid(con, NULL, 0);\n' +
-      '    printf("sau waitpid      : bien = %d\\n", bien_toan_cuc);\n' +
+      '    waitpid(child, NULL, 0);\n' +
+      '    printf("after waitpid     : var = %d\\n", shared_var);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
       'mkdir -p ~/embedded/bai22 && cd ~/embedded/bai22\n' +
-      'gcc -Wall -Wextra -pthread -o chungrieng chungrieng.c && ./chungrieng' },
+      'gcc -Wall -Wextra -pthread -o shared_vs_separate shared_vs_separate.c && ./shared_vs_separate' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'main    pid=436 tid=436  bien = 100\n' +
-      '  [luong ] tid=437  da dat bien = 999\n' +
-      'sau pthread_join : bien = 999\n' +
-      '  [con   ] pid=446  da dat bien = 999\n' +
-      'sau waitpid      : bien = 100',
+      'main    pid=500 tid=500  var = 100\n' +
+      '  [thread] tid=518  set var = 999\n' +
+      'after pthread_join: var = 999\n' +
+      '  [child ] pid=519  set var = 999\n' +
+      'after waitpid     : var = 100',
       notes: ['Các số PID/TID trên máy bạn sẽ khác. Hai giá trị <b>phải</b> giống là ' +
         '<code>999</code> ở dòng thứ ba và <code>100</code> ở dòng cuối.'] },
 
     { t: 'cal', kind: 'why', title: 'Hai dòng cuối là toàn bộ bài học của Chặng 03', x:
-      '<p><b><code>sau pthread_join : bien = 999</code></b> — luồng ghi vào <i>chính</i> biến ' +
+      '<p><b><code>after pthread_join: var = 999</code></b> — luồng ghi vào <i>chính</i> biến ' +
       'của <code>main</code>. Không có bản sao nào cả. Truyền dữ liệu giữa hai luồng chỉ đơn ' +
       'giản là gán một biến.</p>' +
-      '<p><b><code>sau waitpid : bien = 100</code></b> — tiến trình con ghi vào <i>bản sao</i> ' +
+      '<p><b><code>after waitpid: var = 100</code></b> — tiến trình con ghi vào <i>bản sao</i> ' +
       'của nó, rồi chết mang theo bản sao đó. Cha không hề hay biết. Đây chính là điều bạn đã ' +
       'kiểm chứng ở Bài 20, giờ đặt cạnh nhau để thấy rõ.</p>' +
       '<p>Toàn bộ Bài 23 (IPC) tồn tại là để giải quyết dòng thứ hai. Toàn bộ phần còn lại của ' +
       'bài này tồn tại là để dọn dẹp hậu quả của dòng thứ nhất.</p>' },
 
-    { t: 'cmdx', cmd: 'pthread_create(&t, NULL, than_luong, NULL)',
+    { t: 'cmdx', cmd: 'pthread_create(&t, NULL, thread_body, NULL)',
       title: 'Bốn tham số của pthread_create',
       rows: [
         ['<code>&amp;t</code>', 'Địa chỉ một biến <code>pthread_t</code> để hàm ghi định danh luồng vào', 'Bạn cần nó về sau để <code>join</code>. Đây là tham số <i>ra</i>, không phải vào'],
         ['<code>NULL</code>', 'Thuộc tính luồng (<code>pthread_attr_t</code>)', '<code>NULL</code> = mặc định. Đây là chỗ đặt kích thước ngăn xếp — rất quan trọng trên thiết bị nhúng, xem phần sau'],
-        ['<code>than_luong</code>', 'Hàm luồng sẽ chạy. Chữ ký bắt buộc <code>void *f(void *)</code>', 'Chỉ tên hàm, không có dấu ngoặc — đây là con trỏ hàm'],
+        ['<code>thread_body</code>', 'Hàm luồng sẽ chạy. Chữ ký bắt buộc <code>void *f(void *)</code>', 'Chỉ tên hàm, không có dấu ngoặc — đây là con trỏ hàm'],
         ['<code>NULL</code>', 'Đối số truyền cho hàm đó', 'Muốn truyền số hay struct thì truyền địa chỉ, ép kiểu về <code>void *</code>'],
         ['<i>giá trị trả về</i>', '<b>0</b> nếu thành công, <b>số dương</b> là mã lỗi nếu thất bại', '<b>Không</b> trả về <code>-1</code> và <b>không</b> đặt <code>errno</code>. Đây là điểm khác biệt của cả họ <code>pthread_*</code>']
       ]},
@@ -244,13 +244,13 @@ Lesson.register({
       'kết quả sẽ bất ngờ:' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o khongco chungrieng.c && echo "LIEN KET THANH CONG" && ./khongco | head -3' },
+      'gcc -Wall -Wextra -o no_pthread shared_vs_separate.c && echo "LINK SUCCEEDED" && ./no_pthread | head -3' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'LIEN KET THANH CONG\n' +
-      'main    pid=446 tid=446  bien = 100\n' +
-      '  [luong ] tid=447  da dat bien = 999\n' +
-      'sau pthread_join : bien = 999' },
+      'LINK SUCCEEDED\n' +
+      'main    pid=579 tid=579  var = 100\n' +
+      '  [thread] tid=581  set var = 999\n' +
+      'after pthread_join: var = 999' },
 
     { t: 'p', x:
       'Chạy tốt, không một lời cảnh báo. Lý do nằm ở đây:' },
@@ -278,7 +278,7 @@ Lesson.register({
       'làm gì với nó:' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -### -pthread -o /dev/null chungrieng.c 2>&1 | grep -o "\\-D_REENTRANT\\|\\-lpthread" | sort -u' },
+      'gcc -### -pthread -o /dev/null shared_vs_separate.c 2>&1 | grep -o "\\-D_REENTRANT\\|\\-lpthread" | sort -u' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '-D_REENTRANT\n' +
@@ -315,17 +315,17 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       '    PID     TID NLWP STAT COMMAND\n' +
-      '    468     468    4 Sl+  ngu\n' +
-      '    468     470    4 Sl+  ngu\n' +
-      '    468     471    4 Sl+  ngu\n' +
-      '    468     472    4 Sl+  ngu' },
+      '   1391    1391    4 Sl+  sleepers\n' +
+      '   1391    1393    4 Sl+  sleepers\n' +
+      '   1391    1394    4 Sl+  sleepers\n' +
+      '   1391    1395    4 Sl+  sleepers' },
 
-    { t: 'cmdx', cmd: 'ps -L -o pid,tid,nlwp,stat,comm -p 468',
+    { t: 'cmdx', cmd: 'ps -L -o pid,tid,nlwp,stat,comm -p 1391',
       title: 'Đọc bảng luồng',
       rows: [
         ['<code>-L</code>', 'Hiện từng luồng thay vì gộp thành một dòng tiến trình', 'Không có cờ này, cả 4 luồng chỉ hiện ra một dòng duy nhất'],
         ['<code>PID</code>', 'Số hiệu tiến trình — <b>giống nhau ở cả 4 dòng</b>', 'Bốn luồng, một tiến trình. Đây là điều cần nhìn thấy'],
-        ['<code>TID</code>', 'Số hiệu luồng. Luồng chính có TID <b>468 = PID</b>, ba luồng con là 470–472', 'Chính là số <code>gettid()</code> trả về'],
+        ['<code>TID</code>', 'Số hiệu luồng. Luồng chính có TID <b>1391 = PID</b>, ba luồng con là 1393–1395', 'Chính là số <code>gettid()</code> trả về'],
         ['<code>NLWP</code>', 'Number of Light-Weight Processes = tổng số luồng', 'Bằng 4 = 1 luồng chính + 3 luồng tạo thêm'],
         ['<code>STAT</code>', '<code>S</code> = đang ngủ, <code>l</code> = <b>đa luồng</b>, <code>+</code> = chạy ở tiền cảnh', 'Chữ <code>l</code> thường ở đây là dấu hiệu nhanh nhất để biết một tiến trình có nhiều luồng']
       ]},
@@ -339,9 +339,9 @@ Lesson.register({
       'grep -E "^(Name|Pid|Threads)" /proc/<PID>/status' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '468\n470\n471\n472\n' +
-      'Name:\tngu\n' +
-      'Pid:\t468\n' +
+      '1391\n1393\n1394\n1395\n' +
+      'Name:\tsleepers\n' +
+      'Pid:\t1391\n' +
       'Threads:\t4' },
 
     { t: 'cal', kind: 'tip', title: 'Mẹo gỡ lỗi trên thiết bị thật', x:
@@ -360,46 +360,46 @@ Lesson.register({
 
     { t: 'p', x:
       'Đây là phần quan trọng nhất của bài. Chương trình dưới đây đơn giản tới mức không thể ' +
-      'sai: hai luồng, mỗi luồng cộng thêm 1 vào biến <code>dem</code> đúng một triệu lần. ' +
+      'sai: hai luồng, mỗi luồng cộng thêm 1 vào biến <code>counter</code> đúng một triệu lần. ' +
       'Kết quả hiển nhiên phải là hai triệu.' },
 
-    { t: 'code', where: 'file', name: 'dua.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'race.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <pthread.h>\n' +
       '\n' +
-      '#define SO_LAN 1000000\n' +
-      'static long dem = 0;                  /* hai luong cung ghi vao day */\n' +
+      '#define ITERATIONS 1000000\n' +
+      'static long counter = 0;              /* both threads write here */\n' +
       '\n' +
-      'static void *tang(void *a)\n' +
+      'static void *increment(void *a)\n' +
       '{\n' +
       '    (void)a;\n' +
-      '    for (int i = 0; i < SO_LAN; i++)\n' +
-      '        dem++;                        /* KHONG nguyen tu */\n' +
+      '    for (int i = 0; i < ITERATIONS; i++)\n' +
+      '        counter++;                    /* NOT atomic */\n' +
       '    return NULL;\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    pthread_t t1, t2;\n' +
-      '    pthread_create(&t1, NULL, tang, NULL);\n' +
-      '    pthread_create(&t2, NULL, tang, NULL);\n' +
+      '    pthread_create(&t1, NULL, increment, NULL);\n' +
+      '    pthread_create(&t2, NULL, increment, NULL);\n' +
       '    pthread_join(t1, NULL);\n' +
       '    pthread_join(t2, NULL);\n' +
       '\n' +
-      '    printf("mong doi %d, thuc te %ld, mat %ld lan tang (%.1f%%)\\n",\n' +
-      '           2 * SO_LAN, dem, 2L * SO_LAN - dem,\n' +
-      '           100.0 * (2L * SO_LAN - dem) / (2.0 * SO_LAN));\n' +
+      '    printf("expected %d, actual %ld, lost %ld increments (%.1f%%)\\n",\n' +
+      '           2 * ITERATIONS, counter, 2L * ITERATIONS - counter,\n' +
+      '           100.0 * (2L * ITERATIONS - counter) / (2.0 * ITERATIONS));\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -O0 -o dua_o0 dua.c\n' +
-      'for i in 1 2 3; do ./dua_o0; done' },
+      'gcc -Wall -Wextra -pthread -O0 -o race_o0 race.c\n' +
+      'for i in 1 2 3; do ./race_o0; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mong doi 2000000, thuc te 1102554, mat 897446 lan tang (44.9%)\n' +
-      'mong doi 2000000, thuc te 1229642, mat 770358 lan tang (38.5%)\n' +
-      'mong doi 2000000, thuc te 1264184, mat 735816 lan tang (36.8%)',
+      'expected 2000000, actual 1170866, lost 829134 increments (41.5%)\n' +
+      'expected 2000000, actual 1589167, lost 410833 increments (20.5%)\n' +
+      'expected 2000000, actual 1209358, lost 790642 increments (39.5%)',
       notes: ['Con số của bạn sẽ khác — và đó chính là điểm mấu chốt. <b>Mỗi lần chạy một kết ' +
         'quả khác nhau</b>, không lần nào ra 2 000 000.'] },
 
@@ -417,29 +417,29 @@ Lesson.register({
       'nghĩ tới cái vòng <code>for</code> này.</p>' },
 
     /* --- vì sao --- */
-    { t: 'h3', x: 'Vì sao dem++ không phải một thao tác' },
+    { t: 'h3', x: 'Vì sao counter++ không phải một thao tác' },
 
     { t: 'p', x:
-      'Trong mã nguồn C, <code>dem++</code> là một biểu thức. Trong CPU thì không. Hãy tự nhìn ' +
-      'bằng <code>objdump</code> — công cụ bạn đã học ở Bài 18:' },
+      'Trong mã nguồn C, <code>counter++</code> là một biểu thức. Trong CPU thì không. Hãy tự ' +
+      'nhìn bằng <code>objdump</code> — công cụ bạn đã học ở Bài 18:' },
 
     { t: 'code', where: 'wsl', code:
-      'objdump -d --no-show-raw-insn dua_o0 | sed -n "/<tang>:/,/^$/p"' },
+      'objdump -d --no-show-raw-insn race_o0 | sed -n "/<increment>:/,/^$/p"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '00000000000011a9 <tang>:\n' +
+      '00000000000011a9 <increment>:\n' +
       '    11a9:\tendbr64\n' +
       '    11ad:\tpush   %rbp\n' +
       '    11ae:\tmov    %rsp,%rbp\n' +
       '    11b1:\tmov    %rdi,-0x18(%rbp)\n' +
       '    11b5:\tmovl   $0x0,-0x4(%rbp)\n' +
-      '    11bc:\tjmp    11d4 <tang+0x2b>\n' +
-      '    11be:\tmov    0x2e53(%rip),%rax        # 4018 <dem>\n' +
+      '    11bc:\tjmp    11d4 <increment+0x2b>\n' +
+      '    11be:\tmov    0x2e53(%rip),%rax        # 4018 <counter>\n' +
       '    11c5:\tadd    $0x1,%rax\n' +
-      '    11c9:\tmov    %rax,0x2e48(%rip)        # 4018 <dem>\n' +
+      '    11c9:\tmov    %rax,0x2e48(%rip)        # 4018 <counter>\n' +
       '    11d0:\taddl   $0x1,-0x4(%rbp)\n' +
       '    11d4:\tcmpl   $0xf423f,-0x4(%rbp)\n' +
-      '    11db:\tjle    11be <tang+0x15>\n' +
+      '    11db:\tjle    11be <increment+0x15>\n' +
       '    11dd:\tmov    $0x0,%eax\n' +
       '    11e2:\tpop    %rbp\n' +
       '    11e3:\tret' },
@@ -456,13 +456,13 @@ Lesson.register({
       '<svg viewBox="0 0 720 250" width="720" role="img" aria-label="Sơ đồ thời gian cho thấy hai luồng đọc cùng giá trị 5, mỗi luồng cộng 1, cả hai ghi 6, làm mất một phép cộng">' +
       '<text class="d-t" x="10" y="18">Luồng 1</text>' +
       '<text class="d-t" x="10" y="118">Luồng 2</text>' +
-      '<text class="d-t" x="10" y="205">Biến dem</text>' +
+      '<text class="d-t" x="10" y="205">Biến counter</text>' +
 
       '<line class="d-line" x1="100" y1="60" x2="700" y2="60"/>' +
       '<line class="d-line" x1="100" y1="160" x2="700" y2="160"/>' +
 
       '<rect class="d-box-p" x="120" y="30" width="110" height="30" rx="4"/>' +
-      '<text class="d-tm" x="130" y="50">mov dem,%rax</text>' +
+      '<text class="d-tm" x="130" y="50">mov counter,%rax</text>' +
       '<text class="d-ts" x="130" y="24">đọc → 5</text>' +
 
       '<rect class="d-box-p" x="380" y="30" width="90" height="30" rx="4"/>' +
@@ -470,11 +470,11 @@ Lesson.register({
       '<text class="d-ts" x="390" y="24">%rax = 6</text>' +
 
       '<rect class="d-box-w" x="500" y="30" width="110" height="30" rx="4"/>' +
-      '<text class="d-tm" x="510" y="50">mov %rax,dem</text>' +
+      '<text class="d-tm" x="510" y="50">mov %rax,counter</text>' +
       '<text class="d-ts" x="510" y="24">ghi 6</text>' +
 
       '<rect class="d-box-a" x="250" y="130" width="110" height="30" rx="4"/>' +
-      '<text class="d-tm" x="260" y="150">mov dem,%rax</text>' +
+      '<text class="d-tm" x="260" y="150">mov counter,%rax</text>' +
       '<text class="d-ts" x="260" y="124">đọc → 5  (vẫn là 5!)</text>' +
 
       '<rect class="d-box-a" x="380" y="130" width="90" height="30" rx="4"/>' +
@@ -484,9 +484,9 @@ Lesson.register({
       '<text class="d-tm" x="628" y="150">ghi 6</text>' +
 
       '<rect class="d-box-g" x="120" y="185" width="380" height="26" rx="4"/>' +
-      '<text class="d-tm" x="130" y="203">dem = 5</text>' +
+      '<text class="d-tm" x="130" y="203">counter = 5</text>' +
       '<rect class="d-box-w" x="500" y="185" width="200" height="26" rx="4"/>' +
-      '<text class="d-tm" x="510" y="203">dem = 6   ← lẽ ra phải là 7</text>' +
+      '<text class="d-tm" x="510" y="203">counter = 6   ← lẽ ra phải là 7</text>' +
 
       '<line class="d-line" x1="305" y1="60" x2="305" y2="130"/>' +
       '<path class="d-arrow" d="M305 128 L311 118 L299 118 Z"/>' +
@@ -511,61 +511,61 @@ Lesson.register({
       'trong bài này:' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -O1 -o dua_o1 dua.c\n' +
-      'gcc -Wall -Wextra -pthread -O2 -o dua_o2 dua.c\n' +
-      'echo "--- -O1, 5 lan ---"; for i in 1 2 3 4 5; do ./dua_o1; done\n' +
-      'echo "--- -O2, 3 lan ---"; for i in 1 2 3; do ./dua_o2; done' },
+      'gcc -Wall -Wextra -pthread -O1 -o race_o1 race.c\n' +
+      'gcc -Wall -Wextra -pthread -O2 -o race_o2 race.c\n' +
+      'echo "--- -O1, 5 lan ---"; for i in 1 2 3 4 5; do ./race_o1; done\n' +
+      'echo "--- -O2, 3 lan ---"; for i in 1 2 3; do ./race_o2; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
       '--- -O1, 5 lan ---\n' +
-      'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
-      'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
-      'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
-      'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
-      'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
+      'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
+      'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
+      'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
+      'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
+      'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
       '--- -O2, 3 lan ---\n' +
-      'mong doi 2000000, thuc te 2000000, mat 0 lan tang (0.0%)\n' +
-      'mong doi 2000000, thuc te 2000000, mat 0 lan tang (0.0%)\n' +
-      'mong doi 2000000, thuc te 2000000, mat 0 lan tang (0.0%)' },
+      'expected 2000000, actual 2000000, lost 0 increments (0.0%)\n' +
+      'expected 2000000, actual 2000000, lost 0 increments (0.0%)\n' +
+      'expected 2000000, actual 2000000, lost 0 increments (0.0%)' },
 
     { t: 'p', x:
       'Ba hành vi hoàn toàn khác nhau từ <b>một</b> file nguồn. Mổ mã máy sẽ thấy vì sao — ' +
       'trình tối ưu hoá viết lại vòng lặp mỗi mức một kiểu:' },
 
     { t: 'code', where: 'wsl', code:
-      'objdump -d --no-show-raw-insn dua_o1 | sed -n "/<tang>:/,/^$/p"' },
+      'objdump -d --no-show-raw-insn race_o1 | sed -n "/<increment>:/,/^$/p"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '00000000000011b0 <tang>:\n' +
+      '00000000000011b0 <increment>:\n' +
       '    11b0:\tendbr64\n' +
-      '    11b4:\tmov    0x2e5d(%rip),%rdx        # 4018 <dem>\n' +
+      '    11b4:\tmov    0x2e5d(%rip),%rdx        # 4018 <counter>\n' +
       '    11bb:\tlea    0x1(%rdx),%rax\n' +
       '    11bf:\tadd    $0xf4241,%rdx\n' +
       '    11c6:\tcs nopw 0x0(%rax,%rax,1)\n' +
       '    11d0:\tmov    %rax,%rcx\n' +
       '    11d3:\tadd    $0x1,%rax\n' +
       '    11d7:\tcmp    %rdx,%rax\n' +
-      '    11da:\tjne    11d0 <tang+0x20>\n' +
-      '    11dc:\tmov    %rcx,0x2e35(%rip)        # 4018 <dem>\n' +
+      '    11da:\tjne    11d0 <increment+0x20>\n' +
+      '    11dc:\tmov    %rcx,0x2e35(%rip)        # 4018 <counter>\n' +
       '    11e3:\tmov    $0x0,%eax\n' +
       '    11e8:\tret' },
 
     { t: 'code', where: 'wsl', code:
-      'objdump -d --no-show-raw-insn dua_o2 | sed -n "/<tang>:/,/^$/p"' },
+      'objdump -d --no-show-raw-insn race_o2 | sed -n "/<increment>:/,/^$/p"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '0000000000001270 <tang>:\n' +
+      '0000000000001270 <increment>:\n' +
       '    1270:\tendbr64\n' +
-      '    1274:\taddq   $0xf4240,0x2d99(%rip)        # 4018 <dem>\n' +
+      '    1274:\taddq   $0xf4240,0x2d99(%rip)        # 4018 <counter>\n' +
       '    127f:\txor    %eax,%eax\n' +
       '    1281:\tret' },
 
     { t: 'table',
       head: ['Mức', 'Trình tối ưu làm gì', 'Số lần chạm bộ nhớ', 'Kết quả đo được'],
       rows: [
-        ['<code>-O0</code>', 'Dịch thẳng: đọc–cộng–ghi mỗi vòng', '2 000 000 lần đọc + 2 000 000 lần ghi', 'Mất <b>36,8–44,9 %</b>, khác nhau mỗi lần chạy'],
-        ['<code>-O1</code>', 'Giữ <code>dem</code> trong thanh ghi suốt vòng lặp, chỉ ghi trả lại <b>một lần</b> ở cuối (<code>mov %rcx,dem</code>)', '1 lần đọc + 1 lần ghi mỗi luồng', 'Mất <b>đúng 1 000 000</b> = <b>50,0 %</b>, giống hệt nhau <b>10/10</b> lần chạy'],
-        ['<code>-O2</code>', 'Xoá sổ cả vòng lặp, thay bằng <b>một lệnh</b> <code>addq $0xf4240, dem</code> (cộng thẳng 1 000 000)', '1 lệnh đọc-sửa-ghi', 'Luôn ra <b>2 000 000</b> — trông như đã đúng']
+        ['<code>-O0</code>', 'Dịch thẳng: đọc–cộng–ghi mỗi vòng', '2 000 000 lần đọc + 2 000 000 lần ghi', 'Mất <b>20,5–41,5 %</b>, khác nhau mỗi lần chạy'],
+        ['<code>-O1</code>', 'Giữ <code>counter</code> trong thanh ghi suốt vòng lặp, chỉ ghi trả lại <b>một lần</b> ở cuối (<code>mov %rcx,counter</code>)', '1 lần đọc + 1 lần ghi mỗi luồng', 'Mất <b>đúng 1 000 000</b> = <b>50,0 %</b>, giống hệt nhau <b>10/10</b> lần chạy'],
+        ['<code>-O2</code>', 'Xoá sổ cả vòng lặp, thay bằng <b>một lệnh</b> <code>addq $0xf4240, counter</code> (cộng thẳng 1 000 000)', '1 lệnh đọc-sửa-ghi', 'Luôn ra <b>2 000 000</b> — trông như đã đúng']
       ]},
 
     { t: 'cal', kind: 'danger', title: '-O2 cho kết quả đúng, và đó là điều nguy hiểm nhất', x:
@@ -583,14 +583,14 @@ Lesson.register({
 
     { t: 'cal', kind: 'tip', title: 'Bốn dòng ở -O1 giải thích con số 50 % chằn chặn', x:
       '<p>Vì sao <code>-O1</code> mất <i>chính xác</i> một triệu, không xê dịch, 10/10 lần?</p>' +
-      '<p>Nhìn mã máy: <code>mov dem,%rdx</code> đọc <b>một lần</b> lúc vào hàm, vòng lặp quay ' +
+      '<p>Nhìn mã máy: <code>mov counter,%rdx</code> đọc <b>một lần</b> lúc vào hàm, vòng lặp quay ' +
       'hoàn toàn trong thanh ghi <code>%rax</code>/<code>%rcx</code>, rồi <code>mov ' +
-      '%rcx,dem</code> ghi <b>một lần</b> lúc ra. Cả hai luồng đều đọc 0 lúc đầu, đều tính ra ' +
+      '%rcx,counter</code> ghi <b>một lần</b> lúc ra. Cả hai luồng đều đọc 0 lúc đầu, đều tính ra ' +
       '1 000 000, đều ghi 1 000 000. Công của một luồng bị xoá sổ trọn vẹn.</p>' +
       '<p>Đây cũng chính là cơ chế đã gây ra lỗi "vòng lặp không bao giờ thoát" ở Bài 21 — ' +
       'trình biên dịch giữ biến trong thanh ghi. Ở đó <code>volatile</code> là lời chữa. Ở đây ' +
       '<b>không phải</b>: <code>volatile</code> ép đọc lại bộ nhớ nhưng <i>không</i> làm ' +
-      '<code>dem++</code> trở nên nguyên tử. Nó sẽ đưa bạn về đúng hành vi sai kiểu ' +
+      '<code>counter++</code> trở nên nguyên tử. Nó sẽ đưa bạn về đúng hành vi sai kiểu ' +
       '<code>-O0</code>. Đừng bao giờ dùng <code>volatile</code> để chống race condition.</p>' },
 
     /* ══════════════════════════════════════════════
@@ -603,21 +603,21 @@ Lesson.register({
       'tới mà thấy cửa khoá thì <b>ngủ</b> cho tới khi được đánh thức — không quay vòng chờ, ' +
       'không tốn CPU.' },
 
-    { t: 'code', where: 'file', name: 'khoa.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'mutex.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <pthread.h>\n' +
       '\n' +
-      '#define SO_LAN 1000000\n' +
-      'static long dem = 0;\n' +
-      'static pthread_mutex_t khoa = PTHREAD_MUTEX_INITIALIZER;\n' +
+      '#define ITERATIONS 1000000\n' +
+      'static long counter = 0;\n' +
+      'static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;\n' +
       '\n' +
-      'static void *tang(void *a)\n' +
+      'static void *increment(void *a)\n' +
       '{\n' +
       '    (void)a;\n' +
-      '    for (int i = 0; i < SO_LAN; i++) {\n' +
-      '        pthread_mutex_lock(&khoa);\n' +
-      '        dem++;                        /* vung toi han */\n' +
-      '        pthread_mutex_unlock(&khoa);\n' +
+      '    for (int i = 0; i < ITERATIONS; i++) {\n' +
+      '        pthread_mutex_lock(&lock);\n' +
+      '        counter++;                    /* critical section */\n' +
+      '        pthread_mutex_unlock(&lock);\n' +
       '    }\n' +
       '    return NULL;\n' +
       '}\n' +
@@ -625,24 +625,24 @@ Lesson.register({
       'int main(void)\n' +
       '{\n' +
       '    pthread_t t1, t2;\n' +
-      '    pthread_create(&t1, NULL, tang, NULL);\n' +
-      '    pthread_create(&t2, NULL, tang, NULL);\n' +
+      '    pthread_create(&t1, NULL, increment, NULL);\n' +
+      '    pthread_create(&t2, NULL, increment, NULL);\n' +
       '    pthread_join(t1, NULL);\n' +
       '    pthread_join(t2, NULL);\n' +
-      '    printf("mong doi %d, thuc te %ld\\n", 2 * SO_LAN, dem);\n' +
+      '    printf("expected %d, actual %ld\\n", 2 * ITERATIONS, counter);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -O1 -o khoa khoa.c\n' +
-      'for i in 1 2 3 4 5; do ./khoa; done' },
+      'gcc -Wall -Wextra -pthread -O1 -o mutex mutex.c\n' +
+      'for i in 1 2 3 4 5; do ./mutex; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mong doi 2000000, thuc te 2000000\n' +
-      'mong doi 2000000, thuc te 2000000\n' +
-      'mong doi 2000000, thuc te 2000000\n' +
-      'mong doi 2000000, thuc te 2000000\n' +
-      'mong doi 2000000, thuc te 2000000' },
+      'expected 2000000, actual 2000000\n' +
+      'expected 2000000, actual 2000000\n' +
+      'expected 2000000, actual 2000000\n' +
+      'expected 2000000, actual 2000000\n' +
+      'expected 2000000, actual 2000000' },
 
     { t: 'cal', kind: 'why', title: 'Vì sao mutex đúng còn -O2 chỉ may mắn', x:
       '<p>Điểm khác biệt không nằm ở kết quả — cả hai đều in ra 2 000 000. Nó nằm ở chỗ ' +
@@ -654,7 +654,7 @@ Lesson.register({
       'mức tối ưu, số lõi, tốc độ CPU hay vận may. Chạy trên máy 64 lõi vẫn đúng.</p>' +
       '<p>Đó là khác biệt giữa <i>quan sát thấy đúng</i> và <i>chứng minh được đúng</i>.</p>' },
 
-    { t: 'cmdx', cmd: 'pthread_mutex_t khoa = PTHREAD_MUTEX_INITIALIZER;',
+    { t: 'cmdx', cmd: 'pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;',
       title: 'Bốn hàm mutex cần thuộc',
       rows: [
         ['<code>PTHREAD_MUTEX_INITIALIZER</code>', 'Khởi tạo tĩnh cho mutex là biến toàn cục/static', 'Gọn nhất. Với mutex nằm trong <code>malloc</code> thì phải dùng <code>pthread_mutex_init(&amp;m, NULL)</code>'],
@@ -668,18 +668,18 @@ Lesson.register({
       'Nhưng khoá không miễn phí. Đo bằng đồng hồ thật:' },
 
     { t: 'code', where: 'wsl', code:
-      'for p in dua_o0 khoa; do\n' +
+      'for p in race_o0 mutex; do\n' +
       '  S=$(date +%s%N); ./$p > /dev/null; E=$(date +%s%N)\n' +
       '  echo "$p: $(( (E-S)/1000000 )) ms"\n' +
       'done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'dua_o0: 14 ms\n' +
-      'khoa: 170 ms' },
+      'race_o0: 12 ms\n' +
+      'mutex: 134 ms' },
 
     { t: 'cal', kind: 'info', title: 'Khoá đắt gấp khoảng 12 lần — và đó là con số cần nhớ', x:
-      '<p>Đo ba lần mỗi bên trên máy này: không khoá <b>13–15 ms</b>, có mutex ' +
-      '<b>160–173 ms</b>. Chênh khoảng <b>12 lần</b>.</p>' +
+      '<p>Đo ba lần mỗi bên trên máy này: không khoá <b>10–14 ms</b>, có mutex ' +
+      '<b>133–143 ms</b>. Chênh khoảng <b>12 lần</b>.</p>' +
       '<p>Lý do: mỗi vòng lặp giờ có thêm hai lời gọi hàm, và khi hai luồng va nhau thì phải ' +
       'xuống nhân qua <code>futex</code> để ngủ rồi đánh thức. Bạn đang khoá/mở <b>hai triệu ' +
       'lần</b> chỉ để bảo vệ một phép cộng — tỷ lệ chi phí trên công việc hữu ích tệ nhất có ' +
@@ -698,79 +698,79 @@ Lesson.register({
       'Nếu vùng tới hạn chỉ là <b>một phép toán trên một biến</b>, có cách rẻ hơn mutex nhiều: ' +
       'nhờ chính CPU làm cho phép toán đó không thể bị cắt ngang.' },
 
-    { t: 'code', where: 'file', name: 'nguyentu.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'atomic.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <pthread.h>\n' +
-      '#include <stdatomic.h>                /* chuan C11 */\n' +
+      '#include <stdatomic.h>                /* C11 standard */\n' +
       '\n' +
-      '#define SO_LAN 1000000\n' +
-      'static atomic_long dem = 0;\n' +
+      '#define ITERATIONS 1000000\n' +
+      'static atomic_long counter = 0;\n' +
       '\n' +
-      'static void *tang(void *a)\n' +
+      'static void *increment(void *a)\n' +
       '{\n' +
       '    (void)a;\n' +
-      '    for (int i = 0; i < SO_LAN; i++)\n' +
-      '        atomic_fetch_add(&dem, 1);     /* mot lenh may co khoa bus */\n' +
+      '    for (int i = 0; i < ITERATIONS; i++)\n' +
+      '        atomic_fetch_add(&counter, 1);   /* one bus-locked instruction */\n' +
       '    return NULL;\n' +
       '}\n' +
       '\n' +
       'int main(void)\n' +
       '{\n' +
       '    pthread_t t1, t2;\n' +
-      '    pthread_create(&t1, NULL, tang, NULL);\n' +
-      '    pthread_create(&t2, NULL, tang, NULL);\n' +
+      '    pthread_create(&t1, NULL, increment, NULL);\n' +
+      '    pthread_create(&t2, NULL, increment, NULL);\n' +
       '    pthread_join(t1, NULL);\n' +
       '    pthread_join(t2, NULL);\n' +
-      '    printf("mong doi %d, thuc te %ld\\n", 2 * SO_LAN, (long)dem);\n' +
+      '    printf("expected %d, actual %ld\\n", 2 * ITERATIONS, (long)counter);\n' +
       '    return 0;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -O0 -o nguyentu nguyentu.c\n' +
-      './nguyentu\n' +
-      'objdump -d --no-show-raw-insn nguyentu | sed -n "/<tang>:/,/^$/p" | grep -i lock' },
+      'gcc -Wall -Wextra -pthread -O0 -o atomic atomic.c\n' +
+      './atomic\n' +
+      'objdump -d --no-show-raw-insn atomic | sed -n "/<increment>:/,/^$/p" | grep -i lock' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'mong doi 2000000, thuc te 2000000\n' +
-      '    11be:\tlock addq $0x1,0x2e51(%rip)        # 4018 <dem>' },
+      'expected 2000000, actual 2000000\n' +
+      '    11be:\tlock addq $0x1,0x2e51(%rip)        # 4018 <counter>' },
 
     { t: 'cal', kind: 'why', title: 'Tiền tố lock — một chữ làm nên toàn bộ khác biệt', x:
       '<p>So ba đoạn mã máy đã gặp trong bài, tất cả đều cộng vào cùng một biến:</p>' +
       '<ul>' +
       '<li><code>-O0</code>: <code>mov</code> / <code>add</code> / <code>mov</code> — ba lệnh, ' +
       'sai nặng.</li>' +
-      '<li><code>-O2</code>: <code>addq $0xf4240,dem</code> — một lệnh, vẫn có thể sai.</li>' +
-      '<li>nguyên tử: <code><b>lock</b> addq $0x1,dem</code> — một lệnh, <b>không thể</b> ' +
+      '<li><code>-O2</code>: <code>addq $0xf4240,counter</code> — một lệnh, vẫn có thể sai.</li>' +
+      '<li>nguyên tử: <code><b>lock</b> addq $0x1,counter</code> — một lệnh, <b>không thể</b> ' +
       'sai.</li>' +
       '</ul>' +
       '<p>Khác biệt giữa dòng hai và dòng ba chỉ là bốn chữ cái <code>lock</code>. Tiền tố này ' +
-      'ra lệnh cho CPU giữ độc quyền dòng cache chứa <code>dem</code> trong suốt lệnh đó, nên ' +
+      'ra lệnh cho CPU giữ độc quyền dòng cache chứa <code>counter</code> trong suốt lệnh đó, nên ' +
       'không lõi nào khác chen vào giữa được. Đây là bảo đảm ở mức <b>phần cứng</b>, không phải ' +
       'ở mức thư viện.</p>' +
       '<p>Nhắc lại điểm mấu chốt: dòng hai và dòng ba <i>nhìn giống nhau</i> và <i>cho kết quả ' +
       'như nhau khi bạn thử</i>. Chỉ một trong hai là đúng.</p>' },
 
     { t: 'code', where: 'wsl', code:
-      'for p in dua_o0 nguyentu khoa; do\n' +
+      'for p in race_o0 atomic mutex; do\n' +
       '  S=$(date +%s%N); ./$p > /dev/null; E=$(date +%s%N)\n' +
       '  echo "$p: $(( (E-S)/1000000 )) ms"\n' +
       'done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'dua_o0: 14 ms\n' +
-      'nguyentu: 54 ms\n' +
-      'khoa: 170 ms' },
+      'race_o0: 10 ms\n' +
+      'atomic: 35 ms\n' +
+      'mutex: 143 ms' },
 
     { t: 'table',
       head: ['Cách', 'Kết quả', 'Thời gian đo được', 'So với không khoá', 'Dùng khi nào'],
       rows: [
-        ['Không bảo vệ', '<b>Sai</b> (mất 36–50 %)', '13–15 ms', '1×', 'Không bao giờ, nếu có nhiều hơn một luồng ghi'],
-        ['<code>atomic_fetch_add</code>', 'Đúng', '47–63 ms', '~<b>4×</b>', 'Bộ đếm, cờ, một biến đơn. Rẻ nhất trong các cách đúng'],
-        ['<code>pthread_mutex</code>', 'Đúng', '160–173 ms', '~<b>12×</b>', 'Nhiều biến phải nhất quán với nhau, hoặc vùng tới hạn dài hơn một phép toán']
+        ['Không bảo vệ', '<b>Sai</b> (mất 20–42 %)', '10–14 ms', '1×', 'Không bao giờ, nếu có nhiều hơn một luồng ghi'],
+        ['<code>atomic_fetch_add</code>', 'Đúng', '29–35 ms', '~<b>3×</b>', 'Bộ đếm, cờ, một biến đơn. Rẻ nhất trong các cách đúng'],
+        ['<code>pthread_mutex</code>', 'Đúng', '133–143 ms', '~<b>12×</b>', 'Nhiều biến phải nhất quán với nhau, hoặc vùng tới hạn dài hơn một phép toán']
       ]},
 
     { t: 'cal', kind: 'tip', title: 'Chọn thế nào cho đúng', x:
-      '<p>Nguyên tử <b>rẻ hơn mutex khoảng 3 lần</b> nhưng chỉ bảo vệ được <i>một</i> biến. Ngay ' +
+      '<p>Nguyên tử <b>rẻ hơn mutex khoảng 4 lần</b> nhưng chỉ bảo vệ được <i>một</i> biến. Ngay ' +
       'khi bạn cần hai biến nhất quán với nhau — ví dụ vừa thêm phần tử vào mảng vừa tăng biến ' +
       'đếm — thì nguyên tử không đủ, vì giữa hai thao tác nguyên tử vẫn có khe hở.</p>' +
       '<p>Quy tắc thực dụng: <b>bộ đếm và cờ thì dùng nguyên tử; cấu trúc dữ liệu thì dùng ' +
@@ -790,19 +790,19 @@ Lesson.register({
       'tiêu thụ phải đợi luồng sản xuất bỏ hàng vào kho, cách ngây thơ là quay vòng kiểm tra:' },
 
     { t: 'code', where: 'file', name: 'vòng lặp bận — cách SAI', lang: 'c', code:
-      'while (!san_sang) { }          /* quay vong kiem tra lien tuc */' },
+      'while (!ready) { }          /* continuously polls */' },
 
     { t: 'p', x:
       'Đo xem cách này tốn gì. Hai chương trình cùng chờ đúng 2 giây, một dùng vòng lặp bận, ' +
       'một dùng <code>pthread_cond_wait</code>:' },
 
     { t: 'code', where: 'wsl', code:
-      '/usr/bin/time -f "  thuc te %e s | CPU nguoi dung %U s | dung CPU %P" ./banroi\n' +
-      '/usr/bin/time -f "  thuc te %e s | CPU nguoi dung %U s | dung CPU %P" ./ngoannho' },
+      '/usr/bin/time -f "  real %e s | CPU %U s | CPU_pct %P" ./busy_wait\n' +
+      '/usr/bin/time -f "  real %e s | CPU %U s | CPU_pct %P" ./cond_wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '  thuc te 2.00 s | CPU nguoi dung 1.99 s | dung CPU 99%\n' +
-      '  thuc te 2.00 s | CPU nguoi dung 0.00 s | dung CPU 0%' },
+      '  real 2.00 s | CPU 1.99 s | CPU_pct 99%\n' +
+      '  real 2.00 s | CPU 0.00 s | CPU_pct 0%' },
 
     { t: 'cal', kind: 'why', title: '99 % CPU so với 0 %, cùng một kết quả', x:
       '<p>Cả hai chờ đúng 2,00 giây và cùng hoàn thành công việc. Nhưng một cái ngốn ' +
@@ -820,86 +820,86 @@ Lesson.register({
       'Mẫu chuẩn sản xuất – tiêu thụ với kho có sức chứa hữu hạn. Đây là bộ khung bạn sẽ dùng ' +
       'lại rất nhiều: một luồng đọc cảm biến, một luồng ghi ra mạng.' },
 
-    { t: 'code', where: 'file', name: 'sanxuat.c (phần cốt lõi)', lang: 'c', code:
-      '#define SUC_CHUA 4\n' +
-      'static int kho[SUC_CHUA];\n' +
-      'static int so_mon = 0;\n' +
+    { t: 'code', where: 'file', name: 'producer_consumer.c (phần cốt lõi)', lang: 'c', code:
+      '#define CAPACITY 4\n' +
+      'static int buffer[CAPACITY];\n' +
+      'static int count = 0;\n' +
       '\n' +
-      'static pthread_mutex_t khoa    = PTHREAD_MUTEX_INITIALIZER;\n' +
-      'static pthread_cond_t  co_hang = PTHREAD_COND_INITIALIZER;   /* kho khong rong */\n' +
-      'static pthread_cond_t  co_cho  = PTHREAD_COND_INITIALIZER;   /* kho khong day  */\n' +
+      'static pthread_mutex_t lock      = PTHREAD_MUTEX_INITIALIZER;\n' +
+      'static pthread_cond_t  not_empty = PTHREAD_COND_INITIALIZER;   /* buffer not empty */\n' +
+      'static pthread_cond_t  not_full  = PTHREAD_COND_INITIALIZER;   /* buffer not full  */\n' +
       '\n' +
-      'static void *nguoi_san_xuat(void *a)\n' +
+      'static void *producer(void *a)\n' +
       '{\n' +
       '    (void)a;\n' +
       '    for (int i = 1; i <= 8; i++) {\n' +
-      '        pthread_mutex_lock(&khoa);\n' +
-      '        while (so_mon == SUC_CHUA)              /* WHILE, khong phai IF */\n' +
-      '            pthread_cond_wait(&co_cho, &khoa);\n' +
-      '        kho[so_mon++] = i;\n' +
-      '        printf("  [san xuat] bo vao mon %d, kho co %d\\n", i, so_mon);\n' +
+      '        pthread_mutex_lock(&lock);\n' +
+      '        while (count == CAPACITY)               /* WHILE, not IF */\n' +
+      '            pthread_cond_wait(&not_full, &lock);\n' +
+      '        buffer[count++] = i;\n' +
+      '        printf("  [producer] added item %d, buffer has %d\\n", i, count);\n' +
       '        fflush(stdout);\n' +
-      '        pthread_cond_signal(&co_hang);          /* danh thuc nguoi tieu thu */\n' +
-      '        pthread_mutex_unlock(&khoa);\n' +
+      '        pthread_cond_signal(&not_empty);          /* wake the consumer */\n' +
+      '        pthread_mutex_unlock(&lock);\n' +
       '        usleep(50000);\n' +
       '    }\n' +
       '    return NULL;\n' +
       '}\n' +
       '\n' +
-      'static void *nguoi_tieu_thu(void *a)\n' +
+      'static void *consumer(void *a)\n' +
       '{\n' +
       '    (void)a;\n' +
       '    for (int i = 0; i < 8; i++) {\n' +
-      '        pthread_mutex_lock(&khoa);\n' +
-      '        while (so_mon == 0)\n' +
-      '            pthread_cond_wait(&co_hang, &khoa);\n' +
-      '        int mon = kho[--so_mon];\n' +
-      '        printf("             [tieu thu] lay mon %d, kho con %d\\n", mon, so_mon);\n' +
+      '        pthread_mutex_lock(&lock);\n' +
+      '        while (count == 0)\n' +
+      '            pthread_cond_wait(&not_empty, &lock);\n' +
+      '        int item = buffer[--count];\n' +
+      '        printf("             [consumer] took item %d, buffer has %d\\n", item, count);\n' +
       '        fflush(stdout);\n' +
-      '        pthread_cond_signal(&co_cho);\n' +
-      '        pthread_mutex_unlock(&khoa);\n' +
+      '        pthread_cond_signal(&not_full);\n' +
+      '        pthread_mutex_unlock(&lock);\n' +
       '        usleep(120000);\n' +
       '    }\n' +
       '    return NULL;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -o sanxuat sanxuat.c && ./sanxuat' },
+      'gcc -Wall -Wextra -pthread -o producer_consumer producer_consumer.c && ./producer_consumer' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '  [san xuat] bo vao mon 1, kho co 1\n' +
-      '             [tieu thu] lay mon 1, kho con 0\n' +
-      '  [san xuat] bo vao mon 2, kho co 1\n' +
-      '  [san xuat] bo vao mon 3, kho co 2\n' +
-      '             [tieu thu] lay mon 3, kho con 1\n' +
-      '  [san xuat] bo vao mon 4, kho co 2\n' +
-      '  [san xuat] bo vao mon 5, kho co 3\n' +
-      '             [tieu thu] lay mon 5, kho con 2\n' +
-      '  [san xuat] bo vao mon 6, kho co 3\n' +
-      '  [san xuat] bo vao mon 7, kho co 4\n' +
-      '             [tieu thu] lay mon 7, kho con 3\n' +
-      '  [san xuat] bo vao mon 8, kho co 4\n' +
-      '             [tieu thu] lay mon 8, kho con 3\n' +
-      '             [tieu thu] lay mon 6, kho con 2\n' +
-      '             [tieu thu] lay mon 4, kho con 1\n' +
-      '             [tieu thu] lay mon 2, kho con 0\n' +
-      'xong, kho con 0 mon',
+      '  [producer] added item 1, buffer has 1\n' +
+      '             [consumer] took item 1, buffer has 0\n' +
+      '  [producer] added item 2, buffer has 1\n' +
+      '  [producer] added item 3, buffer has 2\n' +
+      '             [consumer] took item 3, buffer has 1\n' +
+      '  [producer] added item 4, buffer has 2\n' +
+      '  [producer] added item 5, buffer has 3\n' +
+      '             [consumer] took item 5, buffer has 2\n' +
+      '  [producer] added item 6, buffer has 3\n' +
+      '  [producer] added item 7, buffer has 4\n' +
+      '             [consumer] took item 7, buffer has 3\n' +
+      '  [producer] added item 8, buffer has 4\n' +
+      '             [consumer] took item 8, buffer has 3\n' +
+      '             [consumer] took item 6, buffer has 2\n' +
+      '             [consumer] took item 4, buffer has 1\n' +
+      '             [consumer] took item 2, buffer has 0\n' +
+      'done, buffer has 0 items',
       notes: ['Thứ tự đan xen trên máy bạn có thể khác. Điều <b>phải</b> giống: ' +
-        '<code>kho co</code> không bao giờ vượt quá <b>4</b>, không bao giờ âm, và dòng cuối ' +
-        'là <code>kho con 0 mon</code>.'] },
+        '<code>buffer has</code> không bao giờ vượt quá <b>4</b>, không bao giờ âm, và dòng cuối ' +
+        'là <code>done, buffer has 0 items</code>.'] },
 
-    { t: 'cmdx', cmd: 'pthread_cond_wait(&co_hang, &khoa)',
+    { t: 'cmdx', cmd: 'pthread_cond_wait(&not_empty, &lock)',
       title: 'Ba việc pthread_cond_wait làm trong một lời gọi',
       rows: [
-        ['① mở khoá <code>khoa</code>', 'Nhả mutex ra, nếu không luồng kia không bao giờ vào được để đổi điều kiện', 'Đây là lý do phải truyền mutex vào — hàm cần quyền nhả nó'],
+        ['① mở khoá <code>lock</code>', 'Nhả mutex ra, nếu không luồng kia không bao giờ vào được để đổi điều kiện', 'Đây là lý do phải truyền mutex vào — hàm cần quyền nhả nó'],
         ['② ngủ', 'Đưa luồng ra khỏi hàng đợi chạy cho tới khi có <code>signal</code>/<code>broadcast</code>', 'Ba việc ①② này là <b>nguyên tử</b> với nhau, nên không có khe hở làm mất tín hiệu'],
-        ['③ khoá lại <code>khoa</code>', 'Khi tỉnh dậy, tự giành lại mutex trước khi trả về', 'Vì vậy sau khi <code>wait</code> trả về, bạn <b>đang giữ khoá</b> — đừng khoá lại lần nữa'],
+        ['③ khoá lại <code>lock</code>', 'Khi tỉnh dậy, tự giành lại mutex trước khi trả về', 'Vì vậy sau khi <code>wait</code> trả về, bạn <b>đang giữ khoá</b> — đừng khoá lại lần nữa'],
         ['<code>pthread_cond_signal</code>', 'Đánh thức <b>một</b> luồng đang chờ', 'Đủ dùng khi mọi luồng chờ đều làm cùng một việc'],
         ['<code>pthread_cond_broadcast</code>', 'Đánh thức <b>tất cả</b> luồng đang chờ', 'Cần khi các luồng chờ những điều kiện khác nhau trên cùng một biến điều kiện']
       ]},
 
     { t: 'cal', kind: 'danger', title: 'while chứ không phải if — đây là lỗi kinh điển nhất', x:
-      '<p>Rất nhiều người viết <code>if (so_mon == 0) pthread_cond_wait(...)</code>. Nó chạy ' +
+      '<p>Rất nhiều người viết <code>if (count == 0) pthread_cond_wait(...)</code>. Nó chạy ' +
       'đúng trong hầu hết các lần thử, rồi hỏng ngoài hiện trường. Hai lý do:</p>' +
       '<ol>' +
       '<li><b>Đánh thức giả</b> (<i>spurious wakeup</i>). POSIX cho phép ' +
@@ -910,8 +910,8 @@ Lesson.register({
       '<code>signal</code> đánh thức luồng A, nhưng luồng B đang chạy sẵn chộp mất món đó ' +
       'trước. Luồng A tỉnh dậy, thấy kho rỗng.</li>' +
       '</ol>' +
-      '<p>Với <code>if</code>, luồng A chạy tiếp và làm <code>kho[--so_mon]</code> khi ' +
-      '<code>so_mon</code> đang là 0 — đọc ra ngoài mảng, <code>so_mon</code> thành <b>-1</b>. ' +
+      '<p>Với <code>if</code>, luồng A chạy tiếp và làm <code>buffer[--count]</code> khi ' +
+      '<code>count</code> đang là 0 — đọc ra ngoài mảng, <code>count</code> thành <b>-1</b>. ' +
       'Với <code>while</code>, nó kiểm tra lại, thấy vẫn rỗng, và ngủ tiếp. Đúng đắn.</p>' +
       '<p><b>Quy tắc không có ngoại lệ: <code>pthread_cond_wait</code> luôn nằm trong một vòng ' +
       '<code>while</code> kiểm tra lại điều kiện.</b></p>' },
@@ -925,42 +925,42 @@ Lesson.register({
       'Mutex sửa được race condition, nhưng đẻ ra một lỗi mới. Hai luồng, hai khoá, mỗi luồng ' +
       'lấy khoá theo một thứ tự khác nhau:' },
 
-    { t: 'code', where: 'file', name: 'ketcung.c (phần cốt lõi)', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'deadlock.c (phần cốt lõi)', lang: 'c', code:
       'static pthread_mutex_t A = PTHREAD_MUTEX_INITIALIZER;\n' +
       'static pthread_mutex_t B = PTHREAD_MUTEX_INITIALIZER;\n' +
       '\n' +
-      'static void *luong1(void *x)\n' +
+      'static void *thread1(void *x)\n' +
       '{\n' +
       '    (void)x;\n' +
-      '    pthread_mutex_lock(&A);  printf("  [luong1] giu A, xin B\\n"); fflush(stdout);\n' +
-      '    sleep(1);                            /* keo dai cua so de chac chan ket */\n' +
-      '    pthread_mutex_lock(&B);  printf("  [luong1] giu ca A va B\\n");\n' +
+      '    pthread_mutex_lock(&A);  printf("  [thread1] holding A, requesting B\\n"); fflush(stdout);\n' +
+      '    sleep(1);                            /* widen the window to guarantee the deadlock */\n' +
+      '    pthread_mutex_lock(&B);  printf("  [thread1] holding both A and B\\n");\n' +
       '    pthread_mutex_unlock(&B); pthread_mutex_unlock(&A);\n' +
       '    return NULL;\n' +
       '}\n' +
       '\n' +
-      'static void *luong2(void *x)\n' +
+      'static void *thread2(void *x)\n' +
       '{\n' +
       '    (void)x;\n' +
-      '    pthread_mutex_lock(&B);  printf("  [luong2] giu B, xin A\\n"); fflush(stdout);\n' +
+      '    pthread_mutex_lock(&B);  printf("  [thread2] holding B, requesting A\\n"); fflush(stdout);\n' +
       '    sleep(1);\n' +
-      '    pthread_mutex_lock(&A);  printf("  [luong2] giu ca B va A\\n");\n' +
+      '    pthread_mutex_lock(&A);  printf("  [thread2] holding both B and A\\n");\n' +
       '    pthread_mutex_unlock(&A); pthread_mutex_unlock(&B);\n' +
       '    return NULL;\n' +
       '}' },
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -pthread -o ketcung ketcung.c\n' +
-      'timeout 5 ./ketcung\n' +
-      'echo "ma thoat = $?"' },
+      'gcc -Wall -Wextra -pthread -o deadlock deadlock.c\n' +
+      'timeout 5 ./deadlock\n' +
+      'echo "exit code = $?"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'pid=5434\n' +
-      '  [luong2] giu B, xin A\n' +
-      '  [luong1] giu A, xin B\n' +
-      'ma thoat = 124',
+      'pid=1911\n' +
+      '  [thread1] holding A, requesting B\n' +
+      '  [thread2] holding B, requesting A\n' +
+      'exit code = 124',
       notes: ['<b>124</b> là mã <code>timeout</code> dùng để báo "đã hết giờ, tôi phải giết nó" ' +
-        '— bạn đã gặp ở Bài 21. Chương trình không tự thoát: dòng <code>giu ca A va B</code> ' +
+        '— bạn đã gặp ở Bài 21. Chương trình không tự thoát: dòng <code>holding both A and B</code> ' +
         'không bao giờ được in.'] },
 
     { t: 'fig', cap:
@@ -1007,9 +1007,9 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       '    PID     TID STAT WCHAN                COMMAND\n' +
-      '   5440    5440 Sl+  futex_do_wait        ketcung\n' +
-      '   5440    5442 Sl+  futex_do_wait        ketcung\n' +
-      '   5440    5443 Sl+  futex_do_wait        ketcung\n' +
+      '   2008    2008 Sl+  futex_do_wait        deadlock\n' +
+      '   2008    2010 Sl+  futex_do_wait        deadlock\n' +
+      '   2008    2011 Sl+  futex_do_wait        deadlock\n' +
       'State:\tS (sleeping)\n' +
       'Threads:\t3' },
 
@@ -1033,13 +1033,13 @@ Lesson.register({
 
     { t: 'cal', kind: 'why', title: 'Quy tắc một dòng đáng giá cả bài', x:
       '<p><b>Mọi luồng phải lấy khoá theo cùng một thứ tự toàn cục.</b></p>' +
-      '<p>Trong ví dụ trên, chỉ cần sửa <code>luong2</code> lấy A trước rồi mới tới B — giống ' +
-      '<code>luong1</code>. Vòng tròn biến mất, và deadlock trở nên <i>không thể xảy ra về mặt ' +
+      '<p>Trong ví dụ trên, chỉ cần sửa <code>thread2</code> lấy A trước rồi mới tới B — giống ' +
+      '<code>thread1</code>. Vòng tròn biến mất, và deadlock trở nên <i>không thể xảy ra về mặt ' +
       'cấu trúc</i>, chứ không phải "khó xảy ra".</p>' +
       '<p>Kiểm chứng: sau khi sửa, chương trình in đủ bốn dòng và thoát với mã <b>0</b> thay vì ' +
       '124. Bạn sẽ tự làm ở bước 4 phần thực hành.</p>' +
       '<p>Trong dự án thật, thứ tự đó phải được <b>ghi ra thành văn</b> — ví dụ một dòng chú ' +
-      'thích ở đầu file: <code>/* thu tu khoa: cau_hinh -&gt; hang_doi -&gt; ket_noi */</code>. ' +
+      'thích ở đầu file: <code>/* lock order: config -&gt; queue -&gt; connection */</code>. ' +
       'Đây là loại tài liệu đáng giá nhất trong mã đa luồng.</p>' },
 
     { t: 'table',
@@ -1062,33 +1062,33 @@ Lesson.register({
     { t: 'h3', x: 'Con số 1 — giá tạo ra' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'tao+doi 1 luong :  137.3 us | fork+doi 1 con  :  413.1 us | luong nhanh hon : 3.0 lan\n' +
-      'tao+doi 1 luong :  126.6 us | fork+doi 1 con  :  393.3 us | luong nhanh hon : 3.1 lan\n' +
-      'tao+doi 1 luong :  125.0 us | fork+doi 1 con  :  303.7 us | luong nhanh hon : 2.4 lan',
+      'create+join 1 thread:   99.5 us | fork+wait 1 child:  243.7 us | thread is faster: 2.4x\n' +
+      'create+join 1 thread:   80.0 us | fork+wait 1 child:  226.8 us | thread is faster: 2.8x\n' +
+      'create+join 1 thread:  103.1 us | fork+wait 1 child:  269.9 us | thread is faster: 2.6x',
       notes: ['Cả hai con số đo trong <b>cùng một chương trình</b> nên so được với nhau trực ' +
         'tiếp. Lưu ý đây là <code>fork</code> + <code>waitpid</code> trọn gói, nên lớn hơn con ' +
         'số <b>215–235 µs</b> chỉ tính riêng <code>fork</code> ở Bài 20.',
-        'Lần chạy <b>đầu tiên</b> luôn cho số cao bất thường (đo được 860 µs) vì trang nhớ chưa ' +
+        'Lần chạy <b>đầu tiên</b> luôn cho số cao bất thường (đo được 727 µs) vì trang nhớ chưa ' +
         'được nạp. Hãy chạy nóng một lần rồi mới lấy số — thói quen bắt buộc khi đo đạc.'] },
 
     { t: 'h3', x: 'Con số 2 — giá bộ nhớ' },
 
     { t: 'code', where: 'wsl', code:
-      './nganxep\n' +
-      'grep -E "^(VmSize|VmRSS|Threads)" /proc/<PID cua tramluong>/status' },
+      './stack_size\n' +
+      'grep -E "^(VmSize|VmRSS|Threads)" /proc/<PID of hundred_threads>/status' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'ngan xep mac dinh moi luong = 8388608 byte = 8192 KB = 8 MB\n' +
-      'sau khi dat lai              = 65536 byte = 64 KB\n' +
-      'PTHREAD_STACK_MIN            = 16384 byte\n' +
+      'default stack per thread = 8388608 byte = 8192 KB = 8 MB\n' +
+      'after resizing           = 65536 byte = 64 KB\n' +
+      'PTHREAD_STACK_MIN        = 16384 byte\n' +
       'VmSize:\t  822368 kB\n' +
-      'VmRSS:\t    2768 kB\n' +
+      'VmRSS:\t    2772 kB\n' +
       'Threads:\t101' },
 
     { t: 'cal', kind: 'danger', title: '100 luồng = 803 MB bộ nhớ ảo. Trên thiết bị 64 MB thì sao?', x:
       '<p>Mỗi luồng nhận ngăn xếp mặc định <b>8 MB</b> — bằng đúng <code>ulimit -s</code> của ' +
       'luồng chính. Một trăm luồng chiếm <b>822 368 kB ≈ 803 MB</b> bộ nhớ ảo.</p>' +
-      '<p>Nhưng <code>VmRSS</code> chỉ có <b>2 768 kB ≈ 2,7 MB</b>. Vì sao? Vì đó là bộ nhớ ' +
+      '<p>Nhưng <code>VmRSS</code> chỉ có <b>2 772 kB ≈ 2,7 MB</b>. Vì sao? Vì đó là bộ nhớ ' +
       '<i>ảo</i> — nhân mới chỉ hứa hẹn, chưa cấp trang nào cho tới khi luồng thật sự chạm tới. ' +
       'Đây chính là cơ chế cấp phát lười mà bạn đã gặp qua copy-on-write ở Bài 20.</p>' +
       '<p><b>Nhưng đừng yên tâm.</b> Trên hệ thống 64 MB RAM và <b>không có swap</b> — tình ' +
@@ -1107,24 +1107,24 @@ Lesson.register({
       'vào con trỏ NULL, rồi làm điều y hệt với một tiến trình con:' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '$ ./luongchet\n' +
-      'main van song, giay 0\n' +
-      'main van song, giay 1\n' +
+      '$ ./thread_crash\n' +
+      'main still alive, second 0\n' +
+      'main still alive, second 1\n' +
       'Segmentation fault\n' +
-      'ma thoat = 139\n' +
+      'exit code = 139\n' +
       '\n' +
-      '$ ./conchet\n' +
-      'cha van song, giay 0\n' +
-      'cha van song, giay 1\n' +
-      'cha van song, giay 2\n' +
-      'con chet vi tin hieu 11, cha VAN CHAY BINH THUONG\n' +
-      'ma thoat cha = 0' },
+      '$ ./child_crash\n' +
+      'parent still alive, second 0\n' +
+      'parent still alive, second 1\n' +
+      'parent still alive, second 2\n' +
+      'child died from signal 11, parent CONTINUES RUNNING NORMALLY\n' +
+      'exit code parent = 0' },
 
     { t: 'cal', kind: 'why', title: 'Một luồng chết kéo theo cả tiến trình — không có ngoại lệ', x:
-      '<p><code>luongchet</code> lẽ ra in 5 dòng, nhưng chỉ in được <b>2</b> rồi cả tiến trình ' +
+      '<p><code>thread_crash</code> lẽ ra in 5 dòng, nhưng chỉ in được <b>2</b> rồi cả tiến trình ' +
       'bốc hơi với mã <b>139</b> (= 128 + 11 = <code>SIGSEGV</code>, đúng bảng mã thoát ở Bài ' +
       '21). Luồng chính không hề làm gì sai — nó chết chỉ vì ở chung nhà.</p>' +
-      '<p><code>conchet</code> thì tiến trình con chết vì tín hiệu 11, cha <b>đọc được nguyên ' +
+      '<p><code>child_crash</code> thì tiến trình con chết vì tín hiệu 11, cha <b>đọc được nguyên ' +
       'nhân</b> qua <code>WTERMSIG</code>, chạy tiếp và thoát bình thường với mã 0. Cha có thể ' +
       'ghi log, khởi động lại con, hoặc chuyển sang chế độ dự phòng.</p>' +
       '<p>Đây là lý do <b>kiến trúc</b> khiến nhiều hệ thống nhúng quan trọng chọn tiến trình ' +
@@ -1135,7 +1135,7 @@ Lesson.register({
     { t: 'table',
       head: ['Tiêu chí', 'Luồng', 'Tiến trình'],
       rows: [
-        ['Giá tạo (đo trên máy này)', '<b>125–137 µs</b>', '<b>304–413 µs</b> — chậm hơn ~3×'],
+        ['Giá tạo (đo trên máy này)', '<b>80–103 µs</b>', '<b>227–270 µs</b> — chậm hơn ~2,6×'],
         ['Chia sẻ dữ liệu', 'Gán một biến là xong', 'Phải qua IPC — pipe, shared memory (Bài 23)'],
         ['Bộ nhớ mỗi đơn vị', '8 MB ngăn xếp ảo (hạ được xuống 64 KB)', 'Cả một không gian địa chỉ, nhưng copy-on-write nên rẻ hơn vẻ ngoài'],
         ['Một đơn vị sập', '<b>Cả tiến trình chết</b>, mã 139', 'Chỉ con chết, cha đọc được nguyên nhân và xử lý'],
@@ -1147,8 +1147,8 @@ Lesson.register({
     { t: 'cal', kind: 'tip', title: 'Lời khuyên thực dụng cho embedded', x:
       '<p><b>Mặc định hãy chọn tiến trình.</b> Chỉ chuyển sang luồng khi bạn có lý do đo được — ' +
       'thường là "cần chia sẻ một khối dữ liệu lớn" hoặc "tạo/huỷ quá thường xuyên".</p>' +
-      '<p>Con số ~3× ở trên nghe to, nhưng hãy đặt vào bối cảnh: nếu bạn tạo một đơn vị làm ' +
-      'việc mỗi giây, khoản chênh <b>276 µs</b> là <b>0,03 %</b> thời gian. Hoàn toàn vô nghĩa. ' +
+      '<p>Con số ~2,6× ở trên nghe to, nhưng hãy đặt vào bối cảnh: nếu bạn tạo một đơn vị làm ' +
+      'việc mỗi giây, khoản chênh <b>153 µs</b> là <b>0,015 %</b> thời gian. Hoàn toàn vô nghĩa. ' +
       'Nó chỉ thành vấn đề khi bạn tạo hàng nghìn đơn vị mỗi giây — và lúc đó câu trả lời đúng ' +
       'thường không phải "dùng luồng" mà là "dùng <b>hồ luồng</b>", tạo sẵn N luồng rồi tái sử ' +
       'dụng, để giá tạo về gần bằng không.</p>' +
@@ -1176,26 +1176,26 @@ Lesson.register({
           { t: 'p', x:
             'Một chương trình tạo 3 luồng rồi cùng ngủ, đủ lâu để bạn quan sát từ cửa sổ khác.' },
 
-          { t: 'code', where: 'file', name: 'ngu.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'sleepers.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <pthread.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
-            'static void *ngu(void *a) { (void)a; sleep(5); return NULL; }\n' +
+            'static void *sleep_worker(void *a) { (void)a; sleep(5); return NULL; }\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    pthread_t t[3];\n' +
-            '    for (int i = 0; i < 3; i++) pthread_create(&t[i], NULL, ngu, NULL);\n' +
-            '    printf("pid=%d, da tao 3 luong\\n", getpid());\n' +
+            '    for (int i = 0; i < 3; i++) pthread_create(&t[i], NULL, sleep_worker, NULL);\n' +
+            '    printf("pid=%d, created 3 threads\\n", getpid());\n' +
             '    fflush(stdout);\n' +
             '    for (int i = 0; i < 3; i++) pthread_join(t[i], NULL);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -o ngu ngu.c\n' +
-            './ngu &\n' +
+            'gcc -Wall -Wextra -pthread -o sleepers sleepers.c\n' +
+            './sleepers &\n' +
             'sleep 1\n' +
             'ps -L -o pid,tid,nlwp,stat,comm -p $!\n' +
             'ls /proc/$!/task\n' +
@@ -1203,15 +1203,15 @@ Lesson.register({
             'wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=468, da tao 3 luong\n' +
+            'pid=1391, created 3 threads\n' +
             '    PID     TID NLWP STAT COMMAND\n' +
-            '    468     468    4 Sl+  ngu\n' +
-            '    468     470    4 Sl+  ngu\n' +
-            '    468     471    4 Sl+  ngu\n' +
-            '    468     472    4 Sl+  ngu\n' +
-            '468\n470\n471\n472\n' +
-            'Name:\tngu\n' +
-            'Pid:\t468\n' +
+            '   1391    1391    4 Sl+  sleepers\n' +
+            '   1391    1393    4 Sl+  sleepers\n' +
+            '   1391    1394    4 Sl+  sleepers\n' +
+            '   1391    1395    4 Sl+  sleepers\n' +
+            '1391\n1393\n1394\n1395\n' +
+            'Name:\tsleepers\n' +
+            'Pid:\t1391\n' +
             'Threads:\t4' },
 
           { t: 'cal', kind: 'info', title: 'Ba điều bảng này nói ra', x:
@@ -1219,14 +1219,14 @@ Lesson.register({
             '<li><b>Cột PID giống hệt nhau ở cả bốn dòng.</b> Bốn dòng thực thi, một tiến ' +
             'trình. Không có <code>ps -L</code>, bạn chỉ thấy một dòng và không biết bên trong ' +
             'có gì.</li>' +
-            '<li><b>TID của luồng chính bằng đúng PID</b> (468). Ba luồng con lấy số tiếp theo. ' +
+            '<li><b>TID của luồng chính bằng đúng PID</b> (1391). Ba luồng con lấy số tiếp theo. ' +
             'Đây là quy ước cố định của Linux, không phải trùng hợp.</li>' +
             '<li><b>Chữ <code>l</code> trong <code>Sl+</code></b> là dấu hiệu "đa luồng". Khi ' +
             'gỡ lỗi trên thiết bị lạ, đây là cách nhanh nhất để biết một daemon có bao nhiêu ' +
             'luồng mà không cần đọc mã nguồn.</li>' +
             '</ol>' +
-            '<p>Thử thêm: chạy <code>./ngu &amp;</code> rồi <code>top -H -p $!</code> ở cửa sổ ' +
-            'khác — <code>top</code> sẽ liệt kê từng luồng thành từng dòng riêng, kèm mức CPU ' +
+            '<p>Thử thêm: chạy <code>./sleepers &amp;</code> rồi <code>top -H -p $!</code> ở cửa ' +
+            'sổ khác — <code>top</code> sẽ liệt kê từng luồng thành từng dòng riêng, kèm mức CPU ' +
             'của <i>từng</i> luồng. Bạn sẽ cần đúng khung nhìn này ở bước 5.</p>' }
         ]},
 
@@ -1234,27 +1234,27 @@ Lesson.register({
       { title: 'Bước 2 — Tự tay tạo race condition, rồi mổ mã máy tìm thủ phạm',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>dua.c</code> ở phần lý thuyết. Biên dịch ở cả ba mức tối ưu và chạy ' +
+            'Gõ lại <code>race.c</code> ở phần lý thuyết. Biên dịch ở cả ba mức tối ưu và chạy ' +
             'mỗi bản năm lần.' },
 
           { t: 'code', where: 'wsl', code:
             'for M in 0 1 2; do\n' +
-            '  gcc -Wall -Wextra -pthread -O$M -o dua_o$M dua.c\n' +
+            '  gcc -Wall -Wextra -pthread -O$M -o race_o$M race.c\n' +
             '  echo "===== -O$M ====="\n' +
-            '  for i in 1 2 3 4 5; do ./dua_o$M; done\n' +
+            '  for i in 1 2 3 4 5; do ./race_o$M; done\n' +
             'done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '===== -O0 =====\n' +
-            'mong doi 2000000, thuc te 1102554, mat 897446 lan tang (44.9%)\n' +
-            'mong doi 2000000, thuc te 1229642, mat 770358 lan tang (38.5%)\n' +
-            'mong doi 2000000, thuc te 1264184, mat 735816 lan tang (36.8%)\n' +
+            'expected 2000000, actual 1170866, lost 829134 increments (41.5%)\n' +
+            'expected 2000000, actual 1589167, lost 410833 increments (20.5%)\n' +
+            'expected 2000000, actual 1209358, lost 790642 increments (39.5%)\n' +
             '===== -O1 =====\n' +
-            'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
-            'mong doi 2000000, thuc te 1000000, mat 1000000 lan tang (50.0%)\n' +
+            'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
+            'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
             '===== -O2 =====\n' +
-            'mong doi 2000000, thuc te 2000000, mat 0 lan tang (0.0%)\n' +
-            'mong doi 2000000, thuc te 2000000, mat 0 lan tang (0.0%)',
+            'expected 2000000, actual 2000000, lost 0 increments (0.0%)\n' +
+            'expected 2000000, actual 2000000, lost 0 increments (0.0%)',
             notes: ['Rút gọn để dễ đọc. Điều cần ghi lại: <code>-O0</code> mỗi lần một số ' +
               'khác, <code>-O1</code> <b>luôn</b> mất đúng một nửa, <code>-O2</code> ' +
               '<b>luôn</b> ra đáp án đúng.'] },
@@ -1265,28 +1265,28 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'for M in 0 1 2; do\n' +
             '  echo "===== -O$M ====="\n' +
-            '  objdump -d --no-show-raw-insn dua_o$M | sed -n "/<tang>:/,/^$/p" | grep -E "dem|add"\n' +
+            '  objdump -d --no-show-raw-insn race_o$M | sed -n "/<increment>:/,/^$/p" | grep -E "counter|add"\n' +
             'done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '===== -O0 =====\n' +
-            '    11be:\tmov    0x2e53(%rip),%rax        # 4018 <dem>\n' +
+            '    11be:\tmov    0x2e53(%rip),%rax        # 4018 <counter>\n' +
             '    11c5:\tadd    $0x1,%rax\n' +
-            '    11c9:\tmov    %rax,0x2e48(%rip)        # 4018 <dem>\n' +
+            '    11c9:\tmov    %rax,0x2e48(%rip)        # 4018 <counter>\n' +
             '    11d0:\taddl   $0x1,-0x4(%rbp)\n' +
             '===== -O1 =====\n' +
-            '    11b4:\tmov    0x2e5d(%rip),%rdx        # 4018 <dem>\n' +
+            '    11b4:\tmov    0x2e5d(%rip),%rdx        # 4018 <counter>\n' +
             '    11bf:\tadd    $0xf4241,%rdx\n' +
             '    11d3:\tadd    $0x1,%rax\n' +
-            '    11dc:\tmov    %rcx,0x2e35(%rip)        # 4018 <dem>\n' +
+            '    11dc:\tmov    %rcx,0x2e35(%rip)        # 4018 <counter>\n' +
             '===== -O2 =====\n' +
-            '    1274:\taddq   $0xf4240,0x2d99(%rip)        # 4018 <dem>' },
+            '    1274:\taddq   $0xf4240,0x2d99(%rip)        # 4018 <counter>' },
 
-          { t: 'cal', kind: 'why', title: 'Đếm số lần chạm vào <dem> — đó là toàn bộ lời giải', x:
+          { t: 'cal', kind: 'why', title: 'Đếm số lần chạm vào <counter> — đó là toàn bộ lời giải', x:
             '<ul>' +
             '<li><b><code>-O0</code>: hai lần chạm mỗi vòng</b> (một <code>mov</code> đọc, một ' +
             '<code>mov</code> ghi), tức 2 000 000 lần đọc và 2 000 000 lần ghi. Cửa sổ va chạm ' +
-            'mở suốt → mất 36–45 %, ngẫu nhiên.</li>' +
+            'mở suốt → mất 20–42 %, ngẫu nhiên.</li>' +
             '<li><b><code>-O1</code>: hai lần chạm cả hàm</b> — đọc một lần ở ' +
             '<code>11b4</code>, ghi một lần ở <code>11dc</code>. Cả hai luồng đọc 0, cả hai ghi ' +
             '1 000 000 → mất chính xác một nửa, mọi lần chạy.</li>' +
@@ -1302,36 +1302,36 @@ Lesson.register({
       { title: 'Bước 3 — Sửa bằng hai cách, đo giá của từng cách',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>khoa.c</code> (mutex) và <code>nguyentu.c</code> (biến nguyên tử) ở ' +
+            'Gõ lại <code>mutex.c</code> (mutex) và <code>atomic.c</code> (biến nguyên tử) ở ' +
             'phần lý thuyết. Biên dịch cả hai ở <b>cùng mức <code>-O0</code></b> với ' +
-            '<code>dua_o0</code> để so sánh công bằng.' },
+            '<code>race_o0</code> để so sánh công bằng.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -O0 -o khoa khoa.c\n' +
-            'gcc -Wall -Wextra -pthread -O0 -o nguyentu nguyentu.c\n' +
-            'echo "--- tinh dung dan ---"\n' +
-            'for p in dua_o0 nguyentu khoa; do printf "%-9s " $p; ./$p; done\n' +
-            'echo "--- thoi gian ---"\n' +
-            'for p in dua_o0 nguyentu khoa; do\n' +
+            'gcc -Wall -Wextra -pthread -O0 -o mutex mutex.c\n' +
+            'gcc -Wall -Wextra -pthread -O0 -o atomic atomic.c\n' +
+            'echo "--- correctness ---"\n' +
+            'for p in race_o0 atomic mutex; do printf "%-9s " $p; ./$p; done\n' +
+            'echo "--- timing ---"\n' +
+            'for p in race_o0 atomic mutex; do\n' +
             '  S=$(date +%s%N); ./$p > /dev/null; E=$(date +%s%N)\n' +
             '  echo "$p: $(( (E-S)/1000000 )) ms"\n' +
             'done' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '--- tinh dung dan ---\n' +
-            'dua_o0    mong doi 2000000, thuc te 1264184, mat 735816 lan tang (36.8%)\n' +
-            'nguyentu  mong doi 2000000, thuc te 2000000\n' +
-            'khoa      mong doi 2000000, thuc te 2000000\n' +
-            '--- thoi gian ---\n' +
-            'dua_o0: 14 ms\n' +
-            'nguyentu: 54 ms\n' +
-            'khoa: 170 ms' },
+            '--- correctness ---\n' +
+            'race_o0   expected 2000000, actual 1406709, lost 593291 increments (29.7%)\n' +
+            'atomic    expected 2000000, actual 2000000\n' +
+            'mutex     expected 2000000, actual 2000000\n' +
+            '--- timing ---\n' +
+            'race_o0: 11 ms\n' +
+            'atomic: 31 ms\n' +
+            'mutex: 136 ms' },
 
           { t: 'code', where: 'wsl', code:
-            'objdump -d --no-show-raw-insn nguyentu | sed -n "/<tang>:/,/^$/p" | grep -i lock' },
+            'objdump -d --no-show-raw-insn atomic | sed -n "/<increment>:/,/^$/p" | grep -i lock' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '    11be:\tlock addq $0x1,0x2e51(%rip)        # 4018 <dem>' },
+            '    11be:\tlock addq $0x1,0x2e51(%rip)        # 4018 <counter>' },
 
           { t: 'cmdx', cmd: 'lock addq $0x1,0x2e51(%rip)',
             title: 'Vì sao một lệnh này đủ để đúng',
@@ -1339,18 +1339,18 @@ Lesson.register({
               ['<code>lock</code>', 'Tiền tố ra lệnh cho CPU giữ độc quyền dòng cache chứa biến trong suốt lệnh', 'Đây là bảo đảm <b>phần cứng</b>. Không lõi nào chen vào giữa được'],
               ['<code>addq</code>', 'Cộng 64-bit thẳng vào toán hạng bộ nhớ', 'Không cần thanh ghi trung gian, nên không có khe hở đọc–ghi'],
               ['<code>$0x1</code>', 'Cộng thêm 1', 'Đúng một đơn vị mỗi vòng — trái với <code>$0xf4240</code> ở <code>-O2</code>'],
-              ['<code>0x2e51(%rip)</code>', 'Địa chỉ của <code>dem</code>, tính tương đối theo con trỏ lệnh', 'Kiểu định địa chỉ độc lập vị trí của mã PIE — bạn đã gặp ở Bài 18']
+              ['<code>0x2e51(%rip)</code>', 'Địa chỉ của <code>counter</code>, tính tương đối theo con trỏ lệnh', 'Kiểu định địa chỉ độc lập vị trí của mã PIE — bạn đã gặp ở Bài 18']
             ]},
 
           { t: 'cal', kind: 'info', title: 'Ba con số cần chép vào sổ tay', x:
-            '<p><b>1× / ~4× / ~12×</b> — sai-nhưng-nhanh, nguyên tử, mutex. Đo lại ba lần mỗi ' +
-            'bên thì được 13–15 ms, 47–63 ms, 160–173 ms.</p>' +
+            '<p><b>1× / ~3× / ~12×</b> — sai-nhưng-nhanh, nguyên tử, mutex. Đo lại ba lần mỗi ' +
+            'bên thì được 11–16 ms, 20–38 ms, 127–140 ms.</p>' +
             '<p>Hãy hiểu đúng ý nghĩa: con số này là <b>trường hợp xấu nhất</b>, vì chương trình ' +
             'không làm gì ngoài khoá và cộng. Trong mã thật, mỗi vùng tới hạn làm nhiều việc ' +
             'hơn nên tỷ lệ chi phí khoá tụt xuống rất nhanh.</p>' +
-            '<p>Thử tự chứng minh: sửa <code>khoa.c</code> cho mỗi luồng cộng vào một biến cục ' +
+            '<p>Thử tự chứng minh: sửa <code>mutex.c</code> cho mỗi luồng cộng vào một biến cục ' +
             'bộ trong vòng lặp, rồi chỉ khoá <b>một lần duy nhất</b> ở cuối để cộng gộp vào ' +
-            '<code>dem</code>. Kết quả vẫn đúng 2 000 000, nhưng thời gian sẽ về gần bằng bản ' +
+            '<code>counter</code>. Kết quả vẫn đúng 2 000 000, nhưng thời gian sẽ về gần bằng bản ' +
             'không khoá. Đó là bài học thiết kế thật sự của bước này.</p>' }
         ]},
 
@@ -1358,25 +1358,25 @@ Lesson.register({
       { title: 'Bước 4 — Gây deadlock, chẩn đoán nó, rồi sửa bằng thứ tự khoá',
         blocks: [
           { t: 'p', x:
-            'Gõ lại <code>ketcung.c</code> ở phần lý thuyết. Dùng <code>timeout</code> để nó ' +
+            'Gõ lại <code>deadlock.c</code> ở phần lý thuyết. Dùng <code>timeout</code> để nó ' +
             'không treo terminal của bạn vĩnh viễn.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -o ketcung ketcung.c\n' +
-            'timeout 5 ./ketcung\n' +
-            'echo "ma thoat = $?"' },
+            'gcc -Wall -Wextra -pthread -o deadlock deadlock.c\n' +
+            'timeout 5 ./deadlock\n' +
+            'echo "exit code = $?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=5434\n' +
-            '  [luong2] giu B, xin A\n' +
-            '  [luong1] giu A, xin B\n' +
-            'ma thoat = 124' },
+            'pid=1911\n' +
+            '  [thread1] holding A, requesting B\n' +
+            '  [thread2] holding B, requesting A\n' +
+            'exit code = 124' },
 
           { t: 'p', x:
             'Giờ khám nghiệm tại chỗ: chạy nền, để nó kẹt, rồi hỏi nhân từng luồng đang ở đâu.' },
 
           { t: 'code', where: 'wsl', code:
-            './ketcung > /dev/null 2>&1 &\n' +
+            './deadlock > /dev/null 2>&1 &\n' +
             'KP=$!\n' +
             'sleep 2\n' +
             'ps -L -o pid,tid,stat,wchan:20,comm -p $KP\n' +
@@ -1385,9 +1385,9 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             '    PID     TID STAT WCHAN                COMMAND\n' +
-            '   5440    5440 Sl+  futex_do_wait        ketcung\n' +
-            '   5440    5442 Sl+  futex_do_wait        ketcung\n' +
-            '   5440    5443 Sl+  futex_do_wait        ketcung\n' +
+            '   2008    2008 Sl+  futex_do_wait        deadlock\n' +
+            '   2008    2010 Sl+  futex_do_wait        deadlock\n' +
+            '   2008    2011 Sl+  futex_do_wait        deadlock\n' +
             'State:\tS (sleeping)\n' +
             'Threads:\t3' },
 
@@ -1397,35 +1397,35 @@ Lesson.register({
             '<code>SIGTERM</code> phải giết được nó theo hành vi mặc định — và thật vậy, nó ' +
             'giết được.</p>' +
             '<p>Nhưng hãy hình dung một daemon <i>có</i> bắt <code>SIGTERM</code> đàng hoàng ' +
-            'như <code>tatem.c</code> ở Bài 21, rồi bị deadlock. Handler đặt cờ, nhưng vòng lặp ' +
-            'chính đang kẹt ở <code>futex_do_wait</code> và <b>không bao giờ quay lại kiểm tra ' +
-            'cờ</b>. Tắt êm thất bại, systemd chờ hết <b>1 phút 30 giây</b> rồi ' +
+            'như <code>shutdown.c</code> ở Bài 21, rồi bị deadlock. Handler đặt cờ, nhưng vòng ' +
+            'lặp chính đang kẹt ở <code>futex_do_wait</code> và <b>không bao giờ quay lại kiểm ' +
+            'tra cờ</b>. Tắt êm thất bại, systemd chờ hết <b>1 phút 30 giây</b> rồi ' +
             '<code>SIGKILL</code>.</p>' +
             '<p>Đó là lý do deadlock trên thiết bị hiện ra dưới dạng "thiết bị mất 90 giây mỗi ' +
             'lần tắt nguồn" — một triệu chứng nghe chẳng liên quan gì tới khoá.</p>' },
 
           { t: 'p', x:
-            'Sửa: bắt <code>luong2</code> lấy khoá theo <b>cùng thứ tự</b> với ' +
-            '<code>luong1</code> — A trước, B sau.' },
+            'Sửa: bắt <code>thread2</code> lấy khoá theo <b>cùng thứ tự</b> với ' +
+            '<code>thread1</code> — A trước, B sau.' },
 
           { t: 'code', where: 'wsl', code:
-            'sed \'s|pthread_mutex_lock(&B);  printf("  \\[luong2\\] giu B, xin A|pthread_mutex_lock(\\&A);  printf("  [luong2] giu A, xin B|; s|pthread_mutex_lock(&A);  printf("  \\[luong2\\] giu ca B va A|pthread_mutex_lock(\\&B);  printf("  [luong2] giu ca A va B|\' ketcung.c > thutu.c\n' +
-            'gcc -Wall -Wextra -pthread -o thutu thutu.c\n' +
-            'timeout 5 ./thutu\n' +
-            'echo "ma thoat = $?"' },
+            'sed \'s|pthread_mutex_lock(&B);  printf("  \\[thread2\\] holding B, requesting A|pthread_mutex_lock(\\&A);  printf("  [thread2] holding A, requesting B|; s|pthread_mutex_lock(&A);  printf("  \\[thread2\\] holding both B and A|pthread_mutex_lock(\\&B);  printf("  [thread2] holding both A and B|\' deadlock.c > lock_order.c\n' +
+            'gcc -Wall -Wextra -pthread -o lock_order lock_order.c\n' +
+            'timeout 5 ./lock_order\n' +
+            'echo "exit code = $?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'pid=5464\n' +
-            '  [luong1] giu A, xin B\n' +
-            '  [luong1] giu ca A va B\n' +
-            '  [luong2] giu A, xin B\n' +
-            '  [luong2] giu ca A va B\n' +
-            'khong bao gio in ra dong nay\n' +
-            'ma thoat = 0',
-            notes: ['Nếu <code>sed</code> khó chịu, cứ mở <code>ketcung.c</code> bằng ' +
-              '<code>nano</code> và đổi tay hai dòng trong <code>luong2</code>: khoá ' +
+            'pid=2021\n' +
+            '  [thread1] holding A, requesting B\n' +
+            '  [thread1] holding both A and B\n' +
+            '  [thread2] holding A, requesting B\n' +
+            '  [thread2] holding both A and B\n' +
+            'this line never prints\n' +
+            'exit code = 0',
+            notes: ['Nếu <code>sed</code> khó chịu, cứ mở <code>deadlock.c</code> bằng ' +
+              '<code>nano</code> và đổi tay hai dòng trong <code>thread2</code>: khoá ' +
               '<code>A</code> trước, <code>B</code> sau.',
-              'Dòng "khong bao gio in ra dong nay" giờ <i>có</i> in ra — đó là bằng chứng ' +
+              'Dòng "this line never prints" giờ <i>có</i> in ra — đó là bằng chứng ' +
               '<code>main</code> đã qua được cả hai <code>pthread_join</code>.'] },
 
           { t: 'cal', kind: 'why', title: 'Không phải "giảm xác suất" mà là "loại bỏ khả năng"', x:
@@ -1446,69 +1446,69 @@ Lesson.register({
             '<b>5a.</b> Vòng lặp bận đốt bao nhiêu CPU so với <code>pthread_cond_wait</code>? ' +
             'Hai chương trình cùng chờ đúng 2 giây.' },
 
-          { t: 'code', where: 'file', name: 'banroi.c — cách SAI', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'busy_wait.c — cách SAI', lang: 'c', code:
             '#include <pthread.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
-            'static volatile int san_sang = 0;\n' +
-            'static void *doi(void *a) { (void)a; while (!san_sang) { } return NULL; }\n' +
+            'static volatile int ready = 0;\n' +
+            'static void *wait_for_ready(void *a) { (void)a; while (!ready) { } return NULL; }\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    pthread_t t;\n' +
-            '    pthread_create(&t, NULL, doi, NULL);\n' +
+            '    pthread_create(&t, NULL, wait_for_ready, NULL);\n' +
             '    sleep(2);\n' +
-            '    san_sang = 1;\n' +
+            '    ready = 1;\n' +
             '    pthread_join(t, NULL);\n' +
             '    return 0;\n' +
             '}' },
 
-          { t: 'code', where: 'file', name: 'ngoannho.c — cách ĐÚNG', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'cond_wait.c — cách ĐÚNG', lang: 'c', code:
             '#include <pthread.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
-            'static int san_sang = 0;\n' +
-            'static pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;\n' +
-            'static pthread_cond_t  c = PTHREAD_COND_INITIALIZER;\n' +
+            'static int ready = 0;\n' +
+            'static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;\n' +
+            'static pthread_cond_t  cond = PTHREAD_COND_INITIALIZER;\n' +
             '\n' +
-            'static void *doi(void *a)\n' +
+            'static void *wait_for_ready(void *a)\n' +
             '{\n' +
             '    (void)a;\n' +
-            '    pthread_mutex_lock(&m);\n' +
-            '    while (!san_sang) pthread_cond_wait(&c, &m);\n' +
-            '    pthread_mutex_unlock(&m);\n' +
+            '    pthread_mutex_lock(&lock);\n' +
+            '    while (!ready) pthread_cond_wait(&cond, &lock);\n' +
+            '    pthread_mutex_unlock(&lock);\n' +
             '    return NULL;\n' +
             '}\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    pthread_t t;\n' +
-            '    pthread_create(&t, NULL, doi, NULL);\n' +
+            '    pthread_create(&t, NULL, wait_for_ready, NULL);\n' +
             '    sleep(2);\n' +
-            '    pthread_mutex_lock(&m);\n' +
-            '    san_sang = 1;\n' +
-            '    pthread_cond_signal(&c);\n' +
-            '    pthread_mutex_unlock(&m);\n' +
+            '    pthread_mutex_lock(&lock);\n' +
+            '    ready = 1;\n' +
+            '    pthread_cond_signal(&cond);\n' +
+            '    pthread_mutex_unlock(&lock);\n' +
             '    pthread_join(t, NULL);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -O1 -o banroi banroi.c\n' +
-            'gcc -Wall -Wextra -pthread -O1 -o ngoannho ngoannho.c\n' +
-            '/usr/bin/time -f "banroi   : thuc te %e s | CPU %U s | dung CPU %P" ./banroi\n' +
-            '/usr/bin/time -f "ngoannho : thuc te %e s | CPU %U s | dung CPU %P" ./ngoannho' },
+            'gcc -Wall -Wextra -pthread -O1 -o busy_wait busy_wait.c\n' +
+            'gcc -Wall -Wextra -pthread -O1 -o cond_wait cond_wait.c\n' +
+            '/usr/bin/time -f "busy_wait : real %e s | CPU %U s | CPU_pct %P" ./busy_wait\n' +
+            '/usr/bin/time -f "cond_wait : real %e s | CPU %U s | CPU_pct %P" ./cond_wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'banroi   : thuc te 2.00 s | CPU 1.99 s | dung CPU 99%\n' +
-            'ngoannho : thuc te 2.00 s | CPU 0.00 s | dung CPU 0%' },
+            'busy_wait : real 2.00 s | CPU 1.99 s | CPU_pct 99%\n' +
+            'cond_wait : real 2.00 s | CPU 0.00 s | CPU_pct 0%' },
 
           { t: 'p', x:
             '<b>5b.</b> <code>errno</code> có bị các luồng giẫm lên nhau không? Đặt ' +
             '<code>errno</code> của luồng chính thành <code>EBADF</code>, rồi cho luồng khác ' +
             'gây một lỗi hoàn toàn khác.' },
 
-          { t: 'code', where: 'file', name: 'errno_rieng.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'errno_per_thread.c', lang: 'c', code:
             '#define _GNU_SOURCE\n' +
             '#include <stdio.h>\n' +
             '#include <pthread.h>\n' +
@@ -1517,11 +1517,11 @@ Lesson.register({
             '#include <unistd.h>\n' +
             '#include <fcntl.h>\n' +
             '\n' +
-            'static void *mo_hong(void *a)\n' +
+            'static void *open_bad_path(void *a)\n' +
             '{\n' +
             '    (void)a;\n' +
-            '    open("/khong/he/ton/tai", O_RDONLY);       /* -> ENOENT (2) */\n' +
-            '    printf("  [luong tid=%ld] errno = %d (%s)\\n",\n' +
+            '    open("/does/not/exist", O_RDONLY);       /* -> ENOENT (2) */\n' +
+            '    printf("  [thread tid=%ld] errno = %d (%s)\\n",\n' +
             '           (long)gettid(), errno, strerror(errno));\n' +
             '    return NULL;\n' +
             '}\n' +
@@ -1530,25 +1530,25 @@ Lesson.register({
             '{\n' +
             '    errno = 0;\n' +
             '    close(9999);                               /* -> EBADF (9) */\n' +
-            '    printf("main  tid=%ld  errno = %d truoc khi tao luong\\n",\n' +
+            '    printf("main  tid=%ld  errno = %d before creating the thread\\n",\n' +
             '           (long)gettid(), errno);\n' +
             '\n' +
             '    pthread_t t;\n' +
-            '    pthread_create(&t, NULL, mo_hong, NULL);\n' +
+            '    pthread_create(&t, NULL, open_bad_path, NULL);\n' +
             '    pthread_join(t, NULL);\n' +
             '\n' +
-            '    printf("main  tid=%ld  errno = %d SAU khi luong kia doi errno cua no\\n",\n' +
+            '    printf("main  tid=%ld  errno = %d AFTER the other thread changed its own errno\\n",\n' +
             '           (long)gettid(), errno);\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -o errno_rieng errno_rieng.c && ./errno_rieng' },
+            'gcc -Wall -Wextra -pthread -o errno_per_thread errno_per_thread.c && ./errno_per_thread' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'main  tid=506  errno = 9 truoc khi tao luong\n' +
-            '  [luong tid=513] errno = 2 (No such file or directory)\n' +
-            'main  tid=506  errno = 9 SAU khi luong kia doi errno cua no' },
+            'main  tid=2260  errno = 9 before creating the thread\n' +
+            '  [thread tid=2283] errno = 2 (No such file or directory)\n' +
+            'main  tid=2260  errno = 9 AFTER the other thread changed its own errno' },
 
           { t: 'cal', kind: 'info', title: 'errno là biến cục bộ luồng, không phải biến toàn cục', x:
             '<p>Luồng chính giữ nguyên <b>9</b> (<code>EBADF</code>) trong khi luồng kia mang ' +
@@ -1566,26 +1566,26 @@ Lesson.register({
             '<b>5c.</b> Phép đo quan trọng nhất: một luồng sập thì ai chết? Cho luồng ghi vào ' +
             'con trỏ NULL, và làm điều y hệt bằng tiến trình con để so.' },
 
-          { t: 'code', where: 'file', name: 'luongchet.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'thread_crash.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <pthread.h>\n' +
             '#include <unistd.h>\n' +
             '\n' +
-            'static void *pha(void *a)\n' +
+            'static void *crash(void *a)\n' +
             '{\n' +
             '    (void)a;\n' +
             '    sleep(1);\n' +
             '    int *p = NULL;\n' +
-            '    *p = 1;                        /* co tinh gay SIGSEGV */\n' +
+            '    *p = 1;                        /* deliberately trigger SIGSEGV */\n' +
             '    return NULL;\n' +
             '}\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
             '    pthread_t t;\n' +
-            '    pthread_create(&t, NULL, pha, NULL);\n' +
+            '    pthread_create(&t, NULL, crash, NULL);\n' +
             '    for (int i = 0; i < 5; i++) {\n' +
-            '        printf("main van song, giay %d\\n", i);\n' +
+            '        printf("main still alive, second %d\\n", i);\n' +
             '        fflush(stdout);\n' +
             '        sleep(1);\n' +
             '    }\n' +
@@ -1593,7 +1593,7 @@ Lesson.register({
             '    return 0;\n' +
             '}' },
 
-          { t: 'code', where: 'file', name: 'conchet.c', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'child_crash.c', lang: 'c', code:
             '#include <stdio.h>\n' +
             '#include <unistd.h>\n' +
             '#include <sys/wait.h>\n' +
@@ -1604,41 +1604,41 @@ Lesson.register({
             '    if (p == 0) { sleep(1); int *q = NULL; *q = 1; _exit(0); }\n' +
             '\n' +
             '    for (int i = 0; i < 3; i++) {\n' +
-            '        printf("cha van song, giay %d\\n", i);\n' +
+            '        printf("parent still alive, second %d\\n", i);\n' +
             '        fflush(stdout);\n' +
             '        sleep(1);\n' +
             '    }\n' +
-            '    int tt;\n' +
-            '    waitpid(p, &tt, 0);\n' +
-            '    printf("con chet vi tin hieu %d, cha VAN CHAY BINH THUONG\\n", WTERMSIG(tt));\n' +
+            '    int status;\n' +
+            '    waitpid(p, &status, 0);\n' +
+            '    printf("child died from signal %d, parent CONTINUES RUNNING NORMALLY\\n", WTERMSIG(status));\n' +
             '    return 0;\n' +
             '}' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -pthread -o luongchet luongchet.c\n' +
-            'gcc -Wall -Wextra -o conchet conchet.c\n' +
-            './luongchet; echo "ma thoat = $?"\n' +
+            'gcc -Wall -Wextra -pthread -o thread_crash thread_crash.c\n' +
+            'gcc -Wall -Wextra -o child_crash child_crash.c\n' +
+            './thread_crash; echo "exit code = $?"\n' +
             'echo "-----"\n' +
-            './conchet;   echo "ma thoat = $?"' },
+            './child_crash;   echo "exit code = $?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'main van song, giay 0\n' +
-            'main van song, giay 1\n' +
+            'main still alive, second 0\n' +
+            'main still alive, second 1\n' +
             'Segmentation fault\n' +
-            'ma thoat = 139\n' +
+            'exit code = 139\n' +
             '-----\n' +
-            'cha van song, giay 0\n' +
-            'cha van song, giay 1\n' +
-            'cha van song, giay 2\n' +
-            'con chet vi tin hieu 11, cha VAN CHAY BINH THUONG\n' +
-            'ma thoat = 0' },
+            'parent still alive, second 0\n' +
+            'parent still alive, second 1\n' +
+            'parent still alive, second 2\n' +
+            'child died from signal 11, parent CONTINUES RUNNING NORMALLY\n' +
+            'exit code = 0' },
 
           { t: 'cal', kind: 'danger', title: 'Đếm số dòng: 2 trên 5, và 3 trên 3', x:
-            '<p><code>luongchet</code> lẽ ra in <b>5</b> dòng, chỉ in được <b>2</b>. Luồng ' +
+            '<p><code>thread_crash</code> lẽ ra in <b>5</b> dòng, chỉ in được <b>2</b>. Luồng ' +
             'chính đang chạy đúng hoàn toàn, không đụng con trỏ nào, vẫn bị xoá sổ cùng với kẻ ' +
             'gây lỗi. Mã thoát <b>139</b> = 128 + 11 = <code>SIGSEGV</code> — đúng bảng bạn đã ' +
             'lập ở Bài 21.</p>' +
-            '<p><code>conchet</code> in đủ <b>3</b> dòng, đọc được nguyên nhân cái chết của con ' +
+            '<p><code>child_crash</code> in đủ <b>3</b> dòng, đọc được nguyên nhân cái chết của con ' +
             '(tín hiệu 11), rồi thoát bình thường với mã <b>0</b>.</p>' +
             '<p>Hãy để phép đo này định hình cách bạn thiết kế. Với luồng, <b>mọi</b> dòng mã ' +
             'trong <b>mọi</b> luồng đều có quyền giết cả tiến trình — kể cả một thư viện của ' +
@@ -1725,16 +1725,16 @@ Lesson.register({
       'Nhìn thấy luồng bằng <code>ps -L</code>, <code>top -H</code>, <code>ls /proc/&lt;pid&gt;/task</code> hoặc dòng <code>Threads:</code> trong <code>/proc/&lt;pid&gt;/status</code>. Chữ <code>l</code> trong cột <code>STAT</code> nghĩa là đa luồng.',
       'Trên glibc <b>2.34</b> trở lên (máy này: <b>2.43</b>) <code>libpthread</code> đã gộp vào <code>libc.so.6</code>, nên quên <code>-pthread</code> vẫn liên kết được. <b>Vẫn phải viết <code>-pthread</code></b> — vì <code>-D_REENTRANT</code> và vì toolchain biên dịch chéo của bạn có thể là glibc cũ.',
       'Họ hàm <code>pthread_*</code> <b>trả về</b> mã lỗi, không đặt <code>errno</code>. <code>perror</code> sau một lời gọi <code>pthread_*</code> hỏng là một lỗi thầm lặng.',
-      '<code>dem++</code> <b>không</b> là một thao tác nguyên tử. Ở <code>-O0</code> nó là <code>mov</code>/<code>add</code>/<code>mov</code> — ba lệnh, hai lần chạm bộ nhớ, một cửa sổ va chạm mở toang.',
-      'Cùng một mã nguồn cho <b>ba kết quả khác nhau</b> ở ba mức tối ưu: <code>-O0</code> mất <b>36–45 %</b> ngẫu nhiên, <code>-O1</code> mất <b>đúng 50 %</b> ổn định, <code>-O2</code> ra <b>kết quả đúng</b>. Trường hợp thứ ba nguy hiểm nhất vì nó khiến bạn tin là mã đã đúng.',
-      'Giá của tính đúng đắn, đo trên máy này: không khoá <b>~14 ms</b> (sai), <code>_Atomic</code> <b>~54 ms</b> (<b>~4×</b>), mutex <b>~170 ms</b> (<b>~12×</b>). Đây là cận trên; vùng tới hạn càng làm nhiều việc, tỷ lệ này càng nhỏ.',
+      '<code>counter++</code> <b>không</b> là một thao tác nguyên tử. Ở <code>-O0</code> nó là <code>mov</code>/<code>add</code>/<code>mov</code> — ba lệnh, hai lần chạm bộ nhớ, một cửa sổ va chạm mở toang.',
+      'Cùng một mã nguồn cho <b>ba kết quả khác nhau</b> ở ba mức tối ưu: <code>-O0</code> mất <b>20–42 %</b> ngẫu nhiên, <code>-O1</code> mất <b>đúng 50 %</b> ổn định, <code>-O2</code> ra <b>kết quả đúng</b>. Trường hợp thứ ba nguy hiểm nhất vì nó khiến bạn tin là mã đã đúng.',
+      'Giá của tính đúng đắn, đo trên máy này: không khoá <b>~12 ms</b> (sai), <code>_Atomic</code> <b>~32 ms</b> (<b>~3×</b>), mutex <b>~138 ms</b> (<b>~12×</b>). Đây là cận trên; vùng tới hạn càng làm nhiều việc, tỷ lệ này càng nhỏ.',
       '<code>_Atomic</code> biên dịch thành một lệnh <code>lock addq</code> — phần cứng bảo đảm. Nó chỉ dùng được cho <b>một</b> biến; hai biến phải nhất quán với nhau thì bắt buộc dùng mutex.',
       'Chờ bằng vòng lặp bận đốt <b>99 % CPU</b>; <code>pthread_cond_wait</code> đốt <b>0 %</b>. Trên thiết bị chạy pin, đây là khác biệt giữa vài giờ và vài ngày.',
       '<code>pthread_cond_wait</code> làm ba việc <b>nguyên tử</b>: mở khoá, ngủ, và khoá lại khi thức. Luôn gọi trong <code>while</code>, không bao giờ trong <code>if</code> — vì có thức giả (<i>spurious wakeup</i>).',
       'Deadlock không sập, nó <b>treo</b>: <code>timeout</code> trả <b>124</b>, mọi luồng đứng ở <code>futex_do_wait</code>. Cách chữa duy nhất đáng tin là áp một <b>thứ tự khoá toàn cục</b> — nó khiến deadlock <i>không thể</i> xảy ra, chứ không phải hiếm hơn.',
-      'Tạo luồng nhanh hơn <code>fork</code> <b>2,4–3,1×</b> (<b>125–137 µs</b> so với <b>304–413 µs</b>) — nhưng chỉ khi máy đã nóng; lần chạy đầu tiên tốn <b>860 µs</b>.',
-      'Mỗi luồng lấy <b>8 MB</b> ngăn xếp ảo mặc định. 100 luồng = <b>822 368 kB</b> ảo nhưng chỉ <b>2 768 kB</b> RSS thật. Trên thiết bị 64 MB không có swap, hãy hạ xuống bằng <code>pthread_attr_setstacksize()</code>.',
-      '<b>Một luồng sập là cả tiến trình sập</b>: <code>luongchet</code> in 2/5 dòng rồi thoát mã <b>139</b>. Tiến trình con sập thì cha in đủ 3/3 dòng và thoát mã <b>0</b>. Cách ly lỗi là lý do mạnh nhất để chọn tiến trình.'
+      'Tạo luồng nhanh hơn <code>fork</code> <b>2,4–2,8×</b> (<b>80–103 µs</b> so với <b>227–270 µs</b>) — nhưng chỉ khi máy đã nóng; lần chạy đầu tiên tốn <b>727 µs</b>.',
+      'Mỗi luồng lấy <b>8 MB</b> ngăn xếp ảo mặc định. 100 luồng = <b>822 368 kB</b> ảo nhưng chỉ <b>2 772 kB</b> RSS thật. Trên thiết bị 64 MB không có swap, hãy hạ xuống bằng <code>pthread_attr_setstacksize()</code>.',
+      '<b>Một luồng sập là cả tiến trình sập</b>: <code>thread_crash</code> in 2/5 dòng rồi thoát mã <b>139</b>. Tiến trình con sập thì cha in đủ 3/3 dòng và thoát mã <b>0</b>. Cách ly lỗi là lý do mạnh nhất để chọn tiến trình.'
     ]},
 
     /* ══════════════════════════════════════════════
@@ -1769,7 +1769,7 @@ Lesson.register({
            'luồng. Ngoài ngăn xếp, chỉ có thanh ghi, TID và các biến cục bộ luồng như ' +
            '<code>errno</code> là riêng.' },
 
-    { q: 'Bạn viết <code>dem++</code> cho một biến toàn cục, hai luồng cùng chạy, và biên dịch ' +
+    { q: 'Bạn viết <code>counter++</code> cho một biến toàn cục, hai luồng cùng chạy, và biên dịch ' +
          'ở <code>-O1</code>. Kết quả sai <b>chính xác 50 %</b>, ổn định qua cả 10 lần chạy. ' +
          'Nguyên nhân đúng nhất là gì?',
       opts: ['Trình biên dịch có lỗi ở mức -O1',
@@ -1777,7 +1777,7 @@ Lesson.register({
              'Bộ lập lịch luôn chuyển luồng ở đúng giữa vòng lặp',
              'Biến cần được khai báo volatile'],
       a: 1,
-      why: 'Đĩa mã cho thấy ở <code>-O1</code> hàm chỉ chạm <code>dem</code> hai lần trong cả ' +
+      why: 'Đĩa mã cho thấy ở <code>-O1</code> hàm chỉ chạm <code>counter</code> hai lần trong cả ' +
            'hàm: một <code>mov</code> đọc lúc vào, một <code>mov</code> ghi lúc ra. Cả hai luồng ' +
            'đọc 0, cộng dồn trong thanh ghi, rồi cùng ghi 1 000 000 — mất đúng một nửa, không ' +
            'phụ thuộc lịch chạy nên rất ổn định. Trình biên dịch hoàn toàn đúng theo chuẩn: ' +
@@ -1849,10 +1849,10 @@ Lesson.register({
              'Chạy thư viện trong luồng riêng với ngăn xếp lớn hơn',
              'Bọc mọi lời gọi tới thư viện bằng mutex'],
       a: 1,
-      why: 'Phép đo trong bài rất dứt khoát: <code>luongchet</code> lẽ ra in 5 dòng, chỉ in được ' +
+      why: 'Phép đo trong bài rất dứt khoát: <code>thread_crash</code> lẽ ra in 5 dòng, chỉ in được ' +
            '<b>2</b> rồi cả tiến trình thoát với mã <b>139</b> — luồng chính hoàn toàn vô tội ' +
            'vẫn bị xoá sổ, vì <code>SIGSEGV</code> mặc định giết cả tiến trình. Ngược lại ' +
-           '<code>conchet</code> in đủ <b>3/3</b> dòng, đọc được tín hiệu 11 từ ' +
+           '<code>child_crash</code> in đủ <b>3/3</b> dòng, đọc được tín hiệu 11 từ ' +
            '<code>waitpid</code>, rồi thoát mã <b>0</b>. Ranh giới tiến trình do MMU cưỡng chế ' +
            'là ranh giới lỗi thật; luồng không có ranh giới nào. Bắt <code>SIGSEGV</code> bằng ' +
            'handler càng tệ hơn: sau khi handler chạy xong, chương trình quay lại đúng lệnh gây ' +

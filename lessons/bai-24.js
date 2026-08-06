@@ -18,8 +18,8 @@ Lesson.register({
     'một mô tả file, đúng cái khái niệm bạn đã dùng từ Bài 19.</p>' +
     '<p>Rồi tới bài toán thứ hai, khó hơn: một tiến trình phải theo dõi <b>nhiều</b> kênh cùng ' +
     'lúc — vài socket khách, một FIFO, một tín hiệu — nhưng <code>read()</code> chỉ biết chặn ' +
-    'ở đúng một kênh. Bạn sẽ tự tay đo cái giá của việc chọn sai: <b>1697,0 ms</b> so với ' +
-    '<b>0,4 ms</b> cho cùng một yêu cầu. Rồi so <code>select</code>, <code>poll</code> và ' +
+    'ở đúng một kênh. Bạn sẽ tự tay đo cái giá của việc chọn sai: <b>1695,7 ms</b> so với ' +
+    '<b>0,5 ms</b> cho cùng một yêu cầu. Rồi so <code>select</code>, <code>poll</code> và ' +
     '<code>epoll</code> trên tới 2000 kênh.</p>' +
     '<p>Đây là bài khép lại <b>Chặng 03</b>. Phần thực hành ghép mọi thứ bốn bài vừa rồi đã ' +
     'chuẩn bị thành một sản phẩm duy nhất: một daemon đa luồng, đọc dữ liệu, tắt êm bằng ' +
@@ -76,7 +76,7 @@ Lesson.register({
          'cổng này", và <code>accept()</code> để lấy về từng kết nối một.</p>' +
          '<p>Máy khách chỉ cần <code>connect()</code>, vì nó không cần ai tìm tới mình. Nhân tự ' +
          'cấp cho nó một cổng tạm — trong bài thực hành bạn sẽ thấy những số như ' +
-         '<b>54202</b>, <b>42818</b>, lấy từ dải <code>ip_local_port_range</code> mà trên máy ' +
+         '<b>42392</b>, <b>38096</b>, lấy từ dải <code>ip_local_port_range</code> mà trên máy ' +
          'này là <b>32768–60999</b>.</p>' },
 
     { t: 'fig', cap:
@@ -108,14 +108,14 @@ Lesson.register({
       '<text class="d-ts" x="165" y="256" text-anchor="middle">fd 3 vẫn nghe tiếp cho khách sau</text>' +
 
       '<rect class="d-box" x="430" y="212" width="250" height="28" rx="6"/>' +
-      '<text class="d-tm" x="555" y="230" text-anchor="middle">write(fd, "XIN NHIET DO")</text>' +
+      '<text class="d-tm" x="555" y="230" text-anchor="middle">write(fd, "GET TEMPERATURE")</text>' +
       '<line class="d-line" x1="430" y1="226" x2="300" y2="226"/>' +
       '<path class="d-arrow" d="M300 226 L310 221 L310 231 Z"/>' +
 
       '<rect class="d-box" x="40" y="276" width="250" height="28" rx="6"/>' +
       '<text class="d-tm" x="165" y="294" text-anchor="middle">read(fd 4) → write(fd 4)</text>' +
       '<rect class="d-box" x="430" y="276" width="250" height="28" rx="6"/>' +
-      '<text class="d-tm" x="555" y="294" text-anchor="middle">read(fd) → "nhiet do 42.5"</text>' +
+      '<text class="d-tm" x="555" y="294" text-anchor="middle">read(fd) → "temperature 42.5"</text>' +
       '<line class="d-line" x1="290" y1="290" x2="420" y2="290"/>' +
       '<path class="d-arrow" d="M420 290 L410 285 L410 295 Z"/>' +
       '<text class="d-ts" x="360" y="322" text-anchor="middle">Từ lúc này trở đi cả hai bên chỉ còn dùng read/write như với file thường</text>' +
@@ -145,7 +145,7 @@ Lesson.register({
       'tự khác. Nếu bạn không đổi, chương trình vẫn biên dịch sạch, vẫn chạy, và vẫn ' +
       '<b>sai</b>.' },
 
-    { t: 'code', where: 'file', name: 'thutu.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'byte_order.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdint.h>\n' +
       '#include <arpa/inet.h>\n' +
@@ -153,38 +153,38 @@ Lesson.register({
       'int main(void)\n' +
       '{\n' +
       '    union { uint32_t i; unsigned char c[4]; } u = { .i = 1 };\n' +
-      '    printf("kien truc nay : %s-endian\\n", u.c[0] ? "little" : "big");\n' +
+      '    printf("this architecture      : %s-endian\\n", u.c[0] ? "little" : "big");\n' +
       '\n' +
-      '    uint16_t cong_may  = 9000;\n' +
-      '    uint16_t cong_mang = htons(cong_may);\n' +
-      '    printf("cong  9000 tren may  = 0x%04X\\n", cong_may);\n' +
-      '    printf("cong  9000 tren mang = 0x%04X  (= %u neu doc nham)\\n",\n' +
-      '           cong_mang, cong_mang);\n' +
+      '    uint16_t host_port = 9000;\n' +
+      '    uint16_t net_port  = htons(host_port);\n' +
+      '    printf("port 9000 on host      = 0x%04X\\n", host_port);\n' +
+      '    printf("port 9000 on network   = 0x%04X  (= %u if misread)\\n",\n' +
+      '           net_port, net_port);\n' +
       '\n' +
-      '    unsigned char *p = (unsigned char *)&cong_may;\n' +
-      '    printf("byte trong RAM (may) : %02X %02X\\n", p[0], p[1]);\n' +
-      '    p = (unsigned char *)&cong_mang;\n' +
-      '    printf("byte trong RAM (mang): %02X %02X\\n", p[0], p[1]);\n' +
+      '    unsigned char *p = (unsigned char *)&host_port;\n' +
+      '    printf("bytes in RAM (host)    : %02X %02X\\n", p[0], p[1]);\n' +
+      '    p = (unsigned char *)&net_port;\n' +
+      '    printf("bytes in RAM (network) : %02X %02X\\n", p[0], p[1]);\n' +
       '\n' +
       '    uint32_t ip = 0xC0A80105;                 /* 192.168.1.5 */\n' +
-      '    printf("ip 192.168.1.5 tren may  = 0x%08X\\n", ip);\n' +
-      '    printf("ip 192.168.1.5 tren mang = 0x%08X\\n", htonl(ip));\n' +
+      '    printf("ip 192.168.1.5 on host    = 0x%08X\\n", ip);\n' +
+      '    printf("ip 192.168.1.5 on network = 0x%08X\\n", htonl(ip));\n' +
       '    return 0;\n' +
       '}\n',
       notes: [
         'Mẹo <code>union</code> ở dòng đầu là cách chuẩn để hỏi kiến trúc mà không cần macro của trình biên dịch: ghi số 1 vào 4 byte rồi xem byte thấp nhất nằm ở đâu.'
       ]},
 
-    { t: 'code', where: 'wsl', code: 'gcc -Wall -Wextra -o thutu thutu.c\n./thutu' },
+    { t: 'code', where: 'wsl', code: 'gcc -Wall -Wextra -o byte_order byte_order.c\n./byte_order' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'kien truc nay : little-endian\n' +
-      'cong  9000 tren may  = 0x2328\n' +
-      'cong  9000 tren mang = 0x2823  (= 10275 neu doc nham)\n' +
-      'byte trong RAM (may) : 28 23\n' +
-      'byte trong RAM (mang): 23 28\n' +
-      'ip 192.168.1.5 tren may  = 0xC0A80105\n' +
-      'ip 192.168.1.5 tren mang = 0x0501A8C0\n' },
+      'this architecture      : little-endian\n' +
+      'port 9000 on host      = 0x2328\n' +
+      'port 9000 on network   = 0x2823  (= 10275 if misread)\n' +
+      'bytes in RAM (host)    : 28 23\n' +
+      'bytes in RAM (network) : 23 28\n' +
+      'ip 192.168.1.5 on host    = 0xC0A80105\n' +
+      'ip 192.168.1.5 on network = 0x0501A8C0\n' },
 
     { t: 'p', x:
       'Đọc hai dòng <code>byte trong RAM</code> cho kỹ, vì đó là toàn bộ vấn đề. Số ' +
@@ -213,21 +213,21 @@ Lesson.register({
 
     { t: 'h3', x: 'Quên htons thì chuyện gì xảy ra?' },
 
-    { t: 'code', where: 'file', name: 'khach_quen.c (bản hỏng, cố ý)', lang: 'c', code:
-      '    struct sockaddr_in dc;\n' +
-      '    memset(&dc, 0, sizeof dc);\n' +
-      '    dc.sin_family = AF_INET;\n' +
-      '    dc.sin_port   = 9000;                 /* QUEN htons() */\n' +
-      '    inet_pton(AF_INET, "127.0.0.1", &dc.sin_addr);\n' +
+    { t: 'code', where: 'file', name: 'client_forgot_htons.c (bản hỏng, cố ý)', lang: 'c', code:
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port   = 9000;                 /* FORGOT htons() */\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
       '\n' +
-      '    printf("[khach] sin_port trong RAM = 0x%04X -> may chu se doc thanh cong %u\\n",\n' +
-      '           dc.sin_port, ntohs(dc.sin_port));\n' +
-      '    if (connect(s, (struct sockaddr *)&dc, sizeof dc) == -1) { perror("connect"); exit(1); }\n' },
+      '    printf("[client] sin_port in RAM = 0x%04X -> server will read it as port %u\\n",\n' +
+      '           addr.sin_port, ntohs(addr.sin_port));\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[khach] sin_port trong RAM = 0x2328 -> may chu se doc thanh cong 10275\n' +
+      '[client] sin_port in RAM = 0x2328 -> server will read it as port 10275\n' +
       'connect: Connection refused\n' +
-      'ma thoat = 1\n' },
+      'exit code = 1\n' },
 
     { t: 'cal', kind: 'warn', title: 'Lỗi này không bao giờ tự nói tên nó ra',
       x: '<p>Thông báo bạn nhận được là <code>Connection refused</code> — y hệt thông báo khi ' +
@@ -236,7 +236,7 @@ Lesson.register({
          '<p>Chương trình đã lặng lẽ gõ cửa cổng <b>10275</b> thay vì <b>9000</b>, vì nhân đọc ' +
          'hai byte <code>28 23</code> trong RAM theo thứ tự mạng và ra số đó. Cách nhận ra: nếu ' +
          '<code>ss -tln</code> khẳng định máy chủ <i>đang</i> nghe đúng cổng mà máy khách vẫn ' +
-         'bị từ chối, hãy in <code>dc.sin_port</code> ra dạng hex trước khi nghi ngờ bất cứ thứ ' +
+         'bị từ chối, hãy in <code>addr.sin_port</code> ra dạng hex trước khi nghi ngờ bất cứ thứ ' +
          'gì khác.</p>' },
 
     /* ══════════════════════════════════════════════
@@ -249,7 +249,7 @@ Lesson.register({
       'yêu cầu, trả về một số đo, rồi đóng. Ngắn, nhưng chứa <b>đủ</b> bộ khung mà mọi máy chủ ' +
       'TCP trên đời đều dùng.' },
 
-    { t: 'code', where: 'file', name: 'may_tcp.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'tcp_server.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
@@ -257,78 +257,78 @@ Lesson.register({
       '#include <signal.h>\n' +
       '#include <arpa/inet.h>\n' +
       '\n' +
-      '#define CONG 9000\n' +
+      '#define PORT 9000\n' +
       '\n' +
       'int main(int argc, char **argv)\n' +
       '{\n' +
-      '    int solan = (argc > 1) ? atoi(argv[1]) : 1;\n' +
-      '    signal(SIGPIPE, SIG_IGN);                 /* bai hoc tu Bai 23 */\n' +
+      '    int times = (argc > 1) ? atoi(argv[1]) : 1;\n' +
+      '    signal(SIGPIPE, SIG_IGN);                 /* lesson learned from Bai 23 */\n' +
       '\n' +
-      '    int ls = socket(AF_INET, SOCK_STREAM, 0);\n' +
-      '    if (ls == -1) { perror("socket"); exit(1); }\n' +
+      '    int listen_fd = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    if (listen_fd == -1) { perror("socket"); exit(1); }\n' +
       '\n' +
-      '    int mot = 1;\n' +
-      '    setsockopt(ls, SOL_SOCKET, SO_REUSEADDR, &mot, sizeof mot);\n' +
+      '    int one = 1;\n' +
+      '    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);\n' +
       '\n' +
-      '    struct sockaddr_in dc;\n' +
-      '    memset(&dc, 0, sizeof dc);                /* PHAI xoa sach truoc */\n' +
-      '    dc.sin_family      = AF_INET;\n' +
-      '    dc.sin_addr.s_addr = htonl(INADDR_ANY);   /* moi giao dien mang */\n' +
-      '    dc.sin_port        = htons(CONG);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);                /* MUST zero it out first */\n' +
+      '    addr.sin_family      = AF_INET;\n' +
+      '    addr.sin_addr.s_addr = htonl(INADDR_ANY);     /* every network interface */\n' +
+      '    addr.sin_port        = htons(PORT);\n' +
       '\n' +
-      '    if (bind(ls, (struct sockaddr *)&dc, sizeof dc) == -1) { perror("bind"); exit(1); }\n' +
-      '    if (listen(ls, 16) == -1) { perror("listen"); exit(1); }\n' +
-      '    printf("[may] fd nghe = %d, cho khach tren cong %d\\n", ls, CONG);\n' +
+      '    if (bind(listen_fd, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("bind"); exit(1); }\n' +
+      '    if (listen(listen_fd, 16) == -1) { perror("listen"); exit(1); }\n' +
+      '    printf("[server] listen fd = %d, waiting for clients on port %d\\n", listen_fd, PORT);\n' +
       '    fflush(stdout);\n' +
       '\n' +
-      '    for (int i = 0; i < solan; i++) {\n' +
-      '        struct sockaddr_in kdc;\n' +
-      '        socklen_t klen = sizeof kdc;\n' +
-      '        int cs = accept(ls, (struct sockaddr *)&kdc, &klen);\n' +
-      '        if (cs == -1) { perror("accept"); break; }\n' +
+      '    for (int i = 0; i < times; i++) {\n' +
+      '        struct sockaddr_in client_addr;\n' +
+      '        socklen_t client_len = sizeof client_addr;\n' +
+      '        int conn_fd = accept(listen_fd, (struct sockaddr *)&client_addr, &client_len);\n' +
+      '        if (conn_fd == -1) { perror("accept"); break; }\n' +
       '\n' +
       '        char ip[INET_ADDRSTRLEN];\n' +
-      '        inet_ntop(AF_INET, &kdc.sin_addr, ip, sizeof ip);\n' +
-      '        printf("[may] khach %s:%u  ->  fd moi = %d\\n", ip, ntohs(kdc.sin_port), cs);\n' +
+      '        inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof ip);\n' +
+      '        printf("[server] client %s:%u  ->  new fd = %d\\n", ip, ntohs(client_addr.sin_port), conn_fd);\n' +
       '        fflush(stdout);\n' +
       '\n' +
-      '        char dem[128];\n' +
-      '        ssize_t n = read(cs, dem, sizeof dem - 1);\n' +
+      '        char buf[128];\n' +
+      '        ssize_t n = read(conn_fd, buf, sizeof buf - 1);\n' +
       '        if (n > 0) {\n' +
-      '            dem[n] = \'\\0\';\n' +
-      '            printf("[may] nhan %zd byte: %s", n, dem);\n' +
+      '            buf[n] = \'\\0\';\n' +
+      '            printf("[server] received %zd bytes: %s", n, buf);\n' +
       '            fflush(stdout);\n' +
-      '            const char *tl = "nhiet do 42.5 do C\\n";\n' +
-      '            if (write(cs, tl, strlen(tl)) == -1) perror("write");\n' +
+      '            const char *reply = "temperature 42.5 C\\n";\n' +
+      '            if (write(conn_fd, reply, strlen(reply)) == -1) perror("write");\n' +
       '        }\n' +
-      '        close(cs);\n' +
-      '        printf("[may] dong fd %d\\n", cs);\n' +
+      '        close(conn_fd);\n' +
+      '        printf("[server] closed fd %d\\n", conn_fd);\n' +
       '        fflush(stdout);\n' +
       '    }\n' +
-      '    close(ls);\n' +
+      '    close(listen_fd);\n' +
       '    return 0;\n' +
       '}\n',
       notes: [
-        '<code>memset(&amp;dc, 0, sizeof dc)</code> không phải thói quen thừa: <code>struct sockaddr_in</code> có trường đệm <code>sin_zero</code>, và bỏ rác trong đó là nguồn của những lỗi rất khó tái hiện.',
+        '<code>memset(&amp;addr, 0, sizeof addr)</code> không phải thói quen thừa: <code>struct sockaddr_in</code> có trường đệm <code>sin_zero</code>, và bỏ rác trong đó là nguồn của những lỗi rất khó tái hiện.',
         '<code>fflush(stdout)</code> sau mỗi dòng là vì bạn sẽ chạy chương trình này ở nền và chuyển hướng ra file — cái bẫy đệm khối bạn đã gặp ở Bài 19, Bài 20 và Bài 23.'
       ]},
 
     { t: 'cmdx', cmd: 'bind / listen / accept',
       title: 'Ba lời gọi, ba nhiệm vụ hoàn toàn khác nhau',
       rows: [
-        ['bind(ls, &amp;dc, sizeof dc)',
+        ['bind(listen_fd, &amp;addr, sizeof addr)',
          'Gắn socket vào địa chỉ + cổng cụ thể. Từ đây nhân biết gói tới cổng 9000 thuộc về ai',
          'Thiếu bước này thì nhân cấp cổng ngẫu nhiên — chấp nhận được với máy khách, vô dụng với máy chủ'],
         ['htonl(INADDR_ANY)',
          '<code>INADDR_ANY</code> = 0.0.0.0 = "nghe trên <b>mọi</b> giao diện mạng"',
          'Máy này có <code>lo</code> (127.0.0.1) và <code>eth0</code> (172.30.153.178). Muốn chỉ nghe nội bộ thì <code>inet_pton</code> vào "127.0.0.1"'],
-        ['listen(ls, 16)',
+        ['listen(listen_fd, 16)',
          'Chuyển socket sang trạng thái <i>bị động</i>. Từ giờ nhân tự bắt tay ba bước hộ bạn và xếp kết nối vào hàng chờ',
          'Số 16 là <b>backlog</b>: hàng chờ sâu 16. Vượt trần <code>somaxconn</code> = <b>4096</b> thì bị cắt xuống'],
-        ['accept(ls, &amp;kdc, &amp;klen)',
+        ['accept(listen_fd, &amp;client_addr, &amp;client_len)',
          'Lấy <b>một</b> kết nối ra khỏi hàng chờ và trả về mô tả file mới cho riêng nó',
-         'Chặn nếu hàng chờ rỗng. <code>ls</code> vẫn tiếp tục nghe — đây là chỗ người mới hay nhầm nhất'],
-        ['&amp;klen',
+         'Chặn nếu hàng chờ rỗng. <code>listen_fd</code> vẫn tiếp tục nghe — đây là chỗ người mới hay nhầm nhất'],
+        ['&amp;client_len',
          'Tham số vừa vào vừa ra: bạn đưa vào kích thước bộ đệm, nhân ghi lại kích thước thật của địa chỉ',
          'Kiểu <code>socklen_t</code>, không phải <code>int</code>. Quên khởi tạo nó là lỗi kinh điển'],
         ['inet_ntop / ntohs',
@@ -337,28 +337,28 @@ Lesson.register({
       ]},
 
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -o may_tcp may_tcp.c\n' +
-      'gcc -Wall -Wextra -o khach_tcp khach_tcp.c\n' +
-      './may_tcp 1 &\n' +
+      'gcc -Wall -Wextra -o tcp_server tcp_server.c\n' +
+      'gcc -Wall -Wextra -o tcp_client tcp_client.c\n' +
+      './tcp_server 1 &\n' +
       'sleep 0.4\n' +
-      './khach_tcp\n' +
+      './tcp_client\n' +
       'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[may] fd nghe = 3, cho khach tren cong 9000\n' +
-      '[khach] noi duoc toi 127.0.0.1:9000, fd = 3\n' +
-      '[may] khach 127.0.0.1:54202  ->  fd moi = 4\n' +
-      '[may] nhan 13 byte: XIN NHIET DO\n' +
-      '[khach] tra loi: nhiet do 42.5 do C\n' +
-      '[may] dong fd 4\n' },
+      '[server] listen fd = 3, waiting for clients on port 9000\n' +
+      '[client] connected to 127.0.0.1:9000, fd = 3\n' +
+      '[server] client 127.0.0.1:42392  ->  new fd = 4\n' +
+      '[server] received 16 bytes: GET TEMPERATURE\n' +
+      '[client] reply: temperature 42.5 C\n' +
+      '[server] closed fd 4\n' },
 
     { t: 'cal', kind: 'info', title: 'Ba con số đáng để ý trong output',
       x: '<ul>' +
-         '<li><b>fd nghe = 3</b> — socket lấy đúng số fd nhỏ nhất còn trống, sau 0/1/2. Nó không ' +
+         '<li><b>listen fd = 3</b> — socket lấy đúng số fd nhỏ nhất còn trống, sau 0/1/2. Nó không ' +
          'khác gì một fd của <code>open()</code>.</li>' +
-         '<li><b>fd moi = 4</b> — <code>accept()</code> đẻ ra fd thứ hai. Máy chủ giờ giữ ' +
+         '<li><b>new fd = 4</b> — <code>accept()</code> đẻ ra fd thứ hai. Máy chủ giờ giữ ' +
          '<i>hai</i> socket: fd 3 để nghe tiếp, fd 4 để nói chuyện với khách này.</li>' +
-         '<li><b>127.0.0.1:54202</b> — cổng tạm nhân cấp cho máy khách, nằm trong dải ' +
+         '<li><b>127.0.0.1:42392</b> — cổng tạm nhân cấp cho máy khách, nằm trong dải ' +
          '32768–60999. Chạy lại lần nữa bạn sẽ thấy số khác.</li>' +
          '</ul>' },
 
@@ -369,23 +369,23 @@ Lesson.register({
       'được. Hãy thử bỏ nó ra, rồi khởi động lại máy chủ ngay sau khi nó vừa thoát.' },
 
     { t: 'code', where: 'wsl', code:
-      '# may_khong_reuse.c giong het may_tcp.c nhung KHONG co dong setsockopt\n' +
-      './may_khong_reuse &\n' +
-      'sleep 0.3\n' +
-      'nc -w1 127.0.0.1 9003 <<< "chao" > /dev/null\n' +
+      '# tcp_server_no_reuse.c giong het tcp_server.c nhung KHONG co dong setsockopt\n' +
+      './tcp_server_no_reuse 1 &\n' +
+      'sleep 0.4\n' +
+      './tcp_client 127.0.0.1 9003 > /dev/null\n' +
       'wait\n' +
       'ss -tan | grep 9003\n' +
-      './may_khong_reuse' },
+      './tcp_server_no_reuse 1' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[may] bind cong 9003 thanh cong\n' +
-      '[may] da dong, thoat\n' +
-      'TIME-WAIT 0      0           127.0.0.1:9003     127.0.0.1:57766\n' +
+      '[server] bind port 9003 succeeded\n' +
+      '[server] closed, exiting\n' +
+      'TIME-WAIT 0      0           127.0.0.1:9003     127.0.0.1:35334\n' +
       'bind: Address already in use\n' },
 
     { t: 'p', x:
       'Máy chủ đã thoát hẳn. Không tiến trình nào đang giữ cổng 9003. Vậy mà ' +
-      '<code>bind</code> vẫn bị từ chối — và bốn lần chạy liên tiếp đều cho đúng kết quả đó. ' +
+      '<code>bind</code> vẫn bị từ chối — và ba lần chạy liên tiếp đều cho đúng kết quả đó. ' +
       'Thủ phạm là dòng <code>TIME-WAIT</code> ở giữa: <b>nhân</b> vẫn đang giữ chỗ, dù ' +
       'chương trình đã chết.' },
 
@@ -406,18 +406,18 @@ Lesson.register({
          'không phục vụ ai.</p>' },
 
     { t: 'code', where: 'wsl', code:
-      '# may_tcp.c CO SO_REUSEADDR: lam lai dung kich ban tren\n' +
-      './may_tcp 1 & sleep 0.3\n' +
-      'nc -w1 127.0.0.1 9000 <<< "chao" > /dev/null\n' +
+      '# tcp_server.c CO SO_REUSEADDR: lam lai dung kich ban tren\n' +
+      './tcp_server 1 & sleep 0.4\n' +
+      './tcp_client 127.0.0.1 9000 > /dev/null\n' +
       'wait\n' +
       'ss -tan | grep 9000\n' +
-      './may_tcp 1 &\n' +
+      './tcp_server 1 &\n' +
       'sleep 0.5\n' +
       'ss -tln | grep 9000' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'TIME-WAIT 0      0           127.0.0.1:9000     127.0.0.1:42818\n' +
-      '[may] fd nghe = 3, cho khach tren cong 9000\n' +
+      'TIME-WAIT 0      0           127.0.0.1:9000     127.0.0.1:38096\n' +
+      '[server] listen fd = 3, waiting for clients on port 9000\n' +
       'LISTEN 0      16            0.0.0.0:9000      0.0.0.0:*\n' },
 
     { t: 'p', x:
@@ -434,7 +434,7 @@ Lesson.register({
       'Phía khách ngắn hơn hẳn vì nó không cần ai tìm tới mình: chỉ <code>socket()</code> rồi ' +
       '<code>connect()</code>, sau đó là <code>read</code>/<code>write</code> như với file.' },
 
-    { t: 'code', where: 'file', name: 'khach_tcp.c', lang: 'c', code:
+    { t: 'code', where: 'file', name: 'tcp_client.c', lang: 'c', code:
       '#include <stdio.h>\n' +
       '#include <stdlib.h>\n' +
       '#include <string.h>\n' +
@@ -443,30 +443,30 @@ Lesson.register({
       '\n' +
       'int main(int argc, char **argv)\n' +
       '{\n' +
-      '    const char *dia_chi = (argc > 1) ? argv[1] : "127.0.0.1";\n' +
-      '    int          cong    = (argc > 2) ? atoi(argv[2]) : 9000;\n' +
+      '    const char *address = (argc > 1) ? argv[1] : "127.0.0.1";\n' +
+      '    int         port    = (argc > 2) ? atoi(argv[2]) : 9000;\n' +
       '\n' +
       '    int s = socket(AF_INET, SOCK_STREAM, 0);\n' +
       '    if (s == -1) { perror("socket"); exit(1); }\n' +
       '\n' +
-      '    struct sockaddr_in dc;\n' +
-      '    memset(&dc, 0, sizeof dc);\n' +
-      '    dc.sin_family = AF_INET;\n' +
-      '    dc.sin_port   = htons(cong);\n' +
-      '    if (inet_pton(AF_INET, dia_chi, &dc.sin_addr) != 1) {\n' +
-      '        fprintf(stderr, "dia chi khong hop le: %s\\n", dia_chi); exit(1);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port   = htons(port);\n' +
+      '    if (inet_pton(AF_INET, address, &addr.sin_addr) != 1) {\n' +
+      '        fprintf(stderr, "invalid address: %s\\n", address); exit(1);\n' +
       '    }\n' +
       '\n' +
-      '    if (connect(s, (struct sockaddr *)&dc, sizeof dc) == -1) { perror("connect"); exit(1); }\n' +
-      '    printf("[khach] noi duoc toi %s:%d, fd = %d\\n", dia_chi, cong, s);\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' +
+      '    printf("[client] connected to %s:%d, fd = %d\\n", address, port, s);\n' +
       '\n' +
-      '    const char *xin = "XIN NHIET DO\\n";\n' +
-      '    if (write(s, xin, strlen(xin)) == -1) { perror("write"); exit(1); }\n' +
+      '    const char *request = "GET TEMPERATURE\\n";\n' +
+      '    if (write(s, request, strlen(request)) == -1) { perror("write"); exit(1); }\n' +
       '\n' +
-      '    char dem[128];\n' +
-      '    ssize_t n = read(s, dem, sizeof dem - 1);\n' +
-      '    if (n > 0) { dem[n] = \'\\0\'; printf("[khach] tra loi: %s", dem); }\n' +
-      '    else if (n == 0) printf("[khach] may chu dong ket noi\\n");\n' +
+      '    char buf[128];\n' +
+      '    ssize_t n = read(s, buf, sizeof buf - 1);\n' +
+      '    if (n > 0) { buf[n] = \'\\0\'; printf("[client] reply: %s", buf); }\n' +
+      '    else if (n == 0) printf("[client] server closed the connection\\n");\n' +
       '\n' +
       '    close(s);\n' +
       '    return 0;\n' +
@@ -499,30 +499,104 @@ Lesson.register({
       'Hãy tự chứng minh. Máy khách gửi ba dòng, mỗi dòng 11 byte. Máy chủ đếm xem ' +
       '<code>read()</code> phải gọi bao nhiêu lần và mỗi lần trả về bao nhiêu byte.' },
 
+    { t: 'code', where: 'file', name: 'boundary_server.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      '#define PORT 9001\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    int listen_fd = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    int one = 1;\n' +
+      '    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);\n' +
+      '\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_addr.s_addr = htonl(INADDR_ANY);\n' +
+      '    addr.sin_port = htons(PORT);\n' +
+      '    if (bind(listen_fd, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("bind"); exit(1); }\n' +
+      '    listen(listen_fd, 8);\n' +
+      '\n' +
+      '    int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+      '    int count = 0;\n' +
+      '    char buf[256];\n' +
+      '    ssize_t n;\n' +
+      '    while ((n = read(conn_fd, buf, sizeof buf - 1)) > 0) {\n' +
+      '        buf[n] = \'\\0\';\n' +
+      '        printf("[server] read() call %d returned %zd bytes: \\"", ++count, n);\n' +
+      '        for (ssize_t i = 0; i < n; i++)\n' +
+      '            putchar(buf[i] == \'\\n\' ? \'|\' : buf[i]);\n' +
+      '        printf("\\"\\n");\n' +
+      '        fflush(stdout);\n' +
+      '    }\n' +
+      '    printf("[server] read() returned 0 -> client closed. Total read() calls = %d\\n", count);\n' +
+      '    close(conn_fd); close(listen_fd);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'file', name: 'boundary_client.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    int sleep_ms = (argc > 1) ? atoi(argv[1]) : 0;\n' +
+      '\n' +
+      '    int s = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port   = htons(9001);\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' +
+      '\n' +
+      '    const char *messages[3] = { "meas1:41.5\\n", "meas2:42.0\\n", "meas3:42.5\\n" };\n' +
+      '    for (int i = 0; i < 3; i++) {\n' +
+      '        if (write(s, messages[i], strlen(messages[i])) == -1) { perror("write"); exit(1); }\n' +
+      '        printf("[client] write() call %d sent %zu bytes\\n", i + 1, strlen(messages[i]));\n' +
+      '        if (sleep_ms) usleep(sleep_ms * 1000);\n' +
+      '    }\n' +
+      '    close(s);\n' +
+      '    return 0;\n' +
+      '}\n',
+      notes: [
+        'Mỗi thông điệp <code>"measN:xx.x\\n"</code> dài đúng 11 byte — con số này là điều bạn sẽ theo dõi trong output bên dưới, không phải nội dung chữ.'
+      ]},
+
     { t: 'code', where: 'wsl', code:
+      'gcc -Wall -Wextra -o boundary_server boundary_server.c\n' +
+      'gcc -Wall -Wextra -o boundary_client boundary_client.c\n' +
       '# lan 1: ba lan write lien tiep, khong nghi\n' +
-      './may_ranhgioi & sleep 0.4; ./khach_ranhgioi 0; wait' },
+      './boundary_server & sleep 0.4; ./boundary_client 0; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[may] read() lan 1 tra ve 11 byte: "do 1: 41.5|"\n' +
-      '[khach] write() lan 1 gui 11 byte\n' +
-      '[khach] write() lan 2 gui 11 byte\n' +
-      '[khach] write() lan 3 gui 11 byte\n' +
-      '[may] read() lan 2 tra ve 22 byte: "do 2: 42.0|do 3: 42.5|"\n' +
-      '[may] read() tra ve 0 -> khach da dong. Tong so lan read = 2\n' },
+      '[client] write() call 1 sent 11 bytes\n' +
+      '[client] write() call 2 sent 11 bytes\n' +
+      '[client] write() call 3 sent 11 bytes\n' +
+      '[server] read() call 1 returned 11 bytes: "meas1:41.5|"\n' +
+      '[server] read() call 2 returned 22 bytes: "meas2:42.0|meas3:42.5|"\n' +
+      '[server] read() returned 0 -> client closed. Total read() calls = 2\n' },
 
     { t: 'code', where: 'wsl', code:
       '# lan 2: cung chuong trinh, nhung nghi 300 ms giua cac lan write\n' +
-      './may_ranhgioi & sleep 0.4; ./khach_ranhgioi 300; wait' },
+      './boundary_server & sleep 0.4; ./boundary_client 300; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[may] read() lan 1 tra ve 11 byte: "do 1: 41.5|"\n' +
-      '[may] read() lan 2 tra ve 11 byte: "do 2: 42.0|"\n' +
-      '[may] read() lan 3 tra ve 11 byte: "do 3: 42.5|"\n' +
-      '[khach] write() lan 1 gui 11 byte\n' +
-      '[khach] write() lan 2 gui 11 byte\n' +
-      '[khach] write() lan 3 gui 11 byte\n' +
-      '[may] read() tra ve 0 -> khach da dong. Tong so lan read = 3\n',
+      '[server] read() call 1 returned 11 bytes: "meas1:41.5|"\n' +
+      '[server] read() call 2 returned 11 bytes: "meas2:42.0|"\n' +
+      '[server] read() call 3 returned 11 bytes: "meas3:42.5|"\n' +
+      '[client] write() call 1 sent 11 bytes\n' +
+      '[client] write() call 2 sent 11 bytes\n' +
+      '[client] write() call 3 sent 11 bytes\n' +
+      '[server] read() returned 0 -> client closed. Total read() calls = 3\n',
       notes: [
         'Ký tự <code>|</code> trong output là ký tự xuống dòng, được máy chủ in thay thế để bạn nhìn rõ ranh giới.'
       ]},
@@ -572,17 +646,86 @@ Lesson.register({
       '<code>accept</code>, không <code>connect</code> — chỉ <code>sendto()</code> và ' +
       '<code>recvfrom()</code>, mỗi lời gọi mang theo địa chỉ của bên kia.' },
 
+    { t: 'code', where: 'file', name: 'udp_server.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      '#define PORT 9002\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    size_t buf_size = (argc > 1) ? (size_t)atoi(argv[1]) : 256;\n' +
+      '    int s = socket(AF_INET, SOCK_DGRAM, 0);\n' +
+      '    if (s == -1) { perror("socket"); exit(1); }\n' +
+      '\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_addr.s_addr = htonl(INADDR_ANY);\n' +
+      '    addr.sin_port = htons(PORT);\n' +
+      '    if (bind(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("bind"); exit(1); }\n' +
+      '    printf("[udp] waiting for packets on port %d, recv buffer = %zu bytes\\n", PORT, buf_size);\n' +
+      '    fflush(stdout);\n' +
+      '\n' +
+      '    char *buf = malloc(buf_size + 1);\n' +
+      '    for (int i = 0; i < 3; i++) {\n' +
+      '        struct sockaddr_in client_addr;\n' +
+      '        socklen_t client_len = sizeof client_addr;\n' +
+      '        ssize_t n = recvfrom(s, buf, buf_size, 0, (struct sockaddr *)&client_addr, &client_len);\n' +
+      '        if (n == -1) { perror("recvfrom"); break; }\n' +
+      '        buf[n] = \'\\0\';\n' +
+      '        char ip[INET_ADDRSTRLEN];\n' +
+      '        inet_ntop(AF_INET, &client_addr.sin_addr, ip, sizeof ip);\n' +
+      '        printf("[udp] recvfrom() call %d: %zd bytes from %s:%u -> \\"%s\\"\\n",\n' +
+      '               i + 1, n, ip, ntohs(client_addr.sin_port), buf);\n' +
+      '        fflush(stdout);\n' +
+      '    }\n' +
+      '    free(buf); close(s);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'file', name: 'udp_client.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    int s = socket(AF_INET, SOCK_DGRAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port   = htons(9002);\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '\n' +
+      '    const char *messages[3] = { "meas1:41.5", "meas2:42.0", "meas3:42.5" };\n' +
+      '    for (int i = 0; i < 3; i++) {\n' +
+      '        ssize_t n = sendto(s, messages[i], strlen(messages[i]), 0,\n' +
+      '                           (struct sockaddr *)&addr, sizeof addr);\n' +
+      '        printf("[client] sendto() call %d sent %zd bytes, no connect() needed\\n", i + 1, n);\n' +
+      '    }\n' +
+      '    close(s);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
     { t: 'code', where: 'wsl', code:
-      './may_udp 256 & sleep 0.4; ./khach_udp; wait' },
+      'gcc -Wall -Wextra -o udp_server udp_server.c\n' +
+      'gcc -Wall -Wextra -o udp_client udp_client.c\n' +
+      './udp_server 256 & sleep 0.4; ./udp_client; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[udp] cho goi tren cong 9002, bo dem nhan = 256 byte\n' +
-      '[udp] recvfrom() lan 1: 10 byte tu 127.0.0.1:45321 -> "do 1: 41.5"\n' +
-      '[khach] sendto() lan 1 gui 10 byte, khong can connect()\n' +
-      '[khach] sendto() lan 2 gui 10 byte, khong can connect()\n' +
-      '[udp] recvfrom() lan 2: 10 byte tu 127.0.0.1:45321 -> "do 2: 42.0"\n' +
-      '[khach] sendto() lan 3 gui 10 byte, khong can connect()\n' +
-      '[udp] recvfrom() lan 3: 10 byte tu 127.0.0.1:45321 -> "do 3: 42.5"\n' },
+      '[udp] waiting for packets on port 9002, recv buffer = 256 bytes\n' +
+      '[client] sendto() call 1 sent 10 bytes, no connect() needed\n' +
+      '[client] sendto() call 2 sent 10 bytes, no connect() needed\n' +
+      '[client] sendto() call 3 sent 10 bytes, no connect() needed\n' +
+      '[udp] recvfrom() call 1: 10 bytes from 127.0.0.1:46824 -> "meas1:41.5"\n' +
+      '[udp] recvfrom() call 2: 10 bytes from 127.0.0.1:46824 -> "meas2:42.0"\n' +
+      '[udp] recvfrom() call 3: 10 bytes from 127.0.0.1:46824 -> "meas3:42.5"\n' },
 
     { t: 'p', x:
       'Ba lần gửi, ba lần nhận, mỗi lần đúng 10 byte. Ranh giới gói được giữ nguyên vẹn — đúng ' +
@@ -590,16 +733,16 @@ Lesson.register({
 
     { t: 'code', where: 'wsl', code:
       '# cung khach gui 10 byte, nhung ben nhan chi dua bo dem 6 byte\n' +
-      './may_udp 6 & sleep 0.4; ./khach_udp; wait' },
+      './udp_server 6 & sleep 0.4; ./udp_client; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[udp] cho goi tren cong 9002, bo dem nhan = 6 byte\n' +
-      '[udp] recvfrom() lan 1: 6 byte tu 127.0.0.1:55936 -> "do 1: "\n' +
-      '[khach] sendto() lan 1 gui 10 byte, khong can connect()\n' +
-      '[khach] sendto() lan 2 gui 10 byte, khong can connect()\n' +
-      '[udp] recvfrom() lan 2: 6 byte tu 127.0.0.1:55936 -> "do 2: "\n' +
-      '[khach] sendto() lan 3 gui 10 byte, khong can connect()\n' +
-      '[udp] recvfrom() lan 3: 6 byte tu 127.0.0.1:55936 -> "do 3: "\n' },
+      '[udp] waiting for packets on port 9002, recv buffer = 6 bytes\n' +
+      '[udp] recvfrom() call 1: 6 bytes from 127.0.0.1:53747 -> "meas1:"\n' +
+      '[client] sendto() call 1 sent 10 bytes, no connect() needed\n' +
+      '[client] sendto() call 2 sent 10 bytes, no connect() needed\n' +
+      '[udp] recvfrom() call 2: 6 bytes from 127.0.0.1:53747 -> "meas2:"\n' +
+      '[client] sendto() call 3 sent 10 bytes, no connect() needed\n' +
+      '[udp] recvfrom() call 3: 6 bytes from 127.0.0.1:53747 -> "meas3:"\n' },
 
     { t: 'cal', kind: 'warn', title: 'UDP cắt cụt trong im lặng',
       x: '<p>Bốn byte cuối của mỗi gói biến mất và <code>recvfrom</code> <b>không</b> báo lỗi ' +
@@ -613,13 +756,49 @@ Lesson.register({
 
     { t: 'h3', x: 'UDP gửi vào hư không mà vẫn báo thành công' },
 
-    { t: 'code', where: 'wsl', code: './udp_khong_ai' },
+    { t: 'code', where: 'file', name: 'udp_no_listener.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <errno.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    int s = socket(AF_INET, SOCK_DGRAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port   = htons(9999);          /* nobody is listening here */\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '\n' +
+      '    for (int i = 1; i <= 3; i++) {\n' +
+      '        ssize_t n = sendto(s, "ping", 4, 0, (struct sockaddr *)&addr, sizeof addr);\n' +
+      '        if (n == -1)\n' +
+      '            printf("sendto call %d: ERROR %zd, errno = %d (%s)\\n", i, n, errno, strerror(errno));\n' +
+      '        else\n' +
+      '            printf("sendto call %d: SUCCESS, sent %zd bytes — no one received it\\n", i, n);\n' +
+      '        usleep(200000);\n' +
+      '    }\n' +
+      '    close(s);\n' +
+      '\n' +
+      '    int t = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    if (connect(t, (struct sockaddr *)&addr, sizeof addr) == -1)\n' +
+      '        printf("TCP connect to same port: IMMEDIATE ERROR — %s\\n", strerror(errno));\n' +
+      '    close(t);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'wsl', code:
+      'gcc -Wall -Wextra -o udp_no_listener udp_no_listener.c\n' +
+      './udp_no_listener' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'sendto lan 1: THANH CONG, gui 4 byte — khong ai nhan\n' +
-      'sendto lan 2: THANH CONG, gui 4 byte — khong ai nhan\n' +
-      'sendto lan 3: THANH CONG, gui 4 byte — khong ai nhan\n' +
-      'connect TCP cung cong: LOI ngay lap tuc — Connection refused\n' },
+      'sendto call 1: SUCCESS, sent 4 bytes — no one received it\n' +
+      'sendto call 2: SUCCESS, sent 4 bytes — no one received it\n' +
+      'sendto call 3: SUCCESS, sent 4 bytes — no one received it\n' +
+      'TCP connect to same port: IMMEDIATE ERROR — Connection refused\n' },
 
     { t: 'p', x:
       'Cổng 9999 không có ai nghe. TCP phát hiện điều đó <b>ngay trong lời gọi</b> ' +
@@ -636,16 +815,16 @@ Lesson.register({
       'for i in 1 2 3; do ./rtt udp; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'TCP  : 10000/10000 luot,  90.05 us moi luot khu hoi\n' +
-      'TCP  : 10000/10000 luot,  92.15 us moi luot khu hoi\n' +
-      'TCP  : 10000/10000 luot,  88.82 us moi luot khu hoi\n' +
-      'UDP  : 10000/10000 luot,  73.67 us moi luot khu hoi\n' +
-      'UDP  : 10000/10000 luot,  77.19 us moi luot khu hoi\n' +
-      'UDP  : 10000/10000 luot,  75.30 us moi luot khu hoi\n' },
+      'TCP  : 10000/10000 round trips,  76.15 us/round trip\n' +
+      'TCP  : 10000/10000 round trips,  65.75 us/round trip\n' +
+      'TCP  : 10000/10000 round trips,  71.08 us/round trip\n' +
+      'UDP  : 10000/10000 round trips,  63.33 us/round trip\n' +
+      'UDP  : 10000/10000 round trips,  58.41 us/round trip\n' +
+      'UDP  : 10000/10000 round trips,  58.91 us/round trip\n' },
 
     { t: 'cal', kind: 'info', title: 'Chênh lệch nhỏ hơn bạn tưởng — và đó là điều nên nhớ',
-      x: '<p>TCP <b>88,82–92,15 µs</b>, UDP <b>73,67–77,19 µs</b>: UDP nhanh hơn khoảng ' +
-         '<b>17 %</b>. Không phải một trời một vực.</p>' +
+      x: '<p>TCP <b>65,75–76,15 µs</b>, UDP <b>58,41–63,33 µs</b>: UDP nhanh hơn khoảng ' +
+         '<b>15 %</b>. Không phải một trời một vực.</p>' +
          '<p>Lý do là phép đo này chạy trên loopback, nơi không có mất gói và không có tắc ' +
          'nghẽn, nên phần lớn cơ chế đắt tiền của TCP không phải làm gì. Trong 10 000 lượt UDP, ' +
          '<b>không gói nào</b> mất — con số <code>10000/10000</code> nói đúng điều đó.</p>' +
@@ -663,7 +842,7 @@ Lesson.register({
         ['Bảo đảm thứ tự', 'Có', 'Không'],
         ['Ranh giới thông điệp', '<b>Không</b> — bạn phải tự đóng khung', '<b>Có</b> — một <code>sendto</code> = một <code>recvfrom</code>'],
         ['Gửi tới cổng chết', '<code>connect</code> lỗi ngay: <i>Connection refused</i>', '<code>sendto</code> báo thành công'],
-        ['Khứ hồi 16 byte, loopback', '<b>88,82–92,15 µs</b>', '<b>73,67–77,19 µs</b>'],
+        ['Khứ hồi 16 byte, loopback', '<b>65,75–76,15 µs</b>', '<b>58,41–63,33 µs</b>'],
         ['Gửi nhiều nơi cùng lúc', 'Không — mỗi kết nối một cặp', 'Có: broadcast và multicast'],
         ['Hợp với', 'Cấu hình, cập nhật firmware, lệnh điều khiển, log', 'Luồng số đo định kỳ, phát hiện thiết bị trong LAN, đồng bộ thời gian']
       ]},
@@ -711,24 +890,138 @@ Lesson.register({
       'chấp nhận được, cho tới khi bạn đo. Kịch bản: một khách chậm nối vào rồi im lặng 2 giây ' +
       '(mạng kém, hoặc chỉ là một cảm biến chậm), rồi một khách nhanh nối vào và hỏi ngay.' },
 
+    { t: 'code', where: 'file', name: 'sequential_server.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <signal.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      '#define PORT 9004\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    int target = (argc > 1) ? atoi(argv[1]) : 2;\n' +
+      '    signal(SIGPIPE, SIG_IGN);\n' +
+      '\n' +
+      '    int listen_fd = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    int one = 1;\n' +
+      '    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_addr.s_addr = htonl(INADDR_ANY);\n' +
+      '    addr.sin_port = htons(PORT);\n' +
+      '    if (bind(listen_fd, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("bind"); exit(1); }\n' +
+      '    listen(listen_fd, 16);\n' +
+      '    printf("[sequential] listening on port %d\\n", PORT);\n' +
+      '    fflush(stdout);\n' +
+      '\n' +
+      '    for (int i = 0; i < target; i++) {\n' +
+      '        int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+      '        if (conn_fd == -1) { perror("accept"); break; }\n' +
+      '        printf("[sequential] accepted client fd %d — will NOT accept anyone else until this one is done\\n", conn_fd);\n' +
+      '        fflush(stdout);\n' +
+      '\n' +
+      '        char buf[128];\n' +
+      '        ssize_t n = read(conn_fd, buf, sizeof buf - 1);      /* BLOCKS here */\n' +
+      '        if (n > 0) {\n' +
+      '            buf[n] = \'\\0\';\n' +
+      '            const char *reply = "temperature 42.5 C\\n";\n' +
+      '            if (write(conn_fd, reply, strlen(reply)) == -1) perror("write");\n' +
+      '            printf("[sequential] replied to fd %d\\n", conn_fd);\n' +
+      '            fflush(stdout);\n' +
+      '        }\n' +
+      '        close(conn_fd);\n' +
+      '    }\n' +
+      '    close(listen_fd);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'file', name: 'slow_client.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    int wait_ms = (argc > 1) ? atoi(argv[1]) : 2000;\n' +
+      '    int s = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port = htons(9004);\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' +
+      '    printf("[slow] connected, deliberately silent for %d ms\\n", wait_ms);\n' +
+      '    fflush(stdout);\n' +
+      '    usleep(wait_ms * 1000);\n' +
+      '    const char *request = "GET TEMPERATURE\\n";\n' +
+      '    if (write(s, request, strlen(request)) == -1) perror("write");\n' +
+      '    char buf[128];\n' +
+      '    ssize_t n = read(s, buf, sizeof buf - 1);\n' +
+      '    if (n > 0) { buf[n] = \'\\0\'; printf("[slow] reply: %s", buf); }\n' +
+      '    close(s);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'file', name: 'probe_client.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <time.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    struct timespec t0, t1;\n' +
+      '    clock_gettime(CLOCK_MONOTONIC, &t0);\n' +
+      '\n' +
+      '    int s = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port = htons(9004);\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' +
+      '\n' +
+      '    const char *request = "GET TEMPERATURE\\n";\n' +
+      '    if (write(s, request, strlen(request)) == -1) perror("write");\n' +
+      '    char buf[128];\n' +
+      '    ssize_t n = read(s, buf, sizeof buf - 1);\n' +
+      '    clock_gettime(CLOCK_MONOTONIC, &t1);\n' +
+      '    if (n > 0) buf[n] = \'\\0\';\n' +
+      '    double ms = (t1.tv_sec - t0.tv_sec) * 1e3 + (t1.tv_nsec - t0.tv_nsec) / 1e6;\n' +
+      '    printf("[probe] waited %.1f ms to get a reply\\n", ms);\n' +
+      '    close(s);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
     { t: 'code', where: 'wsl', code:
-      './may_tuan_tu 2 & sleep 0.4\n' +
-      './khach_cham 2000 & sleep 0.3\n' +
-      './khach_do\n' +
+      'gcc -Wall -Wextra -o sequential_server sequential_server.c\n' +
+      'gcc -Wall -Wextra -o slow_client slow_client.c\n' +
+      'gcc -Wall -Wextra -o probe_client probe_client.c\n' +
+      './sequential_server 2 & sleep 0.4\n' +
+      './slow_client 2000 & sleep 0.3\n' +
+      './probe_client\n' +
       'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[tuantu] nghe cong 9004\n' +
-      '[tuantu] nhan khach fd 4 — tu gio KHONG accept ai khac\n' +
-      '[cham] da noi, co y im lang 2000 ms\n' +
-      '[tuantu] da tra loi fd 4\n' +
-      '[cham] tra loi: nhiet do 42.5 do C\n' +
-      '[tuantu] nhan khach fd 4 — tu gio KHONG accept ai khac\n' +
-      '[tuantu] da tra loi fd 4\n' +
-      '[do] cho 1697.0 ms moi nhan duoc tra loi\n' },
+      '[sequential] listening on port 9004\n' +
+      '[slow] connected, deliberately silent for 2000 ms\n' +
+      '[sequential] accepted client fd 4 — will NOT accept anyone else until this one is done\n' +
+      '[sequential] replied to fd 4\n' +
+      '[slow] reply: temperature 42.5 C\n' +
+      '[sequential] accepted client fd 4 — will NOT accept anyone else until this one is done\n' +
+      '[sequential] replied to fd 4\n' +
+      '[probe] waited 1695.7 ms to get a reply\n' },
 
     { t: 'p', x:
-      '<b>1697,0 ms</b> để trả lời một yêu cầu mà bản thân nó chỉ tốn dưới một phần nghìn giây. ' +
+      '<b>1695,7 ms</b> để trả lời một yêu cầu mà bản thân nó chỉ tốn dưới một phần nghìn giây. ' +
       'Toàn bộ thời gian đó là ngồi trong hàng chờ <code>listen</code> vì máy chủ đang bị ' +
       '<code>read()</code> giữ chân ở kênh của khách chậm. Một khách hỏng, chậm hoặc cố ý ác ý ' +
       'là đủ làm chết cả dịch vụ.' },
@@ -780,11 +1073,11 @@ Lesson.register({
 
       '<rect class="d-box-w" x="20" y="176" width="320" height="90" rx="8"/>' +
       '<text class="d-t" x="180" y="204" text-anchor="middle">Khách nhanh phải chờ</text>' +
-      '<text class="d-t" x="180" y="240" text-anchor="middle">1697,0 ms</text>' +
+      '<text class="d-t" x="180" y="240" text-anchor="middle">1695,7 ms</text>' +
       '<rect class="d-box-g" x="380" y="176" width="320" height="90" rx="8"/>' +
       '<text class="d-t" x="540" y="204" text-anchor="middle">Khách nhanh được phục vụ ngay</text>' +
-      '<text class="d-t" x="540" y="240" text-anchor="middle">0,4 ms</text>' +
-      '<text class="d-ts" x="360" y="288" text-anchor="middle">Cùng một kịch bản, cùng một máy — khác nhau 4000 lần</text>' +
+      '<text class="d-t" x="540" y="240" text-anchor="middle">0,5 ms</text>' +
+      '<text class="d-ts" x="360" y="288" text-anchor="middle">Cùng một kịch bản, cùng một máy — khác nhau khoảng 3400 lần</text>' +
       '</svg>' },
 
     /* ══════════════════════════════════════════════
@@ -797,72 +1090,74 @@ Lesson.register({
       'tưởng: bạn đưa cho nhân một <b>bảng bit</b> đánh dấu những fd cần theo dõi, nhân đánh ' +
       'dấu lại những cái đã sẵn sàng.' },
 
-    { t: 'code', where: 'file', name: 'may_select.c — phần vòng lặp chính', lang: 'c', code:
-      '    int khach[TOI_DA];\n' +
-      '    for (int i = 0; i < TOI_DA; i++) khach[i] = -1;\n' +
+    { t: 'code', where: 'file', name: 'select_server.c — phần vòng lặp chính', lang: 'c', code:
+      '    int clients[MAX_CLIENTS];\n' +
+      '    for (int i = 0; i < MAX_CLIENTS; i++) clients[i] = -1;\n' +
       '\n' +
-      '    while (xong < can) {\n' +
-      '        fd_set doc;\n' +
-      '        FD_ZERO(&doc);                 /* PHAI dung lai moi vong */\n' +
-      '        FD_SET(ls, &doc);\n' +
-      '        int maxfd = ls;\n' +
-      '        for (int i = 0; i < TOI_DA; i++)\n' +
-      '            if (khach[i] != -1) {\n' +
-      '                FD_SET(khach[i], &doc);\n' +
-      '                if (khach[i] > maxfd) maxfd = khach[i];\n' +
+      '    while (done < target) {\n' +
+      '        fd_set read_set;\n' +
+      '        FD_ZERO(&read_set);            /* MUST rebuild every round */\n' +
+      '        FD_SET(listen_fd, &read_set);\n' +
+      '        int maxfd = listen_fd;\n' +
+      '        for (int i = 0; i < MAX_CLIENTS; i++)\n' +
+      '            if (clients[i] != -1) {\n' +
+      '                FD_SET(clients[i], &read_set);\n' +
+      '                if (clients[i] > maxfd) maxfd = clients[i];\n' +
       '            }\n' +
       '\n' +
-      '        if (select(maxfd + 1, &doc, NULL, NULL, NULL) == -1) { perror("select"); break; }\n' +
+      '        if (select(maxfd + 1, &read_set, NULL, NULL, NULL) == -1) { perror("select"); break; }\n' +
       '\n' +
-      '        if (FD_ISSET(ls, &doc)) {              /* co khach moi */\n' +
-      '            int cs = accept(ls, NULL, NULL);\n' +
-      '            if (cs != -1)\n' +
-      '                for (int i = 0; i < TOI_DA; i++)\n' +
-      '                    if (khach[i] == -1) { khach[i] = cs; break; }\n' +
+      '        if (FD_ISSET(listen_fd, &read_set)) {  /* new client */\n' +
+      '            int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+      '            if (conn_fd != -1)\n' +
+      '                for (int i = 0; i < MAX_CLIENTS; i++)\n' +
+      '                    if (clients[i] == -1) { clients[i] = conn_fd; break; }\n' +
       '        }\n' +
-      '        for (int i = 0; i < TOI_DA; i++) {     /* khach cu co du lieu */\n' +
-      '            int fd = khach[i];\n' +
-      '            if (fd == -1 || !FD_ISSET(fd, &doc)) continue;\n' +
-      '            char dem[128];\n' +
-      '            ssize_t n = read(fd, dem, sizeof dem - 1);\n' +
-      '            if (n <= 0) { close(fd); khach[i] = -1; continue; }\n' +
-      '            const char *tl = "nhiet do 42.5 do C\\n";\n' +
-      '            if (write(fd, tl, strlen(tl)) == -1) perror("write");\n' +
-      '            close(fd); khach[i] = -1; xong++;\n' +
+      '        for (int i = 0; i < MAX_CLIENTS; i++) { /* existing client has data */\n' +
+      '            int fd = clients[i];\n' +
+      '            if (fd == -1 || !FD_ISSET(fd, &read_set)) continue;\n' +
+      '            char buf[128];\n' +
+      '            ssize_t n = read(fd, buf, sizeof buf - 1);\n' +
+      '            if (n <= 0) { close(fd); clients[i] = -1; continue; }\n' +
+      '            const char *reply = "temperature 42.5 C\\n";\n' +
+      '            if (write(fd, reply, strlen(reply)) == -1) perror("write");\n' +
+      '            close(fd); clients[i] = -1; done++;\n' +
       '        }\n' +
       '    }\n' },
 
-    { t: 'cmdx', cmd: 'select(nfds, &doc, &ghi, &loi, &hetgio)',
+    { t: 'cmdx', cmd: 'select(nfds, &read_set, &write_set, &err_set, &timeout)',
       title: 'Năm tham số và bốn macro đi kèm',
       rows: [
         ['nfds', 'Số fd <b>lớn nhất cộng 1</b> — không phải số lượng fd', 'Sai chỗ này là lỗi kinh điển. Nhân quét bảng bit từ 0 tới <code>nfds-1</code>'],
-        ['&amp;doc', 'Tập fd cần theo dõi <i>đọc được</i>. Nhân <b>sửa</b> tập này tại chỗ', 'Đây là lý do phải <code>FD_ZERO</code> + <code>FD_SET</code> lại từ đầu mỗi vòng'],
-        ['&amp;ghi, &amp;loi', 'Tập <i>ghi được</i> và tập <i>có ngoại lệ</i>. Truyền <code>NULL</code> nếu không cần', 'Tập ghi có ích khi <code>connect</code> không chặn hoặc khi bộ đệm gửi đã đầy'],
-        ['&amp;hetgio', '<code>struct timeval</code> thời hạn chờ. <code>NULL</code> = chờ mãi mãi', 'Trên Linux nhân <b>ghi đè</b> struct này bằng thời gian còn lại — đừng tái dùng nó'],
+        ['&amp;read_set', 'Tập fd cần theo dõi <i>đọc được</i>. Nhân <b>sửa</b> tập này tại chỗ', 'Đây là lý do phải <code>FD_ZERO</code> + <code>FD_SET</code> lại từ đầu mỗi vòng'],
+        ['&amp;write_set, &amp;err_set', 'Tập <i>ghi được</i> và tập <i>có ngoại lệ</i>. Truyền <code>NULL</code> nếu không cần', 'Tập ghi có ích khi <code>connect</code> không chặn hoặc khi bộ đệm gửi đã đầy'],
+        ['&amp;timeout', '<code>struct timeval</code> thời hạn chờ. <code>NULL</code> = chờ mãi mãi', 'Trên Linux nhân <b>ghi đè</b> struct này bằng thời gian còn lại — đừng tái dùng nó'],
         ['FD_ZERO / FD_SET', 'Xoá sạch tập / thêm một fd vào tập', 'Hai macro này bạn phải gọi lại <b>mỗi vòng lặp</b>'],
         ['FD_ISSET', 'Hỏi xem fd có được nhân đánh dấu sẵn sàng không', 'Phải duyệt qua <b>tất cả</b> fd để hỏi — không có cách nào lấy thẳng danh sách']
       ]},
 
     { t: 'code', where: 'wsl', code:
-      '# cung kich ban khach cham + khach nhanh, nhung dung may_select\n' +
-      './may_select 2 & sleep 0.4\n' +
-      './khach_cham 2000 & sleep 0.3\n' +
-      './khach_do\n' +
+      '# cung kich ban khach cham + khach nhanh, nhung dung select_server\n' +
+      'gcc -Wall -Wextra -o select_server select_server.c\n' +
+      './select_server 2 & sleep 0.4\n' +
+      './slow_client 2000 & sleep 0.3\n' +
+      './probe_client\n' +
       'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[select] nghe cong 9004\n' +
-      '[cham] da noi, co y im lang 2000 ms\n' +
-      '[select] khach moi fd 4 — van tiep tuc theo doi moi kenh\n' +
-      '[select] khach moi fd 5 — van tiep tuc theo doi moi kenh\n' +
-      '[select] da tra loi fd 5\n' +
-      '[do] cho 0.4 ms moi nhan duoc tra loi\n' +
-      '[select] da tra loi fd 4\n' +
-      '[select] phuc vu xong 2 khach\n' },
+      '[select] listening on port 9004\n' +
+      '[slow] connected, deliberately silent for 2000 ms\n' +
+      '[select] new client fd 4 — still watching every channel\n' +
+      '[select] new client fd 5 — still watching every channel\n' +
+      '[select] replied to fd 5\n' +
+      '[probe] waited 0.5 ms to get a reply\n' +
+      '[select] replied to fd 4\n' +
+      '[slow] reply: temperature 42.5 C\n' +
+      '[select] served 2 clients, done\n' },
 
-    { t: 'cal', kind: 'info', title: '1697,0 ms → 0,4 ms',
+    { t: 'cal', kind: 'info', title: '1695,7 ms → 0,5 ms',
       x: '<p>Cùng hai máy khách, cùng cái máy, khác mỗi cách chờ. Khách nhanh được trả lời trong ' +
-         '<b>0,4 ms</b> thay vì <b>1697,0 ms</b> — nhanh hơn khoảng <b>4000 lần</b> — trong khi ' +
+         '<b>0,5 ms</b> thay vì <b>1695,7 ms</b> — nhanh hơn khoảng <b>3400 lần</b> — trong khi ' +
          'khách chậm vẫn được phục vụ đầy đủ ngay khi nó chịu gửi.</p>' +
          '<p>Để ý thứ tự trong output: máy chủ <code>accept</code> cả hai khách <i>trước</i> khi ' +
          'trả lời ai. Nó không còn bị trói vào một kênh nữa.</p>' },
@@ -875,19 +1170,46 @@ Lesson.register({
       '<code>select</code> không thể theo dõi fd số <b>1024</b> trở lên — mà một máy chủ chỉ ' +
       'cần hơn 1024 kết nối là chạm ngay vào đó.' },
 
+    { t: 'code', where: 'file', name: 'select_overflow.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <fcntl.h>\n' +
+      '#include <sys/select.h>\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    int fd = -1;\n' +
+      '    for (int i = 0; i < 1500; i++) {\n' +
+      '        int f = open("/dev/null", O_RDONLY);\n' +
+      '        if (f == -1) break;\n' +
+      '        fd = f;\n' +
+      '    }\n' +
+      '    printf("highest fd = %d, FD_SETSIZE = %d, sizeof(fd_set) = %zu bytes\\n",\n' +
+      '           fd, FD_SETSIZE, sizeof(fd_set));\n' +
+      '    fd_set read_set;\n' +
+      '    FD_ZERO(&read_set);\n' +
+      '    printf("about to call FD_SET(%d, &read_set) — exceeds the %d-bit table...\\n", fd, FD_SETSIZE);\n' +
+      '    fflush(stdout);\n' +
+      '    FD_SET(fd, &read_set);\n' +
+      '    printf("FD_SET returned normally. No warning at all.\\n");\n' +
+      '    return 0;\n' +
+      '}\n' },
+
     { t: 'code', where: 'wsl', code:
       '# mo /dev/null 1500 lan de day so fd len cao, roi thu FD_SET\n' +
-      './select_vo\n' +
-      'echo "ma thoat = $?"' },
+      'gcc -Wall -Wextra -o select_overflow select_overflow.c\n' +
+      './select_overflow\n' +
+      'echo "exit code = $?"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'fd cao nhat = 1502, FD_SETSIZE = 1024, sizeof(fd_set) = 128 byte\n' +
-      'sap goi FD_SET(1502, &r) — vuot bang 1024 bit...\n' +
+      'highest fd = 1503, FD_SETSIZE = 1024, sizeof(fd_set) = 128 bytes\n' +
+      'about to call FD_SET(1503, &read_set) — exceeds the 1024-bit table...\n' +
       '*** bit out of range 0 - FD_SETSIZE on fd_set ***: terminated\n' +
-      'ma thoat = 134\n' },
+      'exit code = 134\n' },
 
     { t: 'cal', kind: 'danger', title: 'Ngày xưa nó âm thầm phá bộ nhớ, ngày nay nó giết tiến trình',
-      x: '<p><code>FD_SET(1502, &amp;r)</code> đang ghi bit thứ 1502 vào một vùng chỉ có 1024 ' +
+      x: '<p><code>FD_SET(1503, &amp;read_set)</code> đang ghi bit thứ 1503 vào một vùng chỉ có 1024 ' +
          'bit — tức là ghi đè lên bất cứ biến nào nằm sau <code>fd_set</code> trên stack. Trong ' +
          'nhiều năm đó là một lỗi hỏng bộ nhớ hoàn toàn im lặng, hậu quả xuất hiện ở nơi khác, ' +
          'lúc khác.</p>' +
@@ -909,38 +1231,38 @@ Lesson.register({
       'bằng một <b>mảng</b> do bạn cấp phát. Hết giới hạn 1024, và tiện hơn ở một điểm quan ' +
       'trọng — nó tách <i>cái bạn hỏi</i> khỏi <i>cái nhân trả lời</i>.' },
 
-    { t: 'code', where: 'file', name: 'may_poll.c — phần vòng lặp chính', lang: 'c', code:
-      '    struct pollfd pf[TOI_DA];\n' +
-      '    pf[0].fd = ls; pf[0].events = POLLIN;\n' +
-      '    int so = 1;\n' +
+    { t: 'code', where: 'file', name: 'poll_server.c — phần vòng lặp chính', lang: 'c', code:
+      '    struct pollfd pf[MAX_CLIENTS];\n' +
+      '    pf[0].fd = listen_fd; pf[0].events = POLLIN;\n' +
+      '    int count = 1;\n' +
       '\n' +
-      '    while (xong < can) {\n' +
-      '        int n = poll(pf, (nfds_t)so, -1);       /* KHONG phai dung lai mang */\n' +
+      '    while (done < target) {\n' +
+      '        int n = poll(pf, (nfds_t)count, -1);    /* array is NOT rebuilt */\n' +
       '        if (n == -1) { perror("poll"); break; }\n' +
       '\n' +
       '        if (pf[0].revents & POLLIN) {\n' +
-      '            int cs = accept(ls, NULL, NULL);\n' +
-      '            if (cs != -1 && so < TOI_DA) {\n' +
-      '                pf[so].fd = cs; pf[so].events = POLLIN; pf[so].revents = 0;\n' +
-      '                so++;\n' +
+      '            int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+      '            if (conn_fd != -1 && count < MAX_CLIENTS) {\n' +
+      '                pf[count].fd = conn_fd; pf[count].events = POLLIN; pf[count].revents = 0;\n' +
+      '                count++;\n' +
       '            }\n' +
       '        }\n' +
-      '        for (int i = 1; i < so; i++) {\n' +
+      '        for (int i = 1; i < count; i++) {\n' +
       '            if (!(pf[i].revents & (POLLIN | POLLHUP))) continue;\n' +
-      '            char dem[128];\n' +
-      '            ssize_t r = read(pf[i].fd, dem, sizeof dem - 1);\n' +
+      '            char buf[128];\n' +
+      '            ssize_t r = read(pf[i].fd, buf, sizeof buf - 1);\n' +
       '            if (r > 0) {\n' +
-      '                const char *tl = "nhiet do 42.5 do C\\n";\n' +
-      '                if (write(pf[i].fd, tl, strlen(tl)) == -1) perror("write");\n' +
-      '                xong++;\n' +
+      '                const char *reply = "temperature 42.5 C\\n";\n' +
+      '                if (write(pf[i].fd, reply, strlen(reply)) == -1) perror("write");\n' +
+      '                done++;\n' +
       '            }\n' +
       '            close(pf[i].fd);\n' +
-      '            pf[i] = pf[so - 1];                 /* lap o trong bang phan tu cuoi */\n' +
-      '            so--; i--;\n' +
+      '            pf[i] = pf[count - 1];               /* fill the gap with the last element */\n' +
+      '            count--; i--;\n' +
       '        }\n' +
       '    }\n',
       notes: [
-        'Mẹo <code>pf[i] = pf[so-1]; so--; i--;</code> là cách xoá một phần tử khỏi mảng trong O(1) khi thứ tự không quan trọng: kéo phần tử cuối vào chỗ trống. Nhớ <code>i--</code>, nếu không bạn bỏ sót phần tử vừa kéo về.'
+        'Mẹo <code>pf[i] = pf[count-1]; count--; i--;</code> là cách xoá một phần tử khỏi mảng trong O(1) khi thứ tự không quan trọng: kéo phần tử cuối vào chỗ trống. Nhớ <code>i--</code>, nếu không bạn bỏ sót phần tử vừa kéo về.'
       ]},
 
     { t: 'cmdx', cmd: 'struct pollfd { int fd; short events; short revents; }',
@@ -954,25 +1276,27 @@ Lesson.register({
          'Luôn kiểm tra bằng phép AND bit: <code>if (pf[i].revents &amp; POLLIN)</code>'],
         ['POLLHUP', 'Bên kia đã đóng. Nhân đặt cờ này <b>dù bạn không hỏi</b>',
          'Cùng nhóm với <code>POLLERR</code> và <code>POLLNVAL</code> (fd không hợp lệ) — ba cờ luôn được báo'],
-        ['poll(pf, so, -1)', 'Tham số hai là <b>số phần tử</b> — trực giác hơn <code>maxfd+1</code> của select',
+        ['poll(pf, count, -1)', 'Tham số hai là <b>số phần tử</b> — trực giác hơn <code>maxfd+1</code> của select',
          'Tham số ba là thời hạn tính bằng <b>mili giây</b>; −1 nghĩa là chờ mãi, 0 nghĩa là hỏi rồi về ngay']
       ]},
 
     { t: 'code', where: 'wsl', code:
-      './may_poll 2 & sleep 0.4\n' +
-      './khach_cham 2000 & sleep 0.3\n' +
-      './khach_do\n' +
+      'gcc -Wall -Wextra -o poll_server poll_server.c\n' +
+      './poll_server 2 & sleep 0.4\n' +
+      './slow_client 2000 & sleep 0.3\n' +
+      './probe_client\n' +
       'wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[poll] nghe cong 9004, mang pollfd co 16 o\n' +
-      '[cham] da noi, co y im lang 2000 ms\n' +
-      '[poll] khach moi fd 4, dang theo doi 2 kenh\n' +
-      '[poll] khach moi fd 5, dang theo doi 3 kenh\n' +
-      '[poll] da tra loi fd 5\n' +
-      '[do] cho 0.3 ms moi nhan duoc tra loi\n' +
-      '[poll] da tra loi fd 4\n' +
-      '[poll] phuc vu xong 2 khach\n' },
+      '[poll] listening on port 9004, pollfd array has 16 slots\n' +
+      '[slow] connected, deliberately silent for 2000 ms\n' +
+      '[poll] new client fd 4, now watching 2 channels\n' +
+      '[poll] new client fd 5, now watching 3 channels\n' +
+      '[poll] replied to fd 5\n' +
+      '[probe] waited 0.3 ms to get a reply\n' +
+      '[poll] replied to fd 4\n' +
+      '[slow] reply: temperature 42.5 C\n' +
+      '[poll] served 2 clients, done\n' },
 
     { t: 'p', x:
       '<b>0,3 ms</b> — ngang với <code>select</code>. Với ba kênh thì hai cách không khác nhau ' +
@@ -1007,44 +1331,44 @@ Lesson.register({
          '<code>EPOLLHUP</code> và <code>EPOLLERR</code> luôn được báo dù bạn không xin'],
         ['ev.data', 'Một union 64 bit <b>của bạn</b>. Nhân giữ nguyên và trả lại y hệt',
          'Dùng <code>.fd</code> cho đơn giản, hoặc <code>.ptr</code> trỏ tới struct trạng thái của kết nối — mẹo này xoá luôn việc tra bảng'],
-        ['epoll_wait(ep, sk, 16, -1)', 'Trả về <b>số fd sẵn sàng</b> và điền chúng vào mảng <code>sk</code>',
+        ['epoll_wait(ep, events, 16, -1)', 'Trả về <b>số fd sẵn sàng</b> và điền chúng vào mảng <code>events</code>',
          'Đây là điểm mấu chốt: bạn chỉ duyệt <code>n</code> phần tử, không phải toàn bộ danh sách. Tham số cuối là thời hạn mili giây'],
         ['-1 / 0 / 1500', 'Thời hạn: chờ mãi / hỏi rồi về ngay / chờ tối đa 1,5 giây',
          'Thời hạn hữu hạn rất hợp với daemon nhúng: nó cho bạn một nhịp đều để kiểm tra watchdog hay ghi log định kỳ']
       ]},
 
-    { t: 'code', where: 'file', name: 'may_epoll.c — bộ khung', lang: 'c', code:
-      '    int ep = epoll_create1(0);\n' +
-      '    if (ep == -1) { perror("epoll_create1"); exit(1); }\n' +
+    { t: 'code', where: 'file', name: 'epoll_server.c — bộ khung', lang: 'c', code:
+      '    int epoll_fd = epoll_create1(0);\n' +
+      '    if (epoll_fd == -1) { perror("epoll_create1"); exit(1); }\n' +
       '\n' +
       '    struct epoll_event ev;\n' +
       '    ev.events  = EPOLLIN;\n' +
-      '    ev.data.fd = ls;\n' +
-      '    if (epoll_ctl(ep, EPOLL_CTL_ADD, ls, &ev) == -1) { perror("epoll_ctl"); exit(1); }\n' +
+      '    ev.data.fd = listen_fd;\n' +
+      '    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &ev) == -1) { perror("epoll_ctl"); exit(1); }\n' +
       '\n' +
-      '    struct epoll_event sk[16];\n' +
+      '    struct epoll_event events[16];\n' +
       '    for (;;) {\n' +
-      '        int n = epoll_wait(ep, sk, 16, 1500);\n' +
+      '        int n = epoll_wait(epoll_fd, events, 16, 1500);\n' +
       '        if (n == -1) { perror("epoll_wait"); break; }\n' +
-      '        if (n == 0)  { printf("het gio, khong con su kien\\n"); break; }\n' +
+      '        if (n == 0)  { printf("timed out, no more events\\n"); break; }\n' +
       '\n' +
-      '        for (int i = 0; i < n; i++) {          /* CHI duyet n, khong duyet ca danh sach */\n' +
-      '            if (sk[i].data.fd == ls) {\n' +
-      '                int cs = accept(ls, NULL, NULL);\n' +
-      '                if (cs == -1) continue;\n' +
+      '        for (int i = 0; i < n; i++) {          /* only walk n, not the whole list */\n' +
+      '            if (events[i].data.fd == listen_fd) {\n' +
+      '                int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+      '                if (conn_fd == -1) continue;\n' +
       '                struct epoll_event e2;\n' +
       '                e2.events  = EPOLLIN | (et ? EPOLLET : 0);\n' +
-      '                e2.data.fd = cs;\n' +
-      '                epoll_ctl(ep, EPOLL_CTL_ADD, cs, &e2);\n' +
+      '                e2.data.fd = conn_fd;\n' +
+      '                epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_fd, &e2);\n' +
       '            } else {\n' +
       '                char b[8];\n' +
-      '                ssize_t r = read(sk[i].data.fd, b, 5);   /* CO Y doc it */\n' +
+      '                ssize_t r = read(events[i].data.fd, b, 5);   /* deliberately reads little */\n' +
       '                if (r <= 0) {\n' +
-      '                    epoll_ctl(ep, EPOLL_CTL_DEL, sk[i].data.fd, NULL);\n' +
-      '                    close(sk[i].data.fd);\n' +
+      '                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, NULL);\n' +
+      '                    close(events[i].data.fd);\n' +
       '                    continue;\n' +
       '                }\n' +
-      '                /* ... xu ly r byte ... */\n' +
+      '                /* ... handle the r bytes ... */\n' +
       '            }\n' +
       '        }\n' +
       '    }\n' },
@@ -1052,48 +1376,129 @@ Lesson.register({
     { t: 'h3', x: 'Đo thật: ba cách chờ trên 10 → 2000 kênh' },
 
     { t: 'p', x:
-      'Chương trình <code>dosuc_io.c</code> tạo N pipe, đưa hết vào tập theo dõi, rồi lặp ' +
+      'Chương trình <code>io_bench.c</code> tạo N pipe, đưa hết vào tập theo dõi, rồi lặp ' +
       '10 000 lần: ghi 1 byte vào <b>một</b> pipe, gọi hàm chờ, đọc byte đó ra. Nghĩa là mỗi ' +
       'vòng luôn có đúng một kênh sẵn sàng, còn lại đều rỗi — mô phỏng đúng một máy chủ có ' +
       'nhiều kết nối nhàn rỗi.' },
 
+    { t: 'code', where: 'file', name: 'io_bench.c', lang: 'c', code:
+      '#define _GNU_SOURCE\n' +
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <time.h>\n' +
+      '#include <poll.h>\n' +
+      '#include <sys/select.h>\n' +
+      '#include <sys/epoll.h>\n' +
+      '\n' +
+      '#define LAP 10000\n' +
+      '\n' +
+      'static double now(void)\n' +
+      '{\n' +
+      '    struct timespec t;\n' +
+      '    clock_gettime(CLOCK_MONOTONIC, &t);\n' +
+      '    return t.tv_sec + t.tv_nsec / 1e9;\n' +
+      '}\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    int N = (argc > 1) ? atoi(argv[1]) : 100;\n' +
+      '    int (*pipes)[2] = malloc((size_t)N * sizeof *pipes);\n' +
+      '    int maxfd = 0;\n' +
+      '    for (int i = 0; i < N; i++) {\n' +
+      '        if (pipe(pipes[i])) { perror("pipe"); return 1; }\n' +
+      '        if (pipes[i][0] > maxfd) maxfd = pipes[i][0];\n' +
+      '    }\n' +
+      '    int active = N - 1;\n' +
+      '    char b = \'x\';\n' +
+      '    double t0, t1;\n' +
+      '    printf("N = %-5d channels, highest read fd = %-5d (FD_SETSIZE = %d)\\n",\n' +
+      '           N, maxfd, FD_SETSIZE);\n' +
+      '\n' +
+      '    if (maxfd < FD_SETSIZE) {\n' +
+      '        t0 = now();\n' +
+      '        for (int k = 0; k < LAP; k++) {\n' +
+      '            fd_set r;\n' +
+      '            FD_ZERO(&r);\n' +
+      '            for (int i = 0; i < N; i++) FD_SET(pipes[i][0], &r);\n' +
+      '            if (write(pipes[active][1], &b, 1) != 1) return 1;\n' +
+      '            if (select(maxfd + 1, &r, NULL, NULL, NULL) == -1) { perror("select"); return 1; }\n' +
+      '            if (read(pipes[active][0], &b, 1) != 1) return 1;\n' +
+      '        }\n' +
+      '        t1 = now();\n' +
+      '        printf("  select : %7.2f us/call\\n", (t1 - t0) * 1e6 / LAP);\n' +
+      '    } else {\n' +
+      '        printf("  select : NOT USABLE (fd %d >= FD_SETSIZE %d)\\n", maxfd, FD_SETSIZE);\n' +
+      '    }\n' +
+      '\n' +
+      '    struct pollfd *pf = malloc((size_t)N * sizeof *pf);\n' +
+      '    for (int i = 0; i < N; i++) { pf[i].fd = pipes[i][0]; pf[i].events = POLLIN; }\n' +
+      '    t0 = now();\n' +
+      '    for (int k = 0; k < LAP; k++) {\n' +
+      '        if (write(pipes[active][1], &b, 1) != 1) return 1;\n' +
+      '        if (poll(pf, (nfds_t)N, -1) == -1) { perror("poll"); return 1; }\n' +
+      '        if (read(pipes[active][0], &b, 1) != 1) return 1;\n' +
+      '    }\n' +
+      '    t1 = now();\n' +
+      '    printf("  poll   : %7.2f us/call\\n", (t1 - t0) * 1e6 / LAP);\n' +
+      '\n' +
+      '    int ep = epoll_create1(0);\n' +
+      '    if (ep == -1) { perror("epoll_create1"); return 1; }\n' +
+      '    for (int i = 0; i < N; i++) {\n' +
+      '        struct epoll_event ev;\n' +
+      '        ev.events = EPOLLIN;\n' +
+      '        ev.data.fd = pipes[i][0];\n' +
+      '        if (epoll_ctl(ep, EPOLL_CTL_ADD, pipes[i][0], &ev)) { perror("epoll_ctl"); return 1; }\n' +
+      '    }\n' +
+      '    struct epoll_event sk[8];\n' +
+      '    t0 = now();\n' +
+      '    for (int k = 0; k < LAP; k++) {\n' +
+      '        if (write(pipes[active][1], &b, 1) != 1) return 1;\n' +
+      '        if (epoll_wait(ep, sk, 8, -1) == -1) { perror("epoll_wait"); return 1; }\n' +
+      '        if (read(pipes[active][0], &b, 1) != 1) return 1;\n' +
+      '    }\n' +
+      '    t1 = now();\n' +
+      '    printf("  epoll  : %7.2f us/call\\n", (t1 - t0) * 1e6 / LAP);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
     { t: 'code', where: 'wsl', code:
-      'gcc -Wall -Wextra -O2 -o dosuc_io dosuc_io.c\n' +
-      'for N in 10 100 500 2000; do ./dosuc_io $N; done' },
+      'gcc -Wall -Wextra -O2 -o io_bench io_bench.c\n' +
+      'for N in 10 100 500 2000; do ./io_bench $N; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'N = 10    kenh, fd doc lon nhat = 21    (FD_SETSIZE = 1024)\n' +
-      '  select :    2.49 us/lan\n' +
-      '  poll   :    2.51 us/lan\n' +
-      '  epoll  :    1.04 us/lan\n' +
-      'N = 100   kenh, fd doc lon nhat = 201   (FD_SETSIZE = 1024)\n' +
-      '  select :   13.28 us/lan\n' +
-      '  poll   :   15.44 us/lan\n' +
-      '  epoll  :    0.98 us/lan\n' +
-      'N = 500   kenh, fd doc lon nhat = 1001  (FD_SETSIZE = 1024)\n' +
-      '  select :   62.73 us/lan\n' +
-      '  poll   :   59.19 us/lan\n' +
-      '  epoll  :    0.88 us/lan\n' +
-      'N = 2000  kenh, fd doc lon nhat = 4001  (FD_SETSIZE = 1024)\n' +
-      '  select : KHONG DUNG DUOC (fd 4001 >= FD_SETSIZE 1024)\n' +
-      '  poll   :  270.23 us/lan\n' +
-      '  epoll  :    0.77 us/lan\n',
+      'N = 10    channels, highest read fd = 22    (FD_SETSIZE = 1024)\n' +
+      '  select :    1.83 us/call\n' +
+      '  poll   :    2.61 us/call\n' +
+      '  epoll  :    1.31 us/call\n' +
+      'N = 100   channels, highest read fd = 202   (FD_SETSIZE = 1024)\n' +
+      '  select :   13.53 us/call\n' +
+      '  poll   :   12.48 us/call\n' +
+      '  epoll  :    0.85 us/call\n' +
+      'N = 500   channels, highest read fd = 1002  (FD_SETSIZE = 1024)\n' +
+      '  select :   63.71 us/call\n' +
+      '  poll   :   59.32 us/call\n' +
+      '  epoll  :    0.90 us/call\n' +
+      'N = 2000  channels, highest read fd = 4002  (FD_SETSIZE = 1024)\n' +
+      '  select : NOT USABLE (fd 4002 >= FD_SETSIZE 1024)\n' +
+      '  poll   :  286.54 us/call\n' +
+      '  epoll  :    0.72 us/call\n',
       notes: [
-        'Đây là kết quả một lượt chạy tiêu biểu. Ba lượt liên tiếp cho khoảng: select 2,49–3,71 · 13,28–17,05 · 62,73–70,68 µs; poll 2,51–2,82 · 15,44–17,74 · 59,19–65,54 µs; epoll 0,88–1,83 µs ở mọi N.'
+        'Đây là kết quả một lượt chạy tiêu biểu. Ba lượt liên tiếp cho khoảng: select 1,83–2,26 · 12,11–13,53 · 63,71–72,33 µs; poll 2,27–3,07 · 11,09–13,62 · 59,32–63,39 · 264,58–286,54 µs; epoll 0,72–1,31 µs ở mọi N.'
       ]},
 
     { t: 'table',
       head: ['Số kênh', 'select', 'poll', 'epoll', 'epoll nhanh hơn'],
       rows: [
-        ['10',   '2,49 µs',       '2,51 µs',   '1,04 µs', '<b>2,4×</b>'],
-        ['100',  '13,28 µs',      '15,44 µs',  '0,98 µs', '<b>14×</b>'],
-        ['500',  '62,73 µs',      '59,19 µs',  '0,88 µs', '<b>67×</b>'],
-        ['2000', 'không dùng được', '270,23 µs', '0,77 µs', '<b>351×</b>']
+        ['10',   '1,83 µs',       '2,61 µs',   '1,31 µs', '<b>2,0×</b>'],
+        ['100',  '13,53 µs',      '12,48 µs',  '0,85 µs', '<b>15×</b>'],
+        ['500',  '63,71 µs',      '59,32 µs',  '0,90 µs', '<b>66×</b>'],
+        ['2000', 'không dùng được', '286,54 µs', '0,72 µs', '<b>398×</b>']
       ]},
 
     { t: 'cal', kind: 'why', title: 'Hãy nhìn cột epoll theo chiều dọc, không phải chiều ngang',
-      x: '<p>Điều đáng nhớ không phải "epoll nhanh hơn 351 lần". Đó chỉ là hệ quả. Điều đáng nhớ ' +
-         'là <b>cột epoll không đổi</b>: 1,04 → 0,98 → 0,88 → 0,77 µs khi số kênh tăng ' +
+      x: '<p>Điều đáng nhớ không phải "epoll nhanh hơn 398 lần". Đó chỉ là hệ quả. Điều đáng nhớ ' +
+         'là <b>cột epoll gần như không đổi</b>: 1,31 → 0,85 → 0,90 → 0,72 µs khi số kênh tăng ' +
          '<b>200 lần</b>. Nó thậm chí còn nhích xuống, do dao động đo.</p>' +
          '<p>Đó là khác biệt giữa <b>O(n)</b> và <b>O(1)</b>. <code>select</code> và ' +
          '<code>poll</code> tốn công tỉ lệ với số kênh <i>bạn đang theo dõi</i>; ' +
@@ -1112,10 +1517,10 @@ Lesson.register({
     { t: 'code', where: 'out', nocopy: true, code:
       '% time     seconds  usecs/call     calls    errors syscall\n' +
       '------ ----------- ----------- --------- --------- ----------------\n' +
-      ' 44.91    1.037390         103     10000           poll\n' +
-      ' 44.29    1.023023         102     10000           pselect6\n' +
-      ' 10.24    0.236521          23     10000           epoll_wait\n' +
-      '  0.56    0.012989          25       500           epoll_ctl\n' },
+      ' 27.42    0.963911          96     10000           poll\n' +
+      ' 27.72    0.974311          97     10000           pselect6\n' +
+      '  6.18    0.217287          21     10000           epoll_wait\n' +
+      '  0.39    0.013770          27       500           epoll_ctl\n' },
 
     { t: 'cal', kind: 'info', title: 'Hai chi tiết nhỏ trong bảng strace',
       x: '<ul>' +
@@ -1141,26 +1546,26 @@ Lesson.register({
       '<rect class="d-box-w" x="100" y="240" width="24" height="10"/>' +
       '<rect class="d-box-w" x="128" y="240" width="24" height="10"/>' +
       '<rect class="d-box-g" x="156" y="246" width="24" height="4"/>' +
-      '<text class="d-ts" x="140" y="232" text-anchor="middle">2,5 · 2,5 · 1,0</text>' +
+      '<text class="d-ts" x="140" y="232" text-anchor="middle">1,8 · 2,6 · 1,3</text>' +
 
       '<text class="d-t" x="290" y="272" text-anchor="middle">100 kênh</text>' +
       '<rect class="d-box-w" x="250" y="197" width="24" height="53"/>' +
       '<rect class="d-box-w" x="278" y="188" width="24" height="62"/>' +
       '<rect class="d-box-g" x="306" y="246" width="24" height="4"/>' +
-      '<text class="d-ts" x="290" y="180" text-anchor="middle">13,3 · 15,4 · 1,0</text>' +
+      '<text class="d-ts" x="290" y="180" text-anchor="middle">13,5 · 12,5 · 0,9</text>' +
 
       '<text class="d-t" x="440" y="272" text-anchor="middle">500 kênh</text>' +
       '<rect class="d-box-w" x="400" y="99" width="24" height="151"/>' +
       '<rect class="d-box-w" x="428" y="108" width="24" height="142"/>' +
       '<rect class="d-box-g" x="456" y="247" width="24" height="3"/>' +
-      '<text class="d-ts" x="440" y="91" text-anchor="middle">62,7 · 59,2 · 0,9</text>' +
+      '<text class="d-ts" x="440" y="91" text-anchor="middle">63,7 · 59,3 · 0,9</text>' +
 
       '<text class="d-t" x="590" y="272" text-anchor="middle">2000 kênh</text>' +
       '<rect class="d-box" x="550" y="230" width="24" height="20"/>' +
       '<text class="d-ts" x="562" y="224" text-anchor="middle">×</text>' +
       '<rect class="d-box-w" x="578" y="40" width="24" height="210"/>' +
       '<rect class="d-box-g" x="606" y="247" width="24" height="3"/>' +
-      '<text class="d-ts" x="600" y="32" text-anchor="middle">270,2 · 0,8</text>' +
+      '<text class="d-ts" x="600" y="32" text-anchor="middle">286,5 · 0,7</text>' +
 
       '<rect class="d-box-w" x="72" y="34" width="14" height="10"/>' +
       '<text class="d-ts" x="92" y="43">select / poll (O(n))</text>' +
@@ -1178,30 +1583,60 @@ Lesson.register({
       '<b>edge-triggered</b>: chỉ báo khi trạng thái <i>thay đổi</i>. Hãy đo sự khác nhau bằng ' +
       'một máy chủ cố tình chỉ đọc 5 byte mỗi lần, trong khi khách gửi 20 byte một lượt.' },
 
+    { t: 'code', where: 'file', name: 'epoll_test_client.c', lang: 'c', code:
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <arpa/inet.h>\n' +
+      '\n' +
+      'int main(int argc, char **argv)\n' +
+      '{\n' +
+      '    int port = (argc > 1) ? atoi(argv[1]) : 9005;\n' +
+      '    const char *message = (argc > 2) ? argv[2] : "0123456789ABCDEFGHIJ";\n' +
+      '    int hold_s = (argc > 3) ? atoi(argv[3]) : 3;\n' +
+      '\n' +
+      '    int s = socket(AF_INET, SOCK_STREAM, 0);\n' +
+      '    struct sockaddr_in addr;\n' +
+      '    memset(&addr, 0, sizeof addr);\n' +
+      '    addr.sin_family = AF_INET;\n' +
+      '    addr.sin_port = htons(port);\n' +
+      '    inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);\n' +
+      '    if (connect(s, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("connect"); exit(1); }\n' +
+      '    if (write(s, message, strlen(message)) == -1) perror("write");\n' +
+      '    printf("[client] sent %zu bytes IN ONE CALL then holds the connection for %d s\\n", strlen(message), hold_s);\n' +
+      '    fflush(stdout);\n' +
+      '    sleep(hold_s);\n' +
+      '    close(s);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
     { t: 'code', where: 'wsl', code:
-      './may_epoll lt & sleep 0.4; ./khach_gui 9005 "0123456789ABCDEFGHIJ" 3; wait' },
+      'gcc -Wall -Wextra -o epoll_server epoll_server.c\n' +
+      'gcc -Wall -Wextra -o epoll_test_client epoll_test_client.c\n' +
+      './epoll_server lt & sleep 0.4; ./epoll_test_client 9005 "0123456789ABCDEFGHIJ" 3; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[epoll] che do LEVEL-triggered (mac dinh), doc TOI DA 5 byte moi su kien\n' +
-      '[khach] gui MOT LAN 20 byte roi giu ket noi 3 giay\n' +
-      '[epoll] them fd 5 vao tap theo doi\n' +
-      '[epoll] su kien 1: doc 5 byte -> "01234"  (tong 5)\n' +
-      '[epoll] su kien 2: doc 5 byte -> "56789"  (tong 10)\n' +
-      '[epoll] su kien 3: doc 5 byte -> "ABCDE"  (tong 15)\n' +
-      '[epoll] su kien 4: doc 5 byte -> "FGHIJ"  (tong 20)\n' +
-      '[epoll] 1500 ms troi qua, khong con su kien -> thoat\n' +
-      '[epoll] tong cong 4 su kien doc, 20 byte lay ve\n' },
+      '[epoll] mode LEVEL-triggered (default), reading AT MOST 5 bytes per event\n' +
+      '[epoll] added fd 5 to the watch set\n' +
+      '[epoll] event 1: read 5 bytes -> "01234"  (total 5)\n' +
+      '[epoll] event 2: read 5 bytes -> "56789"  (total 10)\n' +
+      '[epoll] event 3: read 5 bytes -> "ABCDE"  (total 15)\n' +
+      '[epoll] event 4: read 5 bytes -> "FGHIJ"  (total 20)\n' +
+      '[client] sent 20 bytes IN ONE CALL then holds the connection for 3 s\n' +
+      '[epoll] 1500 ms elapsed, no more events -> exiting\n' +
+      '[epoll] total 4 read events, 20 bytes retrieved\n' },
 
     { t: 'code', where: 'wsl', code:
-      './may_epoll et & sleep 0.4; ./khach_gui 9005 "0123456789ABCDEFGHIJ" 3; wait' },
+      './epoll_server et & sleep 0.4; ./epoll_test_client 9005 "0123456789ABCDEFGHIJ" 3; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '[epoll] che do EDGE-triggered (EPOLLET), doc TOI DA 5 byte moi su kien\n' +
-      '[khach] gui MOT LAN 20 byte roi giu ket noi 3 giay\n' +
-      '[epoll] them fd 5 vao tap theo doi\n' +
-      '[epoll] su kien 1: doc 5 byte -> "01234"  (tong 5)\n' +
-      '[epoll] 1500 ms troi qua, khong con su kien -> thoat\n' +
-      '[epoll] tong cong 1 su kien doc, 5 byte lay ve\n' },
+      '[epoll] mode EDGE-triggered (EPOLLET), reading AT MOST 5 bytes per event\n' +
+      '[epoll] added fd 5 to the watch set\n' +
+      '[client] sent 20 bytes IN ONE CALL then holds the connection for 3 s\n' +
+      '[epoll] event 1: read 5 bytes -> "01234"  (total 5)\n' +
+      '[epoll] 1500 ms elapsed, no more events -> exiting\n' +
+      '[epoll] total 1 read events, 5 bytes retrieved\n' },
 
     { t: 'cal', kind: 'danger', title: '15 byte biến mất và không có lỗi nào được báo',
       x: '<p>Cùng một máy khách gửi cùng 20 byte. Level-triggered: <b>4 sự kiện, 20 byte</b>. ' +
@@ -1236,14 +1671,57 @@ Lesson.register({
       'sẽ lập tức trả về <b>−1</b> với <code>errno = EAGAIN</code>, nghĩa là "chưa có gì, thử ' +
       'lại sau". Đây không phải lỗi — đây là câu trả lời.' },
 
-    { t: 'code', where: 'wsl', code: './khongchan' },
+    { t: 'code', where: 'file', name: 'nonblocking_demo.c', lang: 'c', code:
+      '#define _GNU_SOURCE\n' +
+      '#include <stdio.h>\n' +
+      '#include <stdlib.h>\n' +
+      '#include <string.h>\n' +
+      '#include <unistd.h>\n' +
+      '#include <errno.h>\n' +
+      '#include <fcntl.h>\n' +
+      '\n' +
+      'int main(void)\n' +
+      '{\n' +
+      '    printf("EAGAIN = %d, EWOULDBLOCK = %d -> %s\\n", EAGAIN, EWOULDBLOCK,\n' +
+      '           EAGAIN == EWOULDBLOCK ? "same value on Linux" : "different values");\n' +
+      '\n' +
+      '    int fd[2];\n' +
+      '    if (pipe(fd)) { perror("pipe"); exit(1); }\n' +
+      '\n' +
+      '    int flags = fcntl(fd[0], F_GETFL);\n' +
+      '    if (fcntl(fd[0], F_SETFL, flags | O_NONBLOCK) == -1) { perror("fcntl"); exit(1); }\n' +
+      '    if (fcntl(fd[1], F_SETFL, fcntl(fd[1], F_GETFL) | O_NONBLOCK) == -1) { perror("fcntl"); exit(1); }\n' +
+      '\n' +
+      '    char b[16];\n' +
+      '    ssize_t n = read(fd[0], b, sizeof b);\n' +
+      '    printf("read()  on an EMPTY pipe : returned %zd, errno = %d (%s)\\n",\n' +
+      '           n, errno, strerror(errno));\n' +
+      '\n' +
+      '    char *data = malloc(100000);\n' +
+      '    memset(data, \'x\', 100000);\n' +
+      '    n = write(fd[1], data, 100000);\n' +
+      '    printf("write() of 100000 bytes  : returned %zd  -> SHORT by %zd bytes\\n",\n' +
+      '           n, (ssize_t)100000 - n);\n' +
+      '    n = write(fd[1], data, 100000);\n' +
+      '    printf("write() on a FULL pipe   : returned %zd, errno = %d (%s)\\n",\n' +
+      '           n, errno, strerror(errno));\n' +
+      '\n' +
+      '    n = read(fd[0], b, sizeof b);\n' +
+      '    printf("read()  once data exists : returned %zd\\n", n);\n' +
+      '    free(data);\n' +
+      '    return 0;\n' +
+      '}\n' },
+
+    { t: 'code', where: 'wsl', code:
+      'gcc -Wall -Wextra -o nonblocking_demo nonblocking_demo.c\n' +
+      './nonblocking_demo' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'EAGAIN = 11, EWOULDBLOCK = 11 -> cung mot gia tri tren Linux\n' +
-      'read()  tren ong RONG   : tra ve -1, errno = 11 (Resource temporarily unavailable)\n' +
-      'write() 100000 byte     : tra ve 65536  -> ghi THIEU 34464 byte\n' +
-      'write() khi ong DAY     : tra ve -1, errno = 11 (Resource temporarily unavailable)\n' +
-      'read()  sau khi co data : tra ve 16\n' },
+      'EAGAIN = 11, EWOULDBLOCK = 11 -> same value on Linux\n' +
+      'read()  on an EMPTY pipe : returned -1, errno = 11 (Resource temporarily unavailable)\n' +
+      'write() of 100000 bytes  : returned 65536  -> SHORT by 34464 bytes\n' +
+      'write() on a FULL pipe   : returned -1, errno = 11 (Resource temporarily unavailable)\n' +
+      'read()  once data exists : returned 16\n' },
 
     { t: 'cal', kind: 'why', title: 'Con số 65536 này bạn đã gặp rồi',
       x: '<p>Ở Bài 23 bạn đo được sức chứa của một pipe: <b>65 536</b> byte. Giờ nó quay lại ' +
@@ -1257,15 +1735,15 @@ Lesson.register({
          'buộc ở mọi chế độ. Trong daemon phần thực hành, vòng ghi được viết đúng như vậy.</p>' },
 
     { t: 'code', where: 'file', name: 'Khuôn mẫu ghi đủ byte trên socket không chặn', lang: 'c', code:
-      '    int len = snprintf(tl, sizeof tl, "nhiet=%.1f mau=%lu\\n", d, m);\n' +
-      '    int da = 0;\n' +
-      '    while (da < len) {\n' +
-      '        ssize_t k = write(fd, tl + da, (size_t)(len - da));\n' +
+      '    int len = snprintf(reply, sizeof reply, "temperature=%.1f samples=%lu\\n", temp, count);\n' +
+      '    int written = 0;\n' +
+      '    while (written < len) {\n' +
+      '        ssize_t k = write(fd, reply + written, (size_t)(len - written));\n' +
       '        if (k == -1) {\n' +
-      '            if (errno == EAGAIN || errno == EWOULDBLOCK) continue;  /* chua ghi duoc, thu lai */\n' +
-      '            perror("write"); break;                                 /* loi that */\n' +
+      '            if (errno == EAGAIN || errno == EWOULDBLOCK) continue;  /* not written yet, retry */\n' +
+      '            perror("write"); break;                                 /* real error */\n' +
       '        }\n' +
-      '        da += (int)k;\n' +
+      '        written += (int)k;\n' +
       '    }\n',
       notes: [
         '<code>continue</code> ở đây là vòng bận, chấp nhận được vì thông điệp chỉ vài chục byte. Với dữ liệu lớn, cách đúng là đăng ký <code>EPOLLOUT</code> rồi quay lại <code>epoll_wait</code> — đừng quay vòng đốt CPU.'
@@ -1302,18 +1780,19 @@ Lesson.register({
 
           { t: 'code', where: 'wsl', code:
             'mkdir -p ~/embedded/bai24 && cd ~/embedded/bai24\n' +
-            'gcc -Wall -Wextra -O2 -o may_tcp   may_tcp.c\n' +
-            'gcc -Wall -Wextra -O2 -o khach_tcp khach_tcp.c' },
+            'gcc -Wall -Wextra -O2 -o tcp_server tcp_server.c\n' +
+            'gcc -Wall -Wextra -O2 -o tcp_client tcp_client.c' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'bien dich: 0 canh bao\n' },
+            'compiled: 0 warnings\n' },
 
           { t: 'cal', kind: 'tip', title: 'Một Makefile ba dòng đỡ mỏi tay',
             x: '<p>Bài 16 đã dạy quy tắc mẫu. Đặt file <code>Makefile</code> với nội dung ' +
                '<code>CFLAGS = -Wall -Wextra -O2</code>, <code>LDLIBS =</code> và ' +
-               '<code>all: may_tcp khach_tcp may_udp ...</code> rồi chỉ cần gõ ' +
-               '<code>make</code>. Riêng daemon ở bước 6 cần thêm <code>-pthread</code>, khai ' +
-               'báo bằng một dòng <code>daemon_nhietdo: LDFLAGS += -pthread</code>.</p>' }
+               '<code>all: tcp_server tcp_client select_server poll_server epoll_server udp_server ' +
+               'udp_client ...</code> rồi chỉ cần gõ <code>make</code>. Riêng daemon ở bước 6 cần ' +
+               'thêm <code>-pthread</code>, khai báo bằng một dòng ' +
+               '<code>temp_daemon: LDFLAGS += -pthread</code>.</p>' }
         ]},
 
       /* ---------- BƯỚC 2 ---------- */
@@ -1325,26 +1804,26 @@ Lesson.register({
             'kết nối TCP, gói trong một dòng lệnh.' },
 
           { t: 'code', where: 'wsl', code:
-            './may_tcp 1 & sleep 0.4; ./khach_tcp 127.0.0.1 9000; wait' },
+            './tcp_server 1 & sleep 0.4; ./tcp_client 127.0.0.1 9000; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[may] fd nghe = 3, cho khach tren cong 9000\n' +
-            '[khach] noi duoc toi 127.0.0.1:9000, fd = 3\n' +
-            '[may] khach 127.0.0.1:59150  ->  fd moi = 4\n' +
-            '[may] nhan 13 byte: XIN NHIET DO\n' +
-            '[khach] tra loi: nhiet do 42.5 do C\n' +
-            '[may] dong fd 4\n' },
+            '[server] listen fd = 3, waiting for clients on port 9000\n' +
+            '[client] connected to 127.0.0.1:9000, fd = 3\n' +
+            '[server] client 127.0.0.1:42404  ->  new fd = 4\n' +
+            '[server] received 16 bytes: GET TEMPERATURE\n' +
+            '[client] reply: temperature 42.5 C\n' +
+            '[server] closed fd 4\n' },
 
           { t: 'p', x:
             'Bây giờ nhìn socket nghe từ bên ngoài. Chạy lại máy chủ ở nền rồi hỏi hệ thống ' +
             'xem ai đang giữ cổng 9000:' },
 
           { t: 'code', where: 'wsl', code:
-            './may_tcp 1 >/dev/null 2>&1 & sleep 0.4\n' +
+            './tcp_server 1 >/dev/null 2>&1 & sleep 0.4\n' +
             'ss -tlnp | grep \':9000\'' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'LISTEN 0      16            0.0.0.0:9000      0.0.0.0:*    users:(("may_tcp",pid=472,fd=3))\n' },
+            'LISTEN 0      16            0.0.0.0:9000      0.0.0.0:*    users:(("tcp_server",pid=1331,fd=3))\n' },
 
           { t: 'cmdx', cmd: 'ss -tlnp', title: 'Đọc từng cột',
             rows: [
@@ -1352,9 +1831,9 @@ Lesson.register({
               ['-l', 'Chỉ socket đang <b>nghe</b>', 'Bỏ <code>-l</code> đi để thấy cả kết nối đang mở và cả <code>TIME-WAIT</code>'],
               ['-n', 'Không tra tên dịch vụ', 'Không có nó, 9000 sẽ hiện thành <code>cslistener</code> — vô ích và chậm'],
               ['-p', 'Hiện tiến trình đang giữ socket', 'Đây là cột quý nhất khi gỡ lỗi: nó nối thẳng cổng ↔ pid ↔ fd'],
-              ['LISTEN 0 16', 'Hàng đợi đang có <b>0</b>, sức chứa <b>16</b>', 'Đúng bằng đối số <code>listen(ls, 16)</code> trong mã'],
+              ['LISTEN 0 16', 'Hàng đợi đang có <b>0</b>, sức chứa <b>16</b>', 'Đúng bằng đối số <code>listen(listen_fd, 16)</code> trong mã'],
               ['0.0.0.0:9000', 'Nghe trên <b>mọi</b> giao diện', 'Hệ quả trực tiếp của <code>INADDR_ANY</code>. Muốn chỉ loopback thì dùng <code>inet_pton(AF_INET, "127.0.0.1", …)</code>'],
-              ['fd=3', 'Socket nghe là mô tả file số 3 của tiến trình', 'Khớp với dòng <code>fd nghe = 3</code> chương trình tự in ra']
+              ['fd=3', 'Socket nghe là mô tả file số 3 của tiến trình', 'Khớp với dòng <code>listen fd = 3</code> chương trình tự in ra']
             ]},
 
           { t: 'cal', kind: 'info', title: 'ss là công cụ bạn sẽ dùng nhiều nhất',
@@ -1362,7 +1841,7 @@ Lesson.register({
                'đọc thẳng từ netlink nên nhanh hơn nhiều. Trên board nhúng chạy BusyBox ' +
                '(Chặng 09) có thể chỉ có <code>netstat</code> — cú pháp gần như y hệt: ' +
                '<code>netstat -tlnp</code>.</p>' +
-               '<p>Nhớ <code>pkill -f may_tcp</code> để dọn tiến trình nền trước khi sang bước ' +
+               '<p>Nhớ <code>pkill -f tcp_server</code> để dọn tiến trình nền trước khi sang bước ' +
                'sau, nếu không cổng 9000 vẫn bị giữ.</p>' }
         ]},
 
@@ -1375,43 +1854,43 @@ Lesson.register({
             '<code>read()</code>.' },
 
           { t: 'code', where: 'wsl', code:
-            './may_ranhgioi 0 & sleep 0.4; ./khach_ranhgioi 0; wait' },
+            './boundary_server & sleep 0.4; ./boundary_client 0; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[khach] write() lan 1 gui 11 byte\n' +
-            '[may] read() lan 1 tra ve 11 byte: "do 1: 41.5|"\n' +
-            '[khach] write() lan 2 gui 11 byte\n' +
-            '[may] read() lan 2 tra ve 11 byte: "do 2: 42.0|"\n' +
-            '[khach] write() lan 3 gui 11 byte\n' +
-            '[may] read() lan 3 tra ve 11 byte: "do 3: 42.5|"\n' +
-            '[may] read() tra ve 0 -> khach da dong. Tong so lan read = 3\n' },
+            '[client] write() call 1 sent 11 bytes\n' +
+            '[client] write() call 2 sent 11 bytes\n' +
+            '[client] write() call 3 sent 11 bytes\n' +
+            '[server] read() call 1 returned 33 bytes: "meas1:41.5|meas2:42.0|meas3:42.5|"\n' +
+            '[server] read() returned 0 -> client closed. Total read() calls = 1\n' },
 
-          { t: 'cal', kind: 'warn', title: 'Lần chạy này ra 3 — và đó chính là cái bẫy',
-            x: '<p>Ba <code>write</code>, ba <code>read</code>, khớp hoàn hảo. Nếu bạn dừng ở ' +
-               'đây, bạn sẽ tin rằng TCP giữ ranh giới thông điệp và sẽ viết mã dựa trên niềm ' +
-               'tin đó.</p>' +
-               '<p>Hãy chạy lại vài lần liên tiếp. Ở phần lý thuyết trên, cùng chương trình này ' +
-               'đã cho <b>2</b> lần <code>read</code> — lần đầu 11 byte, lần sau <b>22</b> byte ' +
-               'gộp của hai <code>write</code>. Kết quả phụ thuộc vào việc nhân ' +
-               '<i>kịp</i> chuyển gói đi trước khi lệnh ghi sau tới hay không, tức là phụ thuộc ' +
-               'vào lịch chạy của CPU, tải máy và độ trễ đường truyền.</p>' +
-               '<p>Trên loopback nhàn rỗi bạn hầu như luôn thấy 3. Trên Ethernet thật, với một ' +
-               'board đang bận, bạn sẽ thấy 2, hoặc 1, hoặc 5. <b>Một lỗi chỉ xuất hiện ngoài ' +
-               'hiện trường là loại lỗi đắt nhất.</b></p>' },
+          { t: 'cal', kind: 'warn', title: 'Lần chạy này ra 1 — còn xa hơn cả 2 của phần lý thuyết',
+            x: '<p>Ba <code>write()</code>, nhưng chỉ <b>một</b> <code>read()</code> duy nhất, gộp ' +
+               'đủ cả 33 byte. Nếu bạn chỉ chạy đúng một lần, bạn sẽ đoán ngược lại hoàn toàn so ' +
+               'với niềm tin "mỗi write là một read" — và cả hai phỏng đoán đều sai như nhau.</p>' +
+               '<p>Hãy chạy lại lệnh trên khoảng chục lần liên tiếp. Trên chính máy này, kết quả ' +
+               'dao động giữa <b>1</b> lần <code>read</code> (gộp cả ba), <b>2</b> lần (11 rồi ' +
+               '<b>22</b> byte — đúng như phần lý thuyết đã cho), và rất hiếm khi đủ <b>3</b>. Ba ' +
+               'lệnh <code>write()</code> liên tiếp trên loopback của WSL2 cách nhau chỉ vài micro ' +
+               'giây, đủ ngắn để nhân gần như luôn kịp gộp ít nhất hai gói trước khi tiến trình ' +
+               'đọc được lập lịch trở lại.</p>' +
+               '<p>Kết quả phụ thuộc vào việc nhân <i>kịp</i> chuyển gói đi trước khi lệnh ghi sau ' +
+               'tới hay không, tức là phụ thuộc vào lịch chạy của CPU, tải máy và độ trễ đường ' +
+               'truyền — kể cả khi "đường truyền" chỉ là loopback nội bộ. <b>Một lỗi chỉ xuất ' +
+               'hiện ngoài hiện trường là loại lỗi đắt nhất.</b></p>' },
 
           { t: 'p', x: 'Giờ làm y hệt bằng UDP:' },
 
           { t: 'code', where: 'wsl', code:
-            './may_udp 256 & sleep 0.4; ./khach_udp; wait' },
+            './udp_server 256 & sleep 0.4; ./udp_client; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[udp] cho goi tren cong 9002, bo dem nhan = 256 byte\n' +
-            '[udp] recvfrom() lan 1: 10 byte tu 127.0.0.1:48461 -> "do 1: 41.5"\n' +
-            '[khach] sendto() lan 1 gui 10 byte, khong can connect()\n' +
-            '[khach] sendto() lan 2 gui 10 byte, khong can connect()\n' +
-            '[khach] sendto() lan 3 gui 10 byte, khong can connect()\n' +
-            '[udp] recvfrom() lan 2: 10 byte tu 127.0.0.1:48461 -> "do 2: 42.0"\n' +
-            '[udp] recvfrom() lan 3: 10 byte tu 127.0.0.1:48461 -> "do 3: 42.5"\n' },
+            '[udp] waiting for packets on port 9002, recv buffer = 256 bytes\n' +
+            '[udp] recvfrom() call 1: 10 bytes from 127.0.0.1:41115 -> "meas1:41.5"\n' +
+            '[client] sendto() call 1 sent 10 bytes, no connect() needed\n' +
+            '[client] sendto() call 2 sent 10 bytes, no connect() needed\n' +
+            '[client] sendto() call 3 sent 10 bytes, no connect() needed\n' +
+            '[udp] recvfrom() call 2: 10 bytes from 127.0.0.1:41115 -> "meas2:42.0"\n' +
+            '[udp] recvfrom() call 3: 10 bytes from 127.0.0.1:41115 -> "meas3:42.5"\n' },
 
           { t: 'cal', kind: 'why', title: 'Chú ý thứ tự các dòng, không chỉ nội dung',
             x: '<p>Máy khách in ba dòng <code>sendto</code> gần như liền nhau, còn máy chủ vẫn ' +
@@ -1432,34 +1911,34 @@ Lesson.register({
             'cuối — <code>[do] cho … ms</code>.' },
 
           { t: 'code', where: 'wsl', code:
-            './may_tuan_tu 2 & sleep 0.4; ./khach_cham 2000 & sleep 0.3; ./khach_do; wait' },
+            './sequential_server 2 & sleep 0.4; ./slow_client 2000 & sleep 0.3; ./probe_client; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[tuantu] nghe cong 9004\n' +
-            '[tuantu] nhan khach fd 4 — tu gio KHONG accept ai khac\n' +
-            '[cham] da noi, co y im lang 2000 ms\n' +
-            '[tuantu] da tra loi fd 4\n' +
-            '[cham] tra loi: nhiet do 42.5 do C\n' +
-            '[tuantu] nhan khach fd 4 — tu gio KHONG accept ai khac\n' +
-            '[tuantu] da tra loi fd 4\n' +
-            '[do] cho 1692.8 ms moi nhan duoc tra loi\n' },
+            '[sequential] listening on port 9004\n' +
+            '[sequential] accepted client fd 4 — will NOT accept anyone else until this one is done\n' +
+            '[slow] connected, deliberately silent for 2000 ms\n' +
+            '[sequential] replied to fd 4\n' +
+            '[sequential] accepted client fd 4 — will NOT accept anyone else until this one is done\n' +
+            '[sequential] replied to fd 4\n' +
+            '[slow] reply: temperature 42.5 C\n' +
+            '[probe] waited 1697.7 ms to get a reply\n' },
 
           { t: 'code', where: 'wsl', code:
-            './may_select 2 & sleep 0.4; ./khach_cham 2000 & sleep 0.3; ./khach_do; wait' },
+            './select_server 2 & sleep 0.4; ./slow_client 2000 & sleep 0.3; ./probe_client; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[select] nghe cong 9004\n' +
-            '[cham] da noi, co y im lang 2000 ms\n' +
-            '[select] khach moi fd 4 — van tiep tuc theo doi moi kenh\n' +
-            '[select] khach moi fd 5 — van tiep tuc theo doi moi kenh\n' +
-            '[select] da tra loi fd 5\n' +
-            '[do] cho 0.3 ms moi nhan duoc tra loi\n' +
-            '[cham] tra loi: nhiet do 42.5 do C\n' +
-            '[select] da tra loi fd 4\n' +
-            '[select] phuc vu xong 2 khach\n' },
+            '[select] listening on port 9004\n' +
+            '[select] new client fd 4 — still watching every channel\n' +
+            '[slow] connected, deliberately silent for 2000 ms\n' +
+            '[select] new client fd 5 — still watching every channel\n' +
+            '[select] replied to fd 5\n' +
+            '[probe] waited 0.3 ms to get a reply\n' +
+            '[select] replied to fd 4\n' +
+            '[slow] reply: temperature 42.5 C\n' +
+            '[select] served 2 clients, done\n' },
 
           { t: 'p', x:
-            '<b>1692,8 ms</b> so với <b>0,3 ms</b>. Hai chương trình cùng một luồng, cùng một ' +
+            '<b>1697,7 ms</b> so với <b>0,3 ms</b>. Hai chương trình cùng một luồng, cùng một ' +
             'CPU, cùng một kịch bản; khác nhau đúng ở chỗ một cái gọi <code>accept</code> rồi ' +
             '<code>read</code> theo lối chặn, còn cái kia hỏi <code>select</code> trước.' },
 
@@ -1468,29 +1947,29 @@ Lesson.register({
             'nó dạy bạn một điều về đo đạc:' },
 
           { t: 'code', where: 'wsl', code:
-            './may_poll 2 & sleep 0.4; ./khach_cham 2000 & sleep 0.3; ./khach_do; wait' },
+            './poll_server 2 & sleep 0.4; ./slow_client 2000 & sleep 0.3; ./probe_client; wait' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '[poll] nghe cong 9004, mang pollfd co 16 o\n' +
-            '[cham] da noi, co y im lang 2000 ms\n' +
-            '[poll] khach moi fd 4, dang theo doi 2 kenh\n' +
-            '[poll] khach moi fd 5, dang theo doi 3 kenh\n' +
-            '[poll] da tra loi fd 5\n' +
-            '[do] cho 1.6 ms moi nhan duoc tra loi\n' +
-            '[poll] da tra loi fd 4\n' +
-            '[cham] tra loi: nhiet do 42.5 do C\n' +
-            '[poll] phuc vu xong 2 khach\n' },
+            '[poll] listening on port 9004, pollfd array has 16 slots\n' +
+            '[slow] connected, deliberately silent for 2000 ms\n' +
+            '[poll] new client fd 4, now watching 2 channels\n' +
+            '[poll] new client fd 5, now watching 3 channels\n' +
+            '[poll] replied to fd 5\n' +
+            '[probe] waited 1.3 ms to get a reply\n' +
+            '[poll] replied to fd 4\n' +
+            '[poll] served 2 clients, done\n' +
+            '[slow] reply: temperature 42.5 C\n' },
 
-          { t: 'cal', kind: 'warn', title: '1,6 ms không có nghĩa là poll chậm hơn select 5 lần',
+          { t: 'cal', kind: 'warn', title: '1,3 ms không có nghĩa là poll chậm hơn select 4 lần',
             x: '<p>Ở phần lý thuyết, cùng chương trình này đo được <b>0,3 ms</b>. Lần chạy trên ' +
-               'ra <b>1,6 ms</b>. Chênh lệch đó <i>không</i> đến từ <code>poll</code> — nó đến ' +
-               'từ bộ lập lịch: khoảng thời gian tiến trình <code>khach_do</code> phải chờ để ' +
+               'ra <b>1,3 ms</b>. Chênh lệch đó <i>không</i> đến từ <code>poll</code> — nó đến ' +
+               'từ bộ lập lịch: khoảng thời gian tiến trình <code>probe_client</code> phải chờ để ' +
                'được cấp CPU sau khi dữ liệu đã sẵn sàng.</p>' +
                '<p><b>Bài học đo đạc:</b> ở thang mili giây, một phép đo đơn lẻ nói lên rất ít. ' +
                'Cái đáng tin trong bảng số này là <b>bậc độ lớn</b> — 1700 ms so với "dưới ' +
                '2 ms" — chứ không phải chữ số thập phân. Muốn so <code>select</code> với ' +
                '<code>poll</code> cho ra kết quả có nghĩa, bạn phải lặp hàng nghìn lần và lấy ' +
-               'trung bình. Đó chính xác là cái <code>dosuc_io</code> làm ở bước sau.</p>' +
+               'trung bình. Đó chính xác là cái <code>io_bench</code> làm ở bước sau.</p>' +
                '<p>Hãy chạy mỗi lệnh trên vài lần. Bạn sẽ thấy cột "tuần tự" luôn quanh 1700 ms ' +
                '— vì nó bị chặn <i>bởi thiết kế</i>, không phải bởi may rủi.</p>' }
         ]},
@@ -1500,35 +1979,35 @@ Lesson.register({
         blocks: [
           { t: 'p', x:
             'Bước 4 đo <i>độ trễ do thiết kế sai</i>. Bước này đo <i>chi phí của chính cơ chế ' +
-            'chờ</i>. <code>dosuc_io</code> mở N pipe, theo dõi hết, rồi lặp 10 000 lần: đánh ' +
+            'chờ</i>. <code>io_bench</code> mở N pipe, theo dõi hết, rồi lặp 10 000 lần: đánh ' +
             'thức đúng một kênh và đo thời gian trung bình mỗi lời gọi.' },
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -O2 -o dosuc_io dosuc_io.c\n' +
-            './dosuc_io 500' },
+            'gcc -Wall -Wextra -O2 -o io_bench io_bench.c\n' +
+            './io_bench 500' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'N = 500   kenh, fd doc lon nhat = 1001  (FD_SETSIZE = 1024)\n' +
-            '  select :   64.24 us/lan\n' +
-            '  poll   :   69.51 us/lan\n' +
-            '  epoll  :    0.79 us/lan\n' },
+            'N = 500   channels, highest read fd = 1002  (FD_SETSIZE = 1024)\n' +
+            '  select :   68.66 us/call\n' +
+            '  poll   :   68.93 us/call\n' +
+            '  epoll  :    0.94 us/call\n' },
 
           { t: 'p', x:
-            'Lặp lại với <code>./dosuc_io 10</code>, <code>100</code> và <code>2000</code>. ' +
+            'Lặp lại với <code>./io_bench 10</code>, <code>100</code> và <code>2000</code>. ' +
             'Bạn sẽ dựng lại được đúng bảng ở phần lý thuyết — và ở N = 2000, chương trình sẽ ' +
-            'từ chối chạy <code>select</code>, vì fd lớn nhất là <b>4001</b> còn ' +
+            'từ chối chạy <code>select</code>, vì fd lớn nhất là <b>4002</b> còn ' +
             '<code>FD_SETSIZE</code> là <b>1024</b>.' },
 
-          { t: 'cal', kind: 'why', title: 'Vì sao 500 kênh chỉ tốn 0,79 µs với epoll',
+          { t: 'cal', kind: 'why', title: 'Vì sao 500 kênh chỉ tốn 0,94 µs với epoll',
             x: '<p>Vì <code>epoll_wait</code> không hỏi "trong 500 kênh này, cái nào sẵn ' +
                'sàng?". Nhân đã tự duy trì một danh sách <i>đã sẵn sàng</i> từ trước: mỗi lần ' +
                'dữ liệu tới một pipe, chính thao tác ghi đó móc pipe vào danh sách. ' +
                '<code>epoll_wait</code> chỉ việc lấy phần tử đầu danh sách ra và trả về.</p>' +
-               '<p>Con số <b>0,79 µs</b> = <b>790 ns</b> nằm cùng bậc với chi phí tối thiểu của ' +
+               '<p>Con số <b>0,94 µs</b> = <b>940 ns</b> nằm cùng bậc với chi phí tối thiểu của ' +
                'một lần vào/ra nhân — Bài 19 đo một syscall trần trụi hết <b>139–317 ns</b>. ' +
                'Nghĩa là <code>epoll</code> gần như không thêm gì lên trên cái giá bắt buộc ' +
-               'phải trả. Còn 64 µs của <code>select</code> là 500 lần kiểm tra, mỗi lần một ' +
-               'chút, cộng lại.</p>' }
+               'phải trả. Còn gần 69 µs của <code>select</code>/<code>poll</code> là 500 lần ' +
+               'kiểm tra, mỗi lần một chút, cộng lại.</p>' }
         ]},
 
       /* ---------- BƯỚC 6 ---------- */
@@ -1543,14 +2022,14 @@ Lesson.register({
           { t: 'table',
             head: ['Thành phần', 'Đến từ', 'Vai trò trong daemon'],
             rows: [
-              ['<code>pthread_create</code> + mutex', 'Bài 22', 'Luồng <code>luong_doc</code> cập nhật <code>cb.nhiet</code> mỗi 200 ms'],
+              ['<code>pthread_create</code> + mutex', 'Bài 22', 'Luồng <code>sensor_thread</code> cập nhật <code>state.temperature</code> mỗi 200 ms'],
               ['<code>pthread_sigmask</code> + <code>signalfd</code>', 'Bài 21', 'Biến <code>SIGTERM</code> thành một fd, để nó xếp hàng cùng socket'],
               ['<code>socket</code>/<code>bind</code>/<code>listen</code>', 'Bài này', 'Cổng 9006, hàng đợi 64'],
               ['<code>epoll</code> + <code>O_NONBLOCK</code>', 'Bài này', 'Một luồng phục vụ mọi khách, không chặn ở đâu'],
               ['Vòng ghi tới khi đủ byte', 'Bài này', 'Chống ghi thiếu — <code>write</code> có thể trả về ít hơn số xin']
             ]},
 
-          { t: 'code', where: 'file', name: '~/embedded/bai24/daemon_nhietdo.c — phần khởi tạo', lang: 'c', code:
+          { t: 'code', where: 'file', name: 'temp_daemon.c — phần khởi tạo', lang: 'c', code:
             '#define _GNU_SOURCE\n' +
             '#include <stdio.h>\n' +
             '#include <stdlib.h>\n' +
@@ -1564,190 +2043,191 @@ Lesson.register({
             '#include <sys/signalfd.h>\n' +
             '#include <arpa/inet.h>\n' +
             '\n' +
-            '#define CONG   9006\n' +
-            '#define MAX_SK 32\n' +
+            '#define PORT       9006\n' +
+            '#define MAX_EVENTS 32\n' +
             '\n' +
             'static struct {\n' +
-            '    pthread_mutex_t khoa;\n' +
-            '    double          nhiet;\n' +
-            '    unsigned long   so_mau;\n' +
-            '} cb = { PTHREAD_MUTEX_INITIALIZER, 0.0, 0 };\n' +
+            '    pthread_mutex_t lock;\n' +
+            '    double          temperature;\n' +
+            '    unsigned long   sample_count;\n' +
+            '} state = { PTHREAD_MUTEX_INITIALIZER, 0.0, 0 };\n' +
             '\n' +
-            'static volatile sig_atomic_t chay = 1;\n' +
+            'static volatile sig_atomic_t running = 1;\n' +
             '\n' +
-            'static void *luong_doc(void *kh)          /* luong \'cam bien\' */\n' +
+            'static void *sensor_thread(void *arg)\n' +
             '{\n' +
-            '    (void)kh;\n' +
+            '    (void)arg;\n' +
             '    unsigned long i = 0;\n' +
-            '    while (chay) {\n' +
+            '    while (running) {\n' +
             '        double d = 40.0 + (double)(i % 50) / 10.0;\n' +
-            '        pthread_mutex_lock(&cb.khoa);\n' +
-            '        cb.nhiet  = d;\n' +
-            '        cb.so_mau = ++i;\n' +
-            '        pthread_mutex_unlock(&cb.khoa);\n' +
-            '        usleep(200000);                   /* 5 mau moi giay */\n' +
+            '        pthread_mutex_lock(&state.lock);\n' +
+            '        state.temperature  = d;\n' +
+            '        state.sample_count = ++i;\n' +
+            '        pthread_mutex_unlock(&state.lock);\n' +
+            '        usleep(200000);                   /* 5 samples per second */\n' +
             '    }\n' +
             '    return NULL;\n' +
             '}\n' +
             '\n' +
-            'static int dat_khong_chan(int fd)\n' +
+            'static int set_nonblocking(int fd)\n' +
             '{\n' +
-            '    int co = fcntl(fd, F_GETFL);\n' +
-            '    if (co == -1) return -1;\n' +
-            '    return fcntl(fd, F_SETFL, co | O_NONBLOCK);\n' +
+            '    int flags = fcntl(fd, F_GETFL);\n' +
+            '    if (flags == -1) return -1;\n' +
+            '    return fcntl(fd, F_SETFL, flags | O_NONBLOCK);\n' +
             '}\n' +
             '\n' +
             'int main(void)\n' +
             '{\n' +
-            '    signal(SIGPIPE, SIG_IGN);             /* khach dong som != giet daemon */\n' +
+            '    signal(SIGPIPE, SIG_IGN);             /* early client close != killing the daemon */\n' +
             '\n' +
-            '    sigset_t tap;\n' +
-            '    sigemptyset(&tap);\n' +
-            '    sigaddset(&tap, SIGTERM);\n' +
-            '    sigaddset(&tap, SIGINT);\n' +
-            '    if (pthread_sigmask(SIG_BLOCK, &tap, NULL)) { perror("pthread_sigmask"); exit(1); }\n' +
-            '    int sfd = signalfd(-1, &tap, SFD_CLOEXEC);\n' +
-            '    if (sfd == -1) { perror("signalfd"); exit(1); }\n' +
+            '    sigset_t mask;\n' +
+            '    sigemptyset(&mask);\n' +
+            '    sigaddset(&mask, SIGTERM);\n' +
+            '    sigaddset(&mask, SIGINT);\n' +
+            '    if (pthread_sigmask(SIG_BLOCK, &mask, NULL)) { perror("pthread_sigmask"); exit(1); }\n' +
+            '    int sig_fd = signalfd(-1, &mask, SFD_CLOEXEC);\n' +
+            '    if (sig_fd == -1) { perror("signalfd"); exit(1); }\n' +
             '\n' +
-            '    pthread_t th;\n' +
-            '    if (pthread_create(&th, NULL, luong_doc, NULL)) { perror("pthread_create"); exit(1); }\n' +
+            '    pthread_t thread;\n' +
+            '    if (pthread_create(&thread, NULL, sensor_thread, NULL)) { perror("pthread_create"); exit(1); }\n' +
             '\n' +
-            '    int ls = socket(AF_INET, SOCK_STREAM, 0);\n' +
-            '    if (ls == -1) { perror("socket"); exit(1); }\n' +
-            '    int mot = 1;\n' +
-            '    setsockopt(ls, SOL_SOCKET, SO_REUSEADDR, &mot, sizeof mot);\n' +
-            '    struct sockaddr_in dc;\n' +
-            '    memset(&dc, 0, sizeof dc);\n' +
-            '    dc.sin_family      = AF_INET;\n' +
-            '    dc.sin_addr.s_addr = htonl(INADDR_ANY);\n' +
-            '    dc.sin_port        = htons(CONG);\n' +
-            '    if (bind(ls, (struct sockaddr *)&dc, sizeof dc) == -1) { perror("bind"); exit(1); }\n' +
-            '    if (listen(ls, 64) == -1) { perror("listen"); exit(1); }\n' +
-            '    dat_khong_chan(ls);                   /* BAT BUOC: accept trong vong lap */\n' +
+            '    int listen_fd = socket(AF_INET, SOCK_STREAM, 0);\n' +
+            '    if (listen_fd == -1) { perror("socket"); exit(1); }\n' +
+            '    int one = 1;\n' +
+            '    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);\n' +
+            '    struct sockaddr_in addr;\n' +
+            '    memset(&addr, 0, sizeof addr);\n' +
+            '    addr.sin_family      = AF_INET;\n' +
+            '    addr.sin_addr.s_addr = htonl(INADDR_ANY);\n' +
+            '    addr.sin_port        = htons(PORT);\n' +
+            '    if (bind(listen_fd, (struct sockaddr *)&addr, sizeof addr) == -1) { perror("bind"); exit(1); }\n' +
+            '    if (listen(listen_fd, 64) == -1) { perror("listen"); exit(1); }\n' +
+            '    set_nonblocking(listen_fd);            /* MANDATORY: accept() runs in a loop */\n' +
             '\n' +
-            '    int ep = epoll_create1(EPOLL_CLOEXEC);\n' +
-            '    if (ep == -1) { perror("epoll_create1"); exit(1); }\n' +
+            '    int epoll_fd = epoll_create1(EPOLL_CLOEXEC);\n' +
+            '    if (epoll_fd == -1) { perror("epoll_create1"); exit(1); }\n' +
             '    struct epoll_event ev;\n' +
-            '    ev.events = EPOLLIN; ev.data.fd = ls;\n' +
-            '    if (epoll_ctl(ep, EPOLL_CTL_ADD, ls,  &ev) == -1) { perror("epoll_ctl ls");  exit(1); }\n' +
-            '    ev.events = EPOLLIN; ev.data.fd = sfd;\n' +
-            '    if (epoll_ctl(ep, EPOLL_CTL_ADD, sfd, &ev) == -1) { perror("epoll_ctl sfd"); exit(1); }\n' +
+            '    ev.events = EPOLLIN; ev.data.fd = listen_fd;\n' +
+            '    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &ev) == -1) { perror("epoll_ctl listen_fd"); exit(1); }\n' +
+            '    ev.events = EPOLLIN; ev.data.fd = sig_fd;\n' +
+            '    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, sig_fd, &ev) == -1) { perror("epoll_ctl sig_fd"); exit(1); }\n' +
             '\n' +
-            '    printf("[daemon] pid %d — nghe cong %d, epoll fd %d, signalfd %d\\n",\n' +
-            '           getpid(), CONG, ep, sfd);\n' +
+            '    printf("[daemon] pid %d — listening on port %d, epoll fd %d, signalfd %d\\n",\n' +
+            '           getpid(), PORT, epoll_fd, sig_fd);\n' +
             '    fflush(stdout);\n',
             notes: [
               'Hai fd hoàn toàn khác bản chất — một socket nghe và một nguồn tín hiệu — được nạp vào cùng một tập <code>epoll</code>. Đây chính là giá trị lớn nhất của triết lý "mọi thứ là file" mà Bài 19 mở đầu.',
               '<code>signal(SIGPIPE, SIG_IGN)</code> phải có. Nếu khách đóng kết nối trước khi daemon kịp trả lời, <code>write()</code> sẽ sinh <code>SIGPIPE</code> và mặc định tín hiệu này <b>giết tiến trình</b>. Bỏ qua nó thì <code>write()</code> chỉ trả về <code>EPIPE</code> — một lỗi bình thường xử lý được.'
             ]},
 
-          { t: 'code', where: 'file', name: '~/embedded/bai24/daemon_nhietdo.c — vòng lặp chính', lang: 'c', code:
-            '    unsigned long phuc_vu = 0;\n' +
-            '    struct epoll_event sk[MAX_SK];\n' +
-            '    while (chay) {\n' +
-            '        int n = epoll_wait(ep, sk, MAX_SK, -1);\n' +
+          { t: 'code', where: 'file', name: 'temp_daemon.c — vòng lặp chính', lang: 'c', code:
+            '    unsigned long served = 0;\n' +
+            '    struct epoll_event events[MAX_EVENTS];\n' +
+            '    while (running) {\n' +
+            '        int n = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);\n' +
             '        if (n == -1) { if (errno == EINTR) continue; perror("epoll_wait"); break; }\n' +
             '\n' +
             '        for (int i = 0; i < n; i++) {\n' +
-            '            int fd = sk[i].data.fd;\n' +
+            '            int fd = events[i].data.fd;\n' +
             '\n' +
-            '            if (fd == sfd) {                       /* --- TIN HIEU --- */\n' +
-            '                struct signalfd_siginfo tt;\n' +
-            '                if (read(sfd, &tt, sizeof tt) != (ssize_t)sizeof tt) continue;\n' +
-            '                printf("[daemon] tin hieu %u (%s) qua signalfd — bat dau tat em\\n",\n' +
-            '                       tt.ssi_signo, strsignal((int)tt.ssi_signo));\n' +
-            '                chay = 0;\n' +
+            '            if (fd == sig_fd) {                    /* --- SIGNAL --- */\n' +
+            '                struct signalfd_siginfo info;\n' +
+            '                if (read(sig_fd, &info, sizeof info) != (ssize_t)sizeof info) continue;\n' +
+            '                printf("[daemon] signal %u (%s) via signalfd — beginning graceful shutdown\\n",\n' +
+            '                       info.ssi_signo, strsignal((int)info.ssi_signo));\n' +
+            '                running = 0;\n' +
             '\n' +
-            '            } else if (fd == ls) {                 /* --- KHACH MOI --- */\n' +
-            '                for (;;) {                         /* accept toi khi EAGAIN */\n' +
-            '                    int cs = accept(ls, NULL, NULL);\n' +
-            '                    if (cs == -1) {\n' +
+            '            } else if (fd == listen_fd) {          /* --- NEW CLIENT --- */\n' +
+            '                for (;;) {                         /* accept until EAGAIN */\n' +
+            '                    int conn_fd = accept(listen_fd, NULL, NULL);\n' +
+            '                    if (conn_fd == -1) {\n' +
             '                        if (errno == EAGAIN || errno == EWOULDBLOCK) break;\n' +
             '                        perror("accept"); break;\n' +
             '                    }\n' +
-            '                    dat_khong_chan(cs);\n' +
+            '                    set_nonblocking(conn_fd);\n' +
             '                    struct epoll_event e2;\n' +
-            '                    e2.events = EPOLLIN; e2.data.fd = cs;\n' +
-            '                    epoll_ctl(ep, EPOLL_CTL_ADD, cs, &e2);\n' +
+            '                    e2.events = EPOLLIN; e2.data.fd = conn_fd;\n' +
+            '                    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_fd, &e2);\n' +
             '                }\n' +
             '\n' +
-            '            } else {                               /* --- YEU CAU --- */\n' +
-            '                char yc[128];\n' +
-            '                ssize_t r = read(fd, yc, sizeof yc - 1);\n' +
+            '            } else {                               /* --- REQUEST --- */\n' +
+            '                char req[128];\n' +
+            '                ssize_t r = read(fd, req, sizeof req - 1);\n' +
             '                if (r <= 0) {\n' +
-            '                    epoll_ctl(ep, EPOLL_CTL_DEL, fd, NULL);\n' +
+            '                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);\n' +
             '                    close(fd);\n' +
             '                    continue;\n' +
             '                }\n' +
-            '                double d; unsigned long m;\n' +
-            '                pthread_mutex_lock(&cb.khoa);      /* chi giu khoa 2 dong */\n' +
-            '                d = cb.nhiet; m = cb.so_mau;\n' +
-            '                pthread_mutex_unlock(&cb.khoa);\n' +
+            '                double temp; unsigned long count;\n' +
+            '                pthread_mutex_lock(&state.lock);   /* hold the lock for 2 lines only */\n' +
+            '                temp = state.temperature; count = state.sample_count;\n' +
+            '                pthread_mutex_unlock(&state.lock);\n' +
             '\n' +
-            '                char tl[128];\n' +
-            '                int len = snprintf(tl, sizeof tl, "nhiet=%.1f mau=%lu\\n", d, m);\n' +
-            '                int da = 0;\n' +
-            '                while (da < len) {                 /* ghi TOI KHI du byte */\n' +
-            '                    ssize_t k = write(fd, tl + da, (size_t)(len - da));\n' +
+            '                char reply[128];\n' +
+            '                int len = snprintf(reply, sizeof reply, "temperature=%.1f samples=%lu\\n", temp, count);\n' +
+            '                int written = 0;\n' +
+            '                while (written < len) {            /* write UNTIL enough bytes */\n' +
+            '                    ssize_t k = write(fd, reply + written, (size_t)(len - written));\n' +
             '                    if (k == -1) {\n' +
             '                        if (errno == EAGAIN || errno == EWOULDBLOCK) continue;\n' +
             '                        perror("write"); break;\n' +
             '                    }\n' +
-            '                    da += (int)k;\n' +
+            '                    written += (int)k;\n' +
             '                }\n' +
-            '                phuc_vu++;\n' +
-            '                printf("[daemon] phuc vu yeu cau #%lu tren fd %d\\n", phuc_vu, fd);\n' +
+            '                served++;\n' +
+            '                printf("[daemon] served request #%lu on fd %d\\n", served, fd);\n' +
             '                fflush(stdout);\n' +
-            '                epoll_ctl(ep, EPOLL_CTL_DEL, fd, NULL);\n' +
+            '                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);\n' +
             '                close(fd);\n' +
             '            }\n' +
             '        }\n' +
             '    }\n' +
             '\n' +
-            '    pthread_join(th, NULL);\n' +
-            '    close(ls); close(sfd); close(ep);\n' +
-            '    printf("[daemon] da phuc vu %lu yeu cau, dong sach moi mo ta file, thoat 0\\n", phuc_vu);\n' +
+            '    pthread_join(thread, NULL);\n' +
+            '    close(listen_fd); close(sig_fd); close(epoll_fd);\n' +
+            '    printf("[daemon] served %lu requests, closed every file descriptor cleanly, exiting 0\\n", served);\n' +
             '    return 0;\n' +
             '}\n',
             notes: [
-              'Vòng <code>accept</code> chạy tới khi gặp <code>EAGAIN</code>, không phải một lần. Nếu ba khách tới cùng lúc, <code>epoll</code> chỉ báo <b>một</b> sự kiện trên <code>ls</code>; <code>accept</code> một lần thì hai khách còn lại nằm chờ trong hàng đợi cho tới sự kiện kế tiếp — có thể là mãi mãi.',
+              'Vòng <code>accept</code> chạy tới khi gặp <code>EAGAIN</code>, không phải một lần. Nếu ba khách tới cùng lúc, <code>epoll</code> chỉ báo <b>một</b> sự kiện trên <code>listen_fd</code>; <code>accept</code> một lần thì hai khách còn lại nằm chờ trong hàng đợi cho tới sự kiện kế tiếp — có thể là mãi mãi.',
               'Mutex chỉ ôm đúng hai dòng gán. Bài 22 gọi đây là giữ vùng găng ngắn nhất có thể: luồng đo không bao giờ phải chờ một lệnh <code>write()</code> lên mạng.'
             ]},
 
           { t: 'code', where: 'wsl', code:
-            'gcc -Wall -Wextra -O2 -pthread -o daemon_nhietdo daemon_nhietdo.c\n' +
-            './daemon_nhietdo & DP=$!\n' +
+            'gcc -Wall -Wextra -O2 -pthread -o temp_daemon temp_daemon.c\n' +
+            './temp_daemon & DP=$!\n' +
             'sleep 0.5; ss -tlnp | grep 9006\n' +
-            'for i in 1 2 3 4 5; do echo XIN | nc -q1 127.0.0.1 9006; sleep 0.3; done\n' +
+            'for i in 1 2 3 4 5; do echo GET | nc -q1 127.0.0.1 9006; sleep 0.3; done\n' +
+            'echo "--- open file descriptors ---"\n' +
             'ls /proc/$DP/fd | tr "\\n" " "; echo\n' +
-            'kill -TERM $DP; wait $DP; echo "ma thoat = $?"' },
+            'kill -TERM $DP; wait $DP; echo "exit code = $?"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'bien dich daemon: 0 canh bao\n' +
-            '[daemon] pid 534 — nghe cong 9006, epoll fd 5, signalfd 3\n' +
-            'LISTEN 0      64            0.0.0.0:9006      0.0.0.0:*    users:(("daemon_nhietdo",pid=534,fd=4))\n' +
-            '[daemon] phuc vu yeu cau #1 tren fd 6\n' +
-            'nhiet=40.2 mau=3\n' +
-            '[daemon] phuc vu yeu cau #2 tren fd 6\n' +
-            'nhiet=40.9 mau=10\n' +
-            '[daemon] phuc vu yeu cau #3 tren fd 6\n' +
-            'nhiet=41.5 mau=16\n' +
-            '[daemon] phuc vu yeu cau #4 tren fd 6\n' +
-            'nhiet=42.2 mau=23\n' +
-            '[daemon] phuc vu yeu cau #5 tren fd 6\n' +
-            'nhiet=42.8 mau=29\n' +
-            '--- mo ta file dang mo ---\n' +
+            'compiled daemon: 0 warnings\n' +
+            '[daemon] pid 436 — listening on port 9006, epoll fd 5, signalfd 3\n' +
+            'LISTEN 0      64            0.0.0.0:9006      0.0.0.0:*    users:(("temp_daemon",pid=436,fd=4))\n' +
+            '[daemon] served request #1 on fd 6\n' +
+            'temperature=40.2 samples=3\n' +
+            '[daemon] served request #2 on fd 6\n' +
+            'temperature=40.9 samples=10\n' +
+            '[daemon] served request #3 on fd 6\n' +
+            'temperature=41.5 samples=16\n' +
+            '[daemon] served request #4 on fd 6\n' +
+            'temperature=42.2 samples=23\n' +
+            '[daemon] served request #5 on fd 6\n' +
+            'temperature=42.8 samples=29\n' +
+            '--- open file descriptors ---\n' +
             '0 1 2 3 4 5 \n' +
-            '[daemon] tin hieu 15 (Terminated) qua signalfd — bat dau tat em\n' +
-            '[daemon] da phuc vu 5 yeu cau, dong sach moi mo ta file, thoat 0\n' +
-            'ma thoat = 0\n' },
+            '[daemon] signal 15 (Terminated) via signalfd — beginning graceful shutdown\n' +
+            '[daemon] served 5 requests, closed every file descriptor cleanly, exiting 0\n' +
+            'exit code = 0\n' },
 
           { t: 'cal', kind: 'info', title: 'Ba bằng chứng nằm trong output này',
             x: '<ul>' +
                '<li><b>Luồng đo chạy độc lập.</b> Năm yêu cầu cách nhau 0,3 s cho ' +
-               '<code>mau=3, 10, 16, 23, 29</code> — tăng đều 6–7 mẫu, đúng nhịp 200 ms. Luồng ' +
+               '<code>samples=3, 10, 16, 23, 29</code> — tăng đều 6–7 mẫu, đúng nhịp 200 ms. Luồng ' +
                'không hề bị vòng <code>epoll</code> làm chậm, và ngược lại.</li>' +
-               '<li><b>Không rò mô tả file.</b> <code>/proc/534/fd</code> chỉ có ' +
+               '<li><b>Không rò mô tả file.</b> <code>/proc/436/fd</code> chỉ có ' +
                '<code>0 1 2 3 4 5</code> — stdin/stdout/stderr, signalfd 3, socket nghe 4, ' +
                'epoll 5. Năm khách đã tới rồi đi mà con số không nhích. So với Bài 19: mỗi lần ' +
                'quên <code>close</code>, danh sách này sẽ dài thêm một dòng, và ' +
@@ -1762,10 +2242,10 @@ Lesson.register({
 
           { t: 'cal', kind: 'tip', title: 'Ba việc để tự làm tiếp',
             x: '<ul>' +
-               '<li>Thay <code>epoll_wait(ep, sk, MAX_SK, -1)</code> bằng thời hạn ' +
+               '<li>Thay <code>epoll_wait(epoll_fd, events, MAX_EVENTS, -1)</code> bằng thời hạn ' +
                '<code>1500</code> và in một dòng nhịp tim mỗi lần hết giờ. Đó là khung của mọi ' +
                'daemon có watchdog.</li>' +
-               '<li>Bỏ <code>dat_khong_chan(ls)</code> đi rồi mở hai kết nối cùng lúc bằng ' +
+               '<li>Bỏ <code>set_nonblocking(listen_fd)</code> đi rồi mở hai kết nối cùng lúc bằng ' +
                '<code>nc</code>. Vòng <code>accept</code> sẽ treo ở lần gọi thứ hai — cả daemon ' +
                'đứng im, dù không có lỗi nào.</li>' +
                '<li>Đổi <code>EPOLLIN</code> của socket khách thành ' +
@@ -1793,7 +2273,7 @@ Lesson.register({
 
         ['<code>connect: Connection refused</code>',
          'Không có ai <code>listen</code> trên cổng đó — hoặc bạn đang gõ nhầm cổng vì <b>quên <code>htons()</code></b>: 9000 thành 10275',
-         'Kiểm tra bằng <code>ss -tln</code>. In <code>ntohs(dc.sin_port)</code> ra để xác nhận số cổng thật sự gửi đi'],
+         'Kiểm tra bằng <code>ss -tln</code>. In <code>ntohs(addr.sin_port)</code> ra để xác nhận số cổng thật sự gửi đi'],
 
         ['<code>accept: Invalid argument</code>',
          'Gọi <code>accept()</code> trên socket chưa qua <code>listen()</code>',
@@ -1829,7 +2309,7 @@ Lesson.register({
 
         ['<i>Không lỗi:</i> <code>write(fd, buf, 100000)</code> trả về <b>65536</b>',
          'Bộ đệm nhân chỉ còn chừng đó chỗ. Ghi thiếu <b>34 464</b> byte',
-         'Luôn lặp: <code>while (da &lt; len) { k = write(fd, buf+da, len-da); … da += k; }</code>. Đúng cho cả chế độ chặn lẫn không chặn'],
+         'Luôn lặp: <code>while (written &lt; len) { k = write(fd, buf+written, len-written); … written += k; }</code>. Đúng cho cả chế độ chặn lẫn không chặn'],
 
         ['<i>Không lỗi:</i> <code>read()</code> trả về <b>22</b> byte khi máy khách gửi hai lần 11 byte',
          'TCP là dòng byte. Ranh giới thông điệp <b>không tồn tại</b> ở tầng này',
@@ -1845,11 +2325,11 @@ Lesson.register({
 
         ['<i>Không lỗi:</i> daemon đứng im ở khách thứ hai',
          'Socket nghe vẫn ở chế độ chặn nhưng bạn <code>accept</code> trong vòng lặp — lần gọi thứ hai chặn cả tiến trình',
-         '<code>dat_khong_chan(ls)</code> ngay sau <code>listen()</code>, rồi thoát vòng lặp khi <code>accept</code> trả <code>EAGAIN</code>'],
+         '<code>set_nonblocking(listen_fd)</code> ngay sau <code>listen()</code>, rồi thoát vòng lặp khi <code>accept</code> trả <code>EAGAIN</code>'],
 
         ['<i>Không lỗi:</i> máy chủ tuần tự "chạy đúng" trên bàn làm việc, chết ngoài hiện trường',
-         'Kịch bản test chỉ có một khách. Một khách chậm là đủ chặn tất cả — đã đo <b>1692,8 ms</b>',
-         'Luôn test với ít nhất hai khách, trong đó một cái cố tình im lặng vài giây, đúng như <code>khach_cham</code> ở bước 4']
+         'Kịch bản test chỉ có một khách. Một khách chậm là đủ chặn tất cả — đã đo <b>1697,7 ms</b>',
+         'Luôn test với ít nhất hai khách, trong đó một cái cố tình im lặng vài giây, đúng như <code>slow_client</code> ở bước 4']
       ]},
 
     /* ══════════════════════════════════════════════
@@ -1859,14 +2339,14 @@ Lesson.register({
       'Socket là <b>mô tả file</b> nhưng không có tên trong hệ thống file: nó được định danh bằng <b>địa chỉ IP + số cổng</b>, nên nói được tới máy khác. Vì vẫn là fd, nó dùng chung <code>read</code>/<code>write</code>/<code>close</code>/<code>epoll</code> với mọi thứ khác.',
       'Máy chủ đi <code>socket → bind → listen → accept</code>, máy khách đi <code>socket → connect</code>. <code>accept()</code> trả về một fd <b>mới</b> cho từng khách; fd nghe vẫn giữ nguyên vai trò nghe.',
       'Mọi số nhiều byte đặt vào <code>struct sockaddr_in</code> phải qua <code>htons</code>/<code>htonl</code>. Quên nó thì cổng <b>9000</b> (<code>0x2328</code>) thành <b>10275</b> (<code>0x2823</code>), và bạn nhận <code>Connection refused</code>.',
-      '<code>SO_REUSEADDR</code> cho phép <code>bind</code> lại cổng trong lúc kết nối cũ còn ở <code>TIME-WAIT</code>. Không có nó, <b>4/4</b> lần thử khởi động lại đều cho <code>Address already in use</code>.',
+      '<code>SO_REUSEADDR</code> cho phép <code>bind</code> lại cổng trong lúc kết nối cũ còn ở <code>TIME-WAIT</code>. Không có nó, <b>3/3</b> lần thử khởi động lại đều cho <code>Address already in use</code>.',
       'TCP là <b>dòng byte</b>: 3 lần <code>write</code> 11 byte có thể thành 2 lần <code>read</code> — 11 rồi <b>22</b>. Ranh giới thông điệp là việc của bạn: ký tự phân cách, tiền tố độ dài, hoặc bản ghi cố định.',
       'UDP giữ ranh giới gói nhưng không hứa gì: gói tới cổng không ai nghe vẫn <code>sendto</code> thành công <b>3/3</b>, còn TCP <code>connect</code> báo <code>Connection refused</code> ngay. Bộ đệm nhỏ hơn gói thì phần dư bị vứt <b>không báo lỗi</b>.',
-      'Đo trên loopback, 10 000 lượt khứ hồi 16 byte: TCP <b>90,05 µs</b>, UDP <b>73,67 µs</b> — UDP nhanh hơn khoảng <b>17 %</b>, mất gói <b>0/10000</b>. Con số này quá nhỏ để đánh đổi lấy độ tin cậy trên mạng thật.',
-      'Máy chủ một luồng kiểu chặn bị một khách im lặng làm tê liệt: <b>1697,0 ms</b> so với <b>0,4 ms</b> của bản <code>select</code> — chênh khoảng <b>4000 lần</b>, cùng CPU, cùng kịch bản.',
+      'Đo trên loopback, 10 000 lượt khứ hồi 16 byte: TCP <b>71,08 µs</b>, UDP <b>58,91 µs</b> — UDP nhanh hơn khoảng <b>15 %</b>, mất gói <b>0/10000</b>. Con số này quá nhỏ để đánh đổi lấy độ tin cậy trên mạng thật.',
+      'Máy chủ một luồng kiểu chặn bị một khách im lặng làm tê liệt: <b>1695,7 ms</b> so với <b>0,5 ms</b> của bản <code>select</code> — chênh khoảng <b>3400 lần</b>, cùng CPU, cùng kịch bản.',
       '<code>select</code> bị chặn cứng ở <code>FD_SETSIZE</code> = <b>1024</b>. Vượt qua là <code>abort()</code>, thoát <b>134</b> — không phải hỏng bộ nhớ âm thầm như tài liệu cũ hay nói.',
       '<code>poll</code> bỏ giới hạn 1024 và tách <code>events</code> khỏi <code>revents</code> nên không phải dựng lại tập mỗi vòng, nhưng vẫn là <b>O(n)</b>.',
-      '<code>epoll</code> là <b>O(1)</b>: 1,04 → 0,98 → 0,88 → <b>0,77 µs</b> khi số kênh tăng từ 10 lên 2000. Cùng lúc đó <code>poll</code> đi từ 2,51 lên <b>270,23 µs</b>. Ở 2000 kênh, epoll nhanh hơn <b>351×</b>.',
+      '<code>epoll</code> là <b>O(1)</b>: 1,31 → 0,85 → 0,90 → <b>0,72 µs</b> khi số kênh tăng từ 10 lên 2000. Cùng lúc đó <code>poll</code> đi từ 2,61 lên <b>286,54 µs</b>. Ở 2000 kênh, epoll nhanh hơn <b>398×</b>.',
       'Bí quyết của <code>epoll</code>: khai báo <b>một lần</b> bằng <code>epoll_ctl</code> (strace đếm đúng <b>500</b> lần cho 500 kênh), rồi <code>epoll_wait</code> chỉ trả về những fd <i>đang có việc</i>.',
       'Level-triggered báo chừng nào còn dữ liệu; edge-triggered chỉ báo khi có dữ liệu mới. Cùng 20 byte: LT cho <b>4 sự kiện / 20 byte</b>, ET cho <b>1 sự kiện / 5 byte</b>. Dùng <code>EPOLLET</code> thì bắt buộc <code>O_NONBLOCK</code> + đọc tới <code>EAGAIN</code>.',
       '<code>O_NONBLOCK</code> biến "chờ" thành <code>EAGAIN</code> = <code>EWOULDBLOCK</code> = <b>11</b>. Đó là câu trả lời, không phải lỗi.',
@@ -1910,9 +2390,9 @@ Lesson.register({
         'Kết nối cũ còn ở trạng thái <code>TIME-WAIT</code> — không còn tiến trình nào nhưng cặp địa chỉ vẫn bị nhân giữ',
         'Cổng nằm dưới 1024 nên cần quyền root'],
       a: 2,
-      why: '<code>TIME-WAIT</code> là trạng thái của <i>kết nối</i>, không phải của tiến trình, nên <code>ss -tlnp</code> với cờ <code>-l</code> (chỉ socket đang nghe) không thấy nó — phải bỏ <code>-l</code> hoặc dùng <code>ss -tan</code>. Nhân giữ cặp địa chỉ khoảng 60 giây để những gói lạc của kết nối cũ không lọt vào kết nối mới trùng cổng. Cách xử lý là <code>SO_REUSEADDR</code>, đặt <b>trước</b> <code>bind</code>; trong bài, không có nó thì 4/4 lần thử đều thất bại, có nó thì bind lại được ngay.' },
+      why: '<code>TIME-WAIT</code> là trạng thái của <i>kết nối</i>, không phải của tiến trình, nên <code>ss -tlnp</code> với cờ <code>-l</code> (chỉ socket đang nghe) không thấy nó — phải bỏ <code>-l</code> hoặc dùng <code>ss -tan</code>. Nhân giữ cặp địa chỉ khoảng 60 giây để những gói lạc của kết nối cũ không lọt vào kết nối mới trùng cổng. Cách xử lý là <code>SO_REUSEADDR</code>, đặt <b>trước</b> <code>bind</code>; trong bài, không có nó thì 3/3 lần thử đều thất bại, có nó thì bind lại được ngay.' },
 
-    { q: 'Vì sao chi phí mỗi lời gọi <code>epoll_wait</code> gần như không đổi khi số kênh tăng từ 10 lên 2000, trong khi <code>poll</code> đi từ 2,51 µs lên 270,23 µs?',
+    { q: 'Vì sao chi phí mỗi lời gọi <code>epoll_wait</code> gần như không đổi khi số kênh tăng từ 10 lên 2000, trong khi <code>poll</code> đi từ 2,61 µs lên 286,54 µs?',
       opts: [
         'Vì <code>epoll_wait</code> chạy trong nhân còn <code>poll</code> chạy trong không gian người dùng',
         'Vì nhân duy trì sẵn danh sách các fd đã sẵn sàng, nên <code>epoll_wait</code> chỉ tốn công theo số kênh <b>đang có việc</b>, không theo số kênh đang theo dõi',
@@ -1955,6 +2435,6 @@ Lesson.register({
         'TCP với <code>TCP_NODELAY</code>, vì như thế vừa tin cậy vừa không có độ trễ',
         'Unix domain socket, vì nó nhanh hơn cả hai'],
       a: 1,
-      why: 'Đây là bài toán mà mất mát rẻ hơn chờ đợi. Với TCP, một gói mất sẽ khiến toàn bộ dòng byte <b>dừng lại</b> chờ truyền lại — số đo cũ chặn đường số đo mới, và độ trễ tích tụ đúng thứ bạn không chấp nhận được. Với UDP, mẫu mất thì mẫu kế tiếp tới sau 200 ms là xong. Chỉ số RTT đo được (73,67 µs so với 90,05 µs) <b>không</b> phải lý do chính — chênh 17 % trên loopback là quá nhỏ. Lý do là ngữ nghĩa: dữ liệu có vòng đời ngắn thì truyền lại một mẫu đã cũ là vô nghĩa. Đáp án 4 sai vì Unix domain socket không đi ra khỏi một máy, như Bài 23 đã chỉ rõ.' }
+      why: 'Đây là bài toán mà mất mát rẻ hơn chờ đợi. Với TCP, một gói mất sẽ khiến toàn bộ dòng byte <b>dừng lại</b> chờ truyền lại — số đo cũ chặn đường số đo mới, và độ trễ tích tụ đúng thứ bạn không chấp nhận được. Với UDP, mẫu mất thì mẫu kế tiếp tới sau 200 ms là xong. Chỉ số RTT đo được (58,91 µs so với 71,08 µs) <b>không</b> phải lý do chính — chênh 15 % trên loopback là quá nhỏ. Lý do là ngữ nghĩa: dữ liệu có vòng đời ngắn thì truyền lại một mẫu đã cũ là vô nghĩa. Đáp án 4 sai vì Unix domain socket không đi ra khỏi một máy, như Bài 23 đã chỉ rõ.' }
   ]
 });
