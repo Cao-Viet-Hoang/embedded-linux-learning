@@ -7,10 +7,11 @@
   'use strict';
 
   var K = {
-    theme:   'elx.theme',
-    done:    'elx.done',      // { "bai-01": 1735000000000, ... }
-    quiz:    'elx.quiz',      // { "bai-01": { "0": 2, "1": 0 } }  câu → đáp án đã chọn
-    modules: 'elx.modOpen'    // { "m0": true, ... }  chặng nào đang mở
+    theme:     'elx.theme',
+    done:      'elx.done',      // { "bai-01": 1735000000000, ... }
+    quiz:      'elx.quiz',      // { "bai-01": { "0": 2, "1": 0 } }  câu → đáp án đã chọn
+    modules:   'elx.modOpen',   // { "m0": true, ... }  chặng nào đang mở
+    sidebarCl: 'elx.sbCollapsed' // '1' nếu người học đã thu gọn sidebar trên desktop
   };
 
   /* localStorage có thể bị chặn (chế độ riêng tư, chính sách trình duyệt).
@@ -86,6 +87,10 @@
       delete all[lessonId];
       writeObj(K.quiz, all);
     },
+
+    /* ---------- Thu gọn sidebar trên desktop ---------- */
+    getSidebarCollapsed: function () { return readRaw(K.sidebarCl) === '1'; },
+    setSidebarCollapsed: function (on) { writeRaw(K.sidebarCl, on ? '1' : '0'); },
 
     /* ---------- Chặng đang mở trong sidebar ---------- */
     isModuleOpen: function (mid, fallback) {

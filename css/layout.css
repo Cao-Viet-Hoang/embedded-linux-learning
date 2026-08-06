@@ -18,11 +18,11 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Hai nút chỉ tồn tại trên màn hình hẹp — xem §ĐÁP ỨNG MÀN HÌNH cuối file.
-   Bắt buộc hai lớp: .icon-btn { display: grid } khai báo sau trong file này,
-   cùng độ ưu tiên thì luật đứng sau thắng, nên .topbar__menu một mình sẽ
-   không ẩn được gì cả. */
-.icon-btn.topbar__menu,
+/* topbar__menu luôn hiện: trên desktop nó thu/mở sidebar, dưới 900px nó mở
+   ngăn kéo — xem hàm click #btnSidebar trong app.js. topbar__search chỉ tồn
+   tại trên màn hình hẹp — xem §ĐÁP ỨNG MÀN HÌNH cuối file. Bắt buộc lớp
+   .icon-btn { display: grid } khai báo sau trong file này, cùng độ ưu tiên
+   thì luật đứng sau thắng, nên .topbar__search một mình sẽ không ẩn được gì. */
 .icon-btn.topbar__search { display: none; }
 
 .brand {
@@ -159,6 +159,7 @@
   padding-top: var(--header-h);
   min-height: 100vh;
   min-height: 100dvh;   /* trình duyệt di động: trừ đi thanh công cụ co giãn */
+  transition: grid-template-columns var(--t-mid);
 }
 
 /* ══════════════ SIDEBAR TRÁI ══════════════ */
@@ -266,6 +267,9 @@
       900px  sidebar       → thành ngăn kéo trượt ra
       700px  ô tìm kiếm    → thu về một nút, bấm mới mở
       480px  nhãn phụ      → rút gọn, vùng chạm phóng to
+
+   Trên 900px, #btnSidebar còn bật/tắt được sidebar theo ý người học (không
+   tự động theo bề ngang) — xem .sidebar-collapsed ngay dưới đây.
    ══════════════════════════════════════════════ */
 
 @media (max-width: 1180px) {
@@ -273,9 +277,31 @@
   .toc { display: none; }
 }
 
+/* Thu gọn sidebar trên desktop (>900px): bấm #btnSidebar để bật/tắt.
+   Chỉ đổi độ rộng cột lưới — sidebar vẫn nằm trong luồng, không cần
+   position: fixed như ngăn kéo di động ở dưới. */
+@media (min-width: 1181px) {
+  body.sidebar-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr) var(--toc-w); }
+}
+@media (min-width: 901px) and (max-width: 1180px) {
+  body.sidebar-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+}
+@media (min-width: 901px) {
+  /* min-width: 0 là bắt buộc — mục lưới mặc định không co dưới kích thước
+     nội dung của nó (min-width: auto), nên cột 0px ở trên sẽ vô nghĩa nếu
+     thiếu dòng này: sidebar sẽ tràn ra ngoài track thay vì biến mất. */
+  body.sidebar-collapsed .sidebar {
+    min-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    border-right: 0;
+    pointer-events: none;
+    transition: opacity var(--t-fast);
+  }
+}
+
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
-  .icon-btn.topbar__menu { display: grid; }
   .brand__text { display: none; }
 
   .sidebar {

@@ -119,13 +119,30 @@
     elSidebar.classList.add('is-open');
     elBackdrop.hidden = false;
     document.body.classList.add('is-locked');
-    $('#btnSidebar').setAttribute('aria-expanded', 'true');
+    syncSidebarButton();
   }
   function closeSidebar() {
     elSidebar.classList.remove('is-open');
     elBackdrop.hidden = true;
     document.body.classList.remove('is-locked');
-    $('#btnSidebar').setAttribute('aria-expanded', 'false');
+    syncSidebarButton();
+  }
+
+  /* Trên desktop (>900px), #btnSidebar không mở ngăn kéo mà thu/mở cả cột
+     sidebar (xem .sidebar-collapsed ở layout.css) — người học lấy lại bề
+     ngang cho nội dung mà không mất danh sách bài, chỉ cần bấm lại là hiện. */
+  function setSidebarCollapsed(on) {
+    document.body.classList.toggle('sidebar-collapsed', on);
+    Store.setSidebarCollapsed(on);
+    syncSidebarButton();
+  }
+  function syncSidebarButton() {
+    var btn = $('#btnSidebar');
+    var shown = isDrawer()
+      ? elSidebar.classList.contains('is-open')
+      : !document.body.classList.contains('sidebar-collapsed');
+    btn.setAttribute('aria-expanded', String(shown));
+    btn.setAttribute('aria-label', shown ? 'Ẩn danh sách bài học' : 'Mở danh sách bài học');
   }
 
   /* ══════════════════════════════════════════════════
@@ -530,9 +547,16 @@
     Store.setTheme(Store.getTheme());
     ICON.hydrate(document);
 
+    document.body.classList.toggle('sidebar-collapsed', Store.getSidebarCollapsed());
+    syncSidebarButton();
+
     $('#btnTheme').addEventListener('click', function () { Store.toggleTheme(); });
     $('#btnSidebar').addEventListener('click', function () {
-      elSidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+      if (isDrawer()) {
+        elSidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+      } else {
+        setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+      }
     });
     elBackdrop.addEventListener('click', closeSidebar);
 
@@ -570,6 +594,7 @@
         elTopbar.classList.remove('is-searching');
         $('#btnSearch').setAttribute('aria-expanded', 'false');
       }
+      syncSidebarButton();
     });
 
     buildSidebar();

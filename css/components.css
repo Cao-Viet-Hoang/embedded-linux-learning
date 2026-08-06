@@ -624,10 +624,12 @@
 /* ══════════════ TÓM TẮT CUỐI BÀI ══════════════ */
 .recap {
   margin-top: var(--sp-12);
+  margin-bottom: var(--sp-6);
   padding: var(--sp-6);
   border-radius: var(--r-lg);
   background: var(--surface-2);
   border: 1px solid var(--border-subtle);
+  scroll-margin-top: calc(var(--header-h) + var(--sp-4));
 }
 .recap__title {
   display: flex; align-items: center; gap: var(--sp-2);
@@ -637,7 +639,7 @@
 .recap__title svg { width: 18px; height: 18px; color: var(--ok); }
 .recap ul { list-style: none; display: flex; flex-direction: column; gap: var(--sp-3); }
 .recap li {
-  position: relative; padding-left: var(--sp-7);
+  position: relative; padding-left: var(--sp-6);
   font-size: var(--fs-base); line-height: var(--lh-relaxed);
 }
 .recap li::before {

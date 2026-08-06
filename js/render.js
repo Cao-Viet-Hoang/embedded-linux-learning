@@ -283,10 +283,13 @@
     return '<div class="terms">' + items + '</div>';
   };
 
-  B.recap = function (b) {
+  B.recap = function (b, ctx) {
+    var title = b.title || 'Bạn đã nắm được gì';
+    var id = b.id || slug(title);
+    ctx.toc.push({ id: id, text: title, level: 2 });
     var li = (b.items || []).map(function (i) { return '<li>' + i + '</li>'; }).join('');
-    return '<div class="recap">' +
-      '<div class="recap__title">' + ICON('listChecks') + (b.title || 'Bạn đã nắm được gì') + '</div>' +
+    return '<div class="recap" id="' + attr(id) + '">' +
+      '<div class="recap__title">' + ICON('listChecks') + title + '</div>' +
       '<ul>' + li + '</ul>' +
     '</div>';
   };
