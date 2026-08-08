@@ -361,17 +361,64 @@ layered architectures, side-by-side comparisons, symptom→cause tables.
 
 1. Read the lesson's entry in `LO-TRINH.md` (§4). It defines scope, prerequisites and
    deliverables. Do not silently expand or shrink it.
-2. **Verify every command on the user's machine first.** Run the whole practice section
+2. **Pre-flight the dependencies before running anything long** — see §9.1.
+3. **Verify every command on the user's machine first.** Run the whole practice section
    end to end via `Bash`, including cleanup. Capture real output. If a command fails,
    fix the lesson plan — do not paper over it. Record the failure in the lesson's
    `Lỗi thường gặp` ("Common errors") table.
-3. Write `lessons/bai-XX.js` following §5–§8.
-4. Add `<script src="lessons/bai-XX.js"></script>` to `index.html`, **before** `js/app.js`.
-5. Update the status table in `LO-TRINH.md` §9 and the `Bài đã viết: N / 70`
+4. Write `lessons/bai-XX.js` following §5–§8.
+5. Add `<script src="lessons/bai-XX.js"></script>` to `index.html`, **before** `js/app.js`.
+6. Update the status table in `LO-TRINH.md` §9 and the `Bài đã viết: N / 70`
    ("Lessons written: N / 70") line in `README.md`.
-6. Run `node tools/check.js`. It must print `OK`.
-7. Check every `Bài N` / `Chặng NN` cross-reference you wrote actually points at the right
+7. Run `node tools/check.js`. It must print `OK`.
+8. Check every `Bài N` / `Chặng NN` cross-reference you wrote actually points at the right
    lesson in `registry.js`.
+
+### 9.1 Pre-flight — check dependencies *before* running anything slow
+
+**Rule: never start a long command to find out what is missing.** Find out first, in
+seconds, then start it once. A build that dies at minute 52 on a missing package costs the
+user an hour of wall clock and costs the session its context.
+
+This is not a suggestion. Lesson 28 was built **twice** — a 62-minute build failed at step
+17/19 with `configure: error: unable to find python program`, purely because
+`python-is-python3` was not installed. One `command -v python` up front would have prevented
+it.
+
+Before any command that can run longer than ~30 seconds — a compile, a `ct-ng build`, a
+kernel build, a Buildroot/Yocto run, a QEMU boot, a large `apt-get` — run **one** cheap
+probe script that answers all of these at once:
+
+| Check | How | Why it bites |
+|---|---|---|
+| Packages present | `dpkg -s <pkg> 2>/dev/null \| grep -c '^Status: install ok'`, or `apt policy <pkg>` | The usual cause of a late failure |
+| Binaries on `PATH` | `command -v gcc make bison flex makeinfo python …` | A package can be installed under a *different binary name* — Ubuntu ships `python3`, not `python` |
+| Versions | `--version \| head -n 1` for each tool | Lessons quote exact versions; also catches "installed but too old" |
+| Disk | `df -h ~ \| tail -n 1` | `.build` for a toolchain peaks at **18 GB** |
+| Cores / RAM | `nproc`, `free -h` | Decides the `-jN` you pass, and whether `-jN` will thrash |
+| Devices / features | `ls /dev/kvm`, `qemu-system-aarch64 -accel help`, `qemu-system-aarch64 -M help \| grep …` | A machine or accel that does not exist fails instantly but only *after* you have written the lesson around it |
+
+Practical shape of it:
+
+- Write **one** temp probe script with `Write`, run it, read the whole result. Do not fire
+  six separate `Bash` calls — each one costs a round trip.
+- Have the probe **print a verdict**, not just raw output: e.g. `MISSING: texinfo, python`.
+  It is much easier to act on, and much cheaper to re-read later.
+- Have the probe be **non-destructive and idempotent**. It must be safe to re-run.
+- If anything is missing, install it and **re-run the probe** before starting the long
+  command. Do not install and assume.
+- Re-check §10 first — a fact already recorded there does not need re-probing. Add anything
+  new the probe taught you *to* §10 so the next session skips the probe entirely.
+
+Two traps that pre-flighting alone does not catch, both hit for real in lesson 28:
+
+- **A cached `configure` result outlives the fix.** Installing the missing package is not
+  always enough: `crosstool-ng-1.28.0/paths.sh` had already cached `export python=""` from
+  the first `./configure`. The fix had to be `./configure --enable-local && make` again.
+  After installing a dependency, **re-run whatever detected it**, not just the failing step.
+- **Resumability must be switched on before the build, not after.** `ct-ng <step>+` refuses
+  to resume unless `CT_DEBUG_CT_SAVE_STEPS` was already set when the build started. For any
+  multi-hour job, turn on checkpointing/logging *in the pre-flight*, while it is still free.
 
 ### Running commands on the user's machine — known gotchas
 
@@ -418,6 +465,10 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 | Installed | `qemu-system-arm`, `gcc-aarch64-linux-gnu`, `gdb-multiarch`, `device-tree-compiler`, `u-boot-tools`, `tree`, `gpiod` + `libgpiod3` |
 | Not installed | `qemu-system-x86_64`, **`qemu-user`** (no `qemu-aarch64` binary — re-verified 2026-08-01, `apt policy qemu-user` → `Installed: (none)`), `shellcheck`, `pahole` |
 | QEMU `virt` | has **no I2C/SPI bus** (`No 'i2c-bus' bus found`). Lesson 58 must use `i2c-stub` / `gpio-sim` / SPI loopback, or switch machine to `raspi3b` / `mcimx7d-sabre` |
+| Self-built toolchain (lesson 28) | crosstool-NG **1.28.0** (`ct-ng` tarball **2 448 288 B**) → `~/x-tools/aarch64-unknown-linux-musl`, **354 MB**, **34** tools in `bin/`, dir left `dr-xr-xr-x` by `CT_PREFIX_DIR_RO`. GCC **15.2.0**, binutils **2.45**, gdb **16.3**, musl **1.2.5**, kernel headers **6.16**, all stamped `(crosstool-NG 1.28.0)` |
+| crosstool-NG build cost | total of all steps **3 591 s** (≈62 min wall on 6 cores, `build.6`). `cc_core` **860.44 s** + `cc_for_host` **1 066.55 s** = **53.7 %**; musl itself only **37.72 s** (**1.1 %**); tarball download **513.78 s**; cross-gdb **470.93 s**. `.build` peaks at **18 GB** with save-steps on; `build.log` **41 704 605 B** |
+| musl vs glibc, same `temp_daemon.c` | `-static`: musl **108 720 B**, glibc **787 032 B** = **7.24×**. After `strip`: **42 512** vs **655 288** = **15.4×** (musl loses **60.9 %**, glibc only **16.7 %**). `size`: `.text` **39 300** vs **626 361**, `.bss` **1 792** vs **22 680**. musl dynamic **14 144 B**, interp `/lib/ld-musl-aarch64.so.1` |
+| crosstool-NG gotchas (all hit for real) | gdb step needs a binary literally named `python` (`python-is-python3`); `paths.sh` caches `export python=""` from the first `./configure`, so re-run `./configure --enable-local && make` after installing it. `ct-ng <step>+` refuses to resume unless `CT_DEBUG_CT_SAVE_STEPS` was on *before* the build, and refuses if `.config` changed since |
 
 ---
 
@@ -439,12 +490,21 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00, 01 and 02 are complete**: `Chặng 00 — Nhập môn` ("Introduction", lessons 1–3),
-  `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13) and `Chặng 02 — C và công cụ build`
-  ("C and the build toolchain", lessons 14–18) are written and rendering.
-- Next lesson to write, when asked: lesson 19, `Syscall và File I/O` — it opens module 03,
-  `Lập trình hệ thống Linux` ("Linux systems programming").
-- `node tools/check.js` → `14 modules · 70 lessons · 18 written · OK`.
+- **Modules 00, 01, 02, 03 and 04 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
+  lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
+  `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
+  `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24) and
+  `Chặng 04 — Cross-compilation` (lessons 25–28) are written and rendering.
+- Next lesson to write, when asked: lesson 29, `QEMU: nguyên lý hoạt động` — it opens
+  module 05, `QEMU và luồng khởi động`.
+- `node tools/check.js` → `14 modules · 70 lessons · 28 written · OK`.
+- Module 04 runs one thread ending in a self-built toolchain: why cross-compile (25) →
+  toolchain anatomy (26) → first ARM64 binary + `qemu-aarch64` (27) → crosstool-NG (28).
+  Lesson 27's `temp_daemon.c` (from lesson 24) is recompiled in lesson 28 with musl, so
+  **do not** reintroduce that program as new material in module 05.
+- Lesson 27 measures the glibc static build **without** `-Wl,-z,max-page-size=4096`
+  (**795 224 B**); lesson 28 uses the flag (**787 032 B**). The 8 192 B gap is two 4 KB
+  pages and lesson 28 explains it — keep both numbers, they are both correct.
 - Lesson 13 ends with a capstone `build.sh` (cross-compiles `hello.c` for x86 or ARM64 using
   `set -euo pipefail` + `mktemp -d` + `trap … EXIT`). Verified numbers reused from Bài 3:
   x86 dynamic **15 952 B**, ARM64 `-static` **705 328 B**, ratio **44.2×**; running the ARM64

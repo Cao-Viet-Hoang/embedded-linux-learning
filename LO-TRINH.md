@@ -405,9 +405,11 @@ Cài thêm khi tới chặng tương ứng:
 | 24 | Socket và I/O đa kênh | ✅ Đã có |
 | 25 | Vì sao phải cross-compile | ✅ Đã có |
 | 26 | Giải phẫu một toolchain | ✅ Đã có |
-| 27 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 27 | Cross-compile chương trình đầu tiên cho ARM64 | ✅ Đã có |
+| 28 | Tự build toolchain với crosstool-NG | ✅ Đã có |
+| 29 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2 và Chặng 3 đã hoàn tất; Chặng 4 đã có 2 / 5 bài (26 / 70 bài).** Bài kế tiếp sẽ viết: Bài 27 — *Cross-compile chương trình đầu tiên cho ARM64*.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3 và Chặng 4 đã hoàn tất (28 / 70 bài).** Bài kế tiếp sẽ viết: Bài 29 — *QEMU: nguyên lý hoạt động*, mở đầu Chặng 5.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
