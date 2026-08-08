@@ -407,9 +407,11 @@ Cài thêm khi tới chặng tương ứng:
 | 26 | Giải phẫu một toolchain | ✅ Đã có |
 | 27 | Cross-compile chương trình đầu tiên cho ARM64 | ✅ Đã có |
 | 28 | Tự build toolchain với crosstool-NG | ✅ Đã có |
-| 29 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 29 | QEMU: nguyên lý hoạt động | ✅ Đã có |
+| 30 | Machine `virt` của ARM64 | ✅ Đã có |
+| 31 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2, Chặng 3 và Chặng 4 đã hoàn tất (28 / 70 bài).** Bài kế tiếp sẽ viết: Bài 29 — *QEMU: nguyên lý hoạt động*, mở đầu Chặng 5.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3 và Chặng 4 đã hoàn tất; Chặng 5 đang viết (30 / 70 bài).** Bài kế tiếp sẽ viết: Bài 31 — *Bộ tham số dòng lệnh QEMU*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

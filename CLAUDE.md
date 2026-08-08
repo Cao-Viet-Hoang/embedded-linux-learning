@@ -446,7 +446,7 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 | Shells | `bash` **5.3.9(1)-release**; `/bin/sh` → **`dash`** |
 | Coreutils | **uutils** (Rust) — `/bin/ls` and `/usr/bin/[` symlink into `/usr/lib/cargo/bin/coreutils/`, package `coreutils-from-uutils` |
 | Packages | 776 installed, 2524.9 MB; `dpkg --print-architecture` = `amd64` |
-| CPUs / RAM | 6 CPUs via `.wslconfig` (`nr_cpus=6` in cmdline), 8 GB RAM |
+| CPUs / RAM | 6 CPUs via `.wslconfig` (`nr_cpus=6` in cmdline). `MemTotal` = **5 036 144 kB ≈ 4.8 GiB** (re-measured 2026-08-08 — the older "8 GB" figure was the Windows-side allocation, not what the guest sees) |
 | `/proc/cmdline` | `initrd=\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=6 … console=hvc0 debug …` |
 | Kernel boot time | `Freeing unused kernel image (initmem) memory: 4852K` at **0.376880 s** |
 | Userspace boot time | `Startup finished in 2.456s (userspace)` |
@@ -462,9 +462,13 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 | ELF sample (lesson 18) | dynamic **16,184 B**; `.bss` **16,424 B** = `MemSiz − FileSiz` (0x4298 − 0x270); same program with a 1 MB *initialised* array → **1,064,584 B** (**65.8×**) |
 | `strip` gain | static binary 817,000 → **735,512 B** = **10.0 %**; `-ffunction-sections -Wl,--gc-sections` on a 5-function program: 16,112 → 15,856 B = only **1.6 %** |
 | Parallel make | `-j6` on 6 cores is **2.6×**, not 6× — link step is serial and gcc processes contend for header reads |
-| Installed | `qemu-system-arm`, `gcc-aarch64-linux-gnu`, `gdb-multiarch`, `device-tree-compiler`, `u-boot-tools`, `tree`, `gpiod` + `libgpiod3` |
-| Not installed | `qemu-system-x86_64`, **`qemu-user`** (no `qemu-aarch64` binary — re-verified 2026-08-01, `apt policy qemu-user` → `Installed: (none)`), `shellcheck`, `pahole` |
-| QEMU `virt` | has **no I2C/SPI bus** (`No 'i2c-bus' bus found`). Lesson 58 must use `i2c-stub` / `gpio-sim` / SPI loopback, or switch machine to `raspi3b` / `mcimx7d-sabre` |
+| Installed | `qemu-system-arm`, **`qemu-user`** (`/usr/bin/qemu-aarch64` — installed 2026-08-08 for lesson 29; §10 previously said otherwise), `gcc-aarch64-linux-gnu`, `gdb-multiarch`, `device-tree-compiler`, `u-boot-tools`, `tree`, `gpiod` + `libgpiod3` |
+| Not installed | `qemu-system-x86_64`, `shellcheck`, `pahole` |
+| QEMU version | **10.2.1** (`Debian 1:10.2.1+ds-1ubuntu3.2`), both `qemu-system-aarch64` and `qemu-aarch64`. `-M help` lists **113** ARM machines (114 lines incl. header); `virt` is an alias of **`virt-10.2`** |
+| QEMU `virt` | has **no I2C/SPI bus** (`No 'i2c-bus' bus found`). `grep -icE 'i2c\|spi\|mmc\|sdhci\|usb\|ethernet'` on its dumped `.dts` → **0** for every term. Lesson 58 must use `i2c-stub` / `gpio-sim` / SPI loopback, or switch machine to `raspi3b` (`bcm2835-i2c`) / `mcimx7d-sabre` (`imx.i2c`) — both accept `-device tmp105`, but **neither supports `-machine dumpdtb`** (`This machine doesn't have an FDT`) |
+| `virt` memory map (lesson 30) | flash `0x00000000` (2×64 MiB), GIC dist `0x08000000`, GIC cpu `0x08010000`, PL011 `0x09000000`, PL031 RTC `0x09010000`, fw-cfg `0x09020000`, PL061 GPIO `0x09030000`, **32** virtio-mmio slots `0x0a000000`→`0x0a003e00` step `0x200`, PCIe ECAM `0x10000000`, RAM `0x40000000` |
+| `virt` device tree (lesson 30) | `dumpdtb` file is always exactly **1 048 576 B** (`totalsize` header field says the same); `dtc -I dtb -O dts` → **393** lines (391 after stripping `rng-seed`/`kaslr-seed`). `-m 1G` changes **1** line; `-M virt,gic-version=3` changes **16**; `-smp 2` changes **35** (phandle renumbering cascade). `-device virtio-net-device` / `virtio-blk-device` change **0** lines — the 32 slots are pre-declared |
+| Bare-metal ARM64 (lesson 30) | `hello.S` + `link.ld` at `. = 0x40080000`, built `-nostdlib -static -Wl,-T,link.ld`: `.text` **105 B**, ELF **66 504 B**, entry `0x40080000`. Runs under `-kernel`, prints via PL011, parks in `wfi`. `info registers` → `PC=0x4008001c`, `X01=0x09000000`. `info jit` on it: TB count **6**, avg target **7 B**, avg host **158 B**, **expansion ratio 21.6** (vs **3.48** user-mode in lesson 29 — softmmu + MMIO + very short TBs) |
 | Self-built toolchain (lesson 28) | crosstool-NG **1.28.0** (`ct-ng` tarball **2 448 288 B**) → `~/x-tools/aarch64-unknown-linux-musl`, **354 MB**, **34** tools in `bin/`, dir left `dr-xr-xr-x` by `CT_PREFIX_DIR_RO`. GCC **15.2.0**, binutils **2.45**, gdb **16.3**, musl **1.2.5**, kernel headers **6.16**, all stamped `(crosstool-NG 1.28.0)` |
 | crosstool-NG build cost | total of all steps **3 591 s** (≈62 min wall on 6 cores, `build.6`). `cc_core` **860.44 s** + `cc_for_host` **1 066.55 s** = **53.7 %**; musl itself only **37.72 s** (**1.1 %**); tarball download **513.78 s**; cross-gdb **470.93 s**. `.build` peaks at **18 GB** with save-steps on; `build.log` **41 704 605 B** |
 | musl vs glibc, same `temp_daemon.c` | `-static`: musl **108 720 B**, glibc **787 032 B** = **7.24×**. After `strip`: **42 512** vs **655 288** = **15.4×** (musl loses **60.9 %**, glibc only **16.7 %**). `size`: `.text` **39 300** vs **626 361**, `.bss` **1 792** vs **22 680**. musl dynamic **14 144 B**, interp `/lib/ld-musl-aarch64.so.1` |
@@ -495,9 +499,18 @@ cross-references. Guard against a repeat:
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24) and
   `Chặng 04 — Cross-compilation` (lessons 25–28) are written and rendering.
-- Next lesson to write, when asked: lesson 29, `QEMU: nguyên lý hoạt động` — it opens
-  module 05, `QEMU và luồng khởi động`.
-- `node tools/check.js` → `14 modules · 70 lessons · 28 written · OK`.
+  `Chặng 05 — QEMU và luồng khởi động` is **in progress**: lessons 29 and 30 are written,
+  31 and 32 are not.
+- Next lesson to write, when asked: lesson 31, `Bộ tham số dòng lệnh QEMU`.
+- `node tools/check.js` → `14 modules · 70 lessons · 30 written · OK`.
+- Module 05 so far splits ownership deliberately, to avoid overlap — keep it that way:
+  lesson 29 is **TCG internals via user-mode only** (`qemu-aarch64`, `-d in_asm/out_asm/exec`,
+  `-one-insn-per-tb`, `-d nochain`); lesson 30 is **the machine model** (memory map, device
+  tree, `info mtree -f` / `info qtree` / `info jit`, the 105-byte bare-metal PL011 program).
+  Lesson 30 already writes bare-metal assembly and boots it with `-kernel`, so lesson 32
+  (`Boot kernel đầu tiên trong QEMU`) must be about a **real Linux kernel**, not about
+  `-kernel` mechanics. Lesson 31 is promised (in lesson 30's "Bài tiếp theo") to re-use
+  lesson 30's `hello.elf` under `-s -S` + `gdb-multiarch` on port 1234.
 - Module 04 runs one thread ending in a self-built toolchain: why cross-compile (25) →
   toolchain anatomy (26) → first ARM64 binary + `qemu-aarch64` (27) → crosstool-NG (28).
   Lesson 27's `temp_daemon.c` (from lesson 24) is recompiled in lesson 28 with musl, so
