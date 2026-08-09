@@ -472,6 +472,11 @@ Measured on the user's machine. Reuse these; re-verify before contradicting them
 | Self-built toolchain (lesson 28) | crosstool-NG **1.28.0** (`ct-ng` tarball **2 448 288 B**) → `~/x-tools/aarch64-unknown-linux-musl`, **354 MB**, **34** tools in `bin/`, dir left `dr-xr-xr-x` by `CT_PREFIX_DIR_RO`. GCC **15.2.0**, binutils **2.45**, gdb **16.3**, musl **1.2.5**, kernel headers **6.16**, all stamped `(crosstool-NG 1.28.0)` |
 | crosstool-NG build cost | total of all steps **3 591 s** (≈62 min wall on 6 cores, `build.6`). `cc_core` **860.44 s** + `cc_for_host` **1 066.55 s** = **53.7 %**; musl itself only **37.72 s** (**1.1 %**); tarball download **513.78 s**; cross-gdb **470.93 s**. `.build` peaks at **18 GB** with save-steps on; `build.log` **41 704 605 B** |
 | musl vs glibc, same `temp_daemon.c` | `-static`: musl **108 720 B**, glibc **787 032 B** = **7.24×**. After `strip`: **42 512** vs **655 288** = **15.4×** (musl loses **60.9 %**, glibc only **16.7 %**). `size`: `.text` **39 300** vs **626 361**, `.bss` **1 792** vs **22 680**. musl dynamic **14 144 B**, interp `/lib/ld-musl-aarch64.so.1` |
+| Prebuilt ARM64 kernel (lesson 32) | Debian trixie `linux-image-6.12.94+deb13-**cloud**-arm64_6.12.94-1_arm64.deb` = **27 985 180 B** → `boot/vmlinuz-…` = **30 771 136 B**, `file` says `Linux kernel ARM64 boot executable Image, little-endian, 4K pages`. The non-cloud variant is **92 732 600 B** deb / **37 605 312 B** image — cloud is smaller and boots `virt` fine. Find the current version with `curl -s https://deb.debian.org/debian/dists/trixie/main/binary-arm64/Packages.gz \| zcat \| awk …` (old versions get pulled from the pool) |
+| Lesson 32 initramfs | `busybox-static_1.38.0-3_arm64.deb` **860 056 B** → binary **1 980 944 B**, static, stripped, **280** applets. 7-entry tree (`/init`, `/bin/busybox`, `/bin/sh`→busybox, `/dev`, `/proc`, `/sys`, `.`). Raw cpio `newc` is **always 1 982 464 B** (`3872 blocks`); the **gzip -9 result is NOT reproducible across rebuilds** — measured 1 035 400 / 1 035 399 / 1 035 396 B, because cpio headers embed inode numbers and mtimes. Repacking the *same* tree 3× is byte-identical |
+| Lesson 32 boot | `-M virt -cpu cortex-a57 -m 512 -kernel Image -initrd … -append "console=ttyAMA0 rdinit=/init" -nographic` → **238** log lines, stable marker line numbers **2** `Linux version`, **5** `Machine model: linux,dummy-virt`, **38** `Kernel command line`, **90** `Memory: 411880K/524288K available (14272K kernel code, 2784K rwdata, 10748K rodata, 2112K init, 908K bss, 43816K reserved, 65536K cma-reserved)`, **115** `printk: legacy console [ttyAMA0] enabled`, **156** `Trying to unpack rootfs image as initramfs...`, **162** `Freeing initrd memory: 1008K`, **229** `Run /init as init process`. `Run /init` timestamp is **not** stable — measured 1.61 s / 1.71 s / 2.06 s / 3.27 s depending on host load. Guest `MemTotal: 483592 kB` |
+| Lesson 32 failure modes (all hit for real) | no `-initrd` → `VFS: Cannot open root device "" … error -6` then `Kernel panic … VFS: Unable to mount root fs on unknown-block(0,0)`; `rdinit=/sbin/init` (nonexistent) → **the same panic, no distinct message**; `--format=odc` → `Initramfs unpacking failed: incorrect cpio method used: use -H newc option` then same panic; `/init` without `+x` → **boots to a shell anyway** (kernel falls through to `/bin/sh`), no `procfs`, no applet symlinks; `init` that returns → `Kernel panic … Attempted to kill init! exitcode=0x00000000`; no `console=` → still **15 351 B** of log because `chosen/stdout-path = "/pl011@9000000"`; default `-cpu` with a real `Image` → **silent hang, 69 B, rc=124** (no error message at all, unlike the ELF case in lesson 31) |
+| initrd page-rounding (lesson 32) | `linux,initrd-end − linux,initrd-start` = the initramfs file size **exactly**. But `Freeing initrd memory:` reports the page-aligned-down span: end `0x480fcc84` → `0x480fc000`, i.e. `0xfc000` = 1 032 192 B = **1008 KiB** |
 | crosstool-NG gotchas (all hit for real) | gdb step needs a binary literally named `python` (`python-is-python3`); `paths.sh` caches `export python=""` from the first `./configure`, so re-run `./configure --enable-local && make` after installing it. `ct-ng <step>+` refuses to resume unless `CT_DEBUG_CT_SAVE_STEPS` was on *before* the build, and refuses if `.config` changed since |
 
 ---
@@ -494,23 +499,27 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00, 01, 02, 03 and 04 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00, 01, 02, 03, 04 and 05 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
-  `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24) and
-  `Chặng 04 — Cross-compilation` (lessons 25–28) are written and rendering.
-  `Chặng 05 — QEMU và luồng khởi động` is **in progress**: lessons 29 and 30 are written,
-  31 and 32 are not.
-- Next lesson to write, when asked: lesson 31, `Bộ tham số dòng lệnh QEMU`.
-- `node tools/check.js` → `14 modules · 70 lessons · 30 written · OK`.
-- Module 05 so far splits ownership deliberately, to avoid overlap — keep it that way:
+  `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
+  `Chặng 04 — Cross-compilation` (lessons 25–28) and
+  `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) are written and rendering.
+- Next lesson to write, when asked: lesson 33, `Nhiệm vụ của bootloader`, opening
+  `Chặng 06 — Bootloader U-Boot`.
+- `node tools/check.js` → `14 modules · 70 lessons · 32 written · OK`.
+- Module 05 splits ownership deliberately, to avoid overlap — keep it that way:
   lesson 29 is **TCG internals via user-mode only** (`qemu-aarch64`, `-d in_asm/out_asm/exec`,
   `-one-insn-per-tb`, `-d nochain`); lesson 30 is **the machine model** (memory map, device
-  tree, `info mtree -f` / `info qtree` / `info jit`, the 105-byte bare-metal PL011 program).
-  Lesson 30 already writes bare-metal assembly and boots it with `-kernel`, so lesson 32
-  (`Boot kernel đầu tiên trong QEMU`) must be about a **real Linux kernel**, not about
-  `-kernel` mechanics. Lesson 31 is promised (in lesson 30's "Bài tiếp theo") to re-use
-  lesson 30's `hello.elf` under `-s -S` + `gdb-multiarch` on port 1234.
+  tree, `info mtree -f` / `info qtree` / `info jit`, the 105-byte bare-metal PL011 program);
+  lesson 31 is **the command line itself** (four groups of options, the chardev model,
+  `-s -S` + `gdb-multiarch` on lesson 30's `hello.elf`); lesson 32 is **a real Linux kernel**
+  (prebuilt Debian `Image` + a hand-built initramfs, read the boot log).
+- Lesson 32's practice **creates** `~/bai32/` (**135 MB**) holding `Image`,
+  `initramfs.cpio.gz` and `run.sh`. **Module 06 is promised these exact files** — U-Boot will
+  be made to load them. Once the user has done the practice, do not tell them to delete that
+  directory. It does **not** exist yet: the scratch copy built while verifying lesson 32 was
+  removed at the user's request on 2026-08-09, so check before assuming the files are there.
 - Module 04 runs one thread ending in a self-built toolchain: why cross-compile (25) →
   toolchain anatomy (26) → first ARM64 binary + `qemu-aarch64` (27) → crosstool-NG (28).
   Lesson 27's `temp_daemon.c` (from lesson 24) is recompiled in lesson 28 with musl, so

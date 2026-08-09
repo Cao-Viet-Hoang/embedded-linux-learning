@@ -409,9 +409,11 @@ Cài thêm khi tới chặng tương ứng:
 | 28 | Tự build toolchain với crosstool-NG | ✅ Đã có |
 | 29 | QEMU: nguyên lý hoạt động | ✅ Đã có |
 | 30 | Machine `virt` của ARM64 | ✅ Đã có |
-| 31 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 31 | Bộ tham số dòng lệnh QEMU | ✅ Đã có |
+| 32 | Boot kernel đầu tiên trong QEMU | ✅ Đã có |
+| 33 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2, Chặng 3 và Chặng 4 đã hoàn tất; Chặng 5 đang viết (30 / 70 bài).** Bài kế tiếp sẽ viết: Bài 31 — *Bộ tham số dòng lệnh QEMU*.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4 và Chặng 5 đã hoàn tất (32 / 70 bài).** Bài kế tiếp sẽ viết: Bài 33 — *Nhiệm vụ của bootloader*, mở Chặng 6.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

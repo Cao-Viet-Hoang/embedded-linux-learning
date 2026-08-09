@@ -12,9 +12,9 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 
 - [`LO-TRINH.md`](LO-TRINH.md) — lộ trình đầy đủ **70 bài / 14 chặng**, mốc năng lực M1–M11,
   thời lượng dự kiến 8–11 tháng.
-- Bài đã viết: **30 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
+- Bài đã viết: **32 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
   **Chặng 2 · C và công cụ build**, **Chặng 3 · Lập trình hệ thống Linux**,
-  **Chặng 4 · Biên dịch chéo**, và phần đầu **Chặng 5 · QEMU và luồng khởi động**:
+  **Chặng 4 · Biên dịch chéo** và **Chặng 5 · QEMU và luồng khởi động**:
   1. Embedded Linux là gì và tại sao nó ở khắp mọi nơi
   2. Toàn cảnh luồng khởi động
   3. Môi trường học: WSL2 và QEMU
@@ -45,6 +45,8 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   28. Tự build toolchain với crosstool-NG
   29. QEMU: nguyên lý hoạt động
   30. Machine `virt` của ARM64
+  31. Bộ tham số dòng lệnh QEMU
+  32. Boot kernel đầu tiên trong QEMU
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
 
 ## Tính năng
