@@ -23,6 +23,7 @@
 
   var RING_C = 97.4;          // chu vi vòng tiến độ, khớp với CSS
   var spy = null;             // IntersectionObserver của mục lục
+  var currentId = null;       // bài đang mở, null nếu đang ở trang chủ
 
   /* Hai mốc màn hình dưới đây phải khớp với css/layout.css:
      900px = sidebar thành ngăn kéo, 700px = ô tìm kiếm thu về một nút. */
@@ -271,17 +272,34 @@
     ICON.hydrate(elContent);
     buildToc([]);
     refreshSidebar(null);
+    currentId = null;
     document.title = 'Học Embedded Linux — Từ số 0 đến đi làm';
   }
 
   /* ══════════════════════════════════════════════════
      TRANG BÀI HỌC
      ══════════════════════════════════════════════════ */
+  /* Vẽ lại thanh "đánh dấu hoàn thành" theo trạng thái hiện tại của Store.
+     Tách riêng vì có ba nơi gọi: lúc dựng bài, lúc người học bấm nút, và
+     lúc máy khác vừa tick bài này rồi đẩy về qua Firestore. */
+  function paintDoneBar(id) {
+    var btn = $('#btnDone', elContent);
+    if (!btn) { return; }
+    var on = Store.isDone(id);
+    btn.className = 'btn ' + (on ? 'btn--done' : 'btn--primary');
+    btn.innerHTML = ICON('check') + (on ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành');
+    $('.done-bar__txt', elContent).textContent = on
+      ? 'Bạn đã đánh dấu hoàn thành bài này.'
+      : 'Đã làm hết phần thực hành và trả lời xong phần tự kiểm tra?';
+  }
+
   function viewLesson(id) {
     var meta = Course.find(id);
     var data = Lesson.get(id);
 
     if (!meta) { location.hash = '#/'; return; }
+
+    currentId = id;
 
     if (!data) {
       elContent.innerHTML =
@@ -339,15 +357,31 @@
     document.title = 'Bài ' + meta.n + '. ' + Search.plain(data.title) + ' — Embedded Linux';
 
     $('#btnDone').addEventListener('click', function () {
-      var on = Store.toggleDone(id);
-      this.className = 'btn ' + (on ? 'btn--done' : 'btn--primary');
-      this.innerHTML = ICON('check') + (on ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành');
-      $('.done-bar__txt').textContent = on
-        ? 'Bạn đã đánh dấu hoàn thành bài này.'
-        : 'Đã làm hết phần thực hành và trả lời xong phần tự kiểm tra?';
+      Store.toggleDone(id);
+      paintDoneBar(id);
       refreshProgress();
       refreshSidebar(id);
     });
+  }
+
+  /* ══════════════════════════════════════════════════
+     DỮ LIỆU VỪA VỀ TỪ MÁY CHỦ
+     Store đã bị ghi đè xong; ở đây chỉ đồng bộ lại những chỗ trên màn hình
+     đang hiển thị dữ liệu cũ. KHÔNG dựng lại cả bài: người học có thể đang
+     đọc giữa chừng, vẽ lại sẽ ném họ về đầu trang.
+     ══════════════════════════════════════════════════ */
+  function applyRemoteToUi() {
+    refreshProgress();
+    refreshSidebar(currentId);
+
+    if (!currentId) { return; }
+    paintDoneBar(currentId);
+
+    var box = $('.quiz', elContent);
+    var data = Lesson.get(currentId);
+    if (box && data) { box.outerHTML = Render.quiz(data.quiz, data.id); }
+    ICON.hydrate(elContent);
+    updateQuizScore();
   }
 
   /* ══════════════════════════════════════════════════
@@ -603,6 +637,12 @@
 
     window.addEventListener('hashchange', route);
     route();
+
+    /* Đồng bộ được bật SAU khi trang đã vẽ xong: nếu Firebase chậm hay chết,
+       người học vẫn đọc được bài ngay lập tức (CLAUDE.md §14). */
+    Cloud.onRemote(applyRemoteToUi);
+    Account.init();
+    Cloud.init();
 
     if (!Store.persistent) {
       console.warn('[app] Trình duyệt chặn localStorage — tiến độ sẽ mất khi đóng tab.');

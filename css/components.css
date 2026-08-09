@@ -757,6 +757,105 @@
 .empty h2 { margin-bottom: var(--sp-3); }
 .empty p { color: var(--text-muted); font-size: var(--fs-body); max-width: 46ch; margin: 0 auto var(--sp-6); line-height: var(--lh-relaxed); }
 
+/* ══════════════ HỘP THOẠI ══════════════ */
+.modal {
+  position: fixed; inset: 0;
+  z-index: var(--z-popover);
+  display: grid; place-items: center;
+  padding: var(--sp-4);
+}
+/* Cùng lớp phủ với .sidebar-backdrop ở layout.css — hai thứ che nền
+   giống nhau thì phải tối bằng nhau, nếu không giao diện lệch nhịp. */
+.modal__veil {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, .45);
+}
+.modal__card {
+  position: relative;
+  width: 100%; max-width: 460px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.modal__head {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+}
+.modal__head h2 { flex: 1; margin: 0; font-size: var(--fs-lg); }
+
+/* ══════════════ ĐỒNG BỘ ══════════════ */
+.acc__body { padding: var(--sp-5); }
+
+/* Trạng thái kết nối. Bốn màu, một nghĩa: xám = chưa bật, vàng = đang thử,
+   xanh = đang chạy, đỏ = hỏng. Người học liếc một cái là biết. */
+.acc__state {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-ui); font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+.acc__state svg { width: 16px; height: 16px; }
+.acc__state[data-sync="live"]       { color: var(--ok); }
+.acc__state[data-sync="connecting"] { color: var(--warn); }
+.acc__state[data-sync="error"]      { color: var(--danger); }
+
+.acc__p {
+  font-size: var(--fs-ui); color: var(--text-muted);
+  line-height: var(--lh-relaxed); margin: 0 0 var(--sp-4);
+}
+.acc__lbl {
+  display: block; font-size: var(--fs-sm); font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+.acc__in {
+  width: 100%; height: 38px;
+  padding: 0 var(--sp-3);
+  font-family: var(--font-mono); font-size: var(--fs-ui);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.acc__in:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+.acc__note {
+  font-size: var(--fs-sm); color: var(--text-faint);
+  margin-top: var(--sp-2); line-height: var(--lh-normal);
+}
+.acc__note.is-bad { color: var(--danger); }
+
+.acc__err {
+  display: flex; gap: var(--sp-2);
+  font-size: var(--fs-sm); line-height: var(--lh-normal);
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.acc__err svg { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; }
+
+.acc__row { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-5); }
+
+/* Nút đồng bộ trên thanh trên: một chấm nhỏ ở góc mang đúng bốn màu ở trên,
+   để trạng thái luôn nhìn thấy được mà không chiếm thêm chỗ. */
+.icon-btn--sync { position: relative; }
+.icon-btn--sync::after {
+  content: ''; position: absolute; right: 5px; bottom: 5px;
+  width: 7px; height: 7px; border-radius: var(--r-full);
+  border: 2px solid var(--bg);
+  background: var(--text-faint);
+  transition: background var(--t-fast);
+}
+.icon-btn--sync[data-sync="live"]::after       { background: var(--ok); }
+.icon-btn--sync[data-sync="connecting"]::after { background: var(--warn); }
+.icon-btn--sync[data-sync="error"]::after      { background: var(--danger); }
+
 /* ══════════════ MÀN HÌNH NHỎ ══════════════ */
 
 /* ---------- Gợi ý còn nội dung bị khuất khi cuộn ngang ----------

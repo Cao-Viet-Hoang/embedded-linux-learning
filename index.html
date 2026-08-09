@@ -73,6 +73,9 @@
       <span id="progressText">0%</span>
     </div>
 
+    <button class="icon-btn icon-btn--sync" id="btnAccount" type="button" data-sync="off"
+            aria-label="Đồng bộ tiến độ"></button>
+
     <button class="icon-btn" id="btnTheme" aria-label="Đổi giao diện sáng/tối">
       <span data-icon="sun" class="only-light"></span>
       <span data-icon="moon" class="only-dark"></span>
@@ -149,6 +152,12 @@
 <script src="lessons/bai-30.js"></script>
 <script src="lessons/bai-31.js"></script>
 <script src="lessons/bai-32.js"></script>
+
+<!-- ═══════════════ ĐỒNG BỘ (tuỳ chọn) ═══════════════ -->
+<!-- SDK Firebase KHÔNG được nhúng ở đây: cloud.js tự nạp khi người học bật
+     đồng bộ. Nhúng sẵn sẽ chặn lần vẽ đầu tiên mỗi khi máy không có mạng. -->
+<script src="js/cloud.js"></script>
+<script src="js/account.js"></script>
 
 <!-- ═══════════════ KHỞI ĐỘNG ═══════════════ -->
 <script src="js/app.js"></script>

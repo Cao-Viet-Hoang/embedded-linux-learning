@@ -60,8 +60,23 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 | Tự kiểm tra | Quiz cuối bài, có giải thích đáp án |
 | Giao diện sáng / tối | Tự nhớ lựa chọn |
 | Tìm kiếm | Toàn văn, không phân biệt dấu — gõ `tien trinh` vẫn ra `tiến trình`. Phím tắt <kbd>/</kbd> |
+| Đồng bộ nhiều máy | Tuỳ chọn. Nhập một tên người dùng là tiến độ và đáp án quiz theo bạn sang máy khác |
 
 Tiến độ, đáp án quiz và chủ đề giao diện lưu trong `localStorage` của trình duyệt.
+
+### Đồng bộ giữa nhiều máy (tuỳ chọn)
+
+Bấm nút hình người ở thanh trên cùng, nhập một tên (3–40 ký tự, chỉ chữ không dấu, số,
+`-` và `_`). Từ đó tiến độ và đáp án quiz được lưu lên Firebase Firestore; mở trang trên
+máy khác và nhập đúng tên đó là có lại toàn bộ.
+
+Đây **không phải tài khoản**: không mật khẩu, không đăng nhập. Tên người dùng chỉ là khoá
+tra dữ liệu, và chỉ những tên nằm trong danh sách trắng ở
+[`firebase/firestore.rules`](firebase/firestore.rules) mới dùng được.
+
+Chọn *Dùng ngoại tuyến* — hoặc đơn giản là không có mạng — thì mọi thứ vẫn chạy y hệt như
+cũ: bài học, tìm kiếm, quiz và tiến độ đều nằm trong `localStorage`. SDK Firebase chỉ được
+tải khi bạn thật sự bật đồng bộ, nên lúc offline trang không phải chờ nó.
 
 ## Cấu trúc
 
@@ -78,11 +93,15 @@ js/
   registry.js         khung 70 bài + kho nội dung đã đăng ký
   render.js           dựng HTML từ dữ liệu block  (bộ máy đồng nhất style)
   search.js           chỉ mục tìm kiếm trong bộ nhớ
+  cloud.js            đồng bộ Firestore (tuỳ chọn, chỉ tải khi được bật)
+  account.js          hộp thoại nhập tên + chấm trạng thái đồng bộ
   app.js              định tuyến, sidebar, mục lục, quiz, sao chép
 lessons/
   bai-01.js           nội dung Bài 1
   bai-02.js           nội dung Bài 2
   bai-03.js           nội dung Bài 3
+firebase/
+  firestore.rules     danh sách trắng tên người dùng, nạp lên bằng tay
 LO-TRINH.md           lộ trình 70 bài
 CLAUDE.md             quy ước viết bài cho phiên làm việc sau
 ```

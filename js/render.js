@@ -400,6 +400,9 @@
   global.Render = {
     lesson: lesson,
     blocks: blocks,
+    /* app.js vẽ lại riêng phần quiz khi máy khác vừa trả lời một câu —
+       vẽ lại cả bài sẽ làm mất vị trí cuộn của người đang đọc. */
+    quiz: quiz,
     highlight: highlight,
     esc: esc,
     slug: slug,

@@ -21,10 +21,17 @@ WSL2 + QEMU.
 | Language | **All learner-facing content is Vietnamese.** Only `CLAUDE.md` is English. |
 | Goal | Job-ready Embedded Linux Engineer |
 | Scope | 70 lessons across 14 modules ("chặng"), 8–11 months — see `LO-TRINH.md` |
-| Delivery | Open `index.html` by double-clicking. `file://` must work. No server, no build step, no npm, no Internet. |
+| Delivery | Open `index.html` by double-clicking. `file://` must work. No server, no build step, no npm. Also deployed to GitHub Pages. |
 | Stack | Vanilla HTML + CSS + ES5-style JS. IIFE modules, no bundler, no framework. |
 
 `tools/check.js` is the only Node script and it is a test, never a build step.
+
+**"No Internet" now has exactly one exception: progress sync.** Everything that
+*teaches* — lessons, figures, search, quiz, theme — is still 100 % offline and always will
+be. On top of that sits one optional overlay, `js/cloud.js`, which mirrors the learner's
+progress to Firebase Firestore so they can move between machines. It is lazy-loaded, never
+blocks first paint, and every failure path lands back on plain localStorage. Pull the
+network cable and the course is unchanged. See §14.
 
 ### The original brief
 
@@ -103,13 +110,17 @@ css/
   components.css      every content block style
 js/
   icons.js            inline SVG icon set
-  store.js            localStorage: theme, progress, quiz answers
+  store.js            localStorage: theme, progress, quiz answers + the change bus
   registry.js         COURSE skeleton (14 modules / 70 lessons) + Lesson registry
   render.js           data -> HTML.  THE consistency engine
   search.js           in-memory full-text index, diacritic-insensitive
+  cloud.js            OPTIONAL Firestore sync overlay, lazy-loaded — see §14
+  account.js          the username modal + topbar sync dot — see §14
   app.js              hash routing, sidebar, toc, quiz, copy buttons
 lessons/
   bai-01.js  bai-02.js  bai-03.js       one file per lesson, self-registering
+firebase/
+  firestore.rules     username whitelist + document shape.  Deploy by hand — §14.7
 assets/
   favicon.svg         hand-copy of the topbar .brand__mark tile — see §3.1
   favicon.ico         same geometry at 16/32/48 px, for browsers ignoring the SVG
@@ -508,6 +519,16 @@ cross-references. Guard against a repeat:
 - Next lesson to write, when asked: lesson 33, `Nhiệm vụ của bootloader`, opening
   `Chặng 06 — Bootloader U-Boot`.
 - `node tools/check.js` → `14 modules · 70 lessons · 32 written · OK`.
+- **Firestore progress sync is implemented and wired** (2026-08-09): `js/cloud.js`,
+  `js/account.js`, `firebase/firestore.rules`, plus `Store.snapshot/applyRemote/onChange`
+  and `app.js` → `applyRemoteToUi()`. The rules **were deployed by the user on 2026-08-09**
+  and verified against the live project the same day — see §14.6. The whitelist holds only
+  `shinarus`. Still unverified: the *positive* create path, because `progress/shinarus` did
+  not exist yet and creating it from a test would have let remote-wins wipe the learner's
+  real localStorage progress. See §14.
+- **The exercise system (§13) is still design-only.** There is no `Exercise.register`, no
+  `exercises/` directory, no `#/bt-NN` route. The `elx.ex` localStorage key and the `ex`
+  field in the Firestore document exist but nothing writes to them.
 - Module 05 splits ownership deliberately, to avoid overlap — keep it that way:
   lesson 29 is **TCG internals via user-mode only** (`qemu-aarch64`, `-d in_asm/out_asm/exec`,
   `-one-insn-per-tb`, `-d nochain`); lesson 30 is **the machine model** (memory map, device
@@ -554,3 +575,352 @@ number do not resemble each other. Verified against `js/registry.js`:
 | rootfs, BusyBox `CONFIG_STATIC`, size-shrinking an image | `Chặng 09` |
 | kernel modules, drivers, `.ko` | `Chặng 10` |
 | Buildroot, **Yocto**, reproducible builds | `Chặng 11` |
+
+---
+
+## 13. Exercise sets — `Bài tập`
+
+> **Status: design agreed with the user on 2026-08-09. Nothing is implemented.**
+> There is no `Exercise.register`, no `exercises/` directory, no renderer, no store key,
+> no route. Do not assume any of it exists — build it when the user asks, to this spec.
+
+### 13.1 What it is, and the one thing it must not become
+
+One exercise set per lesson, `bai-NN` ↔ `bt-NN`, on its own page `#/bt-NN`.
+
+Every lesson already ends with a `quiz` — 5–6 recall MCQs. **An exercise set is not a second
+quiz.** If it only asks "do you remember what the lesson said", it is redundant and should
+not be written. It earns its place by making the learner *produce* something and then
+*check themselves against a falsifiable criterion*.
+
+Decisions already fixed by the user, do not re-open:
+
+| Decision | Value |
+|---|---|
+| Navigation | Real page `#/bt-NN`. Reached from a chip on the lesson row in the sidebar, a CTA at the end of the lesson, and an index page `#/bai-tap` |
+| Progress | **Separate.** The topbar ring keeps counting 70 lessons only. Exercise progress lives in its own store key and its own bar. Never retro-uncomplete a lesson the user already ticked |
+| Content weight | **Theory-heavy** — 22 of 28 items are theory, 6 are hands-on |
+| Reveal state | Hints/criteria/solutions are **not** persisted. Reload closes everything. Only the learner's typed answers and self-scores persist |
+
+### 13.2 Structure — 6 parts, 12 types, 28 items
+
+| Part | Type | Items | Why this type exists |
+|---|---|---|---|
+| **A · `Nhận biết`** *(Remember)* | `Trắc nghiệm nhanh` (4-option MCQ) | 4 | Surface the terminology again. Each must be answerable in **under 60 s** — the goal is frequency of re-encounter, not difficulty |
+| | `Đúng/Sai kèm sửa` (T/F + rewrite) | 2 | Bare true/false is worthless: 50 % guess rate, nothing produced. Requiring a corrected restatement turns it into a micro-essay |
+| | `Điền khuyết` (fill in the blank) | 1 | Forces **active recall** instead of recognition. Reserve for formulas and relations |
+| | `Ghép nối` (matching, 5–6 pairs) | 1 | Cheapest coverage per item, and the only format that teaches the **boundary between adjacent concepts**, because the distractors sit side by side |
+| **B · `Thông hiểu`** *(Understand)* | `Giải thích vì sao` (short answer) | 2 | Where the illusion of knowing collapses. Reading feels like understanding; writing three sentences proves it |
+| | `So sánh cặp` (paired comparison) | 1 | Ask which difference is **the difference that matters**. People learn concepts by contrast, not by definition |
+| | `Bắt lỗi phát biểu` (find the flaw) | 1 | The only type aimed at the **misconception** rather than at the correct fact — and misconceptions are what break builds |
+| | `Đọc output` (interpret real output) | 2 | Given real captured output, say what it means. This is the daily job of an embedded engineer, not a paper exercise |
+| **C · `Vận dụng`** *(Apply)* | `Chẩn đoán` (symptom → cause) | 2 | Highest career value in the whole set: it *is* the interview and it *is* the job. Best variant: one symptom, several possible causes |
+| | `Tình huống mới` (new scenario) | 2 | Change the context — QEMU → real board, 4.8 GiB RAM → 64 MB flash. Tests whether the learner holds the principle or only the example |
+| | `Tính toán / Chọn và biện minh` | 1 | Produce a number or a decision **with its justification**. The justification is what gets graded, not the choice |
+| **D · `Ôn xen kẽ`** *(Interleaved review)* | `Nhắc lại bài cũ` | 3 | Questions about **earlier** lessons that this one stands on. Over a 70-lesson, 8–11-month course this is the cheapest and most effective anti-forgetting measure, and it exposes gaps while they are still cheap to patch |
+| **E · `Thực hành`** *(Hands-on)* | `Dự đoán output` | 2 | Write the result **before** running, then run. The gap between prediction and reality is the strongest learning moment available — much stronger than run-then-read |
+| | `Gõ lệnh` | 2 | Move from reading commands to producing them |
+| | `Sửa lỗi` | 1 | Something broken, must be diagnosed. Raw material already exists: the `Lỗi thường gặp` table of every lesson |
+| | `Thử thách` | 1 | Open-ended, allowed to be unsolved. Plants an unanswered question that the next lesson answers |
+| **F · Diagnostic table** | `Bí ở đâu thì đọc lại đâu` | — | Not a question. A lookup: which item you failed → which section of which lesson to reread. The only part a lesson cannot replace — it turns **failure into instruction**, which is exactly what a self-learner has nobody to provide |
+
+Total **28 items ≈ 83 minutes**; theory (A+B+C+D) = **22 items, 79 %**.
+
+**Two passes, and this is design, not compromise:**
+
+- **`Lượt 1`** — right after reading the lesson: **A + B** (~23 min). Consolidate while warm.
+- **`Lượt 2`** — after 2–3 days: **C + D + E** (~60 min). Retrieval after partial forgetting
+  is substantially stronger than immediate retrieval. The gap is an active ingredient.
+
+### 13.3 The `Trục xoáy` rule (spiral)
+
+The user asked for core theory to be **asked repeatedly in different framings**, and in the
+same breath asked that this **not** be overused. Both are satisfied by one hard cap:
+
+> Each lesson picks **at most 3 `trục`** (core concepts). Each `trục` appears **exactly
+> three times**: once in A, once in B, once in C. Every other concept in the lesson is asked
+> **at most once**.
+
+3 × 3 = 9 spiral items; the remaining 19 are breadth. Overuse is structurally impossible.
+
+**Repetition only works if the mental operation changes.** Rephrasing the same question is
+rereading, not relearning. Across the three appearances the learner must *recognise it*,
+*explain it*, and *diagnose with it* — and the **stimulus must differ in kind**:
+
+| Level | Stimulus the item supplies | Operation demanded |
+|---|---|---|
+| A | A statement or a formula | Retrieve from memory |
+| B | Real data — captured output, a measured pair, two things side by side | Explain the mechanism |
+| C | A situation with a constraint, absent from the lesson | Decide, using the principle |
+
+If two of the three supply the same kind of stimulus, the grid is wrong — redo it.
+
+**Never make a `trục` out of:** flag names, exact byte counts, file paths, version numbers.
+They are lookup-able in ten seconds, and spiralling them three times is precisely the abuse
+the user is guarding against. They get at most one A-level item.
+
+### 13.4 Choosing the `trục` — follow these seven steps in order
+
+Do this **before writing a single item**, as a domain expert on that lesson's subject.
+Record the step-2 scoring table as a header comment in `exercises/bt-NN.js` so a later
+session can audit the choice instead of re-deriving it.
+
+**Step 1 — Inventory.** List every concept the lesson actually teaches. Sources, in order:
+`goals`, every `h2`/`h3`, every `cal kind:'why'`, every `cmdx` title, `terms`, `recap`.
+Expect 12–20 candidates. Do not filter yet.
+
+**Step 2 — Score each candidate 0/1/2 on three axes.**
+
+| Axis | 0 | 1 | 2 |
+|---|---|---|---|
+| **Downstream dependency** — does a later lesson collapse without it? | no lesson needs it | 1–2 later lessons | ≥3 later lessons, or it underpins a whole `Chặng` |
+| **Cost of misconception** — what does getting it wrong cost? | nothing | an error message you can search for | a *silent* wrong result, or hours lost |
+| **Counterintuitive** — is the beginner's natural guess wrong? | guess is right | guess is roughly right | guess is flatly wrong |
+
+**Step 3 — Cut.** A `trục` needs **total ≥ 4** *and* **≥ 2 axes scoring ≥ 1**. Take the top
+3 that qualify. **If only two qualify, write only two.** A lesson with 2 `trục` is normal;
+padding to 3 is worse than having 2, because the padded one steals nine items' worth of
+attention from where it belongs.
+
+**Step 4 — Disqualify.** Drop a candidate, even a high scorer, if: it is lookup-able trivia
+(§13.3); it is a fact about the user's environment rather than a principle; or it was
+already a `trục` of the previous lesson. A concept may only be spiralled once in the course
+— on later encounters it belongs in part **D** (`Ôn xen kẽ`), not in a second spiral.
+
+**Step 5 — State each `trục` as one falsifiable sentence.** Example:
+`.bss` *chiếm RAM lúc chạy nhưng không chiếm byte nào trong file ELF.*
+If it cannot be said in one sentence that could be wrong, it is a topic, not a `trục` —
+go back to step 1 and split it.
+
+**Step 6 — Write the opposing misconception.** For each `trục`, write down the wrong belief
+a beginner actually holds. This single line then drives three things: the MCQ distractors in
+A, the `Bắt lỗi phát biểu` item in B, and the failure mode in C. A `trục` with no credible
+misconception attached is probably not counterintuitive enough to deserve nine items.
+
+**Step 7 — Build the 3 × 1 grid and validate it.** Before writing prose, check:
+
+- Can the C item be answered **without** understanding the `trục`? If yes, C is broken.
+- Do the three items share vocabulary? They must not — same idea, different words.
+- Does an earlier item on the page give away a later one? Reorder.
+
+### 13.5 How free-text answers get graded
+
+They are **not** auto-graded, and this must never be faked. There is no server, no grader,
+and no keyword matching — keyword matching on Vietnamese free text produces false negatives,
+and one wrong "sai" destroys the learner's trust in every subsequent verdict.
+
+The mechanism is **commit → compare → self-score**, and its load-bearing part is the lock:
+
+1. **Commit.** A `<textarea>`, persisted to `localStorage`. The learner types their answer.
+2. **Lock.** The `Tiêu chí tự chấm` and `Lời giải` buttons stay **disabled until the
+   textarea is non-empty**. Without this, hindsight bias ("that's what I meant") voids the
+   entire exercise. The lock is not friction to be smoothed away — it is the mechanism.
+3. **Compare.** Revealing shows a **checklist of required points**, not a model paragraph.
+   The learner ticks each point their own answer actually contained.
+4. **Score.** Ticks produce `3/4 ý` ("3 of 4 required points"). Stored. This number is what
+   part **F** looks up to tell them what to reread.
+
+Consequence for how items are *written*:
+
+- Every criterion must be checkable **by eye in five seconds** — a number, a string that
+  must appear, an exit code. This is §7's *verified numbers beat adjectives*, applied to
+  grading. `Nhắc tới việc .bss không nằm trong file` is checkable;
+  `Hiểu được bản chất của .bss` is not, and is a defect.
+- **Prefer a machine-checkable format whenever it does not cost rigour.** A fair share of
+  B-level questions survive being recast as ordering, select-all-that-apply, fill-a-table,
+  or an exact numeric answer (normalised: trim, case-fold, strip thousands separators).
+  Reach for free text only when producing prose *is* the point — `Giải thích vì sao`,
+  `Diễn đạt lại`, and the justification half of `Chọn và biện minh`.
+- Part **A** is 100 % machine-checkable and should reuse the existing quiz UI
+  (`js/render.js` → `quiz()`), including its `why` explanation. Parts **B**/**C** need the
+  new commit-lock-reveal card. These are two visually distinct regions of the page, and that
+  difference is honest — it tells the learner which answers a machine can vouch for.
+
+The learner may also paste answers into a chat session to be graded there. That is a real
+option, but the page must stand on its own without it.
+
+### 13.6 Cost control
+
+`recall` and `predict` items cost almost nothing to verify — the material already exists in
+the lesson and in §10. `cmd` and `debug` items contain commands, so **§2.2 applies in full**:
+run them on the user's machine, capture real output, paste that. The theory-heavy 22/6 split
+is therefore also the cost lever. Do not silently shift the mix toward hands-on items to
+make a set feel meatier; it multiplies verification time without adding retention.
+
+---
+
+## 14. Progress sync — Firebase Firestore
+
+Implemented and wired on 2026-08-09. Unlike §13, this one **exists**: `js/cloud.js`,
+`js/account.js`, `firebase/firestore.rules`, and the `Store` API described below are all in
+the repo.
+
+### 14.1 What it is, and what it deliberately is not
+
+The learner works on more than one machine and wants their progress to follow them. That is
+the whole requirement. It is **not** an account system:
+
+| | |
+|---|---|
+| Users | Exactly one real human. |
+| Auth | **None.** No Firebase Auth, no password, no session. |
+| Identity | A username typed into a modal, stored in `localStorage` under `elx.user`. |
+| Meaning of the username | It is a *document key*, nothing more. Typing the right one gets you the right data — that is the entire authorization model, and the user explicitly accepted it. |
+| Protection | Firestore Rules: a fixed whitelist of usernames + a document-shape constraint + `allow delete: if false`. |
+
+Do not "improve" this into a login flow. It was scoped this way on purpose.
+
+### 14.2 Hard decisions (from the user — do not renegotiate)
+
+1. **localStorage is always the local source of truth.** `js/cloud.js` is an overlay. No
+   network, no username, blocked CDN, Firestore outage — the course must behave exactly as
+   it did before sync existed. Every failure path in `cloud.js` ends in a `console.warn`
+   plus state `'error'`, never a thrown exception.
+2. **Remote wins, always. There is no merge.** The user's words:
+   *"Không cần quan tâm tới vấn đề đồng bộ ngược, mọi thứ sẽ được bắt đầu từ bây giờ, dữ
+   liệu trước đó không quan trọng"* — don't worry about back-sync, everything starts from
+   now, earlier data doesn't matter. `Store.applyRemote()` therefore **overwrites**.
+   Do not add union/merge logic: merging resurrects a lesson the learner deliberately
+   un-ticked on another machine, which is worse than losing an offline edit they never
+   asked to keep.
+3. **The username is asked exactly once.** `elx.syncAsked` guards it. Choosing
+   "Dùng ngoại tuyến" must never re-prompt on later loads; the topbar button is the only
+   way back in.
+4. **The Firebase SDK is lazy-loaded, never in `index.html`.** Two `<script>` tags to
+   `gstatic.com` in the head would block first paint for the whole browser connect timeout
+   whenever the machine is offline. `cloud.js` injects them on demand, with a 15 s cap.
+5. **The config is hardcoded and that is correct.** A Firebase web config identifies the
+   project; it is not a secret (Google publishes this). The rules file is what protects the
+   data. The user authorised this explicitly.
+6. **Only three keys sync: `done`, `quiz`, `ex`.** Theme, sidebar-collapsed and
+   which-module-is-open are **per-machine preferences**. Syncing them means a phone in dark
+   mode flips the desktop to dark mode — an annoyance, not a feature.
+
+### 14.3 The data model
+
+One document per user, overwritten whole on every change:
+
+```
+progress/{username} = {
+  v:    1,                       // schema version — bump if the shape ever changes
+  at:   serverTimestamp(),       // written by the server, never trusted for ordering logic
+  done: { "bai-01": 1735000000000, ... },   // lesson id → epoch ms it was ticked
+  quiz: { "bai-01": { "0": 2, "1": 0 } },   // lesson id → question index → chosen option
+  ex:   { }                                 // reserved for §13; nothing writes it yet
+}
+```
+
+Whole-document `set()`, not per-field `update()`. The document is a few KB; field-level
+diffing would buy nothing and would need the merge logic decision 2 forbids.
+
+`ex` is in `SYNCED` *already*, before the exercise UI exists. That is intentional — when
+§13 gets built it must not require touching `cloud.js`.
+
+### 14.4 File map and responsibilities
+
+| File | Owns |
+|---|---|
+| `js/store.js` | localStorage + the change-notification bus. Knows nothing about Firebase. |
+| `js/cloud.js` | SDK loading, `onSnapshot` listener, debounced push, connection state. Knows nothing about the DOM. |
+| `js/account.js` | The modal and the topbar state dot. Knows nothing about Firestore. |
+| `js/app.js` | `applyRemoteToUi()` — repaints ring, sidebar, done-bar and quiz after a remote change. |
+| `firebase/firestore.rules` | The username whitelist. **Add a name here when the user wants a new one.** |
+
+The layering is the point: each file can be deleted or stubbed without the ones below it
+noticing. Keep it that way.
+
+### 14.5 The two loops you must not break
+
+- **Echo loop.** A local write → `Store.emit()` → `cloud.js` pushes → Firestore fires
+  `onSnapshot` back → `applyRemote()` writes to localStorage → `emit()` again → push again,
+  forever. Three guards stop it: `snap.metadata.hasPendingWrites` is skipped on the read
+  side, `lastSig` skips any snapshot whose `done`/`quiz`/`ex` equal what was last pushed,
+  and `Store.applyRemote()` sets a module-level `muted` flag so its own writes emit nothing.
+  **Any new mutating method on `Store` must call `emit()`, and any new remote-applying code
+  must go through `applyRemote()`.**
+- **Scroll loop.** A remote change must **never** re-render the whole lesson — the learner
+  may be reading paragraph 40. `applyRemoteToUi()` repaints only the four things that show
+  synced state, and swaps the quiz section via `outerHTML` (this is why `render.js` exports
+  `quiz`).
+
+### 14.6 `fromCache` — why the green dot is harder than it looks
+
+**`includeMetadataChanges: true` is mandatory. Do not "simplify" it back to `false`.**
+
+Firestore answers a listener from its local cache *first*, and it does so even when the
+device has never reached the server. Caught for real on 2026-08-09: a jsdom run that could
+not open a WebChannel at all still received a snapshot, and `cloud.js` reported state
+`live` — a green dot and the words *"Đang đồng bộ"* over a connection that did not exist.
+That is a lie to the learner, and the learner would only find out by losing work.
+
+The fix, and the reasoning behind each half:
+
+- State comes from `snap.metadata.fromCache`: `fromCache` → `connecting` (amber),
+  server-confirmed → `live` (green). Nothing else may set `live`.
+- A `fromCache` snapshot is **never** applied to `Store`. Cached data is not truth; applying
+  it would let a stale cache overwrite fresh local work.
+- `includeMetadataChanges` must therefore be `true`, because with `false` a cache→server
+  transition carrying identical data fires **no event at all** — the dot would stay amber
+  forever on a perfectly healthy connection.
+- The cost of `true` is duplicate snapshots. Two dedupes absorb it: `lastSig` (skip
+  identical payloads) and the equal-state guard at the top of `setState()`. Without the
+  latter, every redundant event repaints the modal and steals the caret out of the
+  username field mid-typing.
+
+### 14.6b Rules verification against the live project — 2026-08-09
+
+The rules were deployed by the user on 2026-08-09. Before that, `GET
+firestore.googleapis.com/v1/projects/learning-embedded-linux/databases/(default)/documents/progress`
+returned **403 `PERMISSION_DENIED`** (default locked-down rules) and sync could not work.
+After deployment, the same REST endpoint — plain API key, no auth token, exactly what the
+browser is — gives:
+
+| Request | Result | Proves |
+|---|---|---|
+| `GET progress/shinarus` | **404 `NOT_FOUND`** | rules deployed; `'shinarus' in allowed()` is true |
+| `GET progress/hacker` | 403 | whitelist blocks unknown names |
+| `GET progress` (list) | 403 | no collection enumeration |
+| `GET anything/doc1` | 403 | the catch-all deny holds |
+| `PATCH progress/hacker`, valid shape | 403 | whitelist also gates writes |
+| `PATCH progress/shinarus` + extra field | 403 | `hasOnly` |
+| `PATCH progress/shinarus` minus `ex` | 403 | `hasAll` |
+| `PATCH progress/shinarus`, `done` a string | 403 | `is map` |
+| `PATCH progress/shinarus`, `v` a string | 403 | `is int` |
+| `PATCH progress/shinarus`, `done` with 201 keys | 403 | the `size() <= 200` caps |
+
+**The positive create was deliberately not tested, and a later session must not "finish the
+job" by running it.** `progress/shinarus` did not exist. Creating it from a test would leave
+a document with empty `done`/`quiz`/`ex`; the next time the learner's browser connected,
+decision 2 (remote wins, no merge) would apply that empty document over their real
+localStorage progress and erase it. And `allow delete: if false` means the test could not
+clean up after itself. The correct way to create that document is the app's own path — the
+learner clicks the sync button, `cloud.js` sees `!snap.exists` and pushes their real local
+state. Verify it afterwards with `GET progress/shinarus`, not before.
+
+### 14.7 Checklist for touching this subsystem
+
+1. Adding a synced key: add it to `K`, to `SYNCED`, to the rules' `hasOnly([...])`, and to
+   the document shape in §14.3. Missing any one of the four fails silently.
+2. Adding a machine/person: add the username to `allowed()` in `firebase/firestore.rules`
+   and deploy. It must match `/^[A-Za-z0-9_-]{3,40}$/` — the same regex lives in
+   `js/account.js`, keep the two identical.
+3. `node tools/check.js` still has to print `OK`. It sandboxes `js/store.js` with a stub
+   `localStorage` and **no `document`** — so `store.js` must never touch the DOM at load
+   time. `cloud.js` and `account.js` are not in its `CORE` list and are not loaded by it.
+4. Test offline: throttle to offline in devtools, reload. Expect an **amber** dot
+   (`connecting` — Firestore is answering from cache, see §14.6), a fully normal page, and
+   no thrown exception. A **green** dot while offline is the bug §14.6 exists to prevent.
+5. There is no automated test for this subsystem in the repo, and there should not be one —
+   `tools/check.js` must stay dependency-free. It was verified once, on 2026-08-09, with a
+   throwaway jsdom harness installed **outside** the repo (52 assertions: first-run modal,
+   name validation, offline learning, connect, doc creation, `hasPendingWrites` echo,
+   `fromCache` gating, remote overwrite + UI repaint, debounced push, disconnect,
+   post-disconnect silence). Rebuild the same way if you change the logic; do not add
+   `node_modules` to this repository.
+
+### 14.8 Known open item
+
+Firestore from `file://` (origin `null`) is **unverified**. The user deploys to GitHub
+Pages, so this is not the primary path; the agreed fallback is that `cloud.js` degrades to
+`'error'` and the course stays readable. If double-clicked-`index.html` sync ever becomes a
+requirement, that is when to test it — do not pre-emptively engineer around it.

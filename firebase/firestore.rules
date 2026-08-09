@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// ============================================================
+//  Firestore Rules — Embedded Linux course
+//
+//  This app does NOT use Firebase Auth: it has exactly one learner, and the
+//  username is typed into a text field rather than logged in with. So
+//  `request.auth` is always null and cannot be used for authorization.
+//
+//  Instead, the three layers below shrink the attack surface to something
+//  acceptable for a database that holds nothing but learning progress:
+//
+//    1. Whitelist — only the names returned by allowed() may exist. A stranger
+//       cannot create millions of junk documents and burn through the quota.
+//    2. Shape constraint — a document must have exactly 5 fields, of exactly
+//       the right types. Nobody can stuff 1 MB of arbitrary data in.
+//    3. No delete — data is only ever overwritten, never wiped.
+//
+//  Adding a new machine/person: add the name to allowed(), then
+//  `firebase deploy --only firestore:rules`. The name must match the RE
+//  pattern in js/account.js: 3–40 characters from [A-Za-z0-9_-].
+//
+//  Deploy: firebase deploy --only firestore:rules
+//  Or paste it straight into Firebase Console → Firestore Database → Rules.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function allowed() {
+      return ['shinarus'];
+    }
+
+    function wellFormed(d) {
+      return d.keys().hasOnly(['v', 'at', 'done', 'quiz', 'ex'])
+          && d.keys().hasAll(['v', 'done', 'quiz', 'ex'])
+          && d.v is int
+          && d.done is map
+          && d.quiz is map
+          && d.ex   is map
+          // The roadmap has exactly 70 lessons. Capping each map at 200 keys
+          // is what keeps this document from becoming a dumping ground for
+          // arbitrary data. (Firestore Rules has no byte-size function for a
+          // document — only Storage has `request.resource.size`. Counting
+          // keys is the thing that can actually be measured here.)
+          && d.done.size() <= 200
+          && d.quiz.size() <= 200
+          && d.ex.size()   <= 200;
+    }
+
+    match /progress/{name} {
+      allow read:   if name in allowed();
+      allow create: if name in allowed() && wellFormed(request.resource.data);
+      allow update: if name in allowed() && wellFormed(request.resource.data);
+      allow delete: if false;
+    }
+
+    // Everything else is fully closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
