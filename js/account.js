@@ -2,9 +2,13 @@
    ACCOUNT — hộp thoại nhập tên và nút trạng thái đồng bộ trên thanh trên.
 
    Đây KHÔNG phải đăng nhập. Không mật khẩu, không phân quyền: tên người
-   dùng chỉ là khoá chọn tài liệu trên Firestore (CLAUDE.md §14). Nó được
-   hỏi đúng MỘT lần rồi nhớ vào localStorage — người học chọn "Dùng offline"
-   thì không bao giờ bị hỏi lại, trừ khi tự bấm vào nút trên thanh trên.
+   dùng chỉ là khoá chọn tài liệu trên Firestore (CLAUDE.md §14).
+
+   Nhưng từ 2026-08-10 nó là BẮT BUỘC, không còn là tuỳ chọn: tiến độ chỉ
+   tồn tại trên máy chủ, nên chưa có tên thì không có chỗ nào để ghi. Vì thế
+   không còn nút "Dùng ngoại tuyến", và hộp thoại tự bật mỗi lần mở trang
+   khi chưa có tên. Người học vẫn đóng được nó để đọc bài — chỉ là mọi nút
+   ghi sẽ bị khoá cho tới khi kết nối xong.
 
    Toàn bộ file này chỉ là giao diện. Việc kết nối, nghe và ghi nằm ở
    js/cloud.js; ở đây chỉ gọi Cloud.connect / Cloud.disconnect.
@@ -60,7 +64,8 @@
     var hint = err
       ? '<div class="acc__err">' + ICON('alert') +
         '<span>Không kết nối được (' + Render.esc(err) + '). Bài học vẫn đọc ' +
-        'bình thường, tiến độ vẫn được lưu trên máy này.</span></div>'
+        'bình thường, nhưng <b>không ghi được tiến độ</b>: tiến độ chỉ tồn tại ' +
+        'trên máy chủ, không còn bản nào lưu ở máy này.</span></div>'
       : '';
 
     if (name && st !== 'error') {
@@ -68,32 +73,31 @@
         '<p class="acc__p">' +
           (st === 'connecting'
             ? 'Đang nối tới máy chủ dưới tên <b>' + Render.esc(name) + '</b>. ' +
-              'Bạn cứ đọc bài tiếp, xong sẽ tự đồng bộ.'
+              'Cứ đọc bài tiếp — các nút đánh dấu sẽ mở khoá ngay khi dữ liệu về.'
             : 'Tiến độ, đáp án quiz và bài tập của bạn đang được lưu dưới tên ' +
               '<b>' + Render.esc(name) + '</b>. Mở trang này trên máy khác và nhập ' +
               'đúng tên đó là có lại toàn bộ.') +
         '</p>' +
         '<div class="acc__row">' +
           '<button class="btn" type="button" data-acc="switch">' + ICON('user') + 'Đổi tên khác</button>' +
-          '<button class="btn" type="button" data-acc="off">' + ICON('logOut') + 'Ngắt đồng bộ</button>' +
         '</div>';
     }
 
     return status + hint +
-      '<p class="acc__p">Nhập một tên để tiến độ học được lưu lên máy chủ và ' +
-        'dùng chung giữa nhiều máy. Đây không phải tài khoản — không có mật khẩu, ' +
-        'chỉ cần nhớ đúng tên đã dùng.</p>' +
+      '<p class="acc__p">' + (name
+        ? 'Tiến độ của bạn nằm trên máy chủ dưới tên <b>' + Render.esc(name) + '</b>. ' +
+          'Bấm <b>Kết nối lại</b> để thử lần nữa, hoặc nhập một tên khác.'
+        : 'Nhập một tên để có chỗ lưu tiến độ học. Đây không phải tài khoản — ' +
+          'không có mật khẩu, chỉ cần nhớ đúng tên đã dùng, và nhập lại đúng tên ' +
+          'đó trên máy khác là có lại toàn bộ.') +
+      '</p>' +
       '<label class="acc__lbl" for="accName">Tên người dùng</label>' +
       '<input class="acc__in" id="accName" type="text" spellcheck="false" autocomplete="off" ' +
         'placeholder="vi-du-ten-cua-ban" value="' + Render.esc(name).replace(/"/g, '&quot;') + '">' +
       '<div class="acc__note" id="accNote">3–40 ký tự, chỉ chữ không dấu, số, <code>-</code> và <code>_</code>.</div>' +
       '<div class="acc__row">' +
-        '<button class="btn btn--primary" type="button" data-acc="go">' + ICON('cloud') + 'Bật đồng bộ</button>' +
-        /* Tên đã lưu mà đang lỗi: phải có đường thoát hẳn, nếu không lần mở
-           trang nào cũng thử kết nối lại rồi lại chấm đỏ. */
-        (name
-          ? '<button class="btn" type="button" data-acc="off">' + ICON('logOut') + 'Tắt đồng bộ</button>'
-          : '<button class="btn" type="button" data-acc="skip">Dùng ngoại tuyến</button>') +
+        '<button class="btn btn--primary" type="button" data-acc="go">' + ICON('cloud') +
+          (name ? 'Kết nối lại' : 'Bắt đầu lưu tiến độ') + '</button>' +
       '</div>';
   }
 
@@ -156,7 +160,6 @@
       return;
     }
 
-    Store.setSyncAsked(true);
     /* Không cần paintBody() ở đây: connect() đặt trạng thái 'connecting'
        ngay lập tức, và Cloud.onState đã được nối tới paintBody trong init(). */
     Cloud.connect(v);
@@ -169,10 +172,9 @@
 
     if (a === 'close') { close(); }
     else if (a === 'go') { submit(); }
-    else if (a === 'skip') { Store.setSyncAsked(true); close(); }
-    /* Cả hai đều rơi về màn hình nhập tên. Vẽ lại tay chứ không dựa vào
-       Cloud.onState: setState() bỏ qua khi trạng thái không đổi. */
-    else if (a === 'off' || a === 'switch') { Cloud.disconnect(); paintBody(); }
+    /* Rơi về màn hình nhập tên. Vẽ lại tay chứ không dựa vào Cloud.onState:
+       setState() bỏ qua khi trạng thái không đổi. */
+    else if (a === 'switch') { Cloud.disconnect(); paintBody(); }
   }
 
   function onKey(e) {
@@ -206,11 +208,12 @@
 
       paintButton();
 
-      /* Hỏi tên đúng một lần, và chỉ sau khi trang đã vẽ xong bài học —
-         chưa đọc được chữ nào đã bị chặn bởi hộp thoại là trải nghiệm tệ. */
-      if (!Store.getUser() && !Store.getSyncAsked()) {
-        setTimeout(open, 700);
-      }
+      /* Chưa có tên thì hỏi, mỗi lần mở trang — không còn "hỏi một lần rồi
+         thôi" như hồi đồng bộ còn là tuỳ chọn: không có tên thì không có
+         chỗ ghi tiến độ, im lặng bỏ qua chỉ khiến người học tick cả buổi
+         rồi mất trắng. Vẫn đợi trang vẽ xong bài đã: chưa đọc được chữ nào
+         đã bị chặn bởi hộp thoại là trải nghiệm tệ. */
+      if (!Store.getUser()) { setTimeout(open, 700); }
     }
   };
 

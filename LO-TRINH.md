@@ -417,6 +417,21 @@ Cài thêm khi tới chặng tương ứng:
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
+### 9.1 Bộ bài tập
+
+Mỗi bài học có một bộ bài tập riêng, đánh số song song: `Bài N` ↔ `bt-NN`, mở ở `#/bt-NN`.
+Bài tập **không phải quiz thứ hai**: nó bắt bạn tạo ra một câu trả lời rồi tự đối chiếu với
+tiêu chí đo được. Tiến độ bài tập tách hẳn khỏi tiến độ bài học — vòng tròn trên thanh trên
+cùng vẫn chỉ đếm 70 bài.
+
+| Bộ | Đi kèm | Số câu | Trạng thái |
+|---|---|---|---|
+| `bt-01` | Bài 1 | 25 | ✅ Đã có |
+| `bt-02` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
+
+`bt-01` có 25 câu thay vì 28 vì phần **D — Ôn xen kẽ** hỏi về các bài *trước*, mà Bài 1
+không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và bộ nào cũng đủ 28.
+
 ---
 
 ## 10. Nhật ký thay đổi

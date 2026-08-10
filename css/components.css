@@ -856,6 +856,70 @@
 .icon-btn--sync[data-sync="connecting"]::after { background: var(--warn); }
 .icon-btn--sync[data-sync="error"]::after      { background: var(--danger); }
 
+/* ══════════════ CHƯA CÓ DỮ LIỆU TỪ MÁY CHỦ ══════════════
+   Tiến độ chỉ tồn tại trên máy chủ. Trong lúc chưa nối được, bài học vẫn đọc
+   bình thường — chỉ những chỗ ĐO tiến độ mới phải nói thật là chưa biết. Ở
+   đây không dùng hiệu ứng nhấp nháy: một thanh chạy qua chạy lại suốt 40 phút
+   đọc bài là thứ gây mất tập trung, không phải thông tin.                  */
+.bar.is-wait {
+  background: repeating-linear-gradient(
+    -45deg, var(--surface-3) 0 6px, var(--surface-2) 6px 12px);
+}
+.progress-pill.is-wait .progress-ring__fg { stroke: var(--border); }
+.progress-pill.is-wait span { color: var(--text-faint); }
+
+/* Mọi bề mặt GHI được đều mờ đi và đổi con trỏ. Cố ý KHÔNG dùng
+   pointer-events: none — bấm vào vẫn phải bấm được, để trang nói ra lý do.
+   Một nút chết câm là cách nhanh nhất khiến người học nghĩ trang bị hỏng. */
+.is-nodb .q__opt,
+.is-nodb .exin__i,
+.is-nodb .exm__s,
+.is-nodb .exf__ta,
+.is-nodb .exck {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.is-nodb .exf__ta { background: var(--surface-3); }
+
+/* ══════════════ BÁO NGẮN (TOAST) ══════════════
+   Nằm dưới cùng bên phải, trên mọi thứ trừ hộp thoại. Xuất hiện khi một lệnh
+   ghi hỏng và giao diện vừa tự hoàn tác — không có nó thì người học chỉ thấy
+   nút mình vừa bấm tự bật ngược lại mà không hiểu vì sao. */
+.toasts {
+  position: fixed;
+  right: var(--sp-4); bottom: var(--sp-4);
+  z-index: var(--z-popover);
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  width: min(400px, calc(100vw - var(--sp-8)));
+  pointer-events: none;
+}
+.toast {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--danger-line);
+  background: var(--danger-soft);
+  color: var(--danger);
+  box-shadow: var(--shadow-md);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  animation: toast-in 180ms var(--ease);
+}
+.toast--ok   { border-color: var(--ok-line);   background: var(--ok-soft);   color: var(--ok); }
+.toast--info { border-color: var(--accent);    background: var(--accent-soft); color: var(--accent); }
+.toast__ico { flex: 0 0 auto; display: grid; place-items: center; }
+.toast__ico svg { width: 16px; height: 16px; }
+.toast__x { flex: 1; min-width: 0; }
+.toast.is-out { opacity: 0; transform: translateY(6px); transition: opacity 200ms var(--ease), transform 200ms var(--ease); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
+
 /* ══════════════ MÀN HÌNH NHỎ ══════════════ */
 
 /* ---------- Gợi ý còn nội dung bị khuất khi cuộn ngang ----------

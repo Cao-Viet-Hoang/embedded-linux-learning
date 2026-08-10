@@ -47,6 +47,7 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   30. Machine `virt` của ARM64
   31. Bộ tham số dòng lệnh QEMU
   32. Boot kernel đầu tiên trong QEMU
+- Bộ bài tập đã viết: **1 / 70** — `bt-01` đi kèm Bài 1. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
 
 ## Tính năng
@@ -58,25 +59,31 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 | Sao chép lệnh | Một nút cho mỗi khối lệnh |
 | Mổ xẻ câu lệnh | Bảng giải thích từng tham số của lệnh |
 | Tự kiểm tra | Quiz cuối bài, có giải thích đáp án |
+| Bài tập | Mỗi bài có một bộ bài tập riêng ở `#/bt-NN`: trắc nghiệm chấm tự động, câu tự luận tự chấm theo tiêu chí, và bảng tra "sai câu nào thì đọc lại mục nào" |
 | Giao diện sáng / tối | Tự nhớ lựa chọn |
 | Tìm kiếm | Toàn văn, không phân biệt dấu — gõ `tien trinh` vẫn ra `tiến trình`. Phím tắt <kbd>/</kbd> |
-| Đồng bộ nhiều máy | Tuỳ chọn. Nhập một tên người dùng là tiến độ và đáp án quiz theo bạn sang máy khác |
+| Đồng bộ nhiều máy | Tiến độ, đáp án quiz và bài tập nằm trên Firebase Firestore, mở máy nào cũng có |
 
-Tiến độ, đáp án quiz và chủ đề giao diện lưu trong `localStorage` của trình duyệt.
+### Nơi dữ liệu được lưu
 
-### Đồng bộ giữa nhiều máy (tuỳ chọn)
+Từ 10/08/2026, **toàn bộ tiến độ học nằm trên máy chủ**, không còn bản sao trong trình
+duyệt. Chỉ những thứ thuộc về riêng máy bạn mới ở lại `localStorage`: giao diện sáng/tối,
+trạng thái thu gọn sidebar, chặng đang mở, và tên người dùng.
 
-Bấm nút hình người ở thanh trên cùng, nhập một tên (3–40 ký tự, chỉ chữ không dấu, số,
-`-` và `_`). Từ đó tiến độ và đáp án quiz được lưu lên Firebase Firestore; mở trang trên
-máy khác và nhập đúng tên đó là có lại toàn bộ.
-
-Đây **không phải tài khoản**: không mật khẩu, không đăng nhập. Tên người dùng chỉ là khoá
-tra dữ liệu, và chỉ những tên nằm trong danh sách trắng ở
+Bấm nút đồng bộ ở thanh trên cùng và nhập một tên (3–40 ký tự, chỉ chữ không dấu, số,
+`-` và `_`). Đây **không phải tài khoản**: không mật khẩu, không đăng nhập. Tên người dùng
+chỉ là khoá tra dữ liệu, và chỉ những tên nằm trong danh sách trắng ở
 [`firebase/firestore.rules`](firebase/firestore.rules) mới dùng được.
 
-Chọn *Dùng ngoại tuyến* — hoặc đơn giản là không có mạng — thì mọi thứ vẫn chạy y hệt như
-cũ: bài học, tìm kiếm, quiz và tiến độ đều nằm trong `localStorage`. SDK Firebase chỉ được
-tải khi bạn thật sự bật đồng bộ, nên lúc offline trang không phải chờ nó.
+Mỗi thao tác hiện lên ngay lập tức rồi mới ghi lên máy chủ. Nếu ghi hỏng — mất mạng, sai
+quyền, quá 6 giây — thao tác đó **được hoàn tác** và có thông báo giải thích, để bạn không
+bao giờ học tiếp trên một trang đã ngừng ghi nhận. Riêng ô tự luận thì không bao giờ bị xoá
+chữ: nó chỉ đổi nhãn thành *Chưa lưu được*, gõ tiếp là thử lại.
+
+Khi chưa nối được máy chủ: bài học, tìm kiếm và giao diện vẫn đầy đủ, nhưng các nút đánh
+dấu hoàn thành, quiz và bài tập bị khoá, còn mọi con số tiến độ hiện `—` thay vì một số có
+thể sai. SDK Firebase chỉ được tải sau khi trang đã vẽ xong, nên lúc offline trang không
+phải chờ nó.
 
 ## Cấu trúc
 
@@ -87,19 +94,25 @@ css/
   base.css            reset và typography
   layout.css          thanh trên cùng, sidebar, mục lục, breakpoint
   components.css      toàn bộ khối nội dung bài học
+  exercise.css        riêng cho trang bài tập
 js/
   icons.js            bộ icon SVG inline
-  store.js            localStorage: chủ đề, tiến độ, quiz
+  toast.js            thông báo góc màn hình khi ghi hỏng và giao diện vừa hoàn tác
+  store.js            tuỳ chọn máy trong localStorage, tiến độ trong RAM + ghi lên máy chủ
   registry.js         khung 70 bài + kho nội dung đã đăng ký
   render.js           dựng HTML từ dữ liệu block  (bộ máy đồng nhất style)
   search.js           chỉ mục tìm kiếm trong bộ nhớ
-  cloud.js            đồng bộ Firestore (tuỳ chọn, chỉ tải khi được bật)
+  exercises.js        kho bộ bài tập + tiến độ riêng của bài tập
+  render-ex.js        dựng HTML cho trang bài tập  (7 kiểu chấm)
+  cloud.js            Firestore: nghe thay đổi, ghi từng trường, hoàn tác khi hỏng
   account.js          hộp thoại nhập tên + chấm trạng thái đồng bộ
   app.js              định tuyến, sidebar, mục lục, quiz, sao chép
 lessons/
   bai-01.js           nội dung Bài 1
   bai-02.js           nội dung Bài 2
   bai-03.js           nội dung Bài 3
+exercises/
+  bt-01.js            bộ bài tập của Bài 1
 firebase/
   firestore.rules     danh sách trắng tên người dùng, nạp lên bằng tay
 LO-TRINH.md           lộ trình 70 bài

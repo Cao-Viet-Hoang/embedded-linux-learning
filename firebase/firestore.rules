@@ -7,14 +7,27 @@ rules_version = '2';
 //  username is typed into a text field rather than logged in with. So
 //  `request.auth` is always null and cannot be used for authorization.
 //
-//  Instead, the three layers below shrink the attack surface to something
+//  Instead, the four layers below shrink the attack surface to something
 //  acceptable for a database that holds nothing but learning progress:
 //
 //    1. Whitelist — only the names returned by allowed() may exist. A stranger
 //       cannot create millions of junk documents and burn through the quota.
-//    2. Shape constraint — a document must have exactly 5 fields, of exactly
-//       the right types. Nobody can stuff 1 MB of arbitrary data in.
-//    3. No delete — data is only ever overwritten, never wiped.
+//    2. Shape constraint — a document must have exactly the fields below, of
+//       exactly the right types. Nobody can stuff 1 MB of arbitrary data in.
+//    3. Server-owned clock — `updatedAt` must equal `request.time`, so a
+//       client cannot backdate or postdate a write.
+//    4. No delete — data is only ever overwritten, never wiped.
+//
+//  Since 2026-08-10 this database is no longer an optional mirror of
+//  localStorage: it is the ONLY place progress exists (CLAUDE.md §14). Two
+//  consequences show up in these rules:
+//
+//    - Writes are now field-level `update()` calls, not whole-document `set()`.
+//      That is safe here because on an update `request.resource.data` is the
+//      MERGED resulting document, not the delta — so wellFormed() still sees
+//      and constrains the whole thing.
+//    - Exercise answers finally have their own subcollection block below.
+//      Rules do not cascade, so without it every exercise write is denied.
 //
 //  Adding a new machine/person: add the name to allowed(), then
 //  `firebase deploy --only firestore:rules`. The name must match the RE
@@ -27,25 +40,82 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // 'elx-probe' is a disposable canary document. It exists so the POSITIVE
+    // write path can be tested without touching real progress: `allow delete:
+    // if false` means a test can never clean up after itself, and a test-created
+    // empty document under a real name would — via remote-wins, no merge — erase
+    // that learner's progress on their next connect. There is no local copy left
+    // to restore it from, which makes this rule stricter than it used to be.
     function allowed() {
-      return ['shinarus'];
+      return ['shinarus', 'elx-probe'];
     }
 
+    // Version 3 of the document shape. CLAUDE.md §14.3.
+    //
+    //   v          int, pinned to 3 — see below
+    //   createdAt  timestamp, written once by the client from the value it read back
+    //   updatedAt  timestamp, must be the server's own request.time
+    //   by         short opaque device id, so a last-write-wins overwrite is traceable
+    //   done       { "bai-01": <epoch ms> }
+    //   quiz       { "bai-01": { n: <question count>, a: { "<index>": <choice> } } }
+    //
+    // `v` is pinned rather than compared with >=. Bumping it in js/cloud.js and
+    // forgetting to deploy these rules then fails loudly and immediately —
+    // permission-denied and a red dot — instead of letting two document shapes
+    // quietly mix in the same collection.
+    //
+    // createdAt is deliberately NOT made immutable here. Enforcing
+    // `request.resource.data.createdAt == resource.data.createdAt` would reject
+    // the whole write whenever a client pushes before its listener has delivered
+    // the document — a real failure mode, in exchange for no reduction in threat.
+    // Nobody but the learner knows the username, and a wrong createdAt costs
+    // nothing. Rules should block what actually hurts, not everything expressible.
     function wellFormed(d) {
-      return d.keys().hasOnly(['v', 'at', 'done', 'quiz', 'ex'])
-          && d.keys().hasAll(['v', 'done', 'quiz', 'ex'])
+      return d.keys().hasOnly(['v', 'createdAt', 'updatedAt', 'by', 'done', 'quiz'])
+          && d.keys().hasAll(['v', 'updatedAt', 'done', 'quiz'])
           && d.v is int
+          && d.v == 3
+          && d.updatedAt is timestamp
+          && d.updatedAt == request.time
+          && (!('createdAt' in d) || d.createdAt is timestamp)
+          && (!('by' in d) || (d.by is string && d.by.size() <= 40))
           && d.done is map
           && d.quiz is map
-          && d.ex   is map
           // The roadmap has exactly 70 lessons. Capping each map at 200 keys
           // is what keeps this document from becoming a dumping ground for
           // arbitrary data. (Firestore Rules has no byte-size function for a
           // document — only Storage has `request.resource.size`. Counting
           // keys is the thing that can actually be measured here.)
           && d.done.size() <= 200
-          && d.quiz.size() <= 200
-          && d.ex.size()   <= 200;
+          && d.quiz.size() <= 200;
+    }
+
+    // One document per exercise set: progress/{name}/ex/{bt-NN}.
+    //
+    //   v          int, pinned to 3
+    //   createdAt  timestamp, optional, written on the set() that creates the doc
+    //   updatedAt  timestamp, must be request.time
+    //   by         short opaque device id
+    //   items      { "<item id>": { p, sel, v, m, txt, ck, ok } }
+    //
+    // `items` is NOT shape-checked past "is a map of at most 40 keys". A set has
+    // 28 items (CLAUDE.md §13.2) and each item's value differs by question kind,
+    // so spelling all seven shapes out here would mean this file has to be
+    // redeployed every time a question type is added — a deploy the learner does
+    // by hand, and therefore a deploy that will eventually be forgotten. The key
+    // cap is what actually bounds the damage; the value shapes cost nothing to
+    // get wrong because only this app ever reads them.
+    function wellFormedEx(d) {
+      return d.keys().hasOnly(['v', 'createdAt', 'updatedAt', 'by', 'items'])
+          && d.keys().hasAll(['v', 'updatedAt', 'items'])
+          && d.v is int
+          && d.v == 3
+          && d.updatedAt is timestamp
+          && d.updatedAt == request.time
+          && (!('createdAt' in d) || d.createdAt is timestamp)
+          && (!('by' in d) || (d.by is string && d.by.size() <= 40))
+          && d.items is map
+          && d.items.size() <= 40;
     }
 
     match /progress/{name} {
@@ -53,6 +123,24 @@ service cloud.firestore {
       allow create: if name in allowed() && wellFormed(request.resource.data);
       allow update: if name in allowed() && wellFormed(request.resource.data);
       allow delete: if false;
+
+      // Exercise answers (CLAUDE.md §13), one document per set. They are kept
+      // out of the parent document on purpose: free-text answers across 70 sets
+      // can reach hundreds of KB against a 1 MiB per-document ceiling, and a
+      // whole-document overwrite would resend all of it on every keystroke.
+      //
+      // `set` is constrained to the bt-NN id pattern so the subcollection cannot
+      // be used as free storage under an otherwise-valid username.
+      match /ex/{set} {
+        allow read:   if name in allowed();
+        allow create: if name in allowed()
+                      && set.matches('^bt-[0-9]{2}$')
+                      && wellFormedEx(request.resource.data);
+        allow update: if name in allowed()
+                      && set.matches('^bt-[0-9]{2}$')
+                      && wellFormedEx(request.resource.data);
+        allow delete: if false;
+      }
     }
 
     // Everything else is fully closed.

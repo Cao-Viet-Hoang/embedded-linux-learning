@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/exercise.css">
 
 <!-- Đặt theme trước khi vẽ để tránh nhấp nháy trắng khi đang ở dark mode -->
 <script>
@@ -94,6 +95,7 @@
     <nav class="sidebar__nav" id="sidebarNav"></nav>
     <div class="sidebar__foot">
       <a class="sidebar__link" href="#/" data-icon-before="map">Lộ trình tổng quan</a>
+      <a class="sidebar__link" href="#/bai-tap" data-icon-before="listChecks">Bài tập</a>
     </div>
   </aside>
   <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
@@ -113,10 +115,13 @@
 
 <!-- ═══════════════ CORE ═══════════════ -->
 <script src="js/icons.js"></script>
+<script src="js/toast.js"></script>
 <script src="js/store.js"></script>
 <script src="js/registry.js"></script>
 <script src="js/render.js"></script>
 <script src="js/search.js"></script>
+<script src="js/exercises.js"></script>
+<script src="js/render-ex.js"></script>
 
 <!-- ═══════════════ BÀI HỌC ═══════════════ -->
 <!-- Thêm bài mới: viết file lessons/bai-XX.js rồi thêm 1 dòng script ở đây -->
@@ -152,6 +157,10 @@
 <script src="lessons/bai-30.js"></script>
 <script src="lessons/bai-31.js"></script>
 <script src="lessons/bai-32.js"></script>
+
+<!-- ═══════════════ BÀI TẬP ═══════════════ -->
+<!-- Một bộ cho mỗi bài: bai-NN ↔ bt-NN. Xem CLAUDE.md §13 -->
+<script src="exercises/bt-01.js"></script>
 
 <!-- ═══════════════ ĐỒNG BỘ (tuỳ chọn) ═══════════════ -->
 <!-- SDK Firebase KHÔNG được nhúng ở đây: cloud.js tự nạp khi người học bật

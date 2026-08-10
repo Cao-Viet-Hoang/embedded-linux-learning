@@ -26,12 +26,14 @@ WSL2 + QEMU.
 
 `tools/check.js` is the only Node script and it is a test, never a build step.
 
-**"No Internet" now has exactly one exception: progress sync.** Everything that
-*teaches* — lessons, figures, search, quiz, theme — is still 100 % offline and always will
-be. On top of that sits one optional overlay, `js/cloud.js`, which mirrors the learner's
-progress to Firebase Firestore so they can move between machines. It is lazy-loaded, never
-blocks first paint, and every failure path lands back on plain localStorage. Pull the
-network cable and the course is unchanged. See §14.
+**"No Internet" has exactly one exception, and since 2026-08-10 it is no longer optional:
+progress requires the network.** Everything that *teaches* — lesson text, figures, search,
+theme, the rendering itself — is still 100 % offline and always will be. Pull the network
+cable and the whole course is still readable, end to end, with no build step and no server.
+What you lose is the ability to *record* anything: lesson ticks, quiz answers and exercise
+answers live only in Firebase Firestore, so with no connection the page shows a loading
+state and disables those controls rather than writing a copy to the machine. This was the
+user's explicit instruction; §14 spells out what it cost and why it is not negotiable.
 
 ### The original brief
 
@@ -108,17 +110,23 @@ css/
   base.css            reset + typography
   layout.css          topbar, sidebar, toc, breakpoints
   components.css      every content block style
+  exercise.css        the exercise page only — parts, item cards, reveal states
 js/
   icons.js            inline SVG icon set
-  store.js            localStorage: theme, progress, quiz answers + the change bus
+  toast.js            transient failure notice, bottom-right — see §14
+  store.js            state: machine prefs in localStorage, progress in RAM only — see §14
   registry.js         COURSE skeleton (14 modules / 70 lessons) + Lesson registry
   render.js           data -> HTML.  THE consistency engine
   search.js           in-memory full-text index, diacritic-insensitive
-  cloud.js            OPTIONAL Firestore sync overlay, lazy-loaded — see §14
+  exercises.js        exercise registry, PARTS/KINDS, per-set progress — see §13
+  render-ex.js        data -> HTML for exercise pages. THE grading engine — see §13
+  cloud.js            Firestore: the only home of progress, lazy-loaded — see §14
   account.js          the username modal + topbar sync dot — see §14
   app.js              hash routing, sidebar, toc, quiz, copy buttons
 lessons/
   bai-01.js  bai-02.js  bai-03.js       one file per lesson, self-registering
+exercises/
+  bt-01.js                              one file per exercise set, self-registering
 firebase/
   firestore.rules     username whitelist + document shape.  Deploy by hand — §14.7
 assets/
@@ -519,16 +527,34 @@ cross-references. Guard against a repeat:
 - Next lesson to write, when asked: lesson 33, `Nhiệm vụ của bootloader`, opening
   `Chặng 06 — Bootloader U-Boot`.
 - `node tools/check.js` → `14 modules · 70 lessons · 32 written · OK`.
-- **Firestore progress sync is implemented and wired** (2026-08-09): `js/cloud.js`,
-  `js/account.js`, `firebase/firestore.rules`, plus `Store.snapshot/applyRemote/onChange`
-  and `app.js` → `applyRemoteToUi()`. The rules **were deployed by the user on 2026-08-09**
-  and verified against the live project the same day — see §14.6. The whitelist holds only
-  `shinarus`. Still unverified: the *positive* create path, because `progress/shinarus` did
-  not exist yet and creating it from a test would have let remote-wins wipe the learner's
-  real localStorage progress. See §14.
-- **The exercise system (§13) is still design-only.** There is no `Exercise.register`, no
-  `exercises/` directory, no `#/bt-NN` route. The `elx.ex` localStorage key and the `ex`
-  field in the Firestore document exist but nothing writes to them.
+- **Firestore is the only home of progress since 2026-08-10** — the storage model was
+  inverted on that date at the user's instruction and §14 was rewritten around it. `done`,
+  `quiz` and every exercise answer live on the server and in RAM, never in `localStorage`;
+  only theme, sidebar-collapse, open-module and the username stay local. Every action paints
+  first, writes with a 6 s deadline, and **rolls the UI back** if the write fails
+  (`Store.commit()` → `Toast.writeFailed()`). Until server data arrives the page shows `—`
+  and locks every control (`body.is-nodb`). Files: `js/store.js` (rewritten), `js/cloud.js`
+  (rewritten), `js/toast.js` (new), `js/account.js`, `js/app.js`,
+  `firebase/firestore.rules`.
+- **Schema v3** (2026-08-10) adds `progress/{user}/ex/{bt-NN}` and moves writes from
+  whole-document `set()` to field-level `update()`. **The v3 rules are written but NOT yet
+  deployed or re-tested** — every write is permission-denied until the user pastes
+  `firebase/firestore.rules` into the console, which is the pinned-`v` design working. The
+  v2 suite passed 24/24 on 2026-08-09; re-run it against `progress/elx-probe`, now including
+  the subcollection (§14.6b). `allowed()` holds `shinarus` and `elx-probe`.
+  `progress/shinarus` is still **v1 on disk**; `ensureShape()` rewrites it on first connect,
+  no migration script needed.
+- **The exercise system (§13) is implemented** (2026-08-10): `js/exercises.js`,
+  `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar
+  chip and the end-of-lesson CTA. `tools/check.js` validates and renders every set (§13.7).
+  **`exercises/bt-01.js` is the only content file so far** — 25 items, 3 trục, 13 diag rows.
+  It has **25 items, not 28**, because part D (`Ôn xen kẽ`) asks about *earlier* lessons and
+  lesson 1 has none; `DEmpty` says so on the page. From `bt-02` on, every set is 28.
+  Exercise state lives in `progress/{user}/ex/{bt-NN}` since 2026-08-10 (§14.3).
+- `bt-01`'s three trục are: MMU is the hard boundary (not RAM size) · the four pieces run in
+  sequence, so "where did it die" is deducible · hardware does not announce itself, Device
+  Tree declares it. Per §13.4 step 4 a concept may be spiralled **once in the whole course**,
+  so none of these three may become a trục again — in later sets they belong in part D.
 - Module 05 splits ownership deliberately, to avoid overlap — keep it that way:
   lesson 29 is **TCG internals via user-mode only** (`qemu-aarch64`, `-d in_asm/out_asm/exec`,
   `-one-insn-per-tb`, `-d nochain`); lesson 30 is **the machine model** (memory map, device
@@ -580,9 +606,14 @@ number do not resemble each other. Verified against `js/registry.js`:
 
 ## 13. Exercise sets — `Bài tập`
 
-> **Status: design agreed with the user on 2026-08-09. Nothing is implemented.**
-> There is no `Exercise.register`, no `exercises/` directory, no renderer, no store key,
-> no route. Do not assume any of it exists — build it when the user asks, to this spec.
+> **Status: implemented 2026-08-10.** `js/exercises.js`, `js/render-ex.js`,
+> `css/exercise.css`, the `#/bt-NN` and `#/bai-tap` routes, `Store.getEx/setEx/setExItem/
+> resetEx`, and the first content file `exercises/bt-01.js` all exist and render.
+> `node tools/check.js` validates every set — see §13.7. Exercise state is stored **only on
+> the server**, one document per set at `progress/{user}/ex/{bt-NN}` — see §14.3.
+>
+> The spec below is what the implementation was built to. When writing `bt-NN`, follow
+> §13.1–§13.6 for the content and §13.7 for the data contract.
 
 ### 13.1 What it is, and the one thing it must not become
 
@@ -711,7 +742,9 @@ and one wrong "sai" destroys the learner's trust in every subsequent verdict.
 
 The mechanism is **commit → compare → self-score**, and its load-bearing part is the lock:
 
-1. **Commit.** A `<textarea>`, persisted to `localStorage`. The learner types their answer.
+1. **Commit.** A `<textarea>`, debounced 700 ms and written to Firestore (§14.2 decision 5 —
+   a failed write shows *chưa lưu được* but never erases what was typed). The learner types
+   their answer.
 2. **Lock.** The `Tiêu chí tự chấm` and `Lời giải` buttons stay **disabled until the
    textarea is non-empty**. Without this, hindsight bias ("that's what I meant") voids the
    entire exercise. The lock is not friction to be smoothed away — it is the mechanism.
@@ -747,18 +780,86 @@ run them on the user's machine, capture real output, paste that. The theory-heav
 is therefore also the cost lever. Do not silently shift the mix toward hands-on items to
 make a set feel meatier; it multiplies verification time without adding retention.
 
+### 13.7 The data contract — what `exercises/bt-NN.js` must contain
+
+Same rule as §4: **an exercise set is data, never HTML.** `js/render-ex.js` turns it into a
+page, and that is what makes every set look and grade alike. Rich text is allowed inside
+`q`, `opts`, `crit`, `sol`, `why` and the `diag` cells; `blocks`/`solBlocks` take the
+ordinary lesson block types from §6 and go through `Render.blocks()`.
+
+```js
+Exercise.register({
+  id: 'bt-04',                  // MUST pair with lessons/bai-04.js
+  minutes: 85,
+  intro: '...',                 // HTML, sets up the two passes
+  truc: [ { id: 'mmu', name: '...', x: '...', mis: '...' } ],   // only `name` is rendered
+  A: [...], B: [...], C: [...], D: [...], E: [...],  // §13.2's six parts
+  DEmpty: '<p>…</p>',           // REQUIRED if a part is empty — say why, don't leave a hole
+  diag: [ ['A1, B2', 'what you are missing', '<a href="#/bai-04#slug">Đọc lại …</a>'] ]
+});
+```
+
+Every item: `id` (unique in the set), `k` (the grading primitive), `tag` (the Vietnamese
+name of the §13.2 type — `k` decides how it grades, `tag` tells the learner what they are
+practising), `q`, optional `blocks` (rendered under `q`), optional `truc` (index into
+`truc[]`, **A/B/C only**).
+
+| `k` | Grades by | Required | Optional |
+|---|---|---|---|
+| `mcq` | one correct index | `opts`, `a`, `why` | — |
+| `multi` | exact set of indices | `opts`, `a: []`, `why` | — |
+| `tf` | index + a written rewrite | `a` (0 = Đúng, 1 = Sai), `why`, `crit` | `rw` (rewrite prompt), `sol`, `hint` |
+| `fill` | normalised string match | `a: []` (all accepted spellings), `why` | `ph` |
+| `num` | number ± `tol` | `a`, `why` | `tol`, `unit` |
+| `match` | left[i] → right[a[i]] | `left`, `right`, `a`, `why` | — |
+| `free` | **self-scored only** | `crit`, `sol` or `solBlocks` | `hint`, `rows`, `ph` |
+
+Rules the validator enforces, each for a reason learned the hard way:
+
+- **`match` may not use an identity mapping.** `a: [0,1,2,…]` is solvable by picking A, B,
+  C top to bottom without reading anything. Shuffle `right[]`.
+- **Every trục appears exactly once in A, once in B, once in C** — §13.3's grid, checked
+  mechanically. A trục badge outside A/B/C is an error: the UI tells the learner these are
+  asked *three* times, so a fourth badge makes the page lie.
+- **`free` without `crit` is rejected.** Free text that cannot be self-scored is a dead end
+  (§13.5), and every criterion must be checkable by eye in five seconds.
+- **An empty part needs `<PART>Empty`.** A silently missing part reads as broken content.
+- **Every part-F row needs a link.** The whole value of the table is that it routes a
+  failure to a specific section: `#/bai-NN#<slug>`, where the slug is `Render.slug()` of
+  that heading's exact text.
+
+Checklist for adding a set — the §9 checklist, applied here:
+
+1. Do §13.4 steps 1–7 first and paste the scoring table into the file as a header comment.
+2. Verify every command in part E on the user's machine and paste real output (§13.6).
+3. `exercises/bt-NN.js`, then a `<script>` line in `index.html` **before** `js/app.js`.
+4. Update the `Bộ bài tập đã viết` line in `README.md` and §9.1 of `LO-TRINH.md`.
+5. `node tools/check.js` → `OK`. It renders every set and prints
+   `bt-NN items=… truc=… diag=… html=…KB`.
+
 ---
 
-## 14. Progress sync — Firebase Firestore
+## 14. Progress storage — Firebase Firestore
 
-Implemented and wired on 2026-08-09. Unlike §13, this one **exists**: `js/cloud.js`,
-`js/account.js`, `firebase/firestore.rules`, and the `Store` API described below are all in
-the repo.
+**Rewritten 2026-08-10.** This section used to describe an optional sync overlay on top of
+localStorage. The user inverted it:
+
+> *"Hãy cập nhật code để gỡ toàn bộ những thứ liên quan tới localstorage, bắt buộc phải
+> dùng database. Đối với những cái thuộc về máy tính như user mode dark, light hoặc
+> collapse,... thì có thể dùng localstorage, còn lại phải ghi toàn bộ vào firebase database
+> cho tôi. Thêm vào đó khi user thao tác thì hiệu ứng trang web ghi nhận ngay lập tức và
+> bắt đầu ghi vào database, nếu ghi thất bại thì revert hiệu ứng trang web."*
+
+— remove everything localStorage-related, the database is mandatory; machine-level things
+(dark/light, sidebar collapse) may stay local; everything else must be written to Firebase;
+the UI must register the action immediately and start writing, and **revert the UI effect if
+the write fails**.
+
+Everything below follows from that sentence. The decisions in §14.2 of the *previous*
+version (localStorage is the source of truth · cloud is an overlay · ask for the username
+once) are **dead**. Do not resurrect them from an older transcript.
 
 ### 14.1 What it is, and what it deliberately is not
-
-The learner works on more than one machine and wants their progress to follow them. That is
-the whole requirement. It is **not** an account system:
 
 | | |
 |---|---|
@@ -768,80 +869,171 @@ the whole requirement. It is **not** an account system:
 | Meaning of the username | It is a *document key*, nothing more. Typing the right one gets you the right data — that is the entire authorization model, and the user explicitly accepted it. |
 | Protection | Firestore Rules: a fixed whitelist of usernames + a document-shape constraint + `allow delete: if false`. |
 
-Do not "improve" this into a login flow. It was scoped this way on purpose.
+Do not "improve" this into a login flow. It was scoped this way on purpose. What changed in
+2026-08-10 is *where the data lives*, not *who may read it*.
 
 ### 14.2 Hard decisions (from the user — do not renegotiate)
 
-1. **localStorage is always the local source of truth.** `js/cloud.js` is an overlay. No
-   network, no username, blocked CDN, Firestore outage — the course must behave exactly as
-   it did before sync existed. Every failure path in `cloud.js` ends in a `console.warn`
-   plus state `'error'`, never a thrown exception.
-2. **Remote wins, always. There is no merge.** The user's words:
-   *"Không cần quan tâm tới vấn đề đồng bộ ngược, mọi thứ sẽ được bắt đầu từ bây giờ, dữ
-   liệu trước đó không quan trọng"* — don't worry about back-sync, everything starts from
-   now, earlier data doesn't matter. `Store.applyRemote()` therefore **overwrites**.
-   Do not add union/merge logic: merging resurrects a lesson the learner deliberately
-   un-ticked on another machine, which is worse than losing an offline edit they never
-   asked to keep.
-3. **The username is asked exactly once.** `elx.syncAsked` guards it. Choosing
-   "Dùng ngoại tuyến" must never re-prompt on later loads; the topbar button is the only
-   way back in.
-4. **The Firebase SDK is lazy-loaded, never in `index.html`.** Two `<script>` tags to
-   `gstatic.com` in the head would block first paint for the whole browser connect timeout
-   whenever the machine is offline. `cloud.js` injects them on demand, with a 15 s cap.
-5. **The config is hardcoded and that is correct.** A Firebase web config identifies the
+1. **Firestore is the only home of progress.** `done`, `quiz` and every exercise answer live
+   in RAM as a mirror of the server and are never written to `localStorage`. Reload with no
+   connection and the learner has nothing — by design. The four keys that stay local are
+   `elx.theme`, `elx.modOpen`, `elx.sbCollapsed`, `elx.user`, plus `elx.dev` (the device id).
+   The line is *"does this describe the machine or the person"*: syncing dark mode would let
+   a phone flip the desktop to dark, which is an annoyance, not a feature.
+2. **Optimistic, then reverted.** Every write paints first and writes second. On failure the
+   change is rolled back in `Store` *and* on screen, and a toast says so. A silent failure
+   is the one outcome that is unacceptable: the learner would keep working against a page
+   that is no longer recording anything.
+3. **Offline locks the controls; it never falls back to local storage.** The user chose
+   *"Khoá thao tác, vẫn đọc được bài"* — lock the actions, keep the lessons readable. So the
+   username is asked at every page open until one is set (the "Dùng ngoại tuyến" button is
+   **gone**), and with no connection the lesson renders fully while the tick button, the
+   quiz and the exercise inputs are disabled. **No progress is quietly kept on the machine
+   to "sync later"** — that would recreate exactly the two-sources-of-truth problem this
+   change removed.
+4. **Failure is detected with the SDK plus our own deadline.** The user chose
+   *"SDK + timeout tự đặt"*. Keeping the SDK keeps `onSnapshot`, which is what makes a
+   second machine update live. The explicit timeout exists because **Firestore does not
+   reject writes when offline** — it queues them locally and the promise simply never
+   settles. Without `withTimeout()` the revert-on-failure rule would never fire once.
+   `WRITE_TIMEOUT` is 6 s. Accepted trade-off: a merely *slow* network (>6 s) reverts, and
+   the next server snapshot puts the value back. The server is authoritative at every
+   instant; only the path to it was ugly.
+5. **Free text is never erased by a failed write.** The user chose *"Không revert chữ, chỉ
+   báo trạng thái"*. A `<textarea>` debounces at 700 ms and shows *đang lưu / đã lưu / chưa
+   lưu được*; typing again retries. Everything discrete — a lesson tick, a chosen answer, a
+   self-score checkbox — reverts immediately. `repaintExItem()` therefore snapshots the
+   `[data-ta]` and `[data-in]` values before it replaces the item's HTML and restores them
+   afterwards: what gets rolled back is the *score*, not the learner's typing.
+6. **Never display a number that might be wrong.** The user chose *"Skeleton, khoá thao tác
+   tới khi có dữ liệu"*. Until `Store.ready()` is true, every progress figure renders as
+   `—` (`num()` in `app.js`), the ring is empty, bars get `.bar.is-wait`, and `body.is-nodb`
+   dims every writable surface. Showing `0%` while loading tells the learner the exact thing
+   they are most afraid of — that their progress is gone.
+7. **Remote wins, always. There is no merge.** Unchanged from the previous design and still
+   the user's instruction: *"Không cần quan tâm tới vấn đề đồng bộ ngược… dữ liệu trước đó
+   không quan trọng"*. `Store.applyRemote()` **overwrites**. Merging would resurrect a
+   lesson the learner deliberately un-ticked on another machine.
+8. **The SDK is lazy-loaded, never in `index.html`.** Two `<script>` tags to `gstatic.com`
+   in the head would block first paint for the whole browser connect timeout whenever the
+   machine is offline — and reading the lessons offline is still a supported use.
+9. **The config is hardcoded and that is correct.** A Firebase web config identifies the
    project; it is not a secret (Google publishes this). The rules file is what protects the
    data. The user authorised this explicitly.
-6. **Only three keys sync: `done`, `quiz`, `ex`.** Theme, sidebar-collapsed and
-   which-module-is-open are **per-machine preferences**. Syncing them means a phone in dark
-   mode flips the desktop to dark mode — an annoyance, not a feature.
 
-### 14.3 The data model
+### 14.3 The data model — schema v3 (2026-08-10)
 
-One document per user, overwritten whole on every change:
+Two document kinds. **Writes are field-level `update()`, not whole-document `set()`** —
+that is what makes a single failed action revertible without disturbing the other 69 lessons.
 
 ```
 progress/{username} = {
-  v:    1,                       // schema version — bump if the shape ever changes
-  at:   serverTimestamp(),       // written by the server, never trusted for ordering logic
-  done: { "bai-01": 1735000000000, ... },   // lesson id → epoch ms it was ticked
-  quiz: { "bai-01": { "0": 2, "1": 0 } },   // lesson id → question index → chosen option
-  ex:   { }                                 // reserved for §13; nothing writes it yet
+  v:         3,                  // schema version — Rules pin this exact value
+  createdAt: <timestamp>,        // written once, then echoed back by the client
+  updatedAt: <timestamp>,        // serverTimestamp(); Rules force == request.time
+  by:        "web-a1b2c3",       // opaque device id from Store.deviceId()
+  done: { "bai-01": 1735000000000, ... },          // lesson id → epoch ms it was ticked
+  quiz: { "bai-01": { n: 6, a: { "0": 2 } }, ... } // lesson id → {question count, index → choice}
+}
+
+progress/{username}/ex/{bt-NN} = {
+  v: 3, createdAt, updatedAt, by,
+  items: { "a1": { p: 2 }, "b3": { txt: "…", ck: [0,2] }, ... }   // §13.7's per-item state
 }
 ```
 
-Whole-document `set()`, not per-field `update()`. The document is a few KB; field-level
-diffing would buy nothing and would need the merge logic decision 2 forbids.
+Why each piece is the way it is:
 
-`ex` is in `SYNCED` *already*, before the exercise UI exists. That is intentional — when
-§13 gets built it must not require touching `cloud.js`.
+- **Username is the document id, not a field.** With no Auth, the path is the *only* thing
+  Rules can see. A username stored inside the document could not gate a read, because a read
+  rule is evaluated before the content is known.
+- **`done` and `quiz` share one document.** They are tiny, both are needed on every page load
+  to paint the ring and the sidebar, and "remote wins" needs one atomic snapshot. Splitting
+  them per lesson would cost 70 reads per load and turn `onSnapshot` into 70 uncoordinated
+  events that must be reassembled — which is the merge logic decision 7 forbids.
+- **Exercises live in a subcollection, one document per set.** Free-text answers across 70
+  sets can reach hundreds of KB against Firestore's **1 MiB per-document** ceiling and
+  **40 000 index entries per document**. This is also why the whole-document `set()` of the
+  old design had to go: it would have resent every answer on every debounced keystroke.
+- **All exercise documents are fetched in ONE collection query at connect time**
+  (`loadEx()`), not lazily per page. The sidebar chips, the `#/bai-tap` index and
+  `Exercise.stats()` need every set's numbers the moment the page opens; lazy loading would
+  show 0 and then jump. Do **not** "optimise" this into a per-page fetch, and do not add a
+  summary field to the parent document to avoid it — a denormalised count is a second
+  source of truth and it will drift.
+- **Maps, not arrays.** Rules can call `size()` on a map, and that key count is the *only*
+  measurable ceiling available: Firestore Rules has no byte-size function for a document
+  (only Storage has `request.resource.size`).
+- **Field paths are passed as arrays, not dotted strings.** `Store` emits
+  `{ p: ['done', 'bai-01'], v: … }` and `cloud.js` builds a `firebase.firestore.FieldPath`
+  from it. `"done.bai-01"` is an **invalid** field path — a hyphen forces backtick quoting —
+  and every lesson id has one.
+- **`Store.DEL` is a sentinel, not a Firebase value.** `store.js` must not know that
+  `firebase.firestore.FieldValue.delete()` exists; `cloud.js` translates it in
+  `updateArgs()`. This is the layering in §14.4, in one line of code.
+- **`quiz` carries `n`, the question count at answer time.** Answers are keyed by question
+  index, so inserting a question into an already-written lesson would shift every stored
+  answer by one and display it wrongly, in silence. `Store.getQuiz(id, n)` discards the whole
+  entry when `n` disagrees. `n: 0` means "unknown" — that is how pre-v2 flat entries
+  (`{ "0": 2 }`) read, and they are accepted rather than thrown away.
+- **`updatedAt` is server-owned.** Rules require `updatedAt == request.time`, so a machine
+  with a wrong clock cannot write a fabricated timestamp. It is **not** used to decide which
+  side is newer — remote always wins, and comparing timestamps would sneak merge logic back.
+- **`createdAt` is not enforced immutable.** Doing so would reject a legitimate write from a
+  client that pushed before its listener delivered the document, in exchange for no threat
+  reduction. See the comment in `firebase/firestore.rules`.
+- **`by` exists because last-write-wins is silent.** One machine can erase another's work
+  with no trace. This field is what turns "my progress vanished" into something diagnosable.
+
+**`ensureShape()` is not optional.** Rules pin `v == 3`, and a field-level `update()` fails
+on a document that does not exist. So the first server snapshot of a session either finds a
+v3 document or rewrites the whole thing with `set()` — creating it, or upgrading a v1/v2 one
+in place, seeded from whatever is still in the old localStorage keys. Skip this and every
+subsequent write is permission-denied forever, with no obvious cause.
+
+**Legacy exercise answers are migrated, once.** Before this change `elx.ex` had **never**
+been synced anywhere. Clearing localStorage without uploading it first would have destroyed
+real work. `migrateEx()` uploads only the sets the server does not already have, then
+`Store.dropLegacy()` removes `elx.done`, `elx.quiz` and `elx.ex` for good. Once the user has
+connected once on a machine, that machine's legacy keys are gone and this path is dead code
+there — leave it in anyway, other machines have not run it yet.
 
 ### 14.4 File map and responsibilities
 
 | File | Owns |
 |---|---|
-| `js/store.js` | localStorage + the change-notification bus. Knows nothing about Firebase. |
-| `js/cloud.js` | SDK loading, `onSnapshot` listener, debounced push, connection state. Knows nothing about the DOM. |
+| `js/store.js` | Machine prefs in localStorage; progress in RAM. The optimistic-write/undo shape. Knows nothing about Firebase. |
+| `js/cloud.js` | SDK loading, `onSnapshot` listener, `ensureShape`, `loadEx`, `migrateEx`, the `write()` registered via `Store.setWriter()`, connection state. Knows nothing about the DOM. |
 | `js/account.js` | The modal and the topbar state dot. Knows nothing about Firestore. |
-| `js/app.js` | `applyRemoteToUi()` — repaints ring, sidebar, done-bar and quiz after a remote change. |
-| `firebase/firestore.rules` | The username whitelist. **Add a name here when the user wants a new one.** |
+| `js/toast.js` | The one sentence shown when a write fails and the UI has just rolled back. Knows nothing about anything. |
+| `js/app.js` | Paint-then-write handlers, `repaintExItem`/`repaintQuiz`/`rerender`, `num()`, `blocked()`, `syncLock()`, `applyRemoteToUi()`. |
+| `firebase/firestore.rules` | The username whitelist and both document shapes. **Deploy by hand.** |
 
 The layering is the point: each file can be deleted or stubbed without the ones below it
 noticing. Keep it that way.
 
-### 14.5 The two loops you must not break
+### 14.5 The invariants you must not break
 
-- **Echo loop.** A local write → `Store.emit()` → `cloud.js` pushes → Firestore fires
-  `onSnapshot` back → `applyRemote()` writes to localStorage → `emit()` again → push again,
-  forever. Three guards stop it: `snap.metadata.hasPendingWrites` is skipped on the read
-  side, `lastSig` skips any snapshot whose `done`/`quiz`/`ex` equal what was last pushed,
-  and `Store.applyRemote()` sets a module-level `muted` flag so its own writes emit nothing.
-  **Any new mutating method on `Store` must call `emit()`, and any new remote-applying code
-  must go through `applyRemote()`.**
-- **Scroll loop.** A remote change must **never** re-render the whole lesson — the learner
-  may be reading paragraph 40. `applyRemoteToUi()` repaints only the four things that show
-  synced state, and swaps the quiz section via `outerHTML` (this is why `render.js` exports
-  `quiz`).
+- **Every mutator returns `Promise<boolean>` and never rejects.** `true` = the server took
+  it, `false` = it was rolled back, repaint and tell the learner. A rejecting mutator turns
+  into an unhandled rejection in a click handler, which helps nobody. Any new mutating method
+  on `Store` must go through `commit()`.
+- **Echo loop.** A local write lands back through `onSnapshot`. Three guards stop it from
+  looping: `snap.metadata.hasPendingWrites` is skipped, `lastSig` skips any snapshot whose
+  `done`/`quiz` equal what is already on screen, and remote data only ever enters through
+  `Store.applyRemote()`.
+- **Guard order in the snapshot handler matters.** `hasPendingWrites` is checked **before**
+  `fromCache`, because a snapshot carrying a pending write always has `fromCache: true` —
+  checking the other way round flashes the sync dot amber on every single tick.
+- **Scroll position.** A remote change must never bounce the learner to the top. Repaints go
+  through `repaintQuiz()` (one `outerHTML` swap — this is why `render.js` exports `quiz`) or
+  `rerender()`, which restores `window.scrollY`. A full re-render is only allowed on the
+  not-ready ⇄ ready transition, when every control is locked and nothing is half-typed.
+- **`Store.ready()` gates both the look and the behaviour.** `body.is-nodb` handles the look;
+  `blocked()` at the top of every write handler handles the behaviour. Both are needed —
+  `pointer-events: none` would not stop a keyboard user, and the CSS deliberately leaves
+  clicks reachable so the toast can explain *why* nothing happened. A dead, silent control
+  is the fastest way to make the learner think the page is broken.
 
 ### 14.6 `fromCache` — why the green dot is harder than it looks
 
@@ -857,70 +1049,80 @@ The fix, and the reasoning behind each half:
 
 - State comes from `snap.metadata.fromCache`: `fromCache` → `connecting` (amber),
   server-confirmed → `live` (green). Nothing else may set `live`.
-- A `fromCache` snapshot is **never** applied to `Store`. Cached data is not truth; applying
-  it would let a stale cache overwrite fresh local work.
+- A `fromCache` snapshot is **never** applied to `Store`, and never sets `ready`. Cached data
+  is not truth. `loadEx()` uses `get({source: 'server'})` for the same reason.
 - `includeMetadataChanges` must therefore be `true`, because with `false` a cache→server
   transition carrying identical data fires **no event at all** — the dot would stay amber
   forever on a perfectly healthy connection.
-- The cost of `true` is duplicate snapshots. Two dedupes absorb it: `lastSig` (skip
-  identical payloads) and the equal-state guard at the top of `setState()`. Without the
-  latter, every redundant event repaints the modal and steals the caret out of the
-  username field mid-typing.
+- The cost of `true` is duplicate snapshots. Two dedupes absorb it: `lastSig` (skip identical
+  payloads) and the equal-state guard at the top of `setState()`. Without the latter, every
+  redundant event repaints the modal and steals the caret out of the username field
+  mid-typing.
 
-### 14.6b Rules verification against the live project — 2026-08-09
+### 14.6b Re-testing the rules
 
-The rules were deployed by the user on 2026-08-09. Before that, `GET
-firestore.googleapis.com/v1/projects/learning-embedded-linux/databases/(default)/documents/progress`
-returned **403 `PERMISSION_DENIED`** (default locked-down rules) and sync could not work.
-After deployment, the same REST endpoint — plain API key, no auth token, exactly what the
-browser is — gives:
+The v2 rules were verified on 2026-08-09: **24/24** correct over plain REST with the bare API
+key and no auth token — a browser's exact privilege. **The v3 rules have not been
+re-verified**, and the subcollection block in particular is new. Three things to know before
+running the suite again:
 
-| Request | Result | Proves |
-|---|---|---|
-| `GET progress/shinarus` | **404 `NOT_FOUND`** | rules deployed; `'shinarus' in allowed()` is true |
-| `GET progress/hacker` | 403 | whitelist blocks unknown names |
-| `GET progress` (list) | 403 | no collection enumeration |
-| `GET anything/doc1` | 403 | the catch-all deny holds |
-| `PATCH progress/hacker`, valid shape | 403 | whitelist also gates writes |
-| `PATCH progress/shinarus` + extra field | 403 | `hasOnly` |
-| `PATCH progress/shinarus` minus `ex` | 403 | `hasAll` |
-| `PATCH progress/shinarus`, `done` a string | 403 | `is map` |
-| `PATCH progress/shinarus`, `v` a string | 403 | `is int` |
-| `PATCH progress/shinarus`, `done` with 201 keys | 403 | the `size() <= 200` caps |
+- **Test writes go to `progress/elx-probe`, never a real username.** That is the only reason
+  the canary is in `allowed()`. `allow delete: if false` means a test cannot clean up after
+  itself, and a leftover document with empty `done`/`quiz` would — remote wins, no merge —
+  erase that learner's progress on their next connect. That used to cost them their sync;
+  now it costs them the data itself, because there is no local copy any more.
+- **Write with `POST …/documents:commit` + `updateTransforms` /
+  `setToServerValue: 'REQUEST_TIME'`, not `PATCH`.** `updatedAt == request.time` cannot be
+  satisfied by a client literal, so a test that PATCHes a literal timestamp tests nothing.
+- **Rules do not cascade.** `progress/{name}/ex/{set}` was 403 until v3 gave it its own
+  `match` block. Confirm both the positive path (`bt-01`) and the negative one (a set id that
+  does not match `^bt-[0-9]{2}$`).
 
-**The positive create was deliberately not tested, and a later session must not "finish the
-job" by running it.** `progress/shinarus` did not exist. Creating it from a test would leave
-a document with empty `done`/`quiz`/`ex`; the next time the learner's browser connected,
-decision 2 (remote wins, no merge) would apply that empty document over their real
-localStorage progress and erase it. And `allow delete: if false` means the test could not
-clean up after itself. The correct way to create that document is the app's own path — the
-learner clicks the sync button, `cloud.js` sees `!snap.exists` and pushes their real local
-state. Verify it afterwards with `GET progress/shinarus`, not before.
+`progress/shinarus` is **v1 on disk** and pre-dates both bumps. No migration script is
+needed: `ensureShape()` rewrites it with a whole-document `set()` the first time a v3 client
+connects, and `wellFormed()` constrains only `request.resource.data`, so that write is legal.
+Its flat v1 `quiz` values read back as `{ n: 0, a: raw }`, and `n: 0` skips the drift check
+rather than discarding real answers — exactly what that back-compat branch exists for, so do
+not "clean it up".
 
 ### 14.7 Checklist for touching this subsystem
 
-1. Adding a synced key: add it to `K`, to `SYNCED`, to the rules' `hasOnly([...])`, and to
-   the document shape in §14.3. Missing any one of the four fails silently.
-2. Adding a machine/person: add the username to `allowed()` in `firebase/firestore.rules`
+1. **Adding a synced key** to the main document: add it to the `data` object in `store.js`,
+   to `applyRemote()`, to the rules' `hasOnly([...])`, and to §14.3. Missing any one fails
+   silently.
+2. **Adding a machine/person:** add the username to `allowed()` in `firebase/firestore.rules`
    and deploy. It must match `/^[A-Za-z0-9_-]{3,40}$/` — the same regex lives in
    `js/account.js`, keep the two identical.
-3. `node tools/check.js` still has to print `OK`. It sandboxes `js/store.js` with a stub
+3. **Changing either document shape:** bump `VER` in `js/cloud.js`, change **both** `d.v == N`
+   in the rules, update §14.3, **and deploy the rules by hand.** The pinned `v` means
+   forgetting the deploy breaks writes loudly rather than silently — that is the design.
+   Test against `progress/elx-probe`, never a real username (§14.6b).
+4. **Adding a new mutator:** it must live in `store.js`, mutate RAM first, call `commit()`
+   with an `undo` closure, and return `Promise<boolean>`. Its caller in `app.js` must paint
+   optimistically, then repaint + `Toast.writeFailed(...)` on `false`.
+5. `node tools/check.js` still has to print `OK`. It sandboxes `js/store.js` with a stub
    `localStorage` and **no `document`** — so `store.js` must never touch the DOM at load
-   time. `cloud.js` and `account.js` are not in its `CORE` list and are not loaded by it.
-4. Test offline: throttle to offline in devtools, reload. Expect an **amber** dot
-   (`connecting` — Firestore is answering from cache, see §14.6), a fully normal page, and
-   no thrown exception. A **green** dot while offline is the bug §14.6 exists to prevent.
-5. There is no automated test for this subsystem in the repo, and there should not be one —
-   `tools/check.js` must stay dependency-free. It was verified once, on 2026-08-09, with a
-   throwaway jsdom harness installed **outside** the repo (52 assertions: first-run modal,
-   name validation, offline learning, connect, doc creation, `hasPendingWrites` echo,
-   `fromCache` gating, remote overwrite + UI repaint, debounced push, disconnect,
-   post-disconnect silence). Rebuild the same way if you change the logic; do not add
-   `node_modules` to this repository.
+   time. `cloud.js`, `account.js` and `toast.js` are not in its `CORE` list and are not
+   loaded by it.
+6. **Test offline:** throttle to offline in devtools, reload. Expect an **amber** dot, a
+   fully readable lesson, `—` everywhere a progress number would be, a disabled tick button,
+   and no thrown exception. A **green** dot while offline is the bug §14.6 exists to prevent;
+   a **0%** while offline is the bug §14.2 decision 6 exists to prevent.
+7. **Test the revert:** connect, then throttle to offline *without* reloading, then tick a
+   lesson. Expect the tick to appear, hold for 6 s, then undo itself with a toast. This is
+   the single most important behaviour in the subsystem and it is invisible in any test that
+   only checks the happy path.
+8. There is no automated test for this subsystem in the repo, and there should not be one —
+   `tools/check.js` must stay dependency-free. The v2 logic was verified once, on 2026-08-09,
+   with a throwaway jsdom harness installed **outside** the repo (52 assertions). Rebuild the
+   same way if you change the logic; do not add `node_modules` to this repository.
 
-### 14.8 Known open item
+### 14.8 Known open items
 
-Firestore from `file://` (origin `null`) is **unverified**. The user deploys to GitHub
-Pages, so this is not the primary path; the agreed fallback is that `cloud.js` degrades to
-`'error'` and the course stays readable. If double-clicked-`index.html` sync ever becomes a
-requirement, that is when to test it — do not pre-emptively engineer around it.
+- **Firestore from `file://` (origin `null`) is unverified**, and it matters more than it
+  used to: a double-clicked `index.html` that cannot reach Firestore is now a course with no
+  progress recording at all, not merely one without sync. The user deploys to GitHub Pages,
+  so this is not the primary path, and the agreed fallback is that `cloud.js` degrades to
+  `'error'` while the course stays readable. Test it if and when it becomes a requirement.
+- **The v3 rules have not been deployed or re-tested** as of this writing. Until the user
+  deploys them, every write fails with permission-denied — loudly, as designed (§14.7 item 3).

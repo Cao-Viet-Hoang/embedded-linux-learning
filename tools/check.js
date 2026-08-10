@@ -11,7 +11,8 @@ var vm = require('vm');
 var path = require('path');
 
 var ROOT = path.resolve(__dirname, '..');
-var CORE = ['js/icons.js', 'js/store.js', 'js/registry.js', 'js/render.js'];
+var CORE = ['js/icons.js', 'js/store.js', 'js/registry.js', 'js/render.js',
+            'js/search.js', 'js/exercises.js', 'js/render-ex.js'];
 
 var WHERE = ['ps', 'psadm', 'wsl', 'qemu', 'uboot', 'file', 'out'];
 var CAL   = ['info', 'tip', 'warn', 'danger', 'why'];
@@ -50,7 +51,15 @@ var lessonFiles = fs.readdirSync(path.join(ROOT, 'lessons'))
   .sort()
   .map(function (f) { return 'lessons/' + f; });
 
-CORE.concat(lessonFiles).forEach(function (f) {
+var exDir = path.join(ROOT, 'exercises');
+var exFiles = fs.existsSync(exDir)
+  ? fs.readdirSync(exDir)
+      .filter(function (f) { return /^bt-\d\d\.js$/.test(f); })
+      .sort()
+      .map(function (f) { return 'exercises/' + f; })
+  : [];
+
+CORE.concat(lessonFiles).concat(exFiles).forEach(function (f) {
   var src = fs.readFileSync(path.join(ROOT, f), 'utf8');
   try { new vm.Script(src, { filename: f }); }
   catch (e) { err('SYNTAX ' + f + ': ' + e.message); return; }
@@ -60,6 +69,7 @@ CORE.concat(lessonFiles).forEach(function (f) {
 if (errs.length) { report(); }
 
 var COURSE = ctx.COURSE, Course = ctx.Course, Lesson = ctx.Lesson, Render = ctx.Render;
+var Exercise = ctx.Exercise, RenderEx = ctx.RenderEx;
 
 /* ---------- structure ---------- */
 COURSE.modules.forEach(function (m, i) {
@@ -85,9 +95,15 @@ lessonFiles.forEach(function (f) {
   if (html.indexOf(f) === -1) { err('index.html has no <script> for ' + f); }
 });
 var appAt = html.indexOf('js/app.js');
-lessonFiles.forEach(function (f) {
+lessonFiles.concat(exFiles).forEach(function (f) {
   var at = html.indexOf(f);
   if (at !== -1 && appAt !== -1 && at > appAt) { err(f + ' is loaded after js/app.js'); }
+});
+exFiles.forEach(function (f) {
+  if (html.indexOf(f) === -1) { err('index.html has no <script> for ' + f); }
+});
+['js/exercises.js', 'js/render-ex.js'].forEach(function (f) {
+  if (exFiles.length && html.indexOf(f) === -1) { err('index.html has no <script> for ' + f); }
 });
 
 /* ---------- per-lesson ---------- */
@@ -171,11 +187,162 @@ written.forEach(function (meta) {
   );
 });
 
+/* ---------- exercise sets (CLAUDE.md §13) ----------
+   Bộ bài tập bt-NN đi kèm bài học bai-NN. Kiểm tra ở đây là thứ duy nhất
+   canh được hai bất biến mà mắt người hay bỏ sót: đúng 7 kiểu chấm, và
+   lưới trục xoáy 3×1 — mỗi trục xuất hiện đúng một lần ở A, B và C. */
+var exSets = exFiles.map(function (f) {
+  return path.basename(f, '.js');
+}).filter(function (id) {
+  if (!Exercise.has(id)) { err(id + ': file did not call Exercise.register'); return false; }
+  return true;
+});
+
+exSets.forEach(function (exId) {
+  var d = Exercise.get(exId);
+  var lessonId = Exercise.lessonOf(exId);
+
+  if (!Course.find(lessonId)) { err(exId + ': no lesson ' + lessonId + ' in registry.js'); return; }
+  if (!Lesson.has(lessonId)) { err(exId + ': lesson ' + lessonId + ' is not written yet'); }
+  if (!d.intro) { err(exId + ': missing "intro"'); }
+  if (!d.minutes) { err(exId + ': missing "minutes"'); }
+
+  var truc = d.truc || [];
+  if (truc.length > 3) { err(exId + ': ' + truc.length + ' trục — the cap is 3 (§13.3)'); }
+  truc.forEach(function (t, i) {
+    if (!t.name) { err(exId + ' trục#' + i + ': missing name'); }
+  });
+
+  var ids = {}, grid = {}, nItems = 0;
+  Exercise.items(d).forEach(function (e) {
+    var it = e.it, at = exId + ' ' + e.no;
+    nItems++;
+
+    if (!it.id) { err(at + ': missing item id'); }
+    else if (ids[it.id]) { err(at + ': duplicate item id "' + it.id + '"'); }
+    ids[it.id] = true;
+
+    if (Exercise.KINDS.indexOf(it.k) === -1) { err(at + ': unknown kind "' + it.k + '"'); return; }
+    if (!it.q) { err(at + ': no question'); }
+    if (!it.tag) { err(at + ': no tag (which of the 12 types is this?)'); }
+
+    if (it.truc !== undefined) {
+      if (typeof it.truc !== 'number' || it.truc < 0 || it.truc >= truc.length) {
+        err(at + ': truc index out of range');
+      } else if ('ABC'.indexOf(e.part) === -1) {
+        err(at + ': the spiral lives in A/B/C only, not part ' + e.part);
+      } else {
+        grid[it.truc] = (grid[it.truc] || '') + e.part;
+      }
+    }
+
+    /* Mỗi kiểu chấm có bộ trường bắt buộc riêng — thiếu một trường thì câu
+       vẫn hiện ra nhưng không chấm được, và người học chỉ phát hiện lúc bấm. */
+    switch (it.k) {
+      case 'mcq':
+        if (!Array.isArray(it.opts) || it.opts.length < 3) { err(at + ': needs at least 3 options'); }
+        if (typeof it.a !== 'number' || it.a < 0 || it.a >= (it.opts || []).length) { err(at + ': answer index out of range'); }
+        if (!it.why) { err(at + ': missing "why"'); }
+        break;
+      case 'multi':
+        if (!Array.isArray(it.opts) || it.opts.length < 3) { err(at + ': needs at least 3 options'); }
+        if (!Array.isArray(it.a) || !it.a.length) { err(at + ': "a" must be a non-empty array'); }
+        (it.a || []).forEach(function (x) {
+          if (x < 0 || x >= (it.opts || []).length) { err(at + ': answer index ' + x + ' out of range'); }
+        });
+        if (!it.why) { err(at + ': missing "why"'); }
+        break;
+      case 'tf':
+        if (it.a !== 0 && it.a !== 1) { err(at + ': "a" must be 0 (Đúng) or 1 (Sai)'); }
+        if (!it.why) { err(at + ': missing "why"'); }
+        if (!Array.isArray(it.crit) || !it.crit.length) { err(at + ': needs "crit" for the rewrite half'); }
+        break;
+      case 'fill':
+        if (!Array.isArray(it.a) || !it.a.length) { err(at + ': "a" must list the accepted strings'); }
+        if (!it.why) { err(at + ': missing "why"'); }
+        break;
+      case 'num':
+        if (typeof it.a !== 'number') { err(at + ': "a" must be a number'); }
+        if (!it.why) { err(at + ': missing "why"'); }
+        break;
+      case 'match':
+        if (!Array.isArray(it.left) || !Array.isArray(it.right)) { err(at + ': match needs left[] and right[]'); }
+        else {
+          if (it.left.length !== (it.a || []).length) { err(at + ': "a" length differs from left[]'); }
+          (it.a || []).forEach(function (x) {
+            if (x < 0 || x >= it.right.length) { err(at + ': answer index ' + x + ' out of range'); }
+          });
+          /* a = [0,1,2,…] nghĩa là chọn từ trên xuống là đúng — giải được mà
+             không cần đọc cột phải. Xáo lại right[] trước khi ship. */
+          if (it.a && it.a.length && it.a.every(function (x, i) { return x === i; })) {
+            err(at + ': identity mapping — shuffle right[] or the item grades itself');
+          }
+        }
+        if (!it.why) { err(at + ': missing "why"'); }
+        break;
+      case 'free':
+        if (!Array.isArray(it.crit) || !it.crit.length) { err(at + ': free text needs a "crit" checklist (§13.5)'); }
+        if (!it.sol && !it.solBlocks) { err(at + ': free text needs "sol" or "solBlocks"'); }
+        break;
+      default: break;
+    }
+
+    (it.blocks || []).concat(it.solBlocks || []).forEach(function (b, j) {
+      var bat = at + ' block#' + j;
+      if (BLOCK.indexOf(b.t) === -1) { err(bat + ': unknown block type "' + b.t + '"'); return; }
+      if (b.t === 'code') {
+        if (b.where && WHERE.indexOf(b.where) === -1) { err(bat + ': bad where "' + b.where + '"'); }
+        if (!b.code) { err(bat + ': empty code'); }
+      }
+      if (b.t === 'cal' && CAL.indexOf(b.kind) === -1) { err(bat + ': bad cal kind "' + b.kind + '"'); }
+      if (b.t === 'table' && b.rows.some(function (r) { return r.length !== b.head.length; })) {
+        err(bat + ': table row width differs from head');
+      }
+    });
+  });
+
+  /* Lưới 3×1 của §13.3: mỗi trục đúng một lần ở A, một lần ở B, một lần ở C. */
+  truc.forEach(function (t, i) {
+    var g = (grid[i] || '').split('').sort().join('');
+    if (g !== 'ABC') {
+      err(exId + ' trục#' + i + ' ("' + t.name + '"): appears as "' + (g || '—') + '", must be exactly A+B+C');
+    }
+  });
+
+  /* Phần F là bảng tra, không phải câu hỏi — nhưng nó phải trỏ đi đâu đó. */
+  if (!Array.isArray(d.diag) || !d.diag.length) { err(exId + ': missing the part F "diag" table'); }
+  (d.diag || []).forEach(function (r, i) {
+    if (!Array.isArray(r) || r.length !== 3) { err(exId + ' diag#' + i + ': needs exactly 3 columns'); }
+    else if (!/href="#\//.test(r[2])) { err(exId + ' diag#' + i + ': the "đọc lại" cell has no link'); }
+  });
+
+  /* Phần rỗng phải nói rõ vì sao rỗng, nếu không người học tưởng thiếu nội dung. */
+  ['A', 'B', 'C', 'D', 'E'].forEach(function (k) {
+    if (!(d[k] || []).length && !d[k + 'Empty']) {
+      err(exId + ': part ' + k + ' is empty and has no "' + k + 'Empty" note');
+    }
+  });
+
+  var out;
+  try { out = RenderEx.set(d); }
+  catch (e) { err(exId + ': RenderEx.set threw — ' + e.message); return; }
+  if (!out.html || out.html.length < 3000) { err(exId + ': rendered html suspiciously short'); }
+
+  console.log(
+    '  ' + exId +
+    '  items=' + String(nItems).padStart(3) +
+    '  truc=' + truc.length +
+    '  diag=' + String((d.diag || []).length).padStart(2) +
+    '  html=' + Math.round(out.html.length / 1024) + 'KB'
+  );
+});
+
 /* ---------- summary ---------- */
 console.log(
   '\n  ' + COURSE.modules.length + ' modules · ' +
   Course.total() + ' lessons · ' +
-  written.length + ' written'
+  written.length + ' written · ' +
+  exSets.length + ' bài tập'
 );
 report();
 

@@ -1,0 +1,400 @@
+/* ============================================================
+   EXERCISE — giao diện bộ bài tập.
+
+   Chỉ dùng biến của css/tokens.css. Phần A dùng lại nguyên .q__* của quiz
+   (components.css) — đó là chủ ý: câu nào máy chấm được thì trông giống
+   quiz, câu nào phải tự chấm thì trông khác hẳn. Sự khác nhau đó là một
+   lời nói thật với người học về việc máy bảo đảm được cái gì.
+   ============================================================ */
+
+/* ══════════════ NÚT NHỎ (dùng trong thẻ bài tập) ══════════════ */
+.btn--sm {
+  height: 30px;
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-sm);
+  border-radius: var(--r-sm);
+}
+.btn--sm svg { width: 13px; height: 13px; }
+
+.lead-meta__i--link { color: var(--primary); }
+.lead-meta__i--link svg { color: currentColor; }
+
+/* ══════════════ THANH TIẾN ĐỘ RIÊNG ══════════════
+   Tách hẳn khỏi vòng tròn 70 bài trên thanh trên (CLAUDE.md §13.1):
+   làm bài tập không bao giờ kéo tiến độ bài học lên hay xuống. */
+.exbar {
+  margin: var(--sp-6) 0 var(--sp-8);
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+.exbar__top {
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  font-size: var(--fs-ui);
+}
+.exbar__t { color: var(--text-muted); }
+.exbar__t b { color: var(--text); font-variant-numeric: tabular-nums; }
+.exbar__p {
+  margin-left: auto;
+  font-weight: var(--fw-bold); color: var(--ok);
+  font-variant-numeric: tabular-nums;
+}
+.exbar .bar { margin-top: var(--sp-3); height: 7px; }
+
+/* ══════════════ TRỤC XOÁY ══════════════ */
+.extruc {
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-5);
+  border: 1px solid var(--why-line);
+  border-left: 3px solid var(--why);
+  border-radius: var(--r-lg);
+  background: var(--why-soft);
+}
+.extruc__title {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-weight: var(--fw-bold); color: var(--why);
+  margin-bottom: var(--sp-3);
+}
+.extruc__title svg { width: 17px; height: 17px; }
+.extruc p {
+  font-size: var(--fs-base); line-height: var(--lh-relaxed);
+  color: var(--text-muted); margin-bottom: var(--sp-3);
+}
+.extruc ol {
+  padding-left: var(--sp-5);
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  font-size: var(--fs-base); line-height: var(--lh-normal);
+  font-weight: var(--fw-semibold);
+}
+.extruc li::marker { color: var(--why); font-weight: var(--fw-bold); }
+
+/* ══════════════ BĂNG "LƯỢT 1 / LƯỢT 2" ══════════════ */
+.expass {
+  display: flex; align-items: flex-start; gap: var(--sp-4);
+  margin: var(--sp-12) 0 var(--sp-6);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--border-strong);
+}
+.expass:first-child { margin-top: var(--sp-4); }
+.expass__n {
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  font-size: var(--fs-ui); font-weight: var(--fw-bold);
+  color: var(--text-invert);
+}
+.expass div { min-width: 0; }
+.expass b { display: block; font-size: var(--fs-body); margin-bottom: 2px; }
+.expass span {
+  display: block;
+  font-size: var(--fs-base); line-height: var(--lh-normal);
+  color: var(--text-muted);
+}
+.expass--1 { background: var(--primary-soft); border-color: var(--primary-line); }
+.expass--1 .expass__n { background: var(--primary); }
+.expass--2 { background: var(--accent-soft); border-color: var(--accent); }
+.expass--2 .expass__n { background: var(--accent); }
+
+/* ══════════════ TIÊU ĐỀ MỘT PHẦN ══════════════ */
+.expart {
+  display: flex; align-items: center; gap: var(--sp-4);
+  margin: var(--sp-10) 0 var(--sp-5);
+  padding-bottom: var(--sp-3);
+  border-bottom: 2px solid var(--border);
+  scroll-margin-top: calc(var(--header-h) + var(--sp-4));
+}
+.expart__k {
+  flex: 0 0 auto;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border-radius: var(--r-md);
+  background: var(--surface-3); color: var(--text-muted);
+  font-size: var(--fs-lg); font-weight: var(--fw-bold);
+}
+.expart__b { flex: 1 1 auto; min-width: 0; }
+.expart__b h2 {
+  font-size: var(--fs-xl); margin: 0;
+  border: 0; padding: 0;
+}
+.expart__b p {
+  font-size: var(--fs-sm); color: var(--text-muted);
+  line-height: var(--lh-normal); margin: 2px 0 0;
+}
+.expart__n {
+  flex: 0 0 auto;
+  font-size: var(--fs-sm); color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════ MỘT CÂU HỎI ══════════════ */
+.exi {
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  scroll-margin-top: calc(var(--header-h) + var(--sp-4));
+}
+.exi__head {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-3);
+}
+.exi__no {
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--primary-soft); color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold);
+}
+.exi__tag {
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.exi__truc {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--why-soft); color: var(--why);
+  border: 1px solid var(--why-line);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.exi__truc svg { width: 11px; height: 11px; flex: 0 0 auto; }
+.exi__dot {
+  margin-left: auto; flex: 0 0 auto;
+  width: 9px; height: 9px; border-radius: var(--r-full);
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  transition: background var(--t-fast), border-color var(--t-fast);
+}
+.exi__dot.is-on { background: var(--ok); border-color: var(--ok); }
+.exi__q {
+  font-size: var(--fs-body); font-weight: var(--fw-semibold);
+  line-height: var(--lh-normal);
+  margin-bottom: var(--sp-4);
+}
+.exi__q code { font-weight: var(--fw-normal); }
+/* Khối lệnh/kết quả nhúng trong câu hỏi: bỏ lề dưới thừa của .blk */
+.exi .blk:last-of-type { margin-bottom: var(--sp-4); }
+
+/* Đã chọn nhưng chưa bấm Kiểm tra (dùng cho `multi`) */
+.q__opt.is-sel { border-color: var(--primary); background: var(--primary-soft); }
+.q__opt.is-sel .q__letter { background: var(--primary); color: #fff; }
+
+.q__opts--tf { flex-direction: row; }
+.q__opts--tf .q__opt { flex: 1 1 0; justify-content: center; }
+
+.exact {
+  display: flex; align-items: center; gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-top: var(--sp-3);
+}
+.exact__hint { font-size: var(--fs-sm); color: var(--text-faint); }
+
+/* ══════════════ ĐIỀN KHUYẾT / SỐ ══════════════ */
+.exin {
+  display: flex; align-items: center; gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.exin__i {
+  flex: 1 1 220px; min-width: 0;
+  height: 38px; padding: 0 var(--sp-3);
+  font-family: var(--font-mono); font-size: var(--fs-ui);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.exin__i:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+.exin__i--num { flex: 0 0 160px; text-align: right; }
+.exin__u { font-family: var(--font-mono); font-size: var(--fs-ui); color: var(--text-muted); }
+.exin.is-right .exin__i { border-color: var(--ok); background: var(--ok-soft); }
+.exin.is-wrong .exin__i { border-color: var(--danger); background: var(--danger-soft); }
+
+/* ══════════════ GHÉP NỐI ══════════════ */
+.exm { display: flex; flex-direction: column; gap: var(--sp-2); }
+.exm__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  font-size: var(--fs-base); line-height: var(--lh-normal);
+}
+.exm__row.is-right { border-color: var(--ok); background: var(--ok-soft); }
+.exm__row.is-wrong { border-color: var(--danger); background: var(--danger-soft); }
+.exm__l { min-width: 0; }
+.exm__pick { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.exm__fix { font-size: var(--fs-xs); color: var(--danger); }
+.exm__fix b { color: var(--danger); }
+.exm__s {
+  height: 34px; padding: 0 var(--sp-2);
+  font-family: var(--font-sans); font-size: var(--fs-sm);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.exm__s:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+.exm__legend {
+  list-style: none;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  display: flex; flex-direction: column; gap: var(--sp-1);
+  font-size: var(--fs-sm); line-height: var(--lh-normal);
+  color: var(--text-muted);
+}
+.exm__legend b { color: var(--text); }
+
+/* ══════════════ TỰ LUẬN: CHỐT → ĐỐI CHIẾU → TỰ CHẤM ══════════════ */
+.exf { margin-top: var(--sp-4); }
+.exf__lbl {
+  font-size: var(--fs-base); font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-2);
+}
+.exf__ta {
+  display: block; width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base); line-height: var(--lh-relaxed);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  resize: vertical;
+}
+.exf__ta:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+.exf__acts {
+  display: flex; align-items: center; gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-top: var(--sp-3);
+}
+.exf__acts .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Trạng thái ghi của ô tự luận. Đây là chỗ DUY NHẤT trong cả trang không tự
+   hoàn tác khi máy chủ từ chối — xoá một đoạn người học vừa viết ra vì mạng
+   chập là thiệt hại lớn hơn nhiều so với việc để họ gõ thêm một ký tự. Đổi
+   lại, trạng thái ghi phải luôn nhìn thấy được, nếu không họ sẽ tưởng đã lưu. */
+.exf__save {
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.exf__save.is-ok   { color: var(--ok); }
+.exf__save.is-wait { color: var(--text-muted); }
+.exf__save.is-bad  { color: var(--danger); font-weight: var(--fw-semibold); }
+
+.exf__score {
+  margin-left: auto;
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold);
+  color: var(--ok);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ổ khoá. Nó KHÔNG phải ma sát cần được làm mượt: đọc lời giải khi chưa tự
+   viết thì bộ não luôn kết luận "ý mình cũng thế" (CLAUDE.md §13.5). */
+.exf__lock {
+  display: flex; gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  font-size: var(--fs-sm); line-height: var(--lh-normal);
+  color: var(--warn);
+}
+.exf__lock svg { flex: 0 0 auto; width: 15px; height: 15px; margin-top: 2px; }
+
+.exf__panel {
+  margin-top: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--fs-base); line-height: var(--lh-relaxed);
+}
+.exf__panel > *:last-child { margin-bottom: 0; }
+.exf__panelT {
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-sm); font-weight: var(--fw-bold);
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+.exf__panelT svg { width: 15px; height: 15px; }
+.exf__panel p { margin-bottom: var(--sp-3); }
+.exf__panel .blk:last-child { margin-bottom: 0; }
+
+.exck {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  font-size: var(--fs-base); line-height: var(--lh-normal);
+  cursor: pointer;
+}
+.exck:hover { background: var(--surface-3); }
+.exck.is-on { background: var(--ok-soft); border-color: var(--ok-line); }
+.exck input {
+  flex: 0 0 auto; margin-top: 4px;
+  width: 16px; height: 16px;
+  accent-color: var(--ok);
+}
+
+/* ══════════════ CHIP TRONG SIDEBAR ══════════════ */
+.les-row { display: flex; align-items: stretch; }
+.les-row .les { flex: 1 1 auto; min-width: 0; }
+.les__bt {
+  flex: 0 0 auto;
+  display: grid; place-items: center;
+  width: 26px; margin-right: var(--sp-2);
+  border-radius: var(--r-sm);
+  color: var(--text-faint);
+}
+.les__bt:hover { background: var(--surface-3); color: var(--accent); text-decoration: none; }
+.les__bt.is-active { color: var(--accent); background: var(--accent-soft); }
+.les__bt svg { width: 14px; height: 14px; }
+.les__bt.is-full { color: var(--ok); }
+
+/* ══════════════ LỜI MỜI Ở CUỐI BÀI HỌC ══════════════ */
+.excta {
+  margin-top: var(--sp-8);
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  display: flex; align-items: center; gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.excta__ico { flex: 0 0 auto; color: var(--accent); display: grid; place-items: center; }
+.excta__ico svg { width: 26px; height: 26px; }
+.excta__b { flex: 1 1 220px; min-width: 0; }
+.excta__b b { display: block; font-size: var(--fs-body); margin-bottom: 2px; }
+.excta__b span {
+  display: block; font-size: var(--fs-base);
+  line-height: var(--lh-normal); color: var(--text-muted);
+}
+
+/* ══════════════ MÀN HÌNH NHỎ ══════════════ */
+@media (max-width: 700px) {
+  .exi { padding: var(--sp-4); }
+  .exbar { padding: var(--sp-3) var(--sp-4); }
+  .extruc { padding: var(--sp-4); }
+  .expass { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); }
+  .expart { gap: var(--sp-3); }
+  .expart__k { width: 32px; height: 32px; font-size: var(--fs-base); }
+  .expart__n { display: none; }
+  .exm__row { grid-template-columns: 1fr; gap: var(--sp-2); }
+  .exm__s { width: 100%; }
+  .exin__i--num { flex: 1 1 140px; }
+  .exf__score { margin-left: 0; width: 100%; }
+}

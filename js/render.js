@@ -320,7 +320,9 @@
   function quiz(items, lessonId) {
     if (!items || !items.length) { return ''; }
 
-    var saved = Store.getQuiz(lessonId);
+    /* Truyền số câu hiện tại: nếu quiz của bài đã được sửa kể từ lần trả
+       lời trước, Store bỏ hết đáp án cũ thay vì gán lệch nấc. */
+    var saved = Store.getQuiz(lessonId, items.length);
     var letters = ['A', 'B', 'C', 'D', 'E'];
 
     var qs = items.map(function (q, qi) {

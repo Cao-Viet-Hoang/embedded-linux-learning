@@ -24,6 +24,7 @@
   var RING_C = 97.4;          // chu vi vòng tiến độ, khớp với CSS
   var spy = null;             // IntersectionObserver của mục lục
   var currentId = null;       // bài đang mở, null nếu đang ở trang chủ
+  var currentEx = null;       // bộ bài tập đang mở, null nếu không ở trang bài tập
 
   /* Hai mốc màn hình dưới đây phải khớp với css/layout.css:
      900px = sidebar thành ngăn kéo, 700px = ô tìm kiếm thu về một nút. */
@@ -31,17 +32,44 @@
   var BP_SEARCH = 700;
   function isDrawer() { return window.innerWidth <= BP_DRAWER; }
 
+  var TA_DEBOUNCE = 700;      // ms gộp các phím gõ trong ô tự luận thành một lệnh ghi
+  var taTimers = {};          // itemId -> id của setTimeout đang chờ
+  var hadData = false;        // lần vẽ gần nhất đã có dữ liệu từ máy chủ chưa
+
   /* ══════════════════════════════════════════════════
      TIẾN ĐỘ
+     Tiến độ nằm trên máy chủ, không nằm ở máy này (CLAUDE.md §14). Chưa tải
+     xong thì KHÔNG được hiện 0% — đó là một con số sai, và người học sẽ
+     thấy tiến độ của mình biến mất rồi hiện lại sau mỗi lần mở trang.
      ══════════════════════════════════════════════════ */
   function refreshProgress() {
     var total = Course.total();
-    var done  = Course.flat.filter(function (l) { return Store.isDone(l.id); }).length;
+    var ready = Store.ready();
+    var done  = ready ? Course.flat.filter(function (l) { return Store.isDone(l.id); }).length : 0;
     var pct   = total ? Math.round(done / total * 100) : 0;
 
-    elRing.style.strokeDashoffset = String(RING_C * (1 - done / total));
-    elPct.textContent = pct + '%';
-    elPill.title = 'Đã hoàn thành ' + done + '/' + total + ' bài';
+    elRing.style.strokeDashoffset = String(RING_C * (ready ? (1 - done / total) : 1));
+    elPct.textContent = ready ? pct + '%' : '—';
+    elPill.title = ready
+      ? 'Đã hoàn thành ' + done + '/' + total + ' bài'
+      : 'Chưa tải được tiến độ từ máy chủ';
+    elPill.classList.toggle('is-wait', !ready);
+  }
+
+  /* Khoá/mở mọi thứ có thể ghi. CSS treo trên body.is-nodb làm phần nhìn,
+     blocked() dưới đây chặn phần hành vi — cần cả hai, vì pointer-events
+     không ngăn được người dùng bàn phím tab vào rồi bấm Enter. */
+  function syncLock() {
+    document.body.classList.toggle('is-nodb', !Store.ready());
+  }
+
+  function blocked() {
+    if (Store.ready()) { return false; }
+    Toast.show(Cloud.state() === 'connecting'
+      ? 'Đang tải tiến độ từ máy chủ, chờ vài giây rồi thử lại.'
+      : 'Chưa kết nối được máy chủ nên chưa có chỗ lưu. Bấm biểu tượng đồng bộ ' +
+        'trên thanh trên để thử lại.');
+    return true;
   }
 
   /* ══════════════════════════════════════════════════
@@ -55,12 +83,24 @@
         var ready = Lesson.has(l.id);
         var cls = 'les' + (ready ? '' : ' is-locked');
         var href = ready ? '#/' + l.id : '#/';
-        return '<a class="' + cls + '" href="' + href + '" data-les="' + l.id + '"' +
-                 (ready ? '' : ' title="Bài này chưa được viết"') + '>' +
-                 '<span class="les__tick">' + ICON('check') + '</span>' +
-                 '<span class="les__txt"><span class="les__num">' + l.n + '.</span> ' +
-                   Render.esc(l.title) + '</span>' +
-               '</a>';
+        var exId = Exercise.idFor(l.id);
+
+        /* Chip bài tập là một <a> RIÊNG, nằm cạnh .les chứ không lồng trong
+           nó: một thẻ <a> không được chứa thẻ <a> khác. */
+        var chip = Exercise.has(exId)
+          ? '<a class="les__bt" href="#/' + exId + '" data-bt="' + exId + '" ' +
+              'title="Bài tập của bài ' + l.n + '" aria-label="Bài tập của bài ' + l.n + '">' +
+              ICON('listChecks') + '</a>'
+          : '';
+
+        return '<div class="les-row">' +
+                 '<a class="' + cls + '" href="' + href + '" data-les="' + l.id + '"' +
+                   (ready ? '' : ' title="Bài này chưa được viết"') + '>' +
+                   '<span class="les__tick">' + ICON('check') + '</span>' +
+                   '<span class="les__txt"><span class="les__num">' + l.n + '.</span> ' +
+                     Render.esc(l.title) + '</span>' +
+                 '</a>' + chip +
+               '</div>';
       }).join('');
 
       return '<div class="mod' + (open ? ' is-open' : '') + '" data-mod="' + m.id + '">' +
@@ -90,7 +130,7 @@
         e.preventDefault();
         return;
       }
-      if (link && isDrawer()) { closeSidebar(); }
+      if ((link || e.target.closest('.les__bt')) && isDrawer()) { closeSidebar(); }
     });
   }
 
@@ -99,6 +139,16 @@
       var id = a.dataset.les;
       a.classList.toggle('is-done', Store.isDone(id));
       a.classList.toggle('is-active', id === activeId);
+    });
+
+    /* Chip bài tập sáng lên khi đã làm hết bộ. Nó KHÔNG ăn theo trạng thái
+       "đã hoàn thành bài học": hai tiến độ tách rời nhau (CLAUDE.md §13.1). */
+    $$('.les__bt', elSideNav).forEach(function (a) {
+      var exId = a.dataset.bt;
+      var s = Exercise.stats(exId);
+      a.classList.toggle('is-active', exId === currentEx);
+      a.classList.toggle('is-full', Store.ready() && s.total > 0 && s.done === s.total);
+      a.title = 'Bài tập — đã làm ' + num(s.done) + '/' + s.total + ' câu';
     });
 
     // Tự mở chặng chứa bài đang xem
@@ -207,9 +257,15 @@
   /* ══════════════════════════════════════════════════
      TRANG CHỦ
      ══════════════════════════════════════════════════ */
+  /* Mọi con số ĐO TIẾN ĐỘ CỦA NGƯỜI HỌC đều phải đi qua đây. Chưa có dữ liệu
+     từ máy chủ thì hiện dấu gạch: một số 0 lúc đang tải là một lời nói dối,
+     và nó nói đúng cái điều người học sợ nhất — "mất hết rồi". */
+  function num(v) { return Store.ready() ? String(v) : '—'; }
+
   function viewHome() {
     var total = Course.total();
     var ready = Course.readyCount();
+    var got   = Store.ready();
     var done  = Course.flat.filter(function (l) { return Store.isDone(l.id); }).length;
 
     // Bài tiếp theo nên học
@@ -235,10 +291,10 @@
         '<span class="map__b">' +
           '<span class="map__t">' + Render.esc(m.name) + '</span>' +
           '<span class="map__d">' + Render.esc(m.desc) + '</span>' +
-          '<span class="bar"><span class="bar__f" style="width:' +
-            (m.lessons.length ? Math.round(d / m.lessons.length * 100) : 0) + '%"></span></span>' +
+          '<span class="bar' + (got ? '' : ' is-wait') + '"><span class="bar__f" style="width:' +
+            (got && m.lessons.length ? Math.round(d / m.lessons.length * 100) : 0) + '%"></span></span>' +
         '</span>' +
-        '<span class="map__c">' + d + '/' + m.lessons.length +
+        '<span class="map__c">' + num(d) + '/' + m.lessons.length +
           (r < m.lessons.length ? '<br>' + r + ' bài sẵn' : '') + '</span>' +
       '</a>';
     }).join('');
@@ -253,7 +309,7 @@
         '<div class="hero__cta">' +
           (nextUp
             ? '<a class="btn btn--primary" href="#/' + nextUp.id + '">' + ICON('arrowRight') +
-              (done ? 'Học tiếp: Bài ' + nextUp.n : 'Bắt đầu Bài ' + nextUp.n) + '</a>'
+              (got && done ? 'Học tiếp: Bài ' + nextUp.n : 'Bắt đầu Bài ' + nextUp.n) + '</a>'
             : '') +
           '<a class="btn" href="LO-TRINH.md" target="_blank" rel="noopener">' + ICON('map') + 'Xem lộ trình đầy đủ</a>' +
         '</div>' +
@@ -263,7 +319,7 @@
         '<div class="stat"><div class="stat__n">' + total + '</div><div class="stat__l">Bài học trong lộ trình</div></div>' +
         '<div class="stat"><div class="stat__n">' + COURSE.modules.length + '</div><div class="stat__l">Chặng</div></div>' +
         '<div class="stat"><div class="stat__n">' + ready + '</div><div class="stat__l">Bài đã viết nội dung</div></div>' +
-        '<div class="stat"><div class="stat__n">' + done + '</div><div class="stat__l">Bạn đã hoàn thành</div></div>' +
+        '<div class="stat"><div class="stat__n">' + num(done) + '</div><div class="stat__l">Bạn đã hoàn thành</div></div>' +
       '</div>' +
 
       '<h2 class="h2">Bản đồ khoá học</h2>' +
@@ -271,8 +327,9 @@
 
     ICON.hydrate(elContent);
     buildToc([]);
-    refreshSidebar(null);
     currentId = null;
+    currentEx = null;
+    refreshSidebar(null);
     document.title = 'Học Embedded Linux — Từ số 0 đến đi làm';
   }
 
@@ -285,12 +342,18 @@
   function paintDoneBar(id) {
     var btn = $('#btnDone', elContent);
     if (!btn) { return; }
-    var on = Store.isDone(id);
+    var ready = Store.ready();
+    var on = ready && Store.isDone(id);
+
     btn.className = 'btn ' + (on ? 'btn--done' : 'btn--primary');
-    btn.innerHTML = ICON('check') + (on ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành');
-    $('.done-bar__txt', elContent).textContent = on
-      ? 'Bạn đã đánh dấu hoàn thành bài này.'
-      : 'Đã làm hết phần thực hành và trả lời xong phần tự kiểm tra?';
+    btn.disabled = !ready;
+    btn.innerHTML = ICON('check') +
+      (!ready ? 'Đang chờ máy chủ…' : (on ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'));
+
+    $('.done-bar__txt', elContent).textContent = !ready
+      ? 'Tiến độ được lưu trên máy chủ chứ không lưu ở máy này, nên nút này mở khoá khi kết nối xong.'
+      : (on ? 'Bạn đã đánh dấu hoàn thành bài này.'
+            : 'Đã làm hết phần thực hành và trả lời xong phần tự kiểm tra?');
   }
 
   function viewLesson(id) {
@@ -300,6 +363,7 @@
     if (!meta) { location.hash = '#/'; return; }
 
     currentId = id;
+    currentEx = null;
 
     if (!data) {
       elContent.innerHTML =
@@ -319,17 +383,13 @@
     var built = Render.lesson(data);
     var prev = Course.prev(id);
     var next = Course.next(id);
-    var isDone = Store.isDone(id);
 
+    /* Dựng rỗng rồi để paintDoneBar() điền — chỉ một chỗ duy nhất quyết định
+       chữ và trạng thái khoá của nút này, nên nó không thể lệch với chính nó. */
     var doneBar =
       '<div class="done-bar">' +
-        '<div class="done-bar__txt">' +
-          (isDone ? 'Bạn đã đánh dấu hoàn thành bài này.'
-                  : 'Đã làm hết phần thực hành và trả lời xong phần tự kiểm tra?') +
-        '</div>' +
-        '<button class="btn ' + (isDone ? 'btn--done' : 'btn--primary') + '" id="btnDone" type="button">' +
-          ICON('check') + (isDone ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành') +
-        '</button>' +
+        '<div class="done-bar__txt"></div>' +
+        '<button class="btn" id="btnDone" type="button"></button>' +
       '</div>';
 
     function pagerItem(l, dir) {
@@ -346,42 +406,535 @@
              '</a>';
     }
 
-    elContent.innerHTML = built.html + doneBar +
+    elContent.innerHTML = built.html + exCta(id) + doneBar +
       '<div class="pager">' + pagerItem(prev, 'prev') + pagerItem(next, 'next') + '</div>';
 
     ICON.hydrate(elContent);
     buildToc(built.toc);
     refreshSidebar(id);
+    paintDoneBar(id);
     updateQuizScore();
 
     document.title = 'Bài ' + meta.n + '. ' + Search.plain(data.title) + ' — Embedded Linux';
 
+    /* Bấm là thấy ngay, rồi mới ghi. Máy chủ từ chối thì Store đã tự hoàn tác,
+       nên chỉ cần vẽ lại theo sự thật hiện tại và nói ra vì sao nút bật ngược
+       — nút tự đổi màu mà không giải thích là chuyện tệ nhất có thể làm ở đây. */
     $('#btnDone').addEventListener('click', function () {
-      Store.toggleDone(id);
+      if (blocked()) { return; }
+      var on = !Store.isDone(id);
+
+      var writing = Store.setDone(id, on);
       paintDoneBar(id);
       refreshProgress();
       refreshSidebar(id);
+
+      writing.then(function (ok) {
+        if (ok) { return; }
+        paintDoneBar(id);
+        refreshProgress();
+        refreshSidebar(id);
+        Toast.writeFailed('trạng thái hoàn thành của bài này');
+      });
     });
+  }
+
+  /* ══════════════════════════════════════════════════
+     BÀI TẬP  (CLAUDE.md §13)
+     ══════════════════════════════════════════════════ */
+
+  /* Lời mời ở cuối bài học. Chỉ hiện khi bộ bài tập tương ứng đã được viết —
+     không bao giờ trỏ tới một trang trống. */
+  function exCta(lessonId) {
+    var exId = Exercise.idFor(lessonId);
+    if (!Exercise.has(exId)) { return ''; }
+    var s = Exercise.stats(exId);
+    return '<div class="excta">' +
+      '<span class="excta__ico">' + ICON('listChecks') + '</span>' +
+      '<span class="excta__b">' +
+        '<b>Bài tập ' + Course.find(lessonId).n + ' — ' + s.total + ' câu, chia 2 lượt</b>' +
+        '<span>' + (Store.ready() && s.done
+          ? 'Bạn đã làm ' + s.done + '/' + s.total + ' câu. Làm tiếp từ chỗ đang dở.'
+          : 'Đọc xong chưa chắc đã hiểu. Lượt 1 làm ngay bây giờ, lượt 2 sau 2–3 ngày.') +
+        '</span>' +
+      '</span>' +
+      '<a class="btn btn--primary" href="#/' + exId + '">' +
+        ICON('arrowRight') + (Store.ready() && s.done ? 'Làm tiếp' : 'Vào làm bài tập') +
+      '</a>' +
+    '</div>';
+  }
+
+  /* Vẽ lại thanh tiến độ riêng của bộ + chấm trạng thái của một câu.
+     Không dựng lại cả trang: người học có thể đang gõ giữa một ô tự luận. */
+  function paintExProgress() {
+    if (!currentEx) { return; }
+    var got = Store.ready();
+    var s = Exercise.stats(currentEx);
+
+    var fill = $('[data-exfill]', elContent);
+    if (fill) {
+      fill.style.width = (got ? s.pct : 0) + '%';
+      if (fill.parentNode) { fill.parentNode.classList.toggle('is-wait', !got); }
+    }
+    var n = $('[data-exdone]', elContent);
+    if (n) { n.textContent = num(s.done); }
+    var p = $('[data-expct]', elContent);
+    if (p) { p.textContent = got ? s.pct + '%' : '—'; }
+    refreshSidebar(currentId);
+  }
+
+  function exItemOf(art) {
+    var data = Exercise.get(currentEx);
+    if (!data) { return null; }
+    var id = art.dataset.item;
+    var found = null;
+    Exercise.items(data).forEach(function (e) {
+      if (e.it.id === id) { found = e.it; }
+    });
+    return found;
+  }
+
+  function paintExDot(art) {
+    var item = exItemOf(art);
+    if (!item) { return; }
+    var st = Store.getEx(currentEx)[item.id];
+    var dot = $('[data-dot]', art);
+    if (dot) { dot.classList.toggle('is-on', Exercise.isAnswered(item, st)); }
+  }
+
+  function showWhy(art, verdict) {
+    var why = $('[data-why]', art);
+    if (!why) { return; }
+    why.hidden = false;
+    var b = $('[data-verdict]', why);
+    if (b) { b.textContent = verdict; }
+  }
+
+  /* Khoá "Tiêu chí"/"Lời giải" theo ô tự luận có chữ hay không. Đây là cơ chế
+     chính của phần tự chấm, không phải sự phiền hà cần làm mượt — xem
+     CLAUDE.md §13.5. Tách riêng vì cả lúc gõ lẫn lúc dựng lại câu đều cần. */
+  function syncFreeLock(art) {
+    var ta = $('[data-ta]', art);
+    if (!ta) { return; }
+    var has = !!ta.value.trim();
+
+    $$('[data-act="crit"], [data-act="sol"]', art).forEach(function (b) { b.disabled = !has; });
+    var lock = $('[data-lock]', art);
+    if (lock) { lock.hidden = has; }
+    if (!has) {
+      $$('[data-panel="crit"], [data-panel="sol"]', art).forEach(function (p) { p.hidden = true; });
+    }
+  }
+
+  /* Nhãn "đang lưu / đã lưu / chưa lưu được" cạnh ô tự luận. */
+  function setSaveTag(art, txt, cls) {
+    var el = $('[data-save]', art);
+    if (!el) { return; }
+    el.textContent = txt;
+    el.className = 'exf__save' + (cls ? ' ' + cls : '');
+  }
+
+  /* Dựng lại ĐÚNG MỘT câu từ dữ liệu hiện có trong Store. Dùng khi máy chủ từ
+     chối lệnh ghi: Store đã hoàn tác rồi, nên vẽ lại chắc chắn khớp với thứ
+     thật sự được lưu.
+
+     Ba thứ được giữ nguyên qua lần vẽ lại, vì mất chúng còn khó chịu hơn cả
+     lỗi mạng: chữ đang gõ dở trong ô tự luận, chữ trong ô điền/số, và các
+     bảng đang mở. Cái được hoàn tác là ĐIỂM và TRẠNG THÁI ĐÃ CHẤM — thứ máy
+     chủ chưa nhận — chứ không phải công sức gõ của người học. */
+  function repaintExItem(art) {
+    var data = Exercise.get(currentEx);
+    var itemId = art.dataset.item;
+    var entry = data && Exercise.entryOf(currentEx, itemId);
+    if (!entry) { return null; }
+
+    var ta = $('[data-ta]', art);
+    var input = $('[data-in]', art);
+    var keepTa = ta ? ta.value : null;
+    var keepIn = input ? input.value : null;
+    var open = $$('[data-panel]', art)
+      .filter(function (p) { return !p.hidden; })
+      .map(function (p) { return p.dataset.panel; });
+
+    art.outerHTML = RenderEx.item(entry, data, Store.getEx(currentEx));
+
+    var fresh = $('.exi[data-item="' + itemId + '"]', elContent);
+    if (!fresh) { return null; }
+    ICON.hydrate(fresh);
+
+    if (keepTa !== null) {
+      var t2 = $('[data-ta]', fresh);
+      if (t2) { t2.value = keepTa; }
+    }
+    if (keepIn !== null) {
+      var i2 = $('[data-in]', fresh);
+      if (i2) { i2.value = keepIn; }
+    }
+    syncFreeLock(fresh);
+    open.forEach(function (name) {
+      var p = $('[data-panel="' + name + '"]', fresh);
+      if (p) { p.hidden = false; }
+    });
+
+    paintExDot(fresh);
+    paintExProgress();
+    return fresh;
+  }
+
+  /* Ghi một câu bài tập: vẽ trước, ghi sau, hỏng thì dựng lại câu đó. */
+  function writeExItem(art, itemId, patch, what) {
+    return Store.setExItem(currentEx, itemId, patch).then(function (ok) {
+      if (ok) { return true; }
+      repaintExItem(art);
+      Toast.writeFailed(what);
+      return false;
+    });
+  }
+
+  function viewExercise(exId) {
+    var data = Exercise.get(exId);
+    var lessonId = Exercise.lessonOf(exId);
+    var meta = Course.find(lessonId);
+
+    if (!meta) { location.hash = '#/'; return; }
+
+    currentId = lessonId;
+    currentEx = data ? exId : null;
+
+    if (!data) {
+      elContent.innerHTML =
+        '<div class="empty">' +
+          ICON('listChecks') +
+          '<h2>Bài tập ' + meta.n + ' chưa được viết</h2>' +
+          '<p>Bộ bài tập của <strong>' + Render.esc(meta.title) + '</strong> sẽ được soạn ' +
+            'cùng nhịp với bài học. Trong lúc chờ, phần tự kiểm tra ở cuối bài vẫn dùng được.</p>' +
+          '<a class="btn btn--primary" href="#/' + lessonId + '">' + ICON('arrowLeft') +
+            'Về Bài ' + meta.n + '</a>' +
+        '</div>';
+      ICON.hydrate(elContent);
+      buildToc([]);
+      refreshSidebar(lessonId);
+      return;
+    }
+
+    var built = RenderEx.set(data);
+
+    elContent.innerHTML = built.html +
+      '<div class="done-bar">' +
+        '<div class="done-bar__txt">Câu trả lời của bạn được lưu trên máy chủ dưới tên đang ' +
+          'đồng bộ, nên mở đúng tên đó ở máy khác là có lại nguyên vẹn. Xoá đi nếu muốn làm ' +
+          'lại bộ này từ đầu — tiến độ bài học không bị ảnh hưởng.</div>' +
+        '<a class="btn" href="#/' + lessonId + '">' + ICON('arrowLeft') + 'Về bài học</a>' +
+        '<button class="btn" id="btnExReset" type="button">' + ICON('scissors') + 'Xoá câu trả lời</button>' +
+      '</div>';
+
+    ICON.hydrate(elContent);
+    buildToc(built.toc);
+    refreshSidebar(lessonId);
+
+    // Chấm trạng thái của từng câu, dựa trên dữ liệu đã lưu
+    $$('.exi', elContent).forEach(paintExDot);
+    $$('.exi', elContent).forEach(syncFreeLock);
+    paintExProgress();
+
+    document.title = 'Bài tập ' + meta.n + '. ' + Search.plain(meta.title) + ' — Embedded Linux';
+
+    /* Xoá cả bộ thì dựng lại cả trang — không có gì đang gõ dở để mà giữ, vì
+       vừa xoá xong. Hỏng thì cũng dựng lại: Store đã hoàn tác, trang phải nói
+       đúng thứ máy chủ đang giữ. */
+    $('#btnExReset').addEventListener('click', function () {
+      if (blocked()) { return; }
+      if (!confirm('Xoá toàn bộ câu trả lời của bộ bài tập này?')) { return; }
+      Store.resetEx(exId).then(function (ok) {
+        if (!ok) { Toast.writeFailed('lệnh xoá câu trả lời'); }
+        viewExercise(exId);
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    });
+  }
+
+  /* Trang danh mục #/bai-tap. Dùng lại đúng bộ style .map của trang chủ:
+     một danh sách "bộ nào có, làm tới đâu" không cần thêm ngôn ngữ hình ảnh mới. */
+  function viewExIndex() {
+    currentId = null;
+    currentEx = null;
+
+    var list = Exercise.ready();
+    var t = Exercise.totals();
+
+    var got = Store.ready();
+
+    var rows = list.map(function (r) {
+      var s = Exercise.stats(r.exId);
+      return '<a class="map__row" href="#/' + r.exId + '">' +
+        '<span class="map__n">' + r.lesson.n + '</span>' +
+        '<span class="map__b">' +
+          '<span class="map__t">' + Render.esc(r.lesson.title) + '</span>' +
+          '<span class="map__d">Chặng ' + r.lesson.moduleNum + ' — ' +
+            Render.esc(r.lesson.moduleName) + '</span>' +
+          '<span class="bar' + (got ? '' : ' is-wait') + '">' +
+            '<span class="bar__f" style="width:' + (got ? s.pct : 0) + '%"></span></span>' +
+        '</span>' +
+        '<span class="map__c">' + num(s.done) + '/' + s.total + '</span>' +
+      '</a>';
+    }).join('');
+
+    elContent.innerHTML =
+      '<div class="lead-crumb"><span>Khoá học</span>' + ICON('chevronRight') + '<span>Bài tập</span></div>' +
+      '<h1 class="lead-title">Bài tập</h1>' +
+      '<div class="lead-intro">Mỗi bài học có một bộ bài tập riêng. Bộ bài tập <b>không phải</b> ' +
+        'phần tự kiểm tra thứ hai: nó bắt bạn <i>tạo ra</i> câu trả lời rồi <i>tự đối chiếu</i> ' +
+        'với một tiêu chí kiểm được, thay vì chỉ nhớ lại bài vừa đọc.</div>' +
+
+      (list.length
+        ? '<div class="stats">' +
+            '<div class="stat"><div class="stat__n">' + t.sets + '</div><div class="stat__l">Bộ đã có</div></div>' +
+            '<div class="stat"><div class="stat__n">' + num(t.done) + '</div><div class="stat__l">Câu bạn đã làm</div></div>' +
+            '<div class="stat"><div class="stat__n">' + t.total + '</div><div class="stat__l">Tổng số câu</div></div>' +
+            '<div class="stat"><div class="stat__n">' + num(t.setsDone) + '</div><div class="stat__l">Bộ đã xong</div></div>' +
+          '</div>' +
+          '<div class="map">' + rows + '</div>'
+        : '<div class="empty">' + ICON('listChecks') +
+            '<h2>Chưa có bộ bài tập nào</h2>' +
+            '<p>Bài tập được soạn cùng nhịp với bài học.</p>' +
+            '<a class="btn btn--primary" href="#/">' + ICON('arrowLeft') + 'Về trang chủ</a>' +
+          '</div>');
+
+    ICON.hydrate(elContent);
+    buildToc([]);
+    refreshSidebar(null);
+    document.title = 'Bài tập — Học Embedded Linux';
+  }
+
+  /* ---------- Tương tác trong một bộ bài tập ----------
+     Uỷ quyền sự kiện, vì nội dung được dựng lại mỗi lần đổi trang. Trả về
+     true nếu đã xử lý, để listener chung của #content dừng lại ở đó và không
+     rơi vào nhánh quiz (quiz và bài tập dùng chung class .q__opt). */
+  function handleExClick(e) {
+    if (!currentEx) { return false; }
+    var art = e.target.closest('.exi');
+    if (!art) { return false; }
+
+    var item = exItemOf(art);
+    if (!item) { return false; }
+    var kind = art.dataset.k;
+
+    /* --- Chọn phương án --- */
+    var opt = e.target.closest('.q__opt');
+    if (opt && !opt.disabled) {
+      if (blocked()) { return true; }
+      var oi = parseInt(opt.dataset.opt, 10);
+
+      if (kind === 'multi') {
+        // Chọn nhiều: bật/tắt, chưa chấm gì cả cho tới khi bấm Kiểm tra
+        opt.classList.toggle('is-sel');
+        var sel = $$('.q__opt.is-sel', art).map(function (b) {
+          return parseInt(b.dataset.opt, 10);
+        });
+        writeExItem(art, item.id, { sel: sel }, 'lựa chọn của câu này');
+        return true;
+      }
+
+      // mcq và nửa đầu của tf: chấm ngay
+      writeExItem(art, item.id, { p: oi }, 'đáp án của câu này');
+      $$('.q__opt', art).forEach(function (b, idx) {
+        b.disabled = true;
+        if (idx === item.a)   { b.classList.add('is-right'); }
+        else if (idx === oi)  { b.classList.add('is-wrong'); }
+      });
+      showWhy(art, oi === item.a ? 'Chính xác. ' : 'Chưa đúng. ');
+      paintExDot(art);
+      paintExProgress();
+      return true;
+    }
+
+    /* --- Kiểm tra (multi / fill / num / match) --- */
+    if (e.target.closest('[data-act="check"]')) {
+      if (blocked()) { return true; }
+      checkItem(art, item, kind);
+      return true;
+    }
+
+    /* --- Mở/đóng gợi ý, tiêu chí, lời giải ---
+       Cố tình KHÔNG lưu trạng thái mở: tải lại trang là đóng hết
+       (CLAUDE.md §13.1). Chỉ câu trả lời và điểm tự chấm mới được giữ. */
+    var act = e.target.closest('[data-act]');
+    if (act) {
+      var name = act.dataset.act;
+      var panel = $('[data-panel="' + name + '"]', art);
+      if (panel) { panel.hidden = !panel.hidden; }
+      return true;
+    }
+
+    return false;
+  }
+
+  function checkItem(art, item, kind) {
+    var ok, i;
+
+    if (kind === 'multi') {
+      var sel = $$('.q__opt.is-sel', art).map(function (b) { return parseInt(b.dataset.opt, 10); });
+      if (!sel.length) { return; }
+      ok = RenderEx.gradeMulti(item, sel);
+      writeExItem(art, item.id, { sel: sel, ok: ok ? 1 : 0 }, 'kết quả câu này');
+      $$('.q__opt', art).forEach(function (b, idx) {
+        b.disabled = true;
+        b.classList.remove('is-sel');
+        if (item.a.indexOf(idx) >= 0)   { b.classList.add('is-right'); }
+        else if (sel.indexOf(idx) >= 0) { b.classList.add('is-wrong'); }
+      });
+      showWhy(art, ok ? 'Chính xác. ' : 'Chưa đủ hoặc chưa đúng. ');
+
+    } else if (kind === 'fill' || kind === 'num') {
+      var input = $('[data-in]', art);
+      var v = input.value;
+      if (!String(v).trim()) { return; }
+      ok = (kind === 'fill') ? RenderEx.gradeFill(item, v) : RenderEx.gradeNum(item, v);
+      writeExItem(art, item.id, { v: v, ok: ok ? 1 : 0 }, 'kết quả câu này');
+      var wrap = input.closest('.exin');
+      wrap.classList.toggle('is-right', ok);
+      wrap.classList.toggle('is-wrong', !ok);
+      // Sai thì nói luôn đáp án đúng: ô này vẫn sửa được, người học gõ lại
+      // rồi bấm Kiểm tra lần nữa — không có gì để giấu ở đây.
+      showWhy(art, ok
+        ? 'Chính xác. '
+        : 'Chưa đúng — đáp án: ' + (kind === 'fill' ? item.a[0] : item.a) + '. ');
+
+    } else if (kind === 'match') {
+      var sels = $$('[data-sel]', art);
+      var m = sels.map(function (s) { return s.value === '' ? null : parseInt(s.value, 10); });
+      for (i = 0; i < m.length; i++) {
+        if (m[i] === null) { return; }              // chưa chọn đủ thì chưa chấm
+      }
+      var marks = RenderEx.gradeMatch(item, m);
+      ok = marks.every(Boolean);
+      writeExItem(art, item.id, { m: m, ok: ok ? 1 : 0 }, 'kết quả câu này');
+      $$('.exm__row', art).forEach(function (row, idx) {
+        row.classList.toggle('is-right', marks[idx]);
+        row.classList.toggle('is-wrong', !marks[idx]);
+        $('[data-sel]', row).disabled = true;
+        if (!marks[idx]) {
+          var fix = document.createElement('span');
+          fix.className = 'exm__fix';
+          fix.innerHTML = 'đúng là <b>' + 'ABCDEFGH'.charAt(item.a[idx]) + '</b>';
+          $('.exm__pick', row).appendChild(fix);
+        }
+      });
+      showWhy(art, ok ? 'Chính xác cả ' + m.length + ' cặp. '
+                      : 'Đúng ' + marks.filter(Boolean).length + '/' + m.length + ' cặp. ');
+    } else {
+      return;
+    }
+
+    paintExDot(art);
+    paintExProgress();
+  }
+
+  /* Gõ vào ô tự luận. Đây là chỗ DUY NHẤT không hoàn tác khi ghi hỏng: xoá
+     một đoạn người học vừa viết ra chỉ vì mạng chập là thiệt hại lớn hơn
+     nhiều so với việc để họ tự bấm lại. Nên ở đây chỉ báo trạng thái, và cứ
+     gõ tiếp là thử ghi lại.
+
+     Gộp phím trong TA_DEBOUNCE ms, một hẹn giờ cho MỖI câu — dùng chung một
+     hẹn giờ sẽ khiến chuyển sang ô khác giữa chừng làm mất lần ghi của ô cũ. */
+  elContent.addEventListener('input', function (e) {
+    if (!currentEx) { return; }
+    var ta = e.target.closest('[data-ta]');
+    if (!ta) { return; }
+    var art = ta.closest('.exi');
+    var item = exItemOf(art);
+    if (!item) { return; }
+
+    syncFreeLock(art);
+
+    if (!Store.ready()) {
+      setSaveTag(art, 'Chưa nối được máy chủ — chưa lưu', 'is-bad');
+      return;
+    }
+    setSaveTag(art, 'Đang lưu…', 'is-wait');
+
+    var id = item.id;
+    var value = ta.value;
+    clearTimeout(taTimers[id]);
+    taTimers[id] = setTimeout(function () {
+      Store.setExItem(currentEx, id, { txt: value }).then(function (ok) {
+        setSaveTag(art, ok ? 'Đã lưu' : 'Chưa lưu được — gõ tiếp để thử lại',
+                        ok ? 'is-ok' : 'is-bad');
+        paintExDot(art);
+        paintExProgress();
+      });
+    }, TA_DEBOUNCE);
+  });
+
+  /* Tick một ý trong bảng tiêu chí tự chấm. */
+  elContent.addEventListener('change', function (e) {
+    if (!currentEx) { return; }
+    var box = e.target.closest('[data-ck]');
+    if (!box) { return; }
+    var art = box.closest('.exi');
+    var item = exItemOf(art);
+    if (!item) { return; }
+
+    /* Chưa có chỗ ghi thì trả ô tick về ngay tại đây — nếu để nó tick rồi mới
+       báo, người học sẽ tưởng điểm tự chấm đã được ghi nhận. */
+    if (!Store.ready()) { box.checked = !box.checked; blocked(); return; }
+
+    var ck = $$('[data-ck]', art)
+      .filter(function (b) { return b.checked; })
+      .map(function (b) { return parseInt(b.dataset.ck, 10); });
+    writeExItem(art, item.id, { ck: ck }, 'phần tự chấm của câu này');
+
+    $$('.exck', art).forEach(function (l) {
+      l.classList.toggle('is-on', $('input', l).checked);
+    });
+    var score = $('[data-score]', art);
+    if (score) { score.textContent = ck.length + '/' + (item.crit || []).length + ' ý'; }
+  });
+
+  /* Vẽ lại riêng khối tự kiểm tra. outerHTML chứ không innerHTML cả trang:
+     người học có thể đang đọc ở đoạn 40, dựng lại cả bài sẽ ném họ về đầu. */
+  function repaintQuiz() {
+    var box = $('.quiz', elContent);
+    var data = currentId && Lesson.get(currentId);
+    if (!box || !data || !data.quiz) { return; }
+    box.outerHTML = Render.quiz(data.quiz, data.id);
+    ICON.hydrate(elContent);
+    updateQuizScore();
   }
 
   /* ══════════════════════════════════════════════════
      DỮ LIỆU VỪA VỀ TỪ MÁY CHỦ
      Store đã bị ghi đè xong; ở đây chỉ đồng bộ lại những chỗ trên màn hình
-     đang hiển thị dữ liệu cũ. KHÔNG dựng lại cả bài: người học có thể đang
-     đọc giữa chừng, vẽ lại sẽ ném họ về đầu trang.
+     đang hiển thị dữ liệu cũ.
      ══════════════════════════════════════════════════ */
   function applyRemoteToUi() {
+    syncLock();
+
+    /* Vừa có dữ liệu (hoặc vừa mất) thì phải dựng lại cả trang, vì mọi con số
+       đang hiển thị đều thuộc về trạng thái kia: trước khi có dữ liệu chúng là
+       dấu gạch và số 0 giả, sau khi mất thì chúng là dữ liệu của người khác.
+       Lúc này mọi nút ghi đang bị khoá nên chắc chắn không có gì gõ dở để mất. */
+    var now = Store.ready();
+    if (now !== hadData) {
+      hadData = now;
+      rerender();
+      return;
+    }
+
     refreshProgress();
     refreshSidebar(currentId);
 
-    if (!currentId) { return; }
-    paintDoneBar(currentId);
+    /* Trang bài tập: chỉ nhấp lại chấm trạng thái và thanh tiến độ. Nội dung
+       bài tập nằm ở subcollection khác và không đi kèm ảnh chụp này. */
+    if (currentEx) {
+      $$('.exi', elContent).forEach(paintExDot);
+      paintExProgress();
+      return;
+    }
+    if (!currentId) { rerender(); return; }
 
-    var box = $('.quiz', elContent);
-    var data = Lesson.get(currentId);
-    if (box && data) { box.outerHTML = Render.quiz(data.quiz, data.id); }
-    ICON.hydrate(elContent);
-    updateQuizScore();
+    paintDoneBar(currentId);
+    repaintQuiz();
   }
 
   /* ══════════════════════════════════════════════════
@@ -394,7 +947,7 @@
     var data = Lesson.get(lessonId);
     if (!data || !data.quiz) { return; }
 
-    var saved = Store.getQuiz(lessonId);
+    var saved = Store.getQuiz(lessonId, data.quiz.length);
     var answered = Object.keys(saved).length;
     var right = 0;
     data.quiz.forEach(function (q, i) {
@@ -406,6 +959,9 @@
   }
 
   elContent.addEventListener('click', function (e) {
+
+    /* --- Bài tập: phải đứng trước nhánh quiz, vì hai bên dùng chung .q__opt --- */
+    if (handleExClick(e)) { return; }
 
     /* --- Sao chép khối lệnh --- */
     var copyBtn = e.target.closest('[data-copy]');
@@ -433,6 +989,7 @@
     /* --- Chọn đáp án quiz --- */
     var opt = e.target.closest('.q__opt');
     if (opt && !opt.disabled) {
+      if (blocked()) { return; }
       var qBox = opt.closest('.q');
       var quizBox = opt.closest('.quiz');
       var lessonId = quizBox.dataset.quiz;
@@ -441,7 +998,14 @@
       var data = Lesson.get(lessonId);
       var correct = data.quiz[qi].a;
 
-      Store.setQuizAnswer(lessonId, qi, oi);
+      /* Hoàn tác ở đây là dựng lại cả khối tự kiểm tra chứ không riêng một
+         câu: đáp án đã lưu của các câu khác nằm trong Store, nên dựng lại là
+         khôi phục đúng, và số "Đúng n/m" phía trên cũng được tính lại. */
+      Store.setQuizAnswer(lessonId, qi, oi, data.quiz.length).then(function (ok) {
+        if (ok) { return; }
+        repaintQuiz();
+        Toast.writeFailed('đáp án câu ' + (qi + 1));
+      });
 
       Array.prototype.forEach.call(qBox.querySelectorAll('.q__opt'), function (b, idx) {
         b.disabled = true;
@@ -556,21 +1120,51 @@
   /* ══════════════════════════════════════════════════
      ĐỊNH TUYẾN
      ══════════════════════════════════════════════════ */
+  /* Hash có thể mang thêm một neo sau dấu # thứ hai: `#/bai-01#bon-manh-ghep`.
+     Bảng tra ở phần F của bài tập cần đúng thứ đó — trỏ thẳng vào MỤC phải
+     đọc lại, chứ không phải vào đầu bài rồi bảo người học tự tìm. */
+  var VIEW_RE = /^(bai|bt)-\d+$/;
+
+  function parseHash() {
+    var raw = location.hash.replace(/^#\/?/, '').trim();
+    var cut = raw.indexOf('#');
+    return {
+      h:      cut >= 0 ? raw.slice(0, cut) : raw,
+      anchor: cut >= 0 ? raw.slice(cut + 1) : ''
+    };
+  }
+
+  function renderView(h) {
+    if (!h)                          { viewHome(); }
+    else if (h === 'bai-tap')        { viewExIndex(); }
+    else if (h.indexOf('bt-') === 0) { viewExercise(h); }
+    else                             { viewLesson(h); }
+    refreshProgress();
+  }
+
+  /* Dựng lại trang đang xem mà KHÔNG nhảy về đầu. Dùng khi dữ liệu từ máy chủ
+     vừa về hoặc vừa mất — trang phải đổi số, nhưng người học không được bị
+     kéo khỏi đoạn đang đọc. */
+  function rerender() {
+    var y = window.scrollY;
+    renderView(parseHash().h);
+    window.scrollTo({ top: y, behavior: 'auto' });
+  }
+
   function route() {
-    var h = location.hash.replace(/^#\/?/, '').trim();
+    var p = parseHash();
 
     // Neo trong trang (#ten-muc) — để trình duyệt tự xử lý, không đổi view
-    if (h && !/^bai-\d+$/.test(h) && h !== '') {
-      if (document.getElementById(h)) { return; }
+    if (p.h && !VIEW_RE.test(p.h) && p.h !== 'bai-tap') {
+      if (document.getElementById(p.h)) { return; }
     }
 
     elResults.hidden = true;
+    renderView(p.h);
 
-    if (!h) { viewHome(); }
-    else    { viewLesson(h); }
-
-    refreshProgress();
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    var target = p.anchor ? document.getElementById(p.anchor) : null;
+    if (target) { target.scrollIntoView({ block: 'start' }); }
+    else        { window.scrollTo({ top: 0, behavior: 'auto' }); }
     $('#main').focus({ preventScroll: true });
   }
 
@@ -635,17 +1229,22 @@
     Search.build();
     wireSearch();
 
+    syncLock();
     window.addEventListener('hashchange', route);
     route();
 
     /* Đồng bộ được bật SAU khi trang đã vẽ xong: nếu Firebase chậm hay chết,
-       người học vẫn đọc được bài ngay lập tức (CLAUDE.md §14). */
+       người học vẫn ĐỌC được bài ngay lập tức. Chỉ các nút ghi là bị khoá cho
+       tới khi có dữ liệu thật — không bao giờ hiện một con số đoán bừa
+       (CLAUDE.md §14). */
     Cloud.onRemote(applyRemoteToUi);
+    Cloud.onState(syncLock);
     Account.init();
     Cloud.init();
 
     if (!Store.persistent) {
-      console.warn('[app] Trình duyệt chặn localStorage — tiến độ sẽ mất khi đóng tab.');
+      console.warn('[app] Trình duyệt chặn localStorage — giao diện sáng/tối và tên ' +
+        'người dùng sẽ không được nhớ. Tiến độ không ảnh hưởng: nó nằm trên máy chủ.');
     }
     console.log('[app] Sẵn sàng. ' + Course.readyCount() + '/' + Course.total() + ' bài đã có nội dung.');
   }
