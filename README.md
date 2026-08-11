@@ -48,7 +48,7 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   31. Bộ tham số dòng lệnh QEMU
   32. Boot kernel đầu tiên trong QEMU
 - Bộ bài tập đã viết: **5 / 70** — `bt-01`, `bt-02`, `bt-03`, `bt-04`, `bt-05` đi kèm Bài 1, 2, 3, 4, 5. Xem ở mục **Bài tập** trên sidebar.
-- [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
+- [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau). Mục §0 chỉ ra phần còn lại nằm ở đâu: [`docs/`](docs/) và [`.claude/skills/`](.claude/skills/).
 
 ## Tính năng
 
@@ -116,7 +116,9 @@ exercises/
 firebase/
   firestore.rules     danh sách trắng tên người dùng, nạp lên bằng tay
 LO-TRINH.md           lộ trình 70 bài
-CLAUDE.md             quy ước viết bài cho phiên làm việc sau
+CLAUDE.md             quy ước cốt lõi cho phiên làm việc sau
+docs/                 tài liệu tra cứu: môi trường đã đo, cách chạy lệnh, ghi chú khoá học
+.claude/skills/       hướng dẫn chi tiết: viết bài, viết bài tập, lưu tiến độ
 ```
 
 ## Thêm một bài mới
