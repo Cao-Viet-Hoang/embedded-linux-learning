@@ -68,6 +68,12 @@ Follow-up decisions the user made when asked:
 2. **Every command must be verified on the user's actual machine before it enters a lesson.**
    Run it through `Bash`, capture the real output, paste that real output into the lesson.
    Never invent, guess, or approximate terminal output.
+   **After running: if the actual output differs from expected output, investigate *why* before
+   accepting it.** Check for forgotten cleanup, stale state from previous runs, or environment
+   differences. Do not assume the output is correct just because the command ran. Document any
+   reasons the output differs, or pause and dig deeper—never skip this step early. If the cause
+   remains unclear after a reasonable investigation, record that explicitly in the lesson notes
+   (not the lesson content itself): "investigated X and Y, cause unknown, will verify again."
 3. **Explain the *why*, not just the *how*.** A command with no reason attached is a defect.
 4. **Style must be identical across all lessons.** This is enforced structurally — see §4.
 5. **No Git lesson.** The user already knows Git. Embedded-specific Git usage (patches,
