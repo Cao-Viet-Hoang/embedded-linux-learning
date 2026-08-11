@@ -457,6 +457,32 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
 - QEMU: `-nographic` conflicts with `-monitor stdio`. Use
   `-display none -serial null -monitor stdio` instead.
 
+### Cleaning up temporary files
+
+**After verifying a lesson or exercise set, delete all temporary files created during the
+process.** This includes:
+
+- **Temporary probe scripts** written for dependency checking (e.g., `tmp-probe-*.sh`)
+- **Scratch output files** created during testing (e.g., object files, binaries, test outputs)
+- **Build artifacts** and `.build` directories
+- **Temporary directories** created during practice (e.g., scratch folders in `$HOME`)
+
+Cleanup applies to **both** locations:
+
+1. **In the Git repository** (`/mnt/c/...`): Use `git status` to verify no scratch files are
+   staged or tracked. Delete them with `rm` or from Windows Explorer.
+2. **In WSL/Ubuntu** (`/home/shinarus`): Run cleanup commands in the WSL terminal to remove
+   temporary directories and files. Do not leave behind practice artifacts that will confuse
+   a later session.
+
+**Exception:** Some lessons deliberately create output that the next lesson depends on. Check
+the lesson notes in §12 — for instance, lesson 32 creates `~/bai32/` that lesson 33 expects.
+Do not delete those directories; they are part of the course continuity. If in doubt, ask
+before deleting.
+
+When writing a probe script, give it a name like `tmp-probe-lesson-XX.sh` so it is obvious
+it is temporary. When you are done testing, delete it.
+
 ---
 
 ## 10. Verified environment facts
@@ -553,14 +579,20 @@ cross-references. Guard against a repeat:
 - **The exercise system (§13) is implemented** (2026-08-10): `js/exercises.js`,
   `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar
   chip and the end-of-lesson CTA. `tools/check.js` validates and renders every set (§13.7).
-  **`exercises/bt-01.js` is the only content file so far** — 25 items, 3 trục, 13 diag rows.
-  It has **25 items, not 28**, because part D (`Ôn xen kẽ`) asks about *earlier* lessons and
-  lesson 1 has none; `DEmpty` says so on the page. From `bt-02` on, every set is 28.
-  Exercise state lives in `progress/{user}/ex/{bt-NN}` since 2026-08-10 (§14.3).
-- `bt-01`'s three trục are: MMU is the hard boundary (not RAM size) · the four pieces run in
-  sequence, so "where did it die" is deducible · hardware does not announce itself, Device
-  Tree declares it. Per §13.4 step 4 a concept may be spiralled **once in the whole course**,
-  so none of these three may become a trục again — in later sets they belong in part D.
+  **Written so far: `bt-01` … `bt-05`.** `bt-01` has **25 items, not 28**, because part D
+  (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so on the
+  page. From `bt-02` on, every set is 28. Exercise state lives in `progress/{user}/ex/{bt-NN}`
+  since 2026-08-10 (§14.3).
+- **Trục already spent.** Per §13.4 step 4 a concept may be spiralled **once in the whole
+  course**, so none of these may become a trục again — in later sets they belong in part D:
+
+  | Set | The three trục |
+  |---|---|
+  | `bt-01` | MMU is the hard boundary (not RAM size) · the four pieces run in sequence, so "where did it die" is deducible · hardware does not announce itself, Device Tree declares it |
+  | `bt-02` | DRAM is not usable at reset, hence SRAM and an SPL · each stage hands over and then *disappears* · `bootargs` is the one channel to the kernel |
+  | `bt-03` | virtualisation needs the *same* architecture, emulation does not · the two QEMU families solve different problems · `/mnt/c` is a filesystem boundary, and it is the slow one |
+  | `bt-04` | `$?` is the machine's only answer to "did that work" · a builtin is not a file on disk · the shell splits on whitespace *before* the command ever sees the arguments |
+  | `bt-05` | `/proc` and `/sys` are generated at read time · a file in `/dev` holds no data, major/minor point elsewhere · an empty directory in a rootfs is a mount point |
 - Module 05 splits ownership deliberately, to avoid overlap — keep it that way:
   lesson 29 is **TCG internals via user-mode only** (`qemu-aarch64`, `-d in_asm/out_asm/exec`,
   `-one-insn-per-tb`, `-d nochain`); lesson 30 is **the machine model** (memory map, device

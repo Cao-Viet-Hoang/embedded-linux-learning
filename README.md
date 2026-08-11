@@ -47,7 +47,7 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   30. Machine `virt` của ARM64
   31. Bộ tham số dòng lệnh QEMU
   32. Boot kernel đầu tiên trong QEMU
-- Bộ bài tập đã viết: **3 / 70** — `bt-01`, `bt-02`, `bt-03` đi kèm Bài 1, 2, 3. Xem ở mục **Bài tập** trên sidebar.
+- Bộ bài tập đã viết: **5 / 70** — `bt-01`, `bt-02`, `bt-03`, `bt-04`, `bt-05` đi kèm Bài 1, 2, 3, 4, 5. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau).
 
 ## Tính năng
