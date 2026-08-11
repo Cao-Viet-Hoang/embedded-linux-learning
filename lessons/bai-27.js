@@ -193,11 +193,29 @@ Lesson.register({
 
     { t: 'p', x:
       'Đây là chỗ cross-compilation khác hẳn biên dịch thường. Dịch xong bạn có một file mà ' +
-      '<b>chính máy vừa tạo ra nó lại không chạy được</b>. Bạn đã gặp đúng cảm giác này ở Bài 3, ' +
-      'trên một máy chưa cài <code>qemu-user</code>: gõ <code>./hello-arm64</code> thì shell trả ' +
-      'lời <code>cannot execute binary file: Exec format error</code> và mã thoát là <b>126</b>. ' +
-      'Với <code>temp_daemon_arm64</code>, kết quả y hệt — kích thước và độ phức tạp của chương ' +
-      'trình không liên quan gì.' },
+      '<b>chính máy vừa tạo ra nó lại không chạy được</b> — đúng cảm giác bạn đã gặp ở Bài 3 với ' +
+      '<code>hello-arm64</code>: <code>cannot execute binary file: Exec format error</code>, mã ' +
+      'thoát <b>126</b>. Nhưng máy bạn từ Bài 3 đã cài <code>qemu-user</code>, và gói đó kéo theo ' +
+      'một cơ chế của nhân có thể khiến file ARM64 chạy "thẳng" mà không báo lỗi gì — Bài 3 đã tắt ' +
+      'tạm nó để bạn thấy đúng lỗi gốc, rồi mở lại. Để chắc chắn nhìn thấy đúng hành vi đó một lần ' +
+      'nữa trên <code>temp_daemon_arm64</code>, tắt tạm chính cơ chế ấy:' },
+
+    { t: 'code', where: 'wsl', code:
+      'echo 0 | sudo tee /proc/sys/fs/binfmt_misc/qemu-aarch64' },
+    { t: 'code', where: 'out', nocopy: true, code:
+      '0' },
+
+    { t: 'p', x: 'Giờ chạy <code>temp_daemon_arm64</code>:' },
+    { t: 'code', where: 'wsl', code:
+      './temp_daemon_arm64\n' +
+      'echo "exit code = $?"' },
+    { t: 'code', where: 'out', nocopy: true, code:
+      'bash: ./temp_daemon_arm64: cannot execute binary file: Exec format error\n' +
+      'exit code = 126' },
+
+    { t: 'p', x:
+      'Y hệt <code>hello-arm64</code> ở Bài 3 — kích thước và độ phức tạp của chương trình không ' +
+      'liên quan gì.' },
 
     { t: 'cal', kind: 'why', title: 'Nhân từ chối ở bước nào, và vì sao đó là hành vi đúng?',
       x: '<p>Khi bạn gõ <code>./temp_daemon_arm64</code>, shell gọi <code>execve()</code>. Nhân ' +
@@ -288,8 +306,13 @@ Lesson.register({
     { t: 'h2', x: '<code>binfmt_misc</code>: dạy nhân nhận ra file lạ' },
 
     { t: 'p', x:
-      'Sau khi cài gói <code>qemu-user</code>, hãy chạy lại đúng lệnh vừa thất bại. Thông báo lỗi ' +
-      '<b>đổi khác</b> — và bạn không gõ thêm chữ nào:' },
+      'Mở lại đúng cơ chế bạn vừa tắt, rồi chạy lại chính lệnh vừa thất bại. Thông báo lỗi ' +
+      '<b>đổi khác</b> — và bạn không gõ thêm chữ nào ngoài việc mở lại:' },
+
+    { t: 'code', where: 'wsl', code:
+      'echo 1 | sudo tee /proc/sys/fs/binfmt_misc/qemu-aarch64' },
+    { t: 'code', where: 'out', nocopy: true, code:
+      '1' },
 
     { t: 'code', where: 'wsl', code:
       './temp_daemon_arm64\n' +
@@ -725,33 +748,30 @@ Lesson.register({
     { t: 'steps', items: [
 
       /* ---------- BƯỚC 1 ---------- */
-      { title: 'Cài <code>qemu-user</code> và nhìn nó đăng ký vào nhân',
+      { title: 'Xác nhận <code>qemu-user</code> và trạng thái đăng ký trong nhân',
         blocks: [
           { t: 'p', x:
-            'Máy bạn đã có <code>qemu-system-arm</code> từ Bài 1. Gói cần thêm là ' +
-            '<code>qemu-user</code> — chương trình mô phỏng ở mức tiến trình. Nó kéo theo ' +
-            '<code>qemu-user-binfmt</code>, gói đăng ký luật vào <code>binfmt_misc</code>.' },
+            'Máy bạn đã có <code>qemu-system-arm</code> từ Bài 1, và đã có <code>qemu-user</code> — ' +
+            'chương trình mô phỏng ở mức tiến trình — từ chính phần thực hành của Bài 3. Xác nhận ' +
+            'lại cho chắc:' },
 
           { t: 'code', where: 'wsl', code:
             'sudo apt update\n' +
             'sudo apt install -y qemu-user' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'The following additional packages will be installed:\n' +
-            '  qemu-user-binfmt\n' +
-            'The following NEW packages will be installed:\n' +
-            '  qemu-user qemu-user-binfmt\n' +
-            '0 upgraded, 2 newly installed, 0 to remove and 2 not upgraded.\n' +
-            'Need to get 14.8 MB of archives.\n' +
-            'After this operation, 136 MB of additional disk space will be used.' },
+            'qemu-user is already the newest version (1:10.2.1+ds-1ubuntu3.2).\n' +
+            'Summary:\n' +
+            '  Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 21' },
 
           { t: 'cal', kind: 'warn', title: 'Đừng bỏ qua <code>apt update</code>',
-            x: '<p>Khi soạn bài này, chạy thẳng <code>apt install</code> cho ra ' +
-               '<code>404 Not Found</code>: danh sách gói trên máy còn trỏ tới bản ' +
-               '<code>1:10.2.1+ds-1ubuntu3.1</code> trong khi kho đã thay bằng ' +
+            x: '<p>Khi Bài 3 cài gói này lần đầu, chạy thẳng <code>apt install</code> mà bỏ qua ' +
+               '<code>apt update</code> cho ra <code>404 Not Found</code>: danh sách gói trên máy ' +
+               'còn trỏ tới bản <code>1:10.2.1+ds-1ubuntu3.1</code> trong khi kho đã thay bằng ' +
                '<code>…3.2</code>. Đây là cơ chế Bài 12 đã mô tả — <code>apt</code> tải theo ' +
-               '<i>danh sách nó nhớ</i>, không phải theo nội dung kho lúc này. Một lần ' +
-               '<code>apt update</code> là xong.</p>' },
+               '<i>danh sách nó nhớ</i>, không phải theo nội dung kho lúc này. Giữ thói quen chạy ' +
+               '<code>apt update</code> trước mọi <code>apt install</code>, ngay cả khi — như ở ' +
+               'đây — gói hoá ra đã có sẵn.</p>' },
 
           { t: 'code', where: 'wsl', code:
             'qemu-aarch64 --version | head -1\n' +
@@ -762,9 +782,9 @@ Lesson.register({
             '31' },
 
           { t: 'cal', kind: 'info', title: '31 kiến trúc, một lệnh cài đặt',
-            x: '<p>Từ giờ máy WSL của bạn chạy được nhị phân người dùng của 31 kiến trúc: ' +
-               'AArch64, ARM 32-bit, RISC-V, MIPS, PowerPC, s390x, m68k… Bản thân ' +
-               '<code>/usr/bin/qemu-aarch64</code> nặng <b>7 108 312</b> byte — gần như toàn bộ ' +
+            x: '<p>Nhờ một lệnh cài đặt duy nhất ở Bài 3, máy WSL của bạn chạy được nhị phân người ' +
+               'dùng của 31 kiến trúc: AArch64, ARM 32-bit, RISC-V, MIPS, PowerPC, s390x, m68k… Bản ' +
+               'thân <code>/usr/bin/qemu-aarch64</code> nặng <b>7 108 312</b> byte — gần như toàn bộ ' +
                'là bảng dịch lệnh ARM64 sang x86-64.</p>' }
         ]},
 

@@ -416,16 +416,27 @@ Lesson.register({
             '<p>Đánh đổi tĩnh–động này là quyết định thiết kế quan trọng trên thiết bị nhúng, nơi từng ' +
             'megabyte flash đều được tính. Bài 17 sẽ phân tích kỹ.</p>' },
 
+          { t: 'p', x:
+            'Trước khi chạy thử, tắt tạm một cơ chế mà lệnh cài <code>qemu-user</code> ở bước trước ' +
+            'vừa âm thầm kích hoạt trong nhân — nếu không tắt, bước dưới có thể không báo lỗi gì cả. ' +
+            'Bài 27 sẽ giải thích đầy đủ cơ chế này; ở đây chỉ cần biết cách tắt và mở lại nó:' },
+          { t: 'code', where: 'wsl', code:
+            'echo 0 | sudo tee /proc/sys/fs/binfmt_misc/qemu-aarch64' },
+          { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
+            '0' },
+
           { t: 'p', x: 'Giờ thử chạy bản ARM64 trực tiếp:' },
           { t: 'code', where: 'wsl', code:
-            './hello-arm64' },
+            './hello-arm64; echo "exit=$?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'bash: ./hello-arm64: cannot execute binary file: Exec format error' },
+            'bash: ./hello-arm64: cannot execute binary file: Exec format error\n' +
+            'exit=126' },
 
           { t: 'cal', kind: 'why', title: 'Lỗi này là kết quả mong đợi', x:
             '<p>Bạn vừa nhìn thấy giới hạn thứ ba của WSL2 bằng mắt mình. File chứa lệnh ARM64; ' +
             'CPU của bạn chỉ hiểu lệnh x86-64. Kernel đọc phần đầu file ELF, thấy trường kiến trúc ghi ' +
-            '<code>AArch64</code>, và từ chối nạp.</p>' +
+            '<code>AArch64</code>, từ chối nạp, và trả về mã thoát <b>126</b> — mã dành riêng cho ' +
+            '"tìm thấy file nhưng không thể thực thi".</p>' +
             '<p>Đây không phải hỏng hóc. Đây chính xác là bài toán mà QEMU sinh ra để giải.</p>' },
 
           { t: 'p', x: 'Nhờ QEMU chạy hộ:' },
@@ -440,7 +451,22 @@ Lesson.register({
             'lời gọi đó sang cho kernel WSL2 của bạn xử lý.</p>' +
             '<p>Ở đây <b>không có kernel ARM64 nào</b>, không có máy ảo, không có boot. Chỉ có phép dịch ' +
             'tập lệnh — đó chính là ranh giới giữa <code>qemu-aarch64</code> và ' +
-            '<code>qemu-system-aarch64</code>.</p>' }
+            '<code>qemu-system-aarch64</code>.</p>' },
+
+          { t: 'p', x: 'Mở lại cơ chế vừa tắt — máy bạn cần nó ở dạng bật cho mọi bài sau này:' },
+          { t: 'code', where: 'wsl', code:
+            'echo 1 | sudo tee /proc/sys/fs/binfmt_misc/qemu-aarch64' },
+          { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
+            '1' },
+
+          { t: 'cal', kind: 'info', title: 'Cơ chế vừa tắt/mở tên là gì?', x:
+            '<p>Đó là <code>binfmt_misc</code> — một bảng trong nhân Linux cho phép đăng ký luật ' +
+            '"nếu file bắt đầu bằng dãy byte này, hãy chạy nó bằng chương trình kia". Gói ' +
+            '<code>qemu-user-binfmt</code> (đi kèm khi bạn cài <code>qemu-user</code> ở bước trước) ' +
+            'đăng ký một luật như vậy cho file ELF ARM64, trỏ tới <code>qemu-aarch64</code>. Từ giờ, ' +
+            'nếu một lúc nào đó bạn chạy thẳng một file ARM64 mà <b>không</b> thấy ' +
+            '<code>Exec format error</code>, đó là <code>binfmt_misc</code> đang lặng lẽ làm việc, ' +
+            'không phải máy bạn vừa đổi kiến trúc. Bài 27 sẽ mổ xẻ đầy đủ luật này.</p>' }
         ]},
 
       { title: 'Tự chứng minh KVM vô dụng với ARM64',
@@ -537,8 +563,10 @@ Lesson.register({
       '<b>không</b> đồng nghĩa với chạy nhanh.',
       '<code>qemu-aarch64</code> giả lập một <b>CPU</b> để chạy một chương trình; ' +
       '<code>qemu-system-aarch64</code> giả lập cả một <b>cái máy</b> để boot hệ điều hành.',
-      '<code>Exec format error</code> là câu trả lời đúng khi chạy file ARM64 trên CPU x86 — ' +
-      'và là lý do QEMU tồn tại.',
+      '<code>Exec format error</code>, mã thoát <b>126</b>, là câu trả lời đúng của nhân khi chạy ' +
+      'file ARM64 trên CPU x86 chưa có gì can thiệp — và là lý do QEMU tồn tại. Gói ' +
+      '<code>qemu-user-binfmt</code> có thể khiến lỗi này im lặng biến mất sau khi cài ' +
+      '<code>qemu-user</code>; Bài 27 giải thích đầy đủ cơ chế đó.',
       'Trừ hao <b>chậm hơn 10–20 lần</b> so với board thật, nhưng kết quả vẫn đúng.'
     ]},
 
@@ -607,7 +635,10 @@ Lesson.register({
       why: '<code>qemu-aarch64</code> (user-mode) chỉ giả lập tập lệnh và chuyển tiếp mọi syscall sang ' +
            'kernel WSL2 của bạn — khởi động tức thì, không cần kernel hay rootfs ARM64. ' +
            '<code>qemu-system-aarch64</code> giả lập cả một cái máy, phải boot mất vài chục giây, ' +
-           'là thừa cho việc thử một chương trình.'
+           'là thừa cho việc thử một chương trình. Phương án "chạy thẳng file" có thể trông như chạy ' +
+           'được sau khi cài <code>qemu-user</code> — đó vẫn là <code>qemu-aarch64</code> đứng sau, ' +
+           'do nhân tự gọi hộ qua <code>binfmt_misc</code> (Bài 27 sẽ mổ xẻ), không phải CPU học ' +
+           'thêm được tập lệnh.'
     },
     {
       q: 'Vì sao cần tuỳ chọn <code>-static</code> khi cross-compile chương trình để chạy dưới <code>qemu-aarch64</code>?',
