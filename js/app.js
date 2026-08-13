@@ -866,6 +866,26 @@
     }, TA_DEBOUNCE);
   });
 
+  /* Chọn một cặp trong câu ghép nối. Lưu ngay khi chọn, không đợi tới lúc
+     bấm Kiểm tra: nếu không, chọn dở dang rồi rời trang (hay chỉ đơn giản là
+     đóng máy) là mất trắng, vì trước đây `m` chỉ được ghi khi ĐỦ mọi dòng
+     đã chọn. */
+  elContent.addEventListener('change', function (e) {
+    if (!currentEx) { return; }
+    var sel = e.target.closest('[data-sel]');
+    if (!sel) { return; }
+    var art = sel.closest('.exi');
+    var item = exItemOf(art);
+    if (!item) { return; }
+
+    if (!Store.ready()) { sel.value = ''; blocked(); return; }
+
+    var m = $$('[data-sel]', art).map(function (s) {
+      return s.value === '' ? null : parseInt(s.value, 10);
+    });
+    writeExItem(art, item.id, { m: m }, 'lựa chọn của câu này');
+  });
+
   /* Tick một ý trong bảng tiêu chí tự chấm. */
   elContent.addEventListener('change', function (e) {
     if (!currentEx) { return; }
