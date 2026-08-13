@@ -257,3 +257,5 @@ time a set is written.
 | `bt-03` | virtualisation needs the *same* architecture, emulation does not · the two QEMU families solve different problems · `/mnt/c` is a filesystem boundary, and it is the slow one |
 | `bt-04` | `$?` is the machine's only answer to "did that work" · a builtin is not a file on disk · the shell splits on whitespace *before* the command ever sees the arguments |
 | `bt-05` | `/proc` and `/sys` are generated at read time · a file in `/dev` holds no data, major/minor point elsewhere · an empty directory in a rootfs is a mount point |
+| `bt-06` | the shell expands `*`, the command never sees it · a name is not the file, the inode is · metadata is a system, not decoration |
+| `bt-07` | <kbd>Ctrl</kbd>+<kbd>S</kbd> freezes the *terminal*, the program keeps running · vim has modes — one key, two meanings · a `:` command defaults to **one line** only |
