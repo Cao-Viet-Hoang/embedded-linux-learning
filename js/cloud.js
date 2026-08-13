@@ -205,10 +205,18 @@
 
     /* Tài liệu con của một bộ bài tập chỉ ra đời khi người học làm câu đầu
        tiên, nên update() gặp not-found là chuyện bình thường chứ không phải
-       lỗi — tạo mới bằng cả hình dạng rồi thôi. */
+       lỗi — tạo mới bằng cả hình dạng rồi thôi.
+
+       Bắt cả permission-denied: khi tài liệu CHƯA tồn tại, request.resource.data
+       của một update() chỉ gồm đúng các trường được truyền (items/updatedAt/by),
+       không có `v` — vì không có dữ liệu cũ để trộn vào. wellFormedEx() đòi
+       hasAll(['v', ...]) nên Rules từ chối, và Firestore báo permission-denied
+       chứ không phải not-found cho một update() bị chặn. Rơi về set() vẫn an
+       toàn: nếu lý do thật sự là quyền (sai username) thì set() cũng sẽ hỏng
+       vì cùng lý do, và lỗi vẫn trồi lên đúng chỗ. */
     if (exId) {
       p = p.catch(function (e) {
-        if (!e || e.code !== 'not-found') { throw e; }
+        if (!e || (e.code !== 'not-found' && e.code !== 'permission-denied')) { throw e; }
         return exRef(exId).set({
           v: VER,
           createdAt: stamp(),

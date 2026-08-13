@@ -253,9 +253,12 @@
     var checked = st && st.ok !== undefined && st.ok !== null;
     var marks = checked ? gradeMatch(item, m) : null;
 
-    var options = item.right.map(function (r, i) {
-      return '<option value="' + i + '">' + LETTER[i] + '. ' + esc(Search.plain(r)) + '</option>';
-    }).join('');
+    function optionsFor(cur) {
+      return item.right.map(function (r, i) {
+        return '<option value="' + i + '"' + (String(i) === cur ? ' selected' : '') + '>' +
+                 LETTER[i] + '. ' + esc(Search.plain(r)) + '</option>';
+      }).join('');
+    }
 
     var rows = item.left.map(function (l, i) {
       var cur = (m[i] === undefined || m[i] === null) ? '' : String(m[i]);
@@ -268,7 +271,8 @@
                '<span class="exm__l">' + l + '</span>' +
                '<span class="exm__pick">' +
                  '<select class="exm__s" data-sel="' + i + '"' + (checked ? ' disabled' : '') + '>' +
-                   '<option value="">— chọn —</option>' + options +
+                   '<option value=""' + (cur === '' ? ' selected' : '') + '>— chọn —</option>' +
+                   optionsFor(cur) +
                  '</select>' + fix +
                '</span>' +
              '</div>';
