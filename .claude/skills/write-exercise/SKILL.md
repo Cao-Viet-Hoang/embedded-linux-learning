@@ -233,7 +233,12 @@ Rules the validator enforces, each for a reason learned the hard way:
 - **An empty part needs `<PART>Empty`.** A silently missing part reads as broken content.
 - **Every part-F row needs a link.** The whole value of the table is that it routes a
   failure to a specific section: `#/bai-NN#<slug>`, where the slug is `Render.slug()` of
-  that heading's exact text.
+  that heading's exact text. **`Render.slug()` ends with `.slice(0, 60)`**, so a long
+  heading is silently truncated mid-word — Bài 9's *"Tín hiệu: cách duy nhất để nói chuyện
+  với tiến trình đang chạy"* becomes `…-tien-trinh-dang-cha`, not `…-dang-chay`. Hand-typing
+  the slug from the heading gives a dead anchor and `tools/check.js` does **not** catch it.
+  Compute it, don't guess it — load `js/render.js` in `node` and call `Render.slug()` on the
+  literal `x` of the target block.
 
 Checklist for adding a set — the §9 checklist (`write-lesson` skill), applied here:
 
@@ -259,3 +264,5 @@ time a set is written.
 | `bt-05` | `/proc` and `/sys` are generated at read time · a file in `/dev` holds no data, major/minor point elsewhere · an empty directory in a rootfs is a mount point |
 | `bt-06` | the shell expands `*`, the command never sees it · a name is not the file, the inode is · metadata is a system, not decoration |
 | `bt-07` | <kbd>Ctrl</kbd>+<kbd>S</kbd> freezes the *terminal*, the program keeps running · vim has modes — one key, two meanings · a `:` command defaults to **one line** only |
+| `bt-08` | the kernel checks **one** triplet and stops at the first match · a directory's `rwx` describes the *name table*, not the files in it · permission to touch hardware comes from **group membership**, not from `sudo` |
+| `bt-09` | `kill` is a request, `kill -9` is an order — and the price of the order is no time to flush · load average is a **count** of waiting processes, not a percentage — divide by `nproc`, and it lags ~60 s · `jobs`/`%1` are the **shell's** bookkeeping, not the kernel's |

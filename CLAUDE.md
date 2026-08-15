@@ -301,8 +301,8 @@ cross-references. Guard against a repeat:
   `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) are written and rendering.
 - Next lesson to write, when asked: lesson 33, `Nhiệm vụ của bootloader`, opening
   `Chặng 06 — Bootloader U-Boot`.
-- `node tools/check.js` → `14 modules · 70 lessons · 32 written · OK`.
-- **Exercise sets written: `bt-01` … `bt-05`.** `bt-01` has **25 items, not 28**, because
+- `node tools/check.js` → `14 modules · 70 lessons · 32 written · 9 bài tập` · `OK`.
+- **Exercise sets written: `bt-01` … `bt-09`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,
   `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar chip
