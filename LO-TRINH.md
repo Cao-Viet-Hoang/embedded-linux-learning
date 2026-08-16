@@ -411,9 +411,11 @@ Cài thêm khi tới chặng tương ứng:
 | 30 | Machine `virt` của ARM64 | ✅ Đã có |
 | 31 | Bộ tham số dòng lệnh QEMU | ✅ Đã có |
 | 32 | Boot kernel đầu tiên trong QEMU | ✅ Đã có |
-| 33 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 33 | Nhiệm vụ của bootloader | ✅ Đã có |
+| 34 | Build U-Boot cho QEMU | ✅ Đã có |
+| 35 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4 và Chặng 5 đã hoàn tất (32 / 70 bài).** Bài kế tiếp sẽ viết: Bài 33 — *Nhiệm vụ của bootloader*, mở Chặng 6.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4 và Chặng 5 đã hoàn tất; Chặng 6 đang viết (34 / 70 bài).** Bài kế tiếp sẽ viết: Bài 35 — *Dòng lệnh U-Boot*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -435,7 +437,9 @@ cùng vẫn chỉ đếm 70 bài.
 | `bt-07` | Bài 7 | 28 | ✅ Đã có |
 | `bt-08` | Bài 8 | 28 | ✅ Đã có |
 | `bt-09` | Bài 9 | 28 | ✅ Đã có |
-| `bt-10` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
+| `bt-10` | Bài 10 | 28 | ✅ Đã có |
+| `bt-11` | Bài 11 | 28 | ✅ Đã có |
+| `bt-12` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
 
 `bt-01` có 25 câu thay vì 28 vì phần **D — Ôn xen kẽ** hỏi về các bài *trước*, mà Bài 1
 không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và bộ nào cũng đủ 28.
