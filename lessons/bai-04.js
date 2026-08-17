@@ -519,18 +519,23 @@ Lesson.register({
             'type -t ls\n' +
             'type -t cd' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-            'ls is hashed (/usr/bin/ls)\n' +
+            'ls is aliased to `ls --color=auto\'\n' +
             'cd is a shell builtin\n' +
-            'file\n' +
+            'alias\n' +
             'builtin' },
 
-          { t: 'cal', kind: 'info', title: 'Chữ "hashed" nghĩa là gì', x:
-            '<p>Lần đầu bạn gọi <code>ls</code>, bash phải dò lần lượt từng thư mục trong ' +
-            '<code>$PATH</code> — trên máy bạn danh sách đó có hơn <b>40 thư mục</b>. Tìm được rồi, ' +
-            'bash ghi nhớ đường dẫn vào một bảng băm để lần sau khỏi dò lại.</p>' +
-            '<p>Ở một phiên bash hoàn toàn mới, dòng đầu sẽ là <code>ls is /usr/bin/ls</code>. ' +
-            'Sau khi chạy <code>ls</code> một lần, nó đổi thành <code>ls is hashed (/usr/bin/ls)</code>. ' +
-            'Cùng một sự thật, chỉ khác chỗ bash đọc ra.</p>' },
+          { t: 'cal', kind: 'info', title: 'Vì sao ra "aliased to", không phải "hashed"', x:
+            '<p>Ubuntu đặt sẵn <code>alias ls=\'ls --color=auto\'</code> trong <code>~/.bashrc</code> ' +
+            '(tự kiểm tra bằng <code>alias ls</code>). Khi tra một cái tên, bash luôn hỏi theo đúng ' +
+            'một thứ tự cố định: <b>alias</b> → từ khoá → hàm shell → <i>builtin</i> → bảng băm/' +
+            '<code>$PATH</code>. <code>ls</code> khớp ngay ở bước đầu tiên, nên <code>type</code> dừng ' +
+            'lại đó và báo "aliased to" — nó không bao giờ đi tiếp đến bước "hashed", dù bạn đã gọi ' +
+            '<code>ls</code> bao nhiêu lần.</p>' +
+            '<p>Đây là kết quả sẽ lặp lại y hệt ở <b>mọi</b> phiên terminal tương tác bạn mở trên máy ' +
+            'này, vì phiên nào cũng nạp <code>~/.bashrc</code>. Bash vẫn hash <code>/usr/bin/ls</code> ' +
+            'thật ở phía sau — chỉ là <code>type ls</code> không còn cơ hội cho bạn thấy bước đó nữa, ' +
+            'vì alias đã chặn ngay từ đầu. Muốn thấy cả hai lớp cùng lúc, dùng <code>type -a ls</code> ' +
+            '(bạn sẽ thử ngay dưới đây với <code>echo</code>).</p>' },
 
           { t: 'p', x: 'Giờ so sánh với <code>which</code>:' },
           { t: 'code', where: 'wsl', code:
@@ -584,6 +589,22 @@ Lesson.register({
             'của GNU bằng bản viết lại bằng Rust.</p>' +
             '<p>Vì thế nếu bạn tra một bài viết trên mạng và thấy <code>ls --help</code> in ra khác hẳn — ' +
             'bạn không làm sai gì cả. Bản GNU vẫn còn trên máy dưới tên <code>gnuls</code>.</p>' },
+
+          { t: 'cal', kind: 'warn', title: 'command -v cũng dừng lại ở alias, giống type', x:
+            '<p>Phần trên bạn đã thấy <code>type ls</code> báo "aliased to" thay vì đi tới file thật. ' +
+            '<code>command -v</code> tra tên theo đúng thứ tự đó, nên nếu bạn tự gõ đúng dòng ' +
+            '<code>readlink -f "$(command -v ls)"</code> ở terminal của mình, <code>command -v ls</code> ' +
+            'không trả về đường dẫn mà trả về nguyên văn <code>alias ls=\'ls --color=auto\'</code>.</p>' +
+            '<p><code>readlink -f</code> không đòi input phải là đường dẫn có thật — nó chỉ cố ' +
+            '"tuyệt đối hoá" bất kỳ chuỗi nào đưa vào bằng cách ghép thư mục hiện tại lên trước. Kết quả ' +
+            'là một dòng trông giống đường dẫn nhưng vô nghĩa, dạng ' +
+            '<code>/home/ban/.../alias ls=\'ls --color=auto\'</code> — không phải lỗi của bạn, và cũng ' +
+            'không phải <code>readlink</code> báo lỗi gì cả, nó chỉ làm đúng việc được giao với một input ' +
+            'không phải đường dẫn.</p>' +
+            '<p>Cách tra đúng khi tên bị alias che: dùng <code>type -a ls</code> (bạn sẽ thử với ' +
+            '<code>echo</code> ngay bên dưới) — nó liệt kê <b>cả</b> alias lẫn từng file khớp trên ' +
+            '<code>$PATH</code>, và dòng <code>ls is /usr/bin/ls</code> hoặc <code>ls is /bin/ls</code> ' +
+            'mới là cái đưa vào <code>readlink -f</code> được.</p>' },
 
           { t: 'p', x: 'So sánh ba cách tra cứu, chú ý cách cuối cùng thất bại:' },
           { t: 'code', where: 'wsl', code:

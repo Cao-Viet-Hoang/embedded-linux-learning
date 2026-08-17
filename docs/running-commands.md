@@ -58,11 +58,25 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
 
 - Prefix with `MSYS_NO_PATHCONV=1` when passing Unix paths to `wsl`, or Git Bash rewrites
   `/mnt/c/...` into `C:/Program Files/Git/mnt/c/...`.
-- Vietnamese text, `$(...)`, `awk '{print $5}'` and `time (...)` all break when nested
-  through `wsl -d Ubuntu -- bash -lc '...'`. Write the script to a temp file with `Write`
-  and run the file instead. Delete the temp file afterwards.
+- Vietnamese text, `$(...)`, `awk '{print $5}'`, `time (...)` and `$?` (exit-code checks
+  written inline as `cmd; echo $?`) all break when nested through
+  `wsl -d Ubuntu -- bash -lc '...'` — confirmed 2026-08-16: the same `which cd; echo $?`
+  reports `0` inline but `1` when run from a script file. Write the script to a temp file
+  with `Write` and run the file instead. Delete the temp file afterwards.
 - QEMU: `-nographic` conflicts with `-monitor stdio`. Use
   `-display none -serial null -monitor stdio` instead.
+- **`bash -lc` does not source `~/.bashrc`.** It is a login shell but not an interactive
+  one, and Ubuntu's `~/.profile` only sources `~/.bashrc` for interactive shells. This means
+  verification is blind to anything defined only in `~/.bashrc` — most importantly the
+  default `alias ls='ls --color=auto'` (`~/.bashrc:78`). A command that resolves aliases
+  (`command -v`, `type`, `alias`, a shell function) can therefore verify one way here and
+  behave differently in the learner's real interactive terminal — confirmed 2026-08-16 on
+  lesson 4's `readlink -f "$(command -v ls)"`: `bash -lc` reports `/usr/bin/ls`, `bash -ic`
+  reports `alias ls='ls --color=auto'`, and `readlink -f` on the latter silently prepends the
+  cwd instead of erroring, producing a plausible-looking but wrong path. Before trusting a
+  verified output for a command that touches aliases/functions/builtins, re-run it through
+  `bash -ic` too and compare. If they differ, the lesson must say so explicitly (e.g. warn
+  that the reader's own aliases can change this) rather than assert one output as universal.
 
 ### Cleaning up temporary files
 

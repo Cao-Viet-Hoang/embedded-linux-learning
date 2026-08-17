@@ -17,6 +17,46 @@
   *role* exists before the *program* does. Lesson 35 owns the U-Boot command line
   (`bootflow`, `md`, `setenv`/`saveenv`, `booti`) and lesson 36 owns TFTP + FIT: do not
   spend those in 33/34 beyond a one-line tease.
+  **Module 06 is now complete (33–36).**
+- Lesson 35 owns, and lesson 36 must not re-teach: the `=>` shell and `help`
+  (124 commands), the environment (`printenv`/`setenv`/`saveenv`, `bootcmd` vs `bootargs`,
+  the `bad CRC` warning, `CONFIG_ENV_IS_IN_FLASH` at `0x4000000` / 256 KiB), `md`/`mw`/`cmp`,
+  `d00dfeed`, `virtio`/`ls`/`load`/`ext4load`, `booti` vs `bootm` (`Wrong Image Type`),
+  `boot.scr` via `mkimage -T script`, and the `-bios` vs `-drive if=pflash` persistence
+  proof. Lesson 36 owns: QEMU slirp networking, TFTP, FIT (`.its` → `mkimage -f` → `.itb`),
+  sha256 verification, and RSA-2048 signing.
+- **Lesson 35 creates `~/bai35/disk.img` unprivileged** — `truncate` + `mkfs.ext4 -F -q -L
+  BOOT` + `debugfs -w -R "write SRC DST"`. There is **no `sudo` on this machine** (it times
+  out), so `mount`, `dosfstools` and `mtools` are all unavailable. Any later lesson that
+  needs to put a file into a disk image must use the same `debugfs` trick or build the image
+  with `cpio`/`tar` instead.
+- **The `-nic` trap (lesson 36, step 1).** On `-M virt`,
+  `-nic user,model=virtio-net-device,tftp=…` does **not** work: QEMU prints two warnings
+  (`netdev #netNNN has no peer`, `requested NIC … was not created`) and boots on with
+  `Net: No ethernet found.` Always write the explicit pair
+  `-netdev user,id=net0,tftp=$HOME/… -device virtio-net-device,netdev=net0`.
+- **The `dumpdtb` trap (lesson 36, steps 3–6) — the most valuable thing in module 06.**
+  `-machine dumpdtb=` must be run with the **identical command line that will boot**,
+  `-bios` included. Without `-bios`, QEMU adds `pl061@9030000` + `gpio-keys`
+  (393 dts lines vs 372, `pl061` count 1 vs 0) and the resulting DTB makes the kernel die in
+  `amba_read_periphid` (`synchronous external abort`, `x9 = 0x9031000`) with **no console
+  output at all** unless `earlycon=pl011,0x9000000` is added. Lesson 36 walks the learner
+  through this failure on purpose; do not "fix" it into a clean path.
+- **`dumpdtb` output is not reproducible**: QEMU injects fresh `rng-seed` and `kaslr-seed`
+  each dump, so the DTB's sha256 (and therefore the FIT's) changes every time. Lesson 36
+  says so in a `warn` callout. Never tell a learner to compare FIT hashes across builds.
+- **FIT load address**: the FIT must be loaded somewhere other than the `load` address
+  declared inside it, or `bootm` aborts with `ERROR: new format image overwritten - must
+  RESET the board to recover`. Lesson 36 uses `0x44000000` for the FIT and `0x40400000`
+  (= `kernel_addr_r`) for the kernel. Note `ramdisk_addr_r` is also `0x44000000` on this
+  machine — that is fine in the FIT flow, but do not reuse both in one sequence.
+- **FIT signing works on this U-Boot** because `qemu_arm64_defconfig` sets `CONFIG_OF_BOARD=y`:
+  `mkimage -f … -k keys -K control.dtb -r` writes `/signature/key-dev` with
+  `required = "conf"` into a copy of the dumped DTB, and QEMU `-dtb control.dtb` hands it to
+  U-Boot as the control FDT. Signed → `sha256,rsa2048:dev+ OK`; unsigned-but-intact →
+  `No 'signature' subnode found for 'conf-1' config node` / `Failed to verify required
+  signature 'key-dev'` / `Bad Data Hash` / `ERROR -2`. On real hardware the control FDT is
+  built into U-Boot instead; say so, do not imply `-dtb` is the production method.
 - Lesson 33's practice reuses `~/bai32/Image` — nothing else. It never needs
   `initramfs.cpio.gz` for the header work, only for the control boot in step 4. Its "Lỗi
   thường gặp" table tells the learner to keep `~/bai32` **until the end of Chặng 06**.

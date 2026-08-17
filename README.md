@@ -12,9 +12,9 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 
 - [`LO-TRINH.md`](LO-TRINH.md) — lộ trình đầy đủ **70 bài / 14 chặng**, mốc năng lực M1–M11,
   thời lượng dự kiến 8–11 tháng.
-- Bài đã viết: **34 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
+- Bài đã viết: **36 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
   **Chặng 2 · C và công cụ build**, **Chặng 3 · Lập trình hệ thống Linux**,
-  **Chặng 4 · Biên dịch chéo**, **Chặng 5 · QEMU và luồng khởi động**, cùng hai bài đầu của
+  **Chặng 4 · Biên dịch chéo**, **Chặng 5 · QEMU và luồng khởi động** và
   **Chặng 6 · Bootloader U-Boot**:
   1. Embedded Linux là gì và tại sao nó ở khắp mọi nơi
   2. Toàn cảnh luồng khởi động
@@ -50,6 +50,8 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   32. Boot kernel đầu tiên trong QEMU
   33. Nhiệm vụ của bootloader
   34. Build U-Boot cho QEMU
+  35. Dòng lệnh U-Boot
+  36. Nạp kernel qua mạng và FIT image
 - Bộ bài tập đã viết: **11 / 70** — `bt-01` … `bt-11` đi kèm Bài 1 → 11. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau). Mục §0 chỉ ra phần còn lại nằm ở đâu: [`docs/`](docs/) và [`.claude/skills/`](.claude/skills/).
 

@@ -50,6 +50,9 @@ them directly, and so can a session that has no skill mechanism.
 | A `trục` now spent | skill `write-exercise`, §13.8 |
 | What is written / deployed right now | §12 below |
 
+Recording a new fact here is not optional busywork — it is hard rule 13 (§2). Not sure
+whether something you just found qualifies? Ask the user in Vietnamese rather than guessing.
+
 ---
 
 ## 1. What this project is
@@ -147,6 +150,18 @@ Follow-up decisions the user made when asked:
     defect of the same severity as an unverified command. The exact scope (what counts as
     code vs. what stays Vietnamese) and what to do when renaming something an earlier lesson
     also references are in §7 "Writing rules" and §9 — skill `write-lesson`.
+13. **Notice something worth remembering — write it down before moving on.** While writing,
+    verifying or reviewing a lesson or an exercise set, if you hit a fact, a discrepancy, a
+    gotcha, or a decision that a *later* lesson or exercise set could trip over again —
+    an environment quirk, a verification method that gave a wrong answer, a topic/number
+    already spent, a naming or scope decision — record it immediately in its proper home
+    from the §0 table (`docs/environment.md`, `docs/course-notes.md`,
+    `docs/running-commands.md`, a skill's own section, or §12 below). Do this in the same
+    session you found it, not "later" — later is how lesson 4's alias-vs-verification gap
+    (2026-08-16) nearly repeated itself in every lesson after it that touches `type` or
+    `command -v`. **If you are not sure whether a given point is worth recording, stop and
+    ask the user in Vietnamese before deciding on your own** — do not silently skip it and
+    do not silently over-record trivia either.
 
 ---
 
@@ -293,15 +308,16 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00, 01, 02, 03, 04 and 05 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 06 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
   `Chặng 04 — Cross-compilation` (lessons 25–28) and
-  `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) are written and rendering.
-  **`Chặng 06 — Bootloader U-Boot` is in progress**: lessons 33 and 34 are written.
-- Next lesson to write, when asked: lesson 35, `Dòng lệnh U-Boot`.
-- `node tools/check.js` → `14 modules · 70 lessons · 34 written · 11 bài tập` · `OK`.
+  `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) and
+  `Chặng 06 — Bootloader U-Boot` (lessons 33–36) are all written and rendering.
+- Next lesson to write, when asked: lesson 37, `Kiến trúc kernel` — the first of
+  `Chặng 07 — Linux Kernel`.
+- `node tools/check.js` → `14 modules · 70 lessons · 36 written · 11 bài tập` · `OK`.
 - **Exercise sets written: `bt-01` … `bt-11`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,

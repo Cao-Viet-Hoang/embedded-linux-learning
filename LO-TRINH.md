@@ -413,9 +413,11 @@ Cài thêm khi tới chặng tương ứng:
 | 32 | Boot kernel đầu tiên trong QEMU | ✅ Đã có |
 | 33 | Nhiệm vụ của bootloader | ✅ Đã có |
 | 34 | Build U-Boot cho QEMU | ✅ Đã có |
-| 35 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 35 | Dòng lệnh U-Boot | ✅ Đã có |
+| 36 | Nạp kernel qua mạng và FIT image | ✅ Đã có |
+| 37 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4 và Chặng 5 đã hoàn tất; Chặng 6 đang viết (34 / 70 bài).** Bài kế tiếp sẽ viết: Bài 35 — *Dòng lệnh U-Boot*.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4, Chặng 5 và Chặng 6 đã hoàn tất (36 / 70 bài).** Bài kế tiếp sẽ viết: Bài 37 — *Kiến trúc kernel*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
