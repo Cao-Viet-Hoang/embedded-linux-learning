@@ -28,6 +28,33 @@
   §9.1.0 of `docs/running-commands.md` before writing any new probe that contains a
   destructive command.
 
+- **Lesson 37 opens Chặng 07 and deliberately builds nothing.** It teaches kernel
+  architecture entirely by dissecting the *running* WSL2 kernel through `/proc` and `/sys`
+  — no source tree, no `make`. That is only possible because `/proc/config.gz` happens to
+  be readable here (`docs/environment.md`). A `warn` callout in the practice section says
+  out loud that the machine being dissected is **x86-64 WSL2**, not ARM64, and that the
+  architecture-specific names differ; lesson 38 is where the ARM64 counterparts
+  (`el0_svc`, `__arm64_sys_write`) get read in source. Do not "fix" this into an ARM64
+  practice — the point is that the learner can do it on the machine in front of them.
+- **Lesson 37 owns, and lessons 38–41 must not re-teach:** "the kernel is called, not run"
+  (the three entry paths: syscall / interrupt / kernel thread), monolithic vs microkernel
+  and *why a `.ko` is packaging rather than isolation*, the six subsystems and their source
+  directories, the five-layer path of a `write()` (`entry_SYSCALL_64` → `do_syscall_64` →
+  `__x64_sys_write` → `vfs_write` → `ext4_file_write_iter`), `f_op` as C's vtable, `/proc`
+  files having `st_size` 0, vDSO + `[vvar]`, `kptr_restrict`/KASLR, the bus–device–driver
+  triangle + `modalias`, and reading the `user`/`sys` split from `time`. Lesson 41 may
+  reuse the `user`/`sys` idea only as a *measurement*, not as a fresh concept.
+- **Lesson 37 measures vDSO with `clock_gettime`, on purpose.** Lesson 19 already owns
+  syscall cost via `getpid` (254.9×) and stdio buffering (358× fewer syscalls); re-measuring
+  `getpid` here would be a repeat. Lesson 37 cites Bài 19 ten times but measures something
+  lesson 19 cannot: a call that *does not reach the kernel at all*.
+- **Lesson 37's practice creates and then deletes `~/bai37`** (three small C programs). It
+  leaves nothing behind and depends on no earlier lesson's files.
+- **`~/bai32` is gone from the machine as of 2026-08-18.** The note below says module 06
+  depends on those files persisting, and it did while 33–36 were being written — but the
+  directory no longer exists. Re-create it from lesson 32's steps before re-verifying
+  anything in 33–36; do not assume `Image`/`initramfs.cpio.gz` are still there.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover

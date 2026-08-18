@@ -131,6 +131,29 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   verified output for a command that touches aliases/functions/builtins, re-run it through
   `bash -ic` too and compare. If they differ, the lesson must say so explicitly (e.g. warn
   that the reader's own aliases can change this) rather than assert one output as universal.
+- **`kill %1` then `wait %1`: the determinant is an intervening job-table check, NOT
+  elapsed time** — confirmed 2026-08-18, investigating why the user's real terminal for
+  lesson 4's `sleep 30 &; kill %1; wait %1; echo $?` gave `127` (`wait: %1: no such job`)
+  instead of the lesson's `143`. First hypothesis (typing/pasting speed) was **wrong** and
+  was corrected after rigorous testing — a naive `bash -c`/piped-stdin probe is not a
+  faithful reproduction here because job-control notification timing depends on a real
+  controlling terminal; a pty-backed probe (Python `pty.fork()`, `bash -i` on a real pty) is
+  required to trust the result. With a real pty: `kill %1` immediately followed by `wait %1`
+  gives `143` (128+15, SIGTERM) **reliably regardless of delay** — tested with 0s, 1s and 3s
+  gaps between the two commands, always `143`, as long as nothing else touches the job
+  table in between. Only when something else queries/displays job status first — e.g. an
+  explicit `jobs` command between `kill %1` and `wait %1` — does that command itself print
+  `[1]+  Terminated  sleep 30` and remove the job from bash's internal job table, so the
+  learner's own `wait %1` then finds nothing and reports `-bash: wait: %1: no such job` →
+  `127`. A fancy prompt/theme or a terminal's shell-integration feature that polls job
+  status could plausibly trigger the same thing without the user typing anything extra —
+  this remains unconfirmed for the specific session that hit `127`, since the user's pasted
+  transcript was garbled by interleaved async output and could not be read unambiguously.
+  Any future lesson (Bài 9 owns job control in full — see `docs/course-notes.md`) that shows
+  `kill %N` immediately followed by `wait %N` must say the determinant is "nothing else
+  touches job control in between," not "run it fast enough," and should recommend joining
+  the two into one line (`kill %N; wait %N`) as the surest way to leave no gap for anything
+  else to intervene.
 
 ### Cleaning up temporary files
 

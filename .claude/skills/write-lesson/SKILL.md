@@ -116,6 +116,21 @@ Every lesson follows this arc. Keep the order.
   ("we") for an action only the learner performs.
 - No filler, no hype, no emoji in lesson content.
 - Prefer a table over three paragraphs when comparing things.
+- **A new or abstract concept must be grounded, not just defined.** The learner is a
+  complete beginner at Linux — a one-sentence definition of something like "job table",
+  "file descriptor", "virtual memory", "environment variable" or "process vs. program"
+  is not enough on its own, because the learner has no prior mental model to hang it on.
+  Every such definition must be paired with **at least one** of:
+  - a concrete worked example using real values/output (a command actually run, a real
+    number, a real file) — not a hypothetical;
+  - an analogy to something the learner already has a mental model for;
+  - a `fig` diagram (§8) — reach for this when the concept is about *structure or
+    sequence* (what components exist, what talks to what, what happens in what order).
+  A worked example is usually right when the concept is best understood by *seeing it
+  run*. Test before moving on: could a complete beginner picture this concept after
+  reading only the paragraph that introduces it? If not, that paragraph needs an example
+  or a diagram, not more prose. Treat a bare definition with neither as a defect of the
+  same severity as an unexplained command flag (previous bullet).
 - **Memory aids for critical concepts.** At important points that learners should retain,
   add memory aids (mnemonics, vivid examples, repeated restatement in different framings)
   to help them remember. BUT: distinguish between two cases:

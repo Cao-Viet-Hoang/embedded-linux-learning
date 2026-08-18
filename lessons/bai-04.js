@@ -729,6 +729,29 @@ Lesson.register({
                'Không có <code>wait</code> thì <code>$?</code> là mã thoát của <code>kill</code>, không phải của <code>sleep</code>.']
             ]},
 
+          { t: 'cal', kind: 'warn', title: 'Nếu máy bạn ra 127 chứ không phải 143', x:
+            '<p>Bash giữ một sổ nội bộ để nhớ các job chạy nền — gọi là <b>bảng job</b> (job table). ' +
+            'Đây không phải một bảng hiển thị trong bài, mà là bộ nhớ riêng của bash, chỉ xem được gián tiếp ' +
+            'qua lệnh <code>jobs</code>. Job <code>%1</code> của bạn nằm trong bảng đó cho tới khi có lệnh ' +
+            'nào đó "tiêu thụ" thông báo kết thúc của nó.</p>' +
+            '<p><b>Đã kiểm chứng trên máy thật:</b> khoảng thời gian giữa <code>kill %1</code> và ' +
+            '<code>wait %1</code> <b>không</b> phải nguyên nhân — dán cả bốn dòng liền một mạch, hay gõ tay ' +
+            'chậm rãi cách nhau vài giây, kết quả vẫn luôn là <b>143</b>, miễn là không có gì khác chen vào ' +
+            'giữa. Nguyên nhân thật là: nếu có một lệnh nào <b>khác</b> động vào bảng job trước khi ' +
+            '<code>wait %1</code> chạy — ví dụ gõ thêm <code>jobs</code> để "xem thử job còn sống không" — ' +
+            'thì chính lệnh đó đã tự in ra <code>[1]+  Terminated  sleep 30</code> và xoá job khỏi bảng ngay ' +
+            'lúc đó. Đến khi <code>wait %1</code> chạy, bảng đã trống, nên bash báo ' +
+            '<code>-bash: wait: %1: no such job</code> và <code>$?</code> là <b>127</b> — ở đây 127 nghĩa là ' +
+            '"không tìm thấy job để đợi", khác hẳn nghĩa "không tìm thấy lệnh" ở ví dụ đầu bài.</p>' +
+            '<p>Muốn chắc chắn ra 143: chạy đúng bốn dòng như trên, <b>đừng chen thêm lệnh nào</b> ' +
+            '(kể cả <code>jobs</code>) giữa <code>kill %1</code> và <code>wait %1</code>. Nếu terminal của bạn ' +
+            'có prompt hoặc tiện ích tự kiểm tra job nền ngầm (một số theme, hoặc tích hợp shell của trình ' +
+            'soạn thảo) thì việc đó có thể tự chen vào mà bạn không gõ gì cả — cách né chắc chắn nhất là gộp ' +
+            'ba lệnh cuối thành một dòng duy nhất: <code>kill %1; wait %1; echo $?</code>, để không có khoảng ' +
+            'trống nào cho một lệnh khác len vào giữa.</p>' +
+            '<p>Dù ra 143 hay 127, quy tắc <b>128 + N</b> ở trên vẫn đúng — con số cụ thể chỉ phản ánh việc ' +
+            'job còn trong bảng hay đã bị lệnh khác "dọn" mất trước đó. Bài 9 sẽ mổ xẻ đầy đủ cơ chế job này.</p>' },
+
           { t: 'p', x: 'Cuối cùng, dùng mã thoát để nối lệnh — đúng cách và sai cách:' },
           { t: 'code', where: 'wsl', code:
             'ls report.txt && echo "EXISTS"\n' +
@@ -778,7 +801,10 @@ Lesson.register({
          'Dùng <code>type cd</code> hoặc <code>command -v cd</code>'],
         ['<code>ls -h</code> không thấy khác gì',
          '<code>-h</code> chỉ có tác dụng cùng <code>-l</code>, vì không có <code>-l</code> thì không in cột kích thước',
-         'Dùng <code>ls -lh</code>']
+         'Dùng <code>ls -lh</code>'],
+        ['<code>-bash: wait: %1: no such job</code> · mã 127 thay vì 143',
+         'Một lệnh khác (thường là <code>jobs</code>) đã chạy xen giữa <code>kill %1</code> và <code>wait %1</code>, tự "dọn" job khỏi bảng job trước — xem cảnh báo ngay sau bảng mổ xẻ lệnh <code>sleep 30 &amp;</code>',
+         'Không có gì cần sửa; đây không phải lỗi gõ. Đừng chen lệnh nào giữa <code>kill %1</code> và <code>wait %1</code>, hoặc gộp thành một dòng <code>kill %1; wait %1; echo $?</code>']
       ]},
 
     /* ══════════════════════════════════════════════
