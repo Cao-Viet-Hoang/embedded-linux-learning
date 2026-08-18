@@ -131,6 +131,50 @@ Every lesson follows this arc. Keep the order.
   reading only the paragraph that introduces it? If not, that paragraph needs an example
   or a diagram, not more prose. Treat a bare definition with neither as a defect of the
   same severity as an unexplained command flag (previous bullet).
+- **If a concept can be observed directly, show the real observation — don't just
+  describe it in prose.** Direct, hands-on evidence is more intuitive and memorable than a
+  text description, for any concept, not only obscure ones. Before writing a description
+  of *anything* the lesson introduces, ask: is there a command, file, flag or tool that
+  lets the learner see this for themselves right now? This applies broadly — it is not
+  limited to invisible OS/shell bookkeeping, though that is the clearest case: a job table
+  (`jobs`), the process table (`ps`/`/proc`), the environment block (`env`/`printenv`), a
+  symbol table (`nm`/`objdump -t`), memory layout (`cat /proc/self/maps`). It applies just
+  as much to anything else observable — a file's permission bits (`ls -l`), a variable's
+  value (`echo`), a program's behaviour (running it). If such a way to look exists, run it
+  (§9.1/§2 — verify on the real machine as always) and show its real output right where the
+  concept is introduced, instead of settling for prose alone.
+  **Showing the captured output is necessary but not sufficient.** The point is for the
+  *learner* to watch it happen on their own machine, not to take your word for a transcript
+  you already ran. So the code block must also be something they can reproduce: the exact
+  command, with its `where` badge (§6), placed so they type or paste it themselves — never
+  a captured result presented with no command attached, and never one so vague ("run
+  something like…") that they cannot reproduce it verbatim. The one exception is when
+  reproducing it yourself would demand something impractical for this lesson's scope —
+  specialized hardware, a multi-hour build, a real embedded board the learner may not own.
+  In that case it is fine to show only the captured output, but say so **explicitly** and
+  point the learner toward exploring it further on their own (name what it would take),
+  rather than silently leaving them unsure whether they were supposed to try it themselves.
+  When the concept is a structure that changes over time, prefer capturing the change itself (an entry appearing,
+  then disappearing or changing state) over one static snapshot — watching something change
+  is what makes a mechanism concrete. This may need a second, separate worked example from
+  the one already used to teach the surrounding command, if running the observation itself
+  would alter the original example's outcome (e.g. lesson 4's `jobs` demo of the job table
+  is deliberately a separate sequence from its `kill`/`wait` exit-code demo, because running
+  `jobs` in between would itself change the exit code being taught). If no way to observe a
+  given concept exists, say so explicitly rather than silently falling back to prose, and
+  reach for an analogy or a `fig` instead (previous bullet).
+- **Flag which values in a captured output will differ for the learner.** A
+  `code where:'out'` block is one real capture from one specific run on one specific
+  machine — but some fields in it are inherently non-reproducible: PIDs, timestamps,
+  memory addresses, inode numbers, random ports, hostnames, usernames, UUIDs, MAC
+  addresses. When a captured output contains a value like this, say so explicitly right
+  next to it (e.g. "Số sau `[1]` là PID thật, sẽ khác trên máy bạn mỗi lần chạy" —
+  lesson 4's `jobs` demo does this). Otherwise a learner who reproduces the exact same
+  command and gets a different number will suspect they did something wrong, when the
+  difference is normal and expected. Don't over-apply this: only flag fields that are
+  actually run-dependent — a value the lesson asserts should be identical everywhere
+  (an exit code, a fixed constant, a flag's documented effect) needs no such caveat, and
+  hedging on it would just teach the learner to distrust numbers that are, in fact, reliable.
 - **Memory aids for critical concepts.** At important points that learners should retain,
   add memory aids (mnemonics, vivid examples, repeated restatement in different framings)
   to help them remember. BUT: distinguish between two cases:

@@ -729,11 +729,38 @@ Lesson.register({
                'Không có <code>wait</code> thì <code>$?</code> là mã thoát của <code>kill</code>, không phải của <code>sleep</code>.']
             ]},
 
+          { t: 'p', x:
+            '"Bảng job" nghe trừu tượng, nhưng bạn có thể tận mắt nhìn thấy nó bằng lệnh <code>jobs</code> — ' +
+            'đây là cách duy nhất để nhìn vào sổ nội bộ đó. Thử một chuỗi <b>mới</b>, tách riêng khỏi ví dụ ' +
+            'ở trên để không ảnh hưởng tới kết quả 143 vừa thấy:' },
+          { t: 'code', where: 'wsl', code:
+            'sleep 30 &\n' +
+            'jobs' },
+          { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
+            '[1] 2119\n' +
+            '[1]+  Running                    sleep 30 &' },
+
+          { t: 'p', x:
+            'Số sau <code>[1]</code> là PID thật, sẽ khác trên máy bạn mỗi lần chạy. Giờ giết job đó rồi gọi ' +
+            '<code>jobs</code> <b>hai lần liền</b>, để bắt đúng khoảnh khắc bảng job đổi trạng thái rồi biến mất:' },
+          { t: 'code', where: 'wsl', code:
+            'kill %1\n' +
+            'jobs\n' +
+            'jobs' },
+          { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
+            '[1]+  Terminated                 sleep 30' },
+
+          { t: 'cal', kind: 'info', title: 'Lần gọi jobs thứ hai không in gì cả', x:
+            '<p>Không phải bài thiếu output — <code>jobs</code> lần hai thực sự <b>im lặng</b>, vì bảng đã ' +
+            'trống. Lần gọi <code>jobs</code> đầu tiên vừa hiển thị <code>Terminated</code> vừa xoá luôn job ' +
+            'khỏi sổ trong cùng một lúc. Đây chính là cơ chế đứng sau cảnh báo 127 ngay bên dưới: bất kỳ lệnh ' +
+            'nào động vào bảng job — kể cả chính <code>jobs</code> — cũng tiêu thụ luôn thông báo đó.</p>' },
+
           { t: 'cal', kind: 'warn', title: 'Nếu máy bạn ra 127 chứ không phải 143', x:
-            '<p>Bash giữ một sổ nội bộ để nhớ các job chạy nền — gọi là <b>bảng job</b> (job table). ' +
-            'Đây không phải một bảng hiển thị trong bài, mà là bộ nhớ riêng của bash, chỉ xem được gián tiếp ' +
-            'qua lệnh <code>jobs</code>. Job <code>%1</code> của bạn nằm trong bảng đó cho tới khi có lệnh ' +
-            'nào đó "tiêu thụ" thông báo kết thúc của nó.</p>' +
+            '<p>Như bạn vừa tự thấy ở trên, bash giữ một sổ nội bộ để nhớ các job chạy nền — gọi là ' +
+            '<b>bảng job</b> (job table) — và xem được trực tiếp bằng <code>jobs</code>. Job <code>%1</code> ' +
+            'của ví dụ 143 ở đầu mục này nằm trong bảng đó cho tới khi có lệnh nào đó "tiêu thụ" thông báo ' +
+            'kết thúc của nó.</p>' +
             '<p><b>Đã kiểm chứng trên máy thật:</b> khoảng thời gian giữa <code>kill %1</code> và ' +
             '<code>wait %1</code> <b>không</b> phải nguyên nhân — dán cả bốn dòng liền một mạch, hay gõ tay ' +
             'chậm rãi cách nhau vài giây, kết quả vẫn luôn là <b>143</b>, miễn là không có gì khác chen vào ' +
