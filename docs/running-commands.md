@@ -6,6 +6,60 @@
 > in a lesson or an exercise set is run here first, and its real output is what gets pasted.
 > Read together with `docs/environment.md` (§10) — the facts already measured.
 
+### 9.1.0 Never run a deliberately-broken script on the real machine
+
+**This is the first rule in this file because it is the only one whose violation has already
+destroyed the user's data.** Read it before you write a probe.
+
+**On 2026-08-17 a probe script wiped `$HOME`.** The script was written for a `bt-13` item
+about `set -u`. It contained a *deliberate* defect — a misspelled variable name — so that the
+lesson could show what `set -u` catches:
+
+```bash
+build_dir=/tmp/demo-build
+rm -rf "$buld_dir"/*        # typo, on purpose: buld_dir, not build_dir
+```
+
+Without `set -u`, bash expands the unset `$buld_dir` to the empty string, so the line became
+`rm -rf /*`. Everything under `/home/shinarus` was destroyed except `~/x-tools`. The Git
+repository on `/mnt/c` survived only because WSL had not mounted it writable at that moment —
+that was luck, not a safeguard. Recovering the dotfiles and the Bài 28 `PATH` cost the rest
+of the session.
+
+The defect was not a mistake in the script. The script did **exactly** what it was written to
+do. The mistake was *running* it.
+
+**The rule, and it has no exceptions:**
+
+> A script whose purpose is to demonstrate a failure must never be executed on the user's
+> real machine.
+
+An item that teaches "here is what goes wrong" needs the *output* of the failure, not the
+failure itself. Get that output one of these four ways, in order of preference:
+
+| Way | When | How |
+|---|---|---|
+| **Neuter the payload** | Almost always | Replace the destructive command with one that is loud and harmless. `echo rm -rf "$buld_dir"/*`, `ls "$buld_dir"/*`, or `printf '%s\n' "would delete: $buld_dir/*"` all prove the same point — the expansion, not the deletion, is what the learner must see |
+| **Fail loudly instead of expanding** | When the item is specifically about an unset variable | `"${buld_dir:?unset}"` aborts with a message and touches nothing. Note this changes what the item teaches, so use it as the *fixed* version, not as the broken one |
+| **Guard the target** | When something really must be removed | The path must be a literal you typed, under a scratch directory you created in the same script, and the script must verify it before acting: `case "$d" in /tmp/bt13-scratch/*) ;; *) echo "refusing: $d"; exit 1;; esac`. Never let a variable reach `rm` unguarded |
+| **Do not run it at all** | When the failure is inherently destructive | Write the script into the exercise as an illustration and describe the outcome in prose. An item may say "chạy thử trong máy ảo/thư mục nháp của bạn" and hand the learner a guarded version. **A lesson does not need a captured transcript of a disaster to teach it** |
+
+Concrete checklist to apply to **every** probe script before you run it, no matter how
+harmless it looks:
+
+- Does it contain `rm`, `mv`, `dd`, `mkfs`, `truncate`, `>` onto an existing path, `chmod -R`,
+  `chown -R`, or `find … -delete`? If yes, stop and read every one of them.
+- Is any of those commands operating on a **variable** rather than a literal path? If yes,
+  either make it a literal or add `:?` — an unset or misspelled variable expands to nothing,
+  and `rm -rf "$x"/*` becomes `rm -rf /*`.
+- Is the script *designed* to misbehave? If yes, you already have your answer: do not run it.
+- Would the worst case be recoverable? `$HOME` is **not** recoverable — there is no recycle
+  bin for WSL and no snapshot.
+
+This composes with the existing rule that probes must be non-destructive and idempotent
+(§9.1 below). That rule was already written; it was not enough, because it reads as advice
+about *tidiness*. It is not — it is about data loss, and the case above is what it costs.
+
 ### 9.1 Pre-flight — check dependencies *before* running anything slow
 
 **Rule: never start a long command to find out what is missing.** Find out first, in

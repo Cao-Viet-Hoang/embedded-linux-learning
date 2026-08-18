@@ -441,7 +441,9 @@ cùng vẫn chỉ đếm 70 bài.
 | `bt-09` | Bài 9 | 28 | ✅ Đã có |
 | `bt-10` | Bài 10 | 28 | ✅ Đã có |
 | `bt-11` | Bài 11 | 28 | ✅ Đã có |
-| `bt-12` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
+| `bt-12` | Bài 12 | 28 | ✅ Đã có |
+| `bt-13` | Bài 13 | 28 | ✅ Đã có |
+| `bt-14` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
 
 `bt-01` có 25 câu thay vì 28 vì phần **D — Ôn xen kẽ** hỏi về các bài *trước*, mà Bài 1
 không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và bộ nào cũng đủ 28.

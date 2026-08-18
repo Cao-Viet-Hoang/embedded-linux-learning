@@ -8,6 +8,26 @@
 
 ## Module and lesson notes
 
+- **Exercise sets `bt-12` and `bt-13` were written on 2026-08-17/18** and their trục are
+  recorded in §13.8 of the `write-exercise` skill. Two content decisions a later set must
+  not contradict:
+  - `bt-13` deliberately does **not** spiral quoting / `"$x"` word-splitting, even though
+    lesson 13 teaches it at length and it is the single most useful idea in the lesson.
+    It was already spent as a trục by `bt-04` ("the shell splits on whitespace *before*
+    the command ever sees the arguments"). It appears in `bt-13` as breadth only —
+    A3, A7, B5 — which is the correct handling under §13.4 step 4.
+  - The three trục of `bt-13` are all about the **gap between "the script finished" and
+    "the script did its job"**: shebang ignored by `sh`, `set -e` looking away, `return`
+    carrying a status not a value. Every one of them produces **exit code 0 on a wrong
+    result**. A later scripting-adjacent set should pick a different failure axis rather
+    than restate this one.
+- **Silent-failure evidence built for `bt-13` is reusable and already verified** — the
+  `sh dbl.sh` / `sh arr.sh` transcripts, the four-context `set -e` probe, the
+  `PIPESTATUS` sequence, the guarded `mktemp -d` + `trap` cleanup, and the five-defect
+  build script. All are in `docs/environment.md` (§10). Do not re-probe them; do re-read
+  §9.1.0 of `docs/running-commands.md` before writing any new probe that contains a
+  destructive command.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover
