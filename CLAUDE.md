@@ -317,8 +317,8 @@ cross-references. Guard against a repeat:
   `Chặng 06 — Bootloader U-Boot` (lessons 33–36) are all written and rendering.
   `Chặng 07 — Linux Kernel` has begun: lesson 37 `Kiến trúc kernel` is written.
 - Next lesson to write, when asked: lesson 38, `Source kernel và cách định hướng`.
-- `node tools/check.js` → `14 modules · 70 lessons · 37 written · 13 bài tập` · `OK`.
-- **Exercise sets written: `bt-01` … `bt-13`.** `bt-01` has **25 items, not 28**, because
+- `node tools/check.js` → `14 modules · 70 lessons · 37 written · 15 bài tập` · `OK`.
+- **Exercise sets written: `bt-01` … `bt-15`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,
   `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar chip

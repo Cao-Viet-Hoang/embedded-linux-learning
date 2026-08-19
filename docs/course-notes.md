@@ -8,6 +8,34 @@
 
 ## Module and lesson notes
 
+- **Chặng 02 — `C và công cụ build` (lessons 14–18).** First entry for this module; written
+  2026-08-19 while producing `bt-14` and `bt-15`. Decisions a later lesson or set must not
+  contradict:
+  - **Lesson 15's `Lỗi thường gặp` table was corrected on 2026-08-19.** It claimed
+    `warning: implicit declaration of function 'f'`. On this machine GCC 15 makes that a
+    hard **error** — even under `-std=gnu17` — so the two-step story it told (warning at
+    stage 2, then `undefined reference` at stage 4) cannot happen here. The row now states
+    both behaviours and says which one this machine shows. Full measurement in
+    `docs/environment.md`. **Any lesson that says "GCC will warn about X" must be run
+    before the sentence is written** — GCC 14/15 promoted several long-standing warnings.
+  - **Do not build a library-linking demo on `sqrt(2.0)`.** A constant argument is folded
+    at stage 2, `U sqrt` never appears in the `.o`, and the link succeeds with no `-lm` —
+    the classic demo silently fails to demonstrate anything. `bt-15` C2 uses a runtime
+    argument for exactly this reason; lesson 17 (`-l`, static vs shared) must do the same.
+  - **The "static hides the symbol" demo needs the declaration in the *caller*.** Writing
+    `int scale(int);` in the shared header and `static int scale(...)` in the `.c` is now
+    `error: static declaration of 'scale' follows non-static declaration` — the build never
+    reaches the linker. Declare it in `app.c` instead and you get the intended
+    `undefined reference to 'scale'` with `nm` showing lowercase `t`.
+  - `bt-14` spends three trục on the C **language/ABI** axis (int width, padding,
+    volatile) and `bt-15` spends three on the **toolchain** axis (preprocessor is text
+    only, declaration ≠ definition, each message names its stage). Lessons 16–18 (`make`,
+    libraries, debugging) must pick trục outside both sets — see §13.8 of the
+    `write-exercise` skill for the exact sentences.
+  - `bt-14` E6 deliberately ends unanswered and points at lesson 15; `bt-15` E6 ends
+    unanswered and points at lesson 17 (what the extra 14 KB in the executable is). Keep
+    that hand-off chain intact when writing `bt-16`.
+
 - **Exercise sets `bt-12` and `bt-13` were written on 2026-08-17/18** and their trục are
   recorded in §13.8 of the `write-exercise` skill. Two content decisions a later set must
   not contradict:

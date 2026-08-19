@@ -1009,9 +1009,9 @@ Lesson.register({
          '<b>Giai đoạn 2.</b> Một định nghĩa vào cùng file hai lần — gần như luôn do header thiếu guard',
          'Thêm <code>#ifndef/#define/#endif</code> vào header. Đọc hai dòng <code>In file included from…</code> để biết hai đường include nào đã dẫn tới nó'],
 
-        ['<code>warning: implicit declaration of function ‘f’</code>',
+        ['<code>error: implicit declaration of function ‘f’ [-Wimplicit-function-declaration]</code>',
          '<b>Giai đoạn 2.</b> Bạn gọi một hàm mà chưa có khai báo nào',
-         'Thiếu <code>#include</code>. Đừng bỏ qua: sau đó bạn sẽ ăn tiếp một <code>undefined reference</code> ở giai đoạn 4. Luôn bật <code>-Wall</code>'],
+         'Thiếu <code>#include</code>. Trên GCC 15 (máy này) đây là <b>lỗi</b>, không phải cảnh báo — kể cả khi ép <code>-std=gnu17</code> — vì C23 đã bỏ hẳn khai báo ngầm. Trên các toolchain cũ hơn nó chỉ là <i>warning</i> và bản build vẫn đi tiếp, rồi chết ở giai đoạn 4 với <code>undefined reference</code>. Thấy cả hai kiểu là chuyện bình thường'],
 
         ['<code>undefined reference to ‘sub’</code><br><code>collect2: error: ld returned 1</code>',
          '<b>Giai đoạn 4.</b> Có chữ <code>U</code> mà không có chữ <code>T</code> nào khớp',
