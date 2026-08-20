@@ -1101,11 +1101,12 @@ Lesson.register({
       'Bài này bạn đọc kiến trúc nhân qua <b>cửa sổ</b> — <code>/proc</code> và <code>/sys</code> chỉ ' +
       'cho thấy những gì nhân chịu công khai. <b>Bài 38</b> mở thẳng cánh cửa: tải source kernel từ ' +
       'kernel.org và tìm đường trong đó. Bảy cái tên hàm bạn vừa <code>grep</code> ra từ ' +
-      '<code>/proc/kallsyms</code> sẽ trở thành bảy dòng mã C có số dòng cụ thể, trong ' +
-      '<code>arch/</code>, <code>fs/</code> và <code>fs/ext4/</code> — kể cả phiên bản ARM64 ' +
-      '(<code>el0_svc</code>, <code>__arm64_sys_write</code>) mà máy x86-64 của bạn không có. ' +
-      'Thử thách của Bài 38 không phải là đọc code, mà là <b>định hướng</b>: cây source có khoảng ' +
-      '<b>ba mươi triệu dòng</b>, và mở nó ra bằng trình soạn thảo là cách chắc chắn nhất để lạc.' },
+      '<code>/proc/kallsyms</code> sẽ có <b>địa chỉ thật</b>: tên file kèm số dòng, trong ' +
+      '<code>arch/</code>, <code>fs/</code> và <code>fs/ext4/</code> — kể cả phần ARM64 ' +
+      '(<code>el0_svc</code>, <code>invoke_syscall</code>) mà máy x86-64 của bạn không chạy. Một ' +
+      'trong bảy cái tên đó sẽ <b>không tìm thấy ở đâu cả</b>, và lý do vì sao là bài học đắt nhất ' +
+      'của Bài 38. Thử thách không phải là đọc code, mà là <b>định hướng</b>: cây source có hơn ' +
+      '<b>ba mươi sáu triệu dòng</b>, và mở nó ra bằng trình soạn thảo là cách chắc chắn nhất để lạc.' },
 
   ],
 

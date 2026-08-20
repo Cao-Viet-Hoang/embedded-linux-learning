@@ -8,6 +8,43 @@
 
 ## Module and lesson notes
 
+- **Chặng 07 — `Linux Kernel` (lessons 37–41).** Lesson 38 (`Source kernel và cách định
+  hướng`, written 2026-08-20) owns the following and later lessons must not re-teach them:
+  - **The tree on disk is `~/bai38/linux-6.18.45` (1.7 GB), and lesson 38's closing callout
+    tells the learner to keep it — lesson 39 runs `make menuconfig` inside it.** `~/bai38`
+    also holds `linux-6.18.45.tar.xz` (154 592 412 B), `linux-6.18.45.tar.sign` (991 B) and
+    an **optional** shallow git clone at `~/bai38/linux` (2.0 GB, `.git` 282 MB) that the
+    learner may have skipped. Never assume `~/bai38/linux` exists; `~/bai38/linux-6.18.45`
+    you may assume.
+  - **Version pinned: 6.18.45 (longterm/stable, signed by Greg Kroah-Hartman).** Makefile
+    `VERSION 6 / PATCHLEVEL 18 / SUBLEVEL 45`. Lesson 38 states the line numbers of seven
+    symbols *for this exact version* — a later lesson that bumps the version invalidates
+    every one of them.
+  - **GPG verification belongs to lesson 38**: the signature is over the *uncompressed*
+    `.tar`, so `xz -cd … | gpg --verify ….tar.sign -`. Fingerprints
+    `647F28654894E3BD457199BE38DBBDC86092693E` (Greg KH) and
+    `ABAF11C65A2970B130ABE3C479BE3E4300411886` (Linus). The `WARNING: This key is not
+    certified` line is **normal** and lesson 38 says so at length — do not "fix" it anywhere.
+  - **The four ways to interrogate the tree** (symbol name anchored with `^` · `compatible`
+    string · `CONFIG_` symbol via `obj-$(CONFIG_X) += y.o` · `MAINTAINERS` +
+    `scripts/get_maintainer.pl`) are lesson 38's spine. Later lessons should *use* them and
+    point back, not re-explain them.
+  - **The PL011 walk is spent**: `"arm,pl011"` → `drivers/tty/serial/amba-pl011.c` →
+    `drivers/tty/serial/Makefile:30` → `Kconfig:48` / `:59` → the explanation of
+    `console=ttyAMA0`. Chặng 08 must find a different device for its own walk-through.
+  - **The macro trap is spent**: `__arm64_sys_write` does not exist in the source (token
+    paste `##` in `arch/arm64/include/asm/syscall_wrapper.h:48–58`). Do not present it as a
+    fresh discovery later.
+  - **`fs/shmem.c` does not exist** — tmpfs lives at `mm/shmem.c`. Lesson 38 uses
+    `fs/proc/inode.c:555` (`proc_reg_file_ops`) as its second `file_operations` example.
+  - **`scripts/get_maintainer.pl` works fine on a tarball tree without `--nogit
+    --nogit-fallback`** — it silently skips the git heuristics and prints the same four
+    lines. Verified 2026-08-20. The flags are for determinism and speed only; an earlier
+    draft of lesson 38 wrongly claimed the script *errors* without them.
+  - **Every search timing in the lesson is page-cache dependent** — see `docs/environment.md`.
+    Any future lesson quoting a `grep`-over-the-kernel figure must run three warm-ups first
+    and say so, or it will publish a number that is off by more than an order of magnitude.
+
 - **Chặng 02 — `C và công cụ build` (lessons 14–18).** First entry for this module; written
   2026-08-19 while producing `bt-14` and `bt-15`. Decisions a later lesson or set must not
   contradict:

@@ -315,9 +315,10 @@ cross-references. Guard against a repeat:
   `Chặng 04 — Cross-compilation` (lessons 25–28) and
   `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) and
   `Chặng 06 — Bootloader U-Boot` (lessons 33–36) are all written and rendering.
-  `Chặng 07 — Linux Kernel` has begun: lesson 37 `Kiến trúc kernel` is written.
-- Next lesson to write, when asked: lesson 38, `Source kernel và cách định hướng`.
-- `node tools/check.js` → `14 modules · 70 lessons · 37 written · 15 bài tập` · `OK`.
+  `Chặng 07 — Linux Kernel` has begun: lessons 37 `Kiến trúc kernel` and
+  38 `Source kernel và cách định hướng` are written.
+- Next lesson to write, when asked: lesson 39, `Kconfig và menuconfig`.
+- `node tools/check.js` → `14 modules · 70 lessons · 38 written · 15 bài tập` · `OK`.
 - **Exercise sets written: `bt-01` … `bt-15`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,
