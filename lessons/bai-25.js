@@ -544,7 +544,7 @@ Lesson.register({
               ['uname -m', 'Kiến trúc của <b>nhân đang chạy</b>. Đây là câu hỏi về máy',
                'Trả về <code>x86_64</code>: nhân WSL2 của bạn là x86-64, đúng như Bài 1 đã đo'],
               ['gcc -dumpmachine', 'Bộ ba <b>target</b> của trình biên dịch. Đây là câu hỏi về công cụ',
-               'Trùng nhau chỉ vì <code>gcc</code> ở đây là bản native. Với hai lệnh sau thì chúng lệch nhau']
+               'Trùng nhau chỉ vì <code>gcc</code> ở đây là bản native. Hai lệnh sau in ra hai chuỗi khác hẳn — <code>aarch64-linux-gnu</code> và <code>arm-linux-gnueabihf</code> — chứng minh ba trình biên dịch này nhắm ba đích khác nhau dù cùng chạy trên một nhân <code>x86_64</code>']
             ]},
 
           { t: 'cal', kind: 'info', title: 'Vì sao tên dài mà không phải chỉ "arm64-gcc"?',
@@ -584,8 +584,19 @@ Lesson.register({
             'section           size   addr\n' +
             '.text               60      0' },
 
+          { t: 'cmdx', cmd: 'size -A sum-x86.o | sed -n \'1,3p\'',
+            title: 'Vì sao có <code>-A</code> và vì sao lọc qua <code>sed</code>',
+            rows: [
+              ['size', 'Đo kích thước từng section của file <code>.o</code>/ELF, tính bằng byte',
+               'Không tham số, nó chỉ in một dòng tổng hợp <code>text/data/bss/dec/hex</code> — không thấy tên từng section'],
+              ['-A', 'Đổi sang định dạng System V: liệt kê <b>từng section</b> kèm size và địa chỉ, thay vì dòng tổng hợp Berkeley mặc định',
+               'Không có <code>-A</code>, bạn không tách được riêng <code>.text</code> — mà đó mới là con số cần so sánh ở đây'],
+              ['sed -n \'1,3p\'', 'In đúng dòng 1 tới 3 (tên file, dòng tiêu đề cột, dòng <code>.text</code>) rồi bỏ qua phần còn lại như <code>.data</code>, <code>.bss</code>, <code>.comment</code>',
+               'Thiếu <code>-n</code>, <code>sed</code> vẫn in mọi dòng theo mặc định <i>rồi</i> in thêm các dòng khớp <code>1,3p</code> — mỗi dòng đầu bị lặp hai lần']
+            ]},
+
           { t: 'p', x:
-            'Giờ đếm số lệnh. Mỗi dòng mã lệnh trong bản dịch của <code>objdump</code> đều bắt đầu ' +
+            'Hai con số <b>51</b> và <b>60</b> ở cột <code>size</code> chính là kích thước <code>.text</code> đã nói tới trong bảng lý thuyết — giờ bạn tự đo ra chứ không chỉ đọc bảng. Đếm tiếp số lệnh. Mỗi dòng mã lệnh trong bản dịch của <code>objdump</code> đều bắt đầu ' +
             'bằng khoảng trắng rồi tới địa chỉ hex và dấu hai chấm — đếm đúng những dòng đó là ra ' +
             'số lệnh.' },
 
@@ -754,6 +765,14 @@ Lesson.register({
                'Nếu mọi hàm giống hệt nhau, trình biên dịch có thể gộp chúng lại và phép đo mất ý nghĩa']
             ]},
 
+          { t: 'cal', kind: 'info', title: '3 203 đúng như tính tay: 400 × 8 + 3',
+            x: '<p>Mỗi vòng lặp sinh đúng <b>8</b> dòng cho một hàm — khai báo, dấu <code>{</code> mở, ' +
+               'khởi tạo <code>t</code>, dòng <code>for</code>, câu lệnh cộng dồn, <code>return</code>, ' +
+               'dấu <code>}</code> đóng, và một dòng trống ngăn cách — nhân với <b>400</b> hàm là ' +
+               '3 200, cộng <b>3</b> dòng tiêu đề (hai <code>#include</code> và một dòng trống) ra ' +
+               'đúng <b>3 203</b> mà <code>wc -l</code> vừa đếm được. Nếu số bạn thấy khác đi, khả năng ' +
+               'cao nhất là vòng <code>seq 0 399</code> chạy thiếu hoặc thừa vòng.</p>' },
+
           { t: 'p', x:
             'Giờ đo. Cờ <code>-v</code> của <code>/usr/bin/time</code> in ra rất nhiều dòng — ta ' +
             'chỉ giữ hai dòng cần thiết.' },
@@ -764,6 +783,12 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             '\tElapsed (wall clock) time (h:mm:ss or m:ss): 0:01.40\n' +
             '\tMaximum resident set size (kbytes): 68224' },
+
+          { t: 'p', x:
+            '<b>68 224 KB</b> (~66,6 MB) và <b>0:01.40</b> — sát với <b>68 468 KB</b> và <b>0:01.51</b> ' +
+            'bạn đã thấy ở phần lý thuyết cho cùng phép đo này. Chênh lệch dưới <b>0,4 %</b>, đúng mức ' +
+            'dao động bình thường giữa hai lần chạy, không phải sai số. Đây chính là con số bạn sắp ' +
+            'thử ép xuống thấp hơn nhiều lần bằng <code>ulimit -v</code>.' },
 
           { t: 'cal', kind: 'warn', title: 'Phải là <code>/usr/bin/time</code>, không phải <code>time</code>',
             x: '<p>Gõ <code>time</code> trần thì bash dùng <b>từ khoá dựng sẵn</b> của nó, và từ khoá ' +
@@ -888,7 +913,11 @@ Lesson.register({
             '#define __arm__ 1' },
 
           { t: 'cal', kind: 'danger', title: '<code>long</code> không phải lúc nào cũng 8 byte',
-            x: '<p>Nhìn dòng cuối: với <code>arm-linux-gnueabihf</code>, <code>__SIZEOF_LONG__</code> ' +
+            x: '<p>Hai khối đầu — <code>gcc</code> và <code>aarch64-linux-gnu-gcc</code> — giống hệt ' +
+               'nhau ở hai macro chung: <code>__LP64__ 1</code> và <code>__SIZEOF_LONG__ 8</code>. ' +
+               'Đúng như dự đoán: cả x86-64 lẫn ARM64 đều là kiến trúc 64-bit, nên <code>long</code> ' +
+               'dài 8 byte trên cả hai.</p>' +
+               '<p>Nhìn dòng cuối: với <code>arm-linux-gnueabihf</code>, <code>__SIZEOF_LONG__</code> ' +
                'là <b>4</b>, và <code>__LP64__</code> <b>biến mất</b> hoàn toàn.</p>' +
                '<p>Đây là nguồn gốc của cả một họ lỗi rất khó tìm: mã C viết trên máy 64-bit, chạy ' +
                'ngon lành nhiều năm, mang sang board ARM 32-bit thì tràn số hoặc sai con trỏ. Mọi ' +

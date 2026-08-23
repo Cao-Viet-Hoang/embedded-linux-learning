@@ -676,6 +676,15 @@ Lesson.register({
             ['<code>-o</code>', 'HOẶC', 'Không có ngoặc, <code>-type f -name a -o -name b</code> đọc thành <b>(f VÀ a) HOẶC b</b> — sai hoàn toàn'],
             ['<code>!</code>', 'Phủ định điều kiện ngay sau nó', 'Có thể viết <code>-not</code> cho dễ đọc']
           ]},
+        { t: 'cal', kind: 'info', title: 'Ba con số vừa xác nhận cách đọc find', x:
+          '<p>Câu đầu chỉ lọc theo tên nên trả về đúng <b>3</b> file <code>.c</code>, theo <b>thứ ' +
+          'tự đĩa</b> chứ không phải bảng chữ cái — như đã thấy ở bước 1, không có <code>| sort</code> ' +
+          'thì thứ tự vẫn tuỳ đĩa.</p>' +
+          '<p>Câu thứ hai gộp cả <code>.c</code> và <code>.h</code> nên tăng lên <b>5</b> dòng, và ' +
+          'lần này có <code>| sort</code> nên bạn thấy đúng thứ tự bảng chữ cái.</p>' +
+          '<p>Câu thứ ba loại đúng <b>một</b> file — <code>main.o</code> — khỏi tổng <b>9</b> file ' +
+          'của cả cây, còn lại <b>8</b> dòng. Đó là bằng chứng <code>! -name \'*.o\'</code> hoạt ' +
+          'động đúng như mong đợi.</p>' },
         { t: 'p', x: 'Bây giờ là ba điều kiện hay dùng nhất khi dọn dẹp một cây build:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'find project -type f -empty\n' +
@@ -690,6 +699,14 @@ Lesson.register({
           'project/device.log\n' +
           '--- has execute bit for owner\n' +
           'project/src/main.c' },
+        { t: 'cal', kind: 'info', title: 'Hai câu đầu: vì sao chỉ đúng hai và một file khớp', x:
+          '<p><code>-empty</code> trả về đúng <b>hai</b> file — <code>empty.txt</code> và ' +
+          '<code>main.o</code> — vì cả hai đều 0 byte. <code>empty.txt</code> vốn được tạo rỗng; ' +
+          '<code>main.o</code> chỉ mới bị <code>touch</code>, chưa hề được biên dịch thật, nên ' +
+          'cũng rỗng không kém.</p>' +
+          '<p><code>-size +200c</code> chỉ trả về <b>một</b> file: <code>device.log</code>. Đây là ' +
+          'file duy nhất trong bãi tập chứa nhiều dòng nhật ký, đủ để vượt ngưỡng 200 byte — mọi ' +
+          'file mã nguồn, header và cấu hình còn lại đều nhẹ hơn.</p>' },
         { t: 'cal', kind: 'why', title: 'Câu cuối vừa tìm ra một lỗi thật trong dự án', x:
           '<p>Một file <code>.c</code> <b>không được phép</b> có bit thực thi — nó là văn bản ' +
           'để trình biên dịch đọc, không phải chương trình để kernel chạy. Bit <code>x</code> ' +
@@ -820,6 +837,10 @@ Lesson.register({
           "-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/name with a space.c\n" +
           '-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/normal.c\n' +
           'rc=0' },
+        { t: 'p', x:
+          'Lần này <code>ls -l</code> in nguyên vẹn <code>trap/name with a space.c</code> trên ' +
+          'một dòng duy nhất, và mã thoát trở lại <b>0</b>: byte 0 làm ranh giới nên khoảng trắng ' +
+          'trong tên không còn bị hiểu nhầm là điểm ngắt giữa hai tham số.' },
         { t: 'cmdx', cmd: "find ... -print0 | xargs -0 lenh", title: 'Vì sao byte 0 là lời giải duy nhất đúng',
           rows: [
             ['<code>-print0</code>', 'Kết thúc mỗi tên file bằng <b>byte 0</b> thay vì ký tự xuống dòng', 'Byte 0 là ký tự <b>duy nhất</b> không thể có trong tên file Linux'],
@@ -935,7 +956,17 @@ Lesson.register({
           'found        rc=0\n' +
           'not found    rc=1\n' +
           'grep: project/missing.txt: No such file or directory\n' +
-          'missing file rc=2' }
+          'missing file rc=2' },
+        { t: 'cal', kind: 'why', title: 'Ba mã thoát, và vì sao rc=2 vẫn in ra một dòng dù có -q', x:
+          '<p><code>rc=0</code> khi grep tìm thấy dòng khớp, <code>rc=1</code> khi quét hết file mà ' +
+          'không thấy gì — cả hai đều là <b>câu trả lời hợp lệ</b>, không phải lỗi.</p>' +
+          '<p>Chỉ <code>rc=2</code>, khi <code>missing.txt</code> không tồn tại, mới là lỗi thật. Để ' +
+          'ý dòng <code>grep: project/missing.txt: No such file or directory</code> vẫn hiện ra dù ' +
+          'bạn đã dùng <code>-q</code>: theo trang <code>man grep</code>, <code>-q</code> chỉ tắt ' +
+          'phần in dòng khớp ra <b>stdout</b>, không tắt thông báo lỗi ghi ra <b>stderr</b>. Muốn im ' +
+          'lặng hoàn toàn phải thêm <code>-s</code> (<code>--no-messages</code>).</p>' +
+          '<p>Ba giá trị này chính là thứ Bài 13 sẽ kiểm tra bằng <code>if grep -q …</code> để phân ' +
+          'biệt "không thấy" với "lỗi thật".</p>' }
       ]},
 
       /* ---------- BƯỚC 5 ---------- */
@@ -1020,6 +1051,14 @@ Lesson.register({
           '9600 <- baud\n' +
           '0 <- debug\n' +
           '192.168.1.10 <- ip' },
+        { t: 'cal', kind: 'info', title: 'Hai lệnh đầu: xoá đúng ba dòng, chọn đúng hai dòng', x:
+          '<p><code>config.txt</code> sau khi sửa ở bước trước có <b>7</b> dòng: hai dòng chú thích ' +
+          'bắt đầu bằng <code>#</code>, một dòng trống, và bốn dòng dữ liệu. Hai lệnh ' +
+          '<code>-e \'/^#/d\' -e \'/^$/d\'</code> xoá đúng ba dòng đó, để lại đúng <b>bốn</b> dòng ' +
+          'dữ liệu bạn thấy ở phần đầu kết quả.</p>' +
+          '<p><code>sed -n \'2,3p\' project/device.log</code> chỉ in dòng <b>2</b> và <b>3</b> — ' +
+          'đúng hai dòng <code>INFO gpio</code> và <code>WARN i2c</code> — nhờ cờ <code>-n</code> ' +
+          'tắt in tự động, chỉ giữ lại thứ được yêu cầu bằng <code>p</code>.</p>' },
         { t: 'cal', kind: 'info', title: 'Nhóm bắt: dấu ngoặc ghi nhớ, \\1 \\2 gọi lại', x:
           '<p><code>([a-z]+)</code> nói với sed: "khớp phần này <b>và nhớ nó lại</b>". Cặp ngoặc ' +
           'thứ nhất thành <code>\\1</code>, cặp thứ hai thành <code>\\2</code>. Vế thay thế ' +
@@ -1096,12 +1135,18 @@ Lesson.register({
             ['<code>printf "%-6s %d\\n"</code>', 'Căn trái 6 ký tự, rồi một số nguyên', 'Cú pháp y hệt <code>printf</code> của C mà bạn sẽ gặp lại ở Chặng 02'],
             ['<code>total += $NF</code>', 'Cộng dồn qua các dòng', 'Biến trong awk <b>không cần khai báo</b> và mặc định bằng 0']
           ]},
-        { t: 'cal', kind: 'info', title: 'Ba dòng awk thay cho một chương trình C hai mươi dòng', x:
-          '<p>Câu <code>{count[$3]++} END {...}</code> vừa làm bốn việc: tách cột, dựng bảng băm, ' +
-          'đếm, và in kết quả. Viết bằng C sẽ mất hai mươi dòng và một cấu trúc dữ liệu tự cài.</p>' +
-          '<p>Đó là lý do <code>awk</code> vẫn sống khoẻ sau năm mươi năm và có mặt trong ' +
-          '<b>mọi</b> bản BusyBox. Trên một thiết bị nhúng không có Python, ' +
-          '<code>awk</code> thường là công cụ xử lý dữ liệu mạnh nhất bạn có.</p>' },
+        { t: 'cal', kind: 'why', title: 'Kiểm tra chéo các con số vừa in ra', x:
+          '<p><code>total = 115970 over 6 lines</code> đúng bằng tổng cột cuối của cả sáu dòng: ' +
+          '<code>115200 + 32 + 0 + 250 + 1 + 487 = 115970</code>. Nếu bạn cộng tay và ra số khác, ' +
+          'gần như chắc chắn đã tính nhầm <code>$NF</code> của một dòng có số cột lệch — đúng cái ' +
+          'bẫy 8/9/10 cột vừa nói ở trên.</p>' +
+          '<p>Đếm theo mức log cho ra đúng <b>WARN 1, ERROR 2, INFO 3</b> — cộng lại bằng 6, khớp ' +
+          '<code>NR</code>. Đếm theo phân hệ cho ra mỗi phân hệ đúng <b>2</b> dòng (<code>gpio ' +
+          'i2c uart</code>), khớp với cách sáu dòng log ở bước 1 được dựng — mỗi phân hệ xuất hiện ' +
+          'đúng hai lần.</p>' +
+          '<p>Đối chiếu tổng như thế này là cách rẻ nhất phát hiện một mảng kết hợp bị đếm sai khoá. ' +
+          'Ba dòng awk vừa làm việc mà viết bằng C sẽ mất hai mươi dòng và một cấu trúc dữ liệu tự ' +
+          'cài — đó là lý do <code>awk</code> vẫn có mặt trong mọi bản BusyBox.</p>' },
         { t: 'p', x:
           'Cuối cùng, cờ <code>-F</code> cho file có dấu phân cách cố định. Đây là cách đọc ' +
           '<code>/etc/passwd</code> mà Bài 8 đã giới thiệu:' },
@@ -1142,6 +1187,15 @@ Lesson.register({
           '=== layer 3: rank by line count\n' +
           'project/drivers/gpio.c:5\n' +
           'project/src/main.c:4' },
+        { t: 'cal', kind: 'info', title: 'Mỗi tầng lọc bớt, tầng cuối xếp lại thứ tự', x:
+          '<p>Tầng 1 chỉ trả lời "file nào có" — <b>2</b> file, theo thứ tự đĩa (<code>main.c</code> ' +
+          'trước <code>gpio.c</code>), chưa quan tâm bao nhiêu lần.</p>' +
+          '<p>Tầng 2 thêm số đếm và âm thầm loại <code>uart.c:0</code> nhờ ' +
+          '<code>awk -F: \'$2 &gt; 0\'</code> — file này không chứa <code>gpio</code> nên bị bỏ, ' +
+          'thứ tự hai file còn lại giữ nguyên.</p>' +
+          '<p>Chỉ tầng 3 mới đổi thứ tự: <code>gpio.c:5</code> nhảy lên trước <code>main.c:4</code> ' +
+          'vì <code>sort -t: -k2 -rn</code> xếp theo <b>cột thứ hai</b> — số lần khớp — giảm dần, ' +
+          'không còn theo tên file hay thứ tự đĩa nữa.</p>' },
         { t: 'p', x:
           'Tầng cuối biến danh sách thành một bảng có tổng. Câu lệnh này viết trên nhiều dòng — ' +
           'bash cho phép xuống dòng ngay sau dấu <code>|</code>:' },
@@ -1153,6 +1207,11 @@ Lesson.register({
           'project/src/main.c         4\n' +
           'project/drivers/gpio.c     5\n' +
           'TOTAL                      9 in 2 files' },
+        { t: 'cal', kind: 'info', title: 'Dòng TOTAL cộng đúng hai dòng phía trên', x:
+          '<p><code>TOTAL 9 in 2 files</code> là tổng của đúng hai dòng phía trên: ' +
+          '<code>4 + 5 = 9</code>. Biến <code>n</code> chỉ tăng khi <code>$2 &gt; 0</code>, nên nó ' +
+          'đếm đúng số file <b>có chứa</b> <code>gpio</code>, không phải tổng số file <code>.c</code> ' +
+          'trong dự án — <code>uart.c</code> vẫn không được tính vào <code>n</code>.</p>' },
         { t: 'p', x:
           'Và biến thể thực dụng hơn: gộp theo <b>thư mục</b>, để biết phân hệ nào của dự án ' +
           'đụng nhiều nhất tới chuỗi đang tìm.' },
@@ -1170,6 +1229,14 @@ Lesson.register({
             ['<code>$</code>', 'Neo vào cuối chuỗi', 'Không có nó, mẫu sẽ khớp dấu gạch chéo đầu tiên và cắt sai'],
             ['<code>dir[$1] += $2</code>', 'Cộng dồn vào ô mang tên thư mục', 'Cùng một cơ chế mảng kết hợp của bước 6']
           ]},
+        { t: 'cal', kind: 'info', title: 'Vì sao chỉ còn hai thư mục, không phải ba', x:
+          '<p>Dự án có ba thư mục con — <code>src</code>, <code>drivers</code>, <code>include</code> ' +
+          '— nhưng bảng chỉ hiện <b>hai</b>, vì bước lọc <code>$2 &gt; 0</code> đã loại ' +
+          '<code>uart.c</code> ngay trước khi quy về thư mục, và không file <code>.h</code> nào ' +
+          'từng lọt qua bộ lọc <code>gpio</code> trong dữ liệu đầu vào.</p>' +
+          '<p><code>project/drivers</code> nhận đúng <b>5</b> — toàn bộ từ <code>gpio.c</code> — ' +
+          'còn <code>project/src</code> nhận đúng <b>4</b>, toàn bộ từ <code>main.c</code>, vì đây ' +
+          'là file duy nhất còn lại trong thư mục đó sau khi <code>uart.c</code> bị loại.</p>' },
         { t: 'p', x:
           'Bãi tập chỉ có ba file nên con số nhỏ. Hãy thả đúng câu lệnh đó lên quy mô thật — ' +
           '2062 file header của hệ thống:' },

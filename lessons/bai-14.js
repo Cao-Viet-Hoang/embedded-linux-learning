@@ -657,10 +657,21 @@ Lesson.register({
             ['<code>%zu</code>', 'Định dạng in dành riêng cho <code>size_t</code>', 'Dùng <code>%d</code> ở đây là sai và <code>-Wall</code> sẽ mắng bạn']
           ]},
 
+        { t: 'cal', kind: 'info', title: 'Đối chiếu số đo với bảng lý thuyết', x:
+          '<p>Hai con số đáng chú ý nhất trong bảy dòng đầu: <code>long</code> ra <b>8</b> byte ' +
+          'và <code>void *</code> cũng ra <b>8</b> byte. Đó chính xác là chữ ký của mô hình ' +
+          '<b>LP64</b> mà mục "Cái bẫy long" ở trên đã cảnh báo — máy viết tài liệu này là ' +
+          'x86_64 nên rơi đúng vào trường hợp đó. Nếu bạn biên dịch lại đúng file này bằng ' +
+          '<code>arm-linux-gnueabihf-gcc</code>, hai con số <b>8</b> đó sẽ tụt xuống <b>4</b> — ' +
+          'đó là điều bạn sẽ ép <code>gcc</code> tự xác nhận ở bước 2.</p>' +
+          '<p>Bốn dòng cuối — <code>int8_t</code> đến <code>uint64_t</code> — không đổi dù chạy ' +
+          'trên kiến trúc nào, đúng như bảng lý thuyết đã nói. Đây là bằng chứng đầu tiên cho ' +
+          'lý do bạn nên dùng <code>uint32_t</code> thay vì <code>long</code> khi mô tả một ' +
+          'thanh ghi phần cứng: nó không có gì để "tụt xuống" cả.</p>' },
+
         { t: 'p', x:
-          'Bảy dòng đầu là những con số <b>có thể thay đổi</b> theo kiến trúc; bốn dòng sau ' +
-          'thì không bao giờ. Giờ tới thứ tự byte — ta lấy giá trị <code>0x12345678</code> vì ' +
-          'bốn byte của nó khác nhau hết, nên nhìn là biết ngay chiều xếp.' },
+          'Giờ tới thứ tự byte — ta lấy giá trị <code>0x12345678</code> vì bốn byte của nó khác ' +
+          'nhau hết, nên nhìn là biết ngay chiều xếp.' },
 
         { t: 'code', where: 'wsl', name: 'tạo endian.c', code:
           'cat > endian.c <<\'EOF\'\n' +
@@ -689,6 +700,17 @@ Lesson.register({
           'byte 0..3: 78 56 34 12\n' +
           'result   : little-endian' },
 
+        { t: 'cal', kind: 'info', title: 'Bốn byte in ra đúng như hình vẽ đã dự đoán', x:
+          '<p>Dòng <code>byte 0..3: 78 56 34 12</code> là đúng thứ tự đã vẽ ở hình trên: byte ' +
+          'có trọng số thấp nhất, <code>78</code>, nằm ở địa chỉ <code>+0</code> — tức ' +
+          '<code>p[0]</code>. Chương trình không đoán, nó <b>đo trực tiếp</b>: điều kiện ' +
+          '<code>if (p[0] == 0x78)</code> đúng nên in ra <code>little-endian</code>, khớp với ' +
+          'ô "LITTLE-ENDIAN" của hình vẽ chứ không phải ô "BIG-ENDIAN".</p>' +
+          '<p>Nếu máy này là big-endian, ba dòng trên sẽ đổi thành ' +
+          '<code>byte 0..3: 12 34 56 78</code> và <code>result: big-endian</code> — đúng thứ tự ' +
+          'ở nửa dưới của hình. Đây là lần đầu bạn tự tay đo được thứ tự byte thay vì đọc nó ' +
+          'trong bảng.</p>' },
+
         { t: 'cal', kind: 'why', title: 'Vì sao ép kiểu sang unsigned char * là hợp lệ', x:
           '<p>Chuẩn C nói rằng ép con trỏ kiểu này sang kiểu khác rồi đọc thường là ' +
           '<b>hành vi không xác định</b> — trừ đúng một ngoại lệ: ép sang ' +
@@ -712,6 +734,19 @@ Lesson.register({
           '#define __ORDER_BIG_ENDIAN__ 4321\n' +
           '#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__\n' +
           'Byte Order:                              Little Endian' },
+
+        { t: 'cal', kind: 'info', title: 'Hai bằng chứng độc lập, cùng một câu trả lời', x:
+          '<p>Nhìn kỹ dòng thứ tư: <code>__BYTE_ORDER__</code> được định nghĩa <b>bằng chính ' +
+          'tên</b> <code>__ORDER_LITTLE_ENDIAN__</code>, không phải bằng số <code>1234</code> ' +
+          'trực tiếp — số <code>1234</code> chỉ xuất hiện ở dòng định nghĩa của ' +
+          '<code>__ORDER_LITTLE_ENDIAN__</code> phía trên. Tài liệu tiền xử lý của GCC dạy đúng ' +
+          'cách dùng cặp macro này để kiểm tra thứ tự byte: viết ' +
+          '<code>#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__</code>, so theo <b>tên</b> chứ ' +
+          'không so theo số — mã đọc được, và không ai cần nhớ 1234 nghĩa là gì.</p>' +
+          '<p>Dòng cuối, <code>lscpu</code>, hỏi thẳng nhân Linux chứ không hỏi trình biên dịch, ' +
+          'và trả lời <b>Little Endian</b> — cùng kết luận với chương trình <code>endian.c</code> ' +
+          'bạn vừa chạy. Ba cách hỏi hoàn toàn khác nhau — chạy thử, hỏi tiền xử lý, hỏi nhân — ' +
+          'cho đúng một câu trả lời.</p>' },
 
         { t: 'cmdx', cmd: 'echo | gcc -dM -E -', title: 'Một lệnh rất đáng nhớ',
           rows: [

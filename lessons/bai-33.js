@@ -577,6 +577,15 @@ Lesson.register({
                'build kernel và có file <code>vmlinux</code>, chỉ cần thêm <code>file vmlinux</code> ' +
                'là GDB hiện đủ tên hàm.' },
 
+          { t: 'cal', kind: 'info', title: 'Đối chiếu với bước 2: cùng một trạng thái CPU, hai công cụ khác nhau',
+            x: 'Bốn dòng <code>info registers</code> xác nhận CPU vẫn đứng nguyên chỗ cũ: ' +
+               '<code>pc = 0x40000000</code>, và <code>x0</code>=<code>x1</code>=<code>x2</code>=' +
+               '<code>x3</code>=<code>0</code> — đúng những gì monitor của QEMU đã cho thấy ở bước 2 ' +
+               'bằng <code>info registers</code>. Đây là cùng một máy ảo, cùng một khoảnh khắc reset, ' +
+               'chỉ khác công cụ soi. Điểm mới nằm ở bốn dòng cuối: <code>x/6i $pc</code> vừa <b>dịch ' +
+               'ra được thành assembly</b> đúng sáu lệnh máy mà <code>xp/10xw</code> ở bước 2 chỉ cho ' +
+               'bạn xem dưới dạng sáu con số hệ 16 — thứ monitor từ chối dịch.' },
+
           { t: 'p', x:
             'Đây là <b>toàn bộ bootloader mà QEMU viết cho bạn</b> — sáu lệnh, và mỗi lệnh là ' +
             'một điều khoản trong hợp đồng bàn giao ở phần lý thuyết:' },
@@ -710,6 +719,14 @@ Lesson.register({
                'Mô phỏng đúng lỗi phổ biến nhất đời thực: bootloader quên đặt <code>x0</code>, ' +
                'hoặc đặt vào thanh ghi sai']
             ] },
+
+          { t: 'cal', kind: 'info', title: 'Dòng cuối cùng xác nhận: x0 đã thật sự về 0',
+            x: 'Dòng <code>x0 0x0 0</code> là kết quả của <code>info registers x0</code> đọc lại ' +
+               'ngay sau lệnh <code>set</code> — không phải giá trị cũ. Đối chiếu với bước 3: tại ' +
+               'đúng breakpoint này, hợp đồng đúng cho <code>x0 = 0x48200000</code> (địa chỉ DTB). ' +
+               'Bây giờ nó là <b>0</b>. Bạn vừa đóng vai một bootloader hỏng: mọi thứ khác — PC, ' +
+               'file <code>Image</code> đã nạp, sáu lệnh đã chạy — đều nguyên vẹn, chỉ một thanh ghi ' +
+               'sai. Lệnh <code>continue</code> tiếp theo sẽ để kernel chạy tiếp với đúng cái sai đó.' },
 
           { t: 'p', x:
             'Bây giờ thả cho kernel chạy. Gõ <code>continue</code> ở cửa sổ 2, chờ 40 giây — bạn ' +

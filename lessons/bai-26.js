@@ -750,6 +750,15 @@ Lesson.register({
             '/usr/lib/gcc-cross/aarch64-linux-gnu/15/../../../../aarch64-linux-gnu/bin/as\n' +
             '/usr/libexec/gcc-cross/aarch64-linux-gnu/15/cc1\n' +
             '/usr/libexec/gcc-cross/aarch64-linux-gnu/15/collect2' },
+          { t: 'cmdx', cmd: 'grep -oE \'/usr/[^" ]*(cc1|/as|collect2)\' | sort -u',
+            title: 'Lọc lấy đúng ba đường dẫn, bỏ hết phần còn lại của kế hoạch',
+            rows: [
+              ['<code>-o</code>', 'Chỉ in <b>phần khớp mẫu</b>, không in cả dòng — khác cách lọc bằng <code>sed</code> ở đầu bài', 'Gọn hơn khi mẫu cần lấy là một đoạn con rõ ràng nằm giữa dòng dài'],
+              ['<code>-E</code>', 'Bật extended regex để dùng <code>()</code> và <code>|</code> trực tiếp, không cần escape bằng <code>\\</code>', 'Không có <code>-E</code>, <code>grep</code> hiểu <code>(</code> theo nghĩa đen chứ không phải nhóm'],
+              ['<code>/usr/[^" ]*</code>', 'Bắt đầu bằng <code>/usr/</code>, theo sau là mọi ký tự <b>không</b> phải dấu nháy kép hoặc khoảng trắng', 'Dừng đúng lúc gặp dấu nháy đóng hoặc khoảng trắng kế tiếp trong dòng lệnh driver in ra'],
+              ['<code>(cc1|/as|collect2)</code>', 'Khớp một trong ba chuỗi — đúng ba chương trình cần tìm', 'Viết <code>/as</code> chứ không phải <code>as</code> trần, để không khớp nhầm vào một thư mục nào đó có chữ "as" nằm giữa tên'],
+              ['<code>sort -u</code>', 'Sắp xếp và loại dòng trùng', 'Ba đường dẫn ở đây vốn đã khác nhau nên không dòng nào bị loại — tác dụng thật của <code>sort -u</code> là buộc thứ tự ra <b>cố định</b> (theo bảng chữ cái) thay vì phụ thuộc thứ tự driver in, nên kết quả bạn thấy luôn giống kết quả in trong bài dù chạy trên máy nào']
+            ]},
           { t: 'cal', kind: 'why', title: 'Vì sao phải có <code>2>&1</code>?',
             x: '<p><code>-###</code> in kế hoạch ra <b>luồng lỗi chuẩn</b>, không phải luồng ra ' +
                'chuẩn. Thiếu <code>2>&1</code> thì <code>grep</code> không nhận được gì và bạn ' +
@@ -821,9 +830,21 @@ Lesson.register({
             '0000000000000000 t $x\n' +
             '0000000000000000 T main\n' +
             '                 U puts' },
+          { t: 'cal', kind: 'info', title: 'Vì sao ký hiệu chưa định nghĩa lại tên <code>puts</code> chứ không phải <code>printf</code>?',
+            x: '<p><code>T main</code> đúng như trông đợi: <code>main</code> đã được định nghĩa, nằm ' +
+               'trong <code>.text</code> (quy ước <code>T</code> bạn đã học ở Bài 18). Dòng đáng chú ý ' +
+               'là <code>U puts</code> — bạn gõ <code>printf</code> trong <code>hello.c</code>, nhưng ' +
+               'ký hiệu <b>chưa định nghĩa</b> (<code>U</code>) lại mang tên <code>puts</code>.</p>' +
+               '<p>Đây không phải lỗi của bản cross: <code>gcc</code> tự thay <code>printf("hello, ' +
+               'world\\n")</code> bằng <code>puts("hello, world")</code> bất cứ khi nào chuỗi định ' +
+               'dạng không chứa đặc tả (<code>%d</code>, <code>%s</code>…) và kết thúc bằng ' +
+               '<code>\\n</code>, vì <code>puts</code> rẻ hơn — không phải phân tích chuỗi định dạng ' +
+               'lúc chạy. Hai dòng <code>$d</code>/<code>$x</code> phía trên là nhãn nội bộ của ARM, ' +
+               'xem giải thích ở cuối bước này.</p>' },
           { t: 'p', x:
-            '<code>nm</code> bản x86-64 vừa đọc trót lọt một file ARM64 và cho kết quả đúng. Bây ' +
-            'giờ đổi sang công cụ cần hiểu bảng lệnh.' },
+            '<code>nm</code> chỉ vừa đọc đúng <i>vỏ</i> ELF — bảng ký hiệu giống nhau ở mọi kiến ' +
+            'trúc. Đó chưa phải phép thử thật sự. Bây giờ đổi sang công cụ cần hiểu <i>ruột</i>: ' +
+            'bảng lệnh.' },
           { t: 'code', where: 'wsl', code:
             'objdump -d hello.o\n' +
             'aarch64-linux-gnu-objdump -d hello.o | grep -c .' },
@@ -902,7 +923,13 @@ Lesson.register({
                '<p>Nếu nó cứ ghép bừa, <code>main</code> sẽ đặt <code>1.5</code> vào ' +
                '<code>s0</code> trong khi <code>add</code> đọc <code>r0</code>. Chương trình vẫn ' +
                'chạy, vẫn in ra một số — chỉ là số vô nghĩa. Một lỗi lúc liên kết mất của bạn năm ' +
-               'phút; một con số sai âm thầm trên thiết bị đã xuất xưởng mất của bạn nhiều ngày.</p>' }
+               'phút; một con số sai âm thầm trên thiết bị đã xuất xưởng mất của bạn nhiều ngày.</p>' +
+               '<p>Hai dòng <code>exit=</code> xác nhận đúng điều đó bằng số, không chỉ bằng mắt: ' +
+               'bản trộn ABI trả về <b>exit=1</b> — <code>mixed</code> không hề tồn tại để chạy ra ' +
+               'số sai, <code>ld</code> đã chặn từ lúc liên kết. Bản đúng ABI trả về <b>exit=0</b>, ' +
+               'và <code>file</code> xác nhận đó là một thực thi ARM hợp lệ mang cờ <code>EABI5</code> ' +
+               '— phiên bản 5 của chuẩn Embedded ABI, độc lập với chuyện hard hay soft-float — đúng ' +
+               'ba chữ <code>eabi</code> bạn đã đọc trong tên <code>arm-linux-gnueabihf</code>.</p>' }
         ]},
 
       { title: 'Đo phần đệm mà mặc định của trình liên kết áp lên bạn, rồi dọn dẹp',

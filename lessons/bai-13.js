@@ -539,6 +539,19 @@ Lesson.register({
           'bash: ./bad-shebang.sh: /bin/basj: bad interpreter: No such file or directory\n' +
           'ma tra ve = 126' },
 
+        { t: 'cal', kind: 'info', title: 'Cùng mã 126, nhưng nguyên nhân khác hẳn ví dụ trước', x:
+          '<p>Kernel đọc đúng dòng <code>#!/bin/basj</code> và cố gọi <b>chính xác chương trình ' +
+          'đó</b> — không có "đoán" hay "sửa lỗi giúp bạn" nào cả. Không có file nào tên ' +
+          '<code>/bin/basj</code> trên đĩa, nên lệnh gọi hệ thống thất bại với mã lỗi <b>ENOENT</b> ' +
+          '("không tìm thấy đường dẫn hoặc trình thông dịch của script hoặc ELF" — <code>man 2 ' +
+          'execve</code>), và bash in lại thành <code>bad interpreter: No such file or ' +
+          'directory</code>.</p>' +
+          '<p>Mã trả về vẫn là <b>126</b>, giống hệt trường hợp thiếu <code>chmod +x</code> ở ví dụ ' +
+          'trước — cả hai đều nghĩa là "tìm thấy file kịch bản, nhưng không chạy được nó". Chúng ' +
+          'chỉ khác nhau ở <i>lý do</i>: thiếu quyền thực thi, so với chương trình thông dịch không ' +
+          'tồn tại. Riêng con số <code>$?</code> không đủ để phân biệt hai trường hợp — bạn luôn ' +
+          'phải đọc kèm dòng thông báo lỗi.</p>' },
+
         { t: 'p', x:
           'Cách thứ ba là cái bẫy nguy hiểm nhất với người dùng Windows, vì <b>mắt thường không ' +
           'nhìn thấy gì sai</b>: file được lưu với ký tự xuống dòng kiểu Windows.' },
@@ -700,6 +713,20 @@ Lesson.register({
           'quoted   : *.txt\n' +
           'unquoted :  file with spaces.txt' },
 
+        { t: 'cal', kind: 'info', title: 'Dòng "unquoted" không in ra $pattern — nó in ra kết quả bung ký tự đại diện', x:
+          '<p>Có nháy, <code>$pattern</code> được thay bằng đúng bốn ký tự <code>*.txt</code>, y ' +
+          'hệt những gì bạn gõ. Không nháy, bash làm thêm một bước: nó xem <code>*.txt</code> như ' +
+          'một <b>mẫu tìm file</b> trong thư mục hiện tại (<code>folder</code>) và thay nó bằng ' +
+          '<b>danh sách file khớp</b> — ở đây chỉ có đúng một file khớp, chính là ' +
+          '<code>file with spaces.txt</code> bạn tạo ở bước trước. Đó là lý do dòng ' +
+          '"unquoted" có hai khoảng trắng liền nhau: một là khoảng trắng gõ tay trong ' +
+          '<code>echo</code>, một là do <code>*.txt</code> đã biến mất và được thay bằng tên file.</p>' +
+          '<p>Nếu thư mục có hai file <code>.txt</code> trở lên, dòng này sẽ in ra cả hai tên nối ' +
+          'nhau — trông giống hệt <code>$pattern</code> chứa nhiều từ. Nếu không file nào khớp, ' +
+          'bash để nguyên chuỗi <code>*.txt</code> (hành vi mặc định khi glob không khớp). Đây là ' +
+          'nguồn gốc của những lỗi kỳ lạ kiểu "tự nhiên chương trình nhận thêm tham số" mà người ' +
+          'viết script không hề chủ ý.</p>' },
+
         { t: 'p', x:
           'Và cuối cùng, chứng minh trực quan điều nguy hiểm nhất — không xoá gì thật, chỉ in ra ' +
           'lệnh <b>sẽ</b> được chạy.' },
@@ -757,7 +784,15 @@ Lesson.register({
           'đặt hoặc rỗng thì dùng <code>arm64</code>". Ở bước 6 bạn sẽ viết ' +
           '<code>ARCH="${1:-arm64}"</code> — nghĩa là "lấy tham số thứ nhất, không có thì ' +
           'mặc định arm64". Một dòng, xử lý gọn toàn bộ trường hợp người dùng không truyền tham ' +
-          'số.</p>' }
+          'số.</p>' +
+          '<p>Ba dòng cuối là ba phép biến đổi chuỗi khác, và mỗi dòng khớp đúng với tên nó tự ' +
+          'in ra: <code>${#name}</code> trả về <b>5</b> vì <code>linux</code> có năm ký tự; ' +
+          '<code>${name^^}</code> viết hoa toàn bộ thành <code>LINUX</code> (bảng thuật ngữ ở ' +
+          'trên đã nói cú pháp này chỉ có trong bash, không chạy trên dash). Riêng ' +
+          '<code>${name/linux/embedded}</code> là cú pháp mới: <b>thay thế lần khớp đầu tiên</b> ' +
+          'của <code>linux</code> bằng <code>embedded</code> trong giá trị của biến, mà không cần ' +
+          'gọi <code>sed</code>. Muốn thay <b>mọi</b> lần khớp thì gõ hai dấu gạch chéo: ' +
+          '<code>${name//linux/embedded}</code>.</p>' }
       ]},
 
       /* ─────────── BƯỚC 3 ─────────── */
@@ -907,6 +942,17 @@ Lesson.register({
           'x86_64 -> gcc\n' +
           'mips -> not supported' },
 
+        { t: 'cal', kind: 'info', title: 'Bốn kiến trúc, bốn kết quả — và một cái bẫy vừa bị chặn', x:
+          '<p>Ba dòng đầu khớp đúng ba nhánh đầu của <code>case</code>: <code>arm64</code> khớp mẫu ' +
+          'riêng của nó, còn <code>x86_64</code> khớp vì nhánh viết ' +
+          '<code>x86_64|amd64)</code> — gộp hai mẫu bằng <code>|</code> như lý thuyết đã nói.</p>' +
+          '<p>Dòng cuối mới là dòng đáng chú ý: <code>mips</code> không khớp bất kỳ mẫu nào ở trên, ' +
+          'nên rơi vào nhánh <code>*)</code> và in ra <code>not supported</code> thay vì làm ' +
+          '<code>case</code> im lặng bỏ qua hay báo lỗi cú pháp. Đây chính xác là tác dụng của quy ' +
+          'tắc "luôn viết nhánh <code>*)</code>" — nếu thiếu nó, kiến trúc lạ sẽ không in gì cả và ' +
+          'vòng lặp âm thầm bỏ qua, khiến bạn tưởng script đã xử lý xong trong khi thực ra chưa làm ' +
+          'gì với <code>mips</code>.</p>' },
+
         { t: 'code', where: 'wsl', code:
           'cat > loops.sh <<\'EOF\'\n' +
           '#!/bin/bash\n' +
@@ -937,7 +983,26 @@ Lesson.register({
             ['<code>read -r</code>', 'Đọc một dòng, cắt theo IFS, gán vào các biến', '<b><code>-r</code> là bắt buộc</b>: không có nó, dấu <code>\\</code> trong dữ liệu bị nuốt'],
             ['<code>user _ uid _</code>', 'Bốn biến. <code>_</code> là quy ước "không quan tâm"', 'Biến <b>cuối cùng</b> nhận hết phần dư của dòng'],
             ['<code>for</code> hay <code>while</code>?', '<code>for</code> duyệt danh sách <b>đã biết</b>, <code>while read</code> duyệt <b>dòng</b>', 'Đừng dùng <code>for dong in $(cat f)</code> — nó tách theo khoảng trắng chứ không theo dòng']
-          ]}
+          ]},
+
+        { t: 'cal', kind: 'info', title: 'Đọc kỹ hai khối kết quả — chúng đến từ hai cơ chế khác nhau', x:
+          '<p>Khối trên là <code>for f in *.sh</code> đi qua từng file thật trong thư mục, gọi ' +
+          '<code>wc -l &lt; "$f"</code> để đếm dòng, và <code>head -5</code> cắt ở năm dòng đầu ' +
+          'theo thứ tự chữ cái — đó là lý do bạn thấy đúng năm tên file, không phải toàn bộ mười ' +
+          'mấy file đang có trong <code>~/b13</code>.</p>' +
+          '<p>Khối dưới đọc ba dòng đầu của <code>/etc/passwd</code>, mỗi dòng có bảy trường ngăn ' +
+          'bởi dấu hai chấm (<code>man 5 passwd</code>): tên đăng nhập, mật khẩu, <b>UID</b>, GID, ' +
+          'chú thích, thư mục home, shell. Mẫu <code>read -r user _ uid _</code> lấy đúng trường 1 ' +
+          '(<code>user</code>) và trường 3 (<code>uid</code>), còn dấu <code>_</code> hứng và bỏ qua ' +
+          'trường 2 và toàn bộ phần còn lại. Kết quả <code>root</code> có UID <b>0</b> — số hiệu ' +
+          'dành riêng cho siêu người dùng — còn <code>daemon</code> và <code>bin</code> có UID 1 và ' +
+          '2, các tài khoản hệ thống được cấp số nhỏ ngay sau <code>root</code>.</p>' +
+          '<p>Vòng lặp này viết bằng đường ống (<code>head -3 … | while … done</code>), và điều đó ' +
+          'chỉ an toàn vì không có biến nào cần dùng <b>sau khi</b> vòng lặp kết thúc — vế phải của ' +
+          'đường ống chạy trong một tiến trình con riêng, nên nếu bạn gán biến bên trong ' +
+          '<code>while</code> rồi đọc nó ở dòng sau <code>done</code>, giá trị sẽ biến mất. Đây là ' +
+          'dòng cuối trong bảng "Lỗi thường gặp" của bài này — cách tránh là ' +
+          '<code>while … done &lt; file</code> thay vì <code>cat file | while …</code>.</p>' }
       ]},
 
       /* ─────────── BƯỚC 4 ─────────── */
@@ -1360,6 +1425,9 @@ Lesson.register({
             ['<code>EXTRA_FLAGS=(-static)</code>', 'Một <b>mảng</b> chứa cờ thêm', 'ARM64 dùng <code>-static</code> vì WSL không có thư viện ARM64 — Bài 3'],
             ['<code>"${EXTRA_FLAGS[@]}"</code>', 'Bung mảng thành các tham số riêng biệt', 'Cùng nguyên lý <code>"$@"</code> ở bước 4'],
             ['<code>[ -f "$SRC" ] || die …</code>', 'Kiểm tra file tồn tại', 'Bước 3, dạng viết tắt của <code>if</code>'],
+            ['<code>stat -c %s "$OUT"</code>', '<code>-c</code> dùng định dạng tuỳ chỉnh; <code>%s</code> là tổng kích thước theo <b>byte</b>', 'Không có <code>-c</code>, <code>stat</code> in cả một khối nhiều dòng (quyền, thời gian, inode…) mà script không cần'],
+            ['<code>file -b "$OUT"</code>', '<code>-b</code> (brief) bỏ phần tên file ở đầu dòng kết quả', 'Không có nó, mỗi dòng sẽ lặp lại <code>$OUT: </code> — thừa vì bạn đã biết đang xét file nào'],
+            ['<code>| cut -d, -f1-2</code>', 'Cắt theo dấu phẩy, chỉ giữ <b>trường 1 và 2</b>', '<code>file</code> in nhiều thông tin nối bằng dấu phẩy; chỉ hai trường đầu (loại ELF và kiến trúc) là đáng in ra log build'],
             ['<code>cp "$OUT" "./hello-…"</code>', 'Chỉ chép kết quả ra ngoài <b>khi đã thành công</b>', 'Nếu biên dịch hỏng, không có file rác nào xuất hiện']
           ]},
 
@@ -1489,6 +1557,20 @@ Lesson.register({
           'syntax-error.sh: line 5: syntax error: unexpected end of file from `if\' command on line 2\n' +
           'rc=2\n' +
           'build.sh rc=0' },
+
+        { t: 'cal', kind: 'info', title: 'bash -n đọc hết file trước khi báo lỗi, và nó chỉ ra đúng chỗ mở khối', x:
+          '<p>Thông báo trỏ vào <b>dòng 5</b> — dòng <code>EOF</code> cuối cùng, tức là kernel của ' +
+          'bash chỉ nhận ra "thiếu <code>fi</code>" khi đã đọc tới hết file mà không thấy khối ' +
+          '<code>if</code> nào đóng lại. Phần <code>from `if\' command on line 2</code> mới là ' +
+          'thông tin hữu ích thật sự: nó chỉ ngược lại đúng dòng đã <b>mở</b> khối bị bỏ dở, tiết ' +
+          'kiệm cho bạn công dò từng dòng.</p>' +
+          '<p>Mã trả về <b>2</b> ở đây là mã lỗi cú pháp của chính bash khi phân tích script (khác ' +
+          'với mã 2 "no such file" bạn gặp ở bước 3 với <code>ls</code> — cùng con số, nguồn gốc ' +
+          'khác nhau, một lần nữa cho thấy vì sao phải đọc thông báo kèm theo chứ không chỉ nhìn ' +
+          '<code>$?</code>). Ngược lại, <code>build.sh rc=0</code> xác nhận file <code>build.sh</code> ' +
+          'bạn viết ở bước 6 không có lỗi cú pháp nào — nhưng chú ý <code>bash -n</code> ' +
+          '<b>không hề chạy</b> nó, nên nó không đảm bảo script làm đúng việc, chỉ đảm bảo bash ' +
+          'phân tích được cú pháp.</p>' },
 
         { t: 'p', x:
           'Thứ hai: <code>bash -x</code> in ra từng lệnh <b>sau khi</b> mọi biến đã được thay ' +

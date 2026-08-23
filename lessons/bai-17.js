@@ -873,6 +873,14 @@ Lesson.register({
           'rw-r--r-- 0/0   1224 Jan  1 07:00 1970 sub.o\n' +
           'rw-r--r-- 0/0   1224 Jan  1 07:00 1970 mul.o' },
 
+        { t: 'cal', kind: 'tip', title: 'Ba con số 1 224 và ngày 1/1/1970 không phải trùng hợp', x:
+          '<p>Đúng như phần lý thuyết đã giải thích: <code>ar</code> trên Ubuntu chạy ở chế độ ' +
+          '<b>deterministic</b> mặc định, nên ghi <code>0/0</code> cho UID/GID và một mốc thời ' +
+          'gian cố định thay vì thời gian thật lúc bạn build.</p>' +
+          '<p>Cả ba file cùng nặng <b>1 224 byte</b> vì <code>add.c</code>, <code>sub.c</code>, ' +
+          '<code>mul.c</code> có cấu trúc giống hệt nhau — mỗi file chỉ một hàm hai tham số, một ' +
+          'phép tính, một <code>return</code>. Bạn sẽ dùng lại con số này ngay dưới đây.</p>' },
+
         { t: 'p', x: 'Mục lục ký hiệu cho biết hàm nào nằm ở thành viên nào:' },
 
         { t: 'code', where: 'wsl', code: 'nm libops.a' },
@@ -886,6 +894,16 @@ Lesson.register({
           '\n' +
           'mul.o:\n' +
           '0000000000000000 T mul' },
+
+        { t: 'cal', kind: 'info', title: 'Ba mục riêng, cùng địa chỉ 0 — vì sao', x:
+          '<p>Mỗi thành viên có mục lục ký hiệu <b>riêng</b>: đây chính là chỉ mục mà cờ ' +
+          '<code>s</code> trong <code>ar rcs</code> vừa dựng. Chữ <code>T</code> — như bạn đã học ' +
+          'ở <b>Bài 15</b> — nghĩa là ký hiệu được định nghĩa trong đoạn <code>.text</code>, tức ' +
+          'đây là nơi hàm thật sự nằm, không phải nơi nó được gọi.</p>' +
+          '<p>Địa chỉ <code>0000000000000000</code> giống nhau ở cả ba vì mỗi <code>.o</code> vẫn ' +
+          'đang là một đơn vị liên kết độc lập, chưa được đặt vào bất kỳ chương trình nào. Địa chỉ ' +
+          'thật chỉ chốt sau khi <code>ld</code> ghép nó vào một file thực thi — bạn sẽ thấy đúng ' +
+          'điều đó đổi khác ngay ở lệnh tiếp theo.</p>' },
 
         { t: 'p', x: 'Liên kết và kiểm tra xem <code>sub</code>, <code>mul</code> có bị lôi vào không:' },
 
@@ -905,6 +923,13 @@ Lesson.register({
           '<p>Lệnh <code>grep</code> tìm cả ba hàm nhưng chỉ <code>add</code> xuất hiện. ' +
           '<code>sub.o</code> và <code>mul.o</code> nằm nguyên trong <code>libops.a</code>, ' +
           'không được chép vào <code>prog_static</code>.</p>' +
+          '<p>Hai con số <code>stat</code> xác nhận đúng điều đó bằng kích thước: ' +
+          '<code>libops.a</code> nặng <b>3 948 byte</b> vì chứa nguyên vẹn cả ba <code>.o</code> ' +
+          '(mỗi cái 1 224 byte, như bạn vừa thấy ở <code>ar tv</code>), nhưng ' +
+          '<code>prog_static</code> chỉ nặng <b>16 008 byte</b> dù đã cộng thêm toàn bộ phần ' +
+          'khởi động C và <code>main()</code>. Nếu <code>ld</code> chép nguyên cả kho, con số này ' +
+          'phải lớn hơn hẳn — vì <code>sub.o</code> và <code>mul.o</code> nặng ngang ' +
+          '<code>add.o</code>.</p>' +
           '<p>Thử ngay: thêm <code>printf("%d", sub(9,4));</code> vào <code>main.c</code>, build ' +
           'lại và chạy <code>grep</code> lần nữa — bạn sẽ thấy hai dòng.</p>' }
       ]},
@@ -924,6 +949,15 @@ Lesson.register({
         { t: 'code', where: 'out', nocopy: true, code:
           '15216 libops.so\n' +
           'libops.so: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, BuildID[sha1]=3e9e5d4c41134950099eebb0053f5a0f49bee6d5, not stripped' },
+
+        { t: 'cal', kind: 'info', title: 'Gần gấp 4 lần libops.a, dù chứa đúng ba hàm y hệt', x:
+          '<p><code>libops.so</code> nặng <b>15 216 byte</b> so với <b>3 948 byte</b> của ' +
+          '<code>libops.a</code> ở bước 2. Như phần lý thuyết đã chỉ ra, một <code>.so</code> ' +
+          'không phải một kho <code>.o</code> mà là một <b>đối tượng ELF hoàn chỉnh</b> — thêm ' +
+          'bảng ký hiệu động, bảng relocation, danh sách <code>NEEDED</code>. Dòng ' +
+          '<code>shared object</code> trong output của <code>file</code> xác nhận đúng điều đó.</p>' +
+          '<p><code>not stripped</code> nghĩa là bảng ký hiệu đầy đủ vẫn còn nguyên trong file — ' +
+          'bạn sẽ tận dụng nó ở bước 6 với <code>nm -D</code>.</p>' },
 
         { t: 'p', x:
           'Liên kết lại chương trình. Lệnh giống hệt bước 2 — chỉ khác là bây giờ thư mục có ' +
@@ -947,7 +981,11 @@ Lesson.register({
           'khác nhau</b>, dùng hai bộ quy tắc khác nhau. <code>-L.</code> chỉ nói với người ' +
           'thứ nhất.</p>' +
           '<p>Mã thoát <b>127</b> theo quy ước nghĩa là "không tìm thấy thứ cần chạy" — cùng mã ' +
-          'với <code>command not found</code> mà bạn gặp ở Bài 4.</p>' },
+          'với <code>command not found</code> mà bạn gặp ở Bài 4.</p>' +
+          '<p>Chú ý cả kích thước: file vẫn được tạo ra, nặng <b>15 984 byte</b> — chỉ nhẹ hơn 24 ' +
+          'byte so với <code>prog_static</code> (16 008 byte) ở bước 2. Đúng như dự đoán: nó chỉ ' +
+          'chứa mã của <code>main()</code> và phần khởi động, tuyệt nhiên không chứa ' +
+          '<code>add()</code> — vì vậy build xong mà chạy vẫn chết.</p>' },
 
         { t: 'p', x: 'Chẩn đoán bằng hai công cụ:' },
 
@@ -1006,6 +1044,17 @@ Lesson.register({
           ' 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN]\n' +
           '\tlibops.so => /home/shinarus/bai17-th/libops.so (0x0000730daac68000)' },
 
+        { t: 'cal', kind: 'info', title: 'Hai dòng mới, so với lúc lỗi ở bước 3', x:
+          '<p><code>NEEDED</code> vẫn ghi <code>libops.so</code> y hệt bước 3 — cái tên chương ' +
+          'trình khai là cần không hề đổi. Điều mới là dòng <code>RUNPATH</code>: ' +
+          '<code>readelf</code> in ra đúng chuỗi ký tự <code>$ORIGIN</code>, chưa hề được thay ' +
+          'thế — nó chỉ được <code>ld.so</code> diễn giải <b>lúc chạy</b>, không phải lúc bạn đọc ' +
+          'file bằng <code>readelf</code>.</p>' +
+          '<p><code>ldd</code> cho thấy kết quả của việc diễn giải đó: ' +
+          '<code>libops.so =&gt; /home/shinarus/bai17-th/libops.so</code> — một đường dẫn ' +
+          '<b>tuyệt đối</b>, trỏ đúng vào thư mục hiện tại. Chính dòng <code>RUNPATH</code> này là ' +
+          'thứ đã giải quyết được lỗi <code>cannot open shared object file</code> ở bước 3.</p>' },
+
         { t: 'p', x: 'Xem <code>ld.so</code> thật sự đi tìm ở đâu:' },
 
         { t: 'code', where: 'wsl', code:
@@ -1018,6 +1067,12 @@ Lesson.register({
           '      8082:\t  trying file=/home/shinarus/bai17-th/glibc-hwcaps/x86-64-v2/libops.so' },
 
         { t: 'cal', kind: 'why', title: '$ORIGIN đã được thay bằng đường dẫn thật', x:
+          '<p>Bốn dòng trên bị <code>head -4</code> cắt bớt, nên chỉ kịp hiện <b>ba lần thử thất ' +
+          'bại</b> vào các thư mục <code>glibc-hwcaps/x86-64-v4/v3/v2</code> — cơ chế chọn bản ' +
+          'thư viện tối ưu theo thế hệ CPU mà lý thuyết đã nhắc tới; ở đây không thư mục nào tồn ' +
+          'tại nên bị bỏ qua ngay. Dòng thứ tư đáng ra là lần thử <b>thành công</b> ngay vào thư ' +
+          'mục hiện tại, nhưng đã bị cắt mất — bạn vẫn biết chắc nó thành công, vì lệnh ' +
+          '<code>./prog_dynamic</code> ngay phía trên đã in ra <code>add(2,3) = 5</code>.</p>' +
           '<p>Trong file ghi <code>$ORIGIN</code>, nhưng khi chạy, <code>ld.so</code> thay nó ' +
           'bằng <code>/home/shinarus/bai17-th</code> — thư mục chứa <code>prog_dynamic</code>.</p>' +
           '<p>Kiểm chứng sức mạnh của cách này: ' +
@@ -1083,6 +1138,16 @@ Lesson.register({
           'lrwxrwxrwx 1 shinarus shinarus    15 Aug  5 21:42 libops.so.1 -> libops.so.1.0.0\n' +
           '-rwxr-xr-x 1 shinarus shinarus 15216 Aug  5 21:42 libops.so.1.0.0' },
 
+        { t: 'cal', kind: 'info', title: 'Ba tầng tên của lý thuyết, giờ nhìn thấy tận mắt', x:
+          '<p>Đúng ba tầng đã học: <code>libops.so</code> (<i>linker name</i>) là liên kết mềm trỏ ' +
+          'tới <code>libops.so.1</code> (<i>soname</i>), rồi <code>libops.so.1</code> lại trỏ tiếp ' +
+          'tới <code>libops.so.1.0.0</code> (<i>real name</i>) — file thật duy nhất có mã máy, ' +
+          'nặng đúng <b>15 216 byte</b> như bạn đã đo ở bước 3.</p>' +
+          '<p>Hai file đầu chỉ là liên kết mềm, không chứa mã máy nào. Kích thước <b>11</b> và ' +
+          '<b>15</b> mà <code>ls -l</code> in ra chính là <b>độ dài chuỗi đường dẫn đích</b> ' +
+          '(<code>libops.so.1</code> có 11 ký tự, <code>libops.so.1.0.0</code> có 15 ký tự) — vì ' +
+          'nội dung của một liên kết mềm chính là chuỗi đường dẫn đó, như bạn đã học ở Bài 6.</p>' },
+
         { t: 'code', where: 'wsl', code:
           'readelf -d libops.so.1.0.0 | grep SONAME\n' +
           'gcc -Wall main.c -L. -lops -Wl,-rpath,\'$ORIGIN\' -o prog_versioned\n' +
@@ -1106,7 +1171,13 @@ Lesson.register({
           'trường <code>SONAME</code> chứ không chép tên file.</p>' +
           '<p>Thử ngay: <code>rm libops.so</code> rồi <code>./prog_versioned</code> — vẫn ' +
           'chạy, vì lúc chạy chỉ cần <code>libops.so.1</code>. Đó chính là lý do thiết bị chạy ' +
-          'thật không cần gói <code>-dev</code>.</p>' }
+          'thật không cần gói <code>-dev</code>.</p>' +
+          '<p>Dòng cuối, <code>nm -D libops.so.1.0.0</code>, liệt kê đủ cả ba hàm ' +
+          '<code>add</code>, <code>mul</code>, <code>sub</code> trong bảng ký hiệu động — dù ' +
+          '<code>prog_versioned</code> chỉ gọi <code>add()</code>. Khác hẳn bước 2: đóng gói ' +
+          '<code>.so</code> không có bước lọc nào, mọi hàm không phải <code>static</code> đều tự ' +
+          'động lên bảng ký hiệu động, vì <code>.so</code> không thể biết trước chương trình nào ' +
+          'sẽ dùng ký hiệu nào.</p>' }
       ]},
 
       /* ---- Bước 7 ---- */
@@ -1131,6 +1202,15 @@ Lesson.register({
           '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
           '   1507\t    640\t      8\t   2155\t    86b\tprog_dynamic\n' +
           ' 699331\t  22776\t  22560\t 744667\t  b5cdb\tprog_full_static' },
+
+        { t: 'cal', kind: 'info', title: 'Cột text kể đúng câu chuyện của cả bài', x:
+          '<p><code>prog_dynamic</code> chỉ có <b>1 507 byte</b> mã máy — <code>main()</code> ' +
+          'cùng phần gọi qua PLT. <code>prog_full_static</code> có tới <b>699 331 byte</b>, ' +
+          'khoảng <b>464 lần</b> nhiều hơn, vì toàn bộ glibc tĩnh — gồm cả bộ máy NSS ở cal cảnh ' +
+          'báo phần lý thuyết — đã được chép nguyên vào file.</p>' +
+          '<p>Con số này rất gần với <code>hello_static</code> ở phần lý thuyết (<b>699 895 ' +
+          'byte</b> text): cùng một glibc tĩnh, chỉ khác <code>main()</code> gọi ' +
+          '<code>add()</code> thay vì <code>printf()</code>.</p>' },
 
         { t: 'table',
           head: ['Biến thể', 'Kích thước', '<code>libops</code>', '<code>libc</code>', 'Chạy được ở máy trắng?'],

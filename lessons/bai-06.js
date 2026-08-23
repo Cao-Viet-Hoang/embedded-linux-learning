@@ -460,6 +460,17 @@ Lesson.register({
                'Tên bắt nguồn từ nhiệm vụ gốc: "chạm" vào file để đổi mốc thời gian, buộc <code>make</code> biên dịch lại.']
             ]},
 
+          { t: 'cal', kind: 'info', title: 'Đọc kỹ ls -R: một thư mục trống trông ra sao', x:
+            '<p>Mỗi thư mục con được liệt kê theo <b>thứ tự bảng chữ cái, phân biệt hoa/thường</b>: ' +
+            '<code>build docs include src</code> ở cấp trên; bên trong <code>docs</code>, ' +
+            '<code>README.md</code> đứng trước <code>notes.txt</code> vì chữ hoa luôn xếp trước chữ ' +
+            'thường trong bảng mã ASCII.</p>' +
+            '<p>Để ý <code>project/build:</code> — không có dòng tên file nào bên dưới nó, chỉ có dòng ' +
+            'trống. Đó là bằng chứng thư mục này thật sự <b>rỗng</b>: bạn tạo nó bằng <code>mkdir -p</code> ' +
+            'cùng lúc với ba thư mục kia, nhưng chưa <code>touch</code> gì vào trong. Hãy nhớ hình dạng ' +
+            'này — nó sẽ quay lại ở bước "Chép, đổi tên và xoá" khi bạn thử <code>rm</code> đúng thư mục ' +
+            'này.</p>' },
+
           { t: 'p', x:
             'Bạn có thể đã nghe tới lệnh <code>tree</code> để vẽ cây đẹp hơn. Thử xem:' },
           { t: 'code', where: 'wsl', code: 'tree project' },
@@ -480,6 +491,11 @@ Lesson.register({
             '5 directories, 7 files' },
 
           { t: 'cal', kind: 'info', title: 'tree tiện, nhưng đừng phụ thuộc vào nó', x:
+            '<p><code>tree</code> tự đếm cho bạn ở dòng cuối: <b>5 directories, 7 files</b>. Con số ' +
+            'này khớp đúng với những gì bạn vừa dựng: <code>project</code> cộng bốn thư mục con ' +
+            '(<code>src include build docs</code>) là năm; ba file <code>.c</code>, hai file ' +
+            '<code>.h</code> và hai file trong <code>docs/</code> cộng lại là bảy. Đây là cách tự kiểm ' +
+            'tra nhanh xem bước dựng cây có sót gì không, không cần đếm bằng mắt.</p>' +
             '<p>Trên máy này <code>tree</code> đã có sẵn — Bài 12 sẽ hướng dẫn bạn cài nó bằng ' +
             '<code>sudo apt install tree</code>, và lệnh này chạy lại được sau đó. Nếu bạn thử trên ' +
             'một Ubuntu vừa cài xong, nhiều khả năng bạn sẽ gặp <code>bash: tree: command not found</code> ' +
@@ -567,6 +583,17 @@ Lesson.register({
             'gpio.c\n' +
             'uart.c' },
 
+          { t: 'cal', kind: 'info', title: 'Ba dòng trống, ba bằng chứng khác nhau', x:
+            '<p><code>ls *.c</code> in ra cả ba file — <code>*</code> khớp <b>chuỗi bất kỳ</b> nên không ' +
+            'loại tên nào có đuôi <code>.c</code>.</p>' +
+            '<p><code>ls ?pio.c</code> chỉ ra đúng <b>một</b> tên: <code>gpio.c</code>. Dấu <code>?</code> ' +
+            'khớp đúng một ký tự, và chỉ có chữ <code>g</code> đứng trước <code>pio.c</code> vừa khít mẫu ' +
+            '— <code>main.c</code> và <code>uart.c</code> không có hình dạng đó.</p>' +
+            '<p><code>ls [gu]*</code> loại đúng <code>main.c</code> ra khỏi kết quả: mẫu chỉ nhận file bắt ' +
+            'đầu bằng <code>g</code> hoặc <code>u</code>, nên còn lại <code>gpio.c</code> và ' +
+            '<code>uart.c</code>. Ba dòng lệnh, ba bảng ở phần lý thuyết, giờ là ba kết quả thật trên ' +
+            'chính máy bạn.</p>' },
+
           { t: 'p', x:
             'Bây giờ yêu cầu một mẫu <b>không khớp gì cả</b>. Hãy đọc kỹ thông báo lỗi:' },
           { t: 'code', where: 'wsl', code:
@@ -593,6 +620,14 @@ Lesson.register({
             'gpio.c main.c uart.c\n' +
             '*' },
 
+          { t: 'cal', kind: 'info', title: 'Cùng một echo, hai kết quả trái ngược', x:
+            '<p>Dòng đầu — <code>gpio.c main.c uart.c</code> — là ba đối số thật mà <code>echo</code> ' +
+            'nhận được sau khi bash mở rộng dấu sao: đúng ba file trong thư mục, cách nhau bằng dấu ' +
+            'cách, không còn dấu sao nào cả.</p>' +
+            '<p>Dòng hai chỉ có đúng một ký tự <code>*</code>, vì nháy kép vô hiệu hoá việc mở rộng — ' +
+            'đúng như bảng và hình ở phần lý thuyết đã nói. Đây là lúc bạn tự tay xác nhận điều đó, ' +
+            'không còn phải tin lời giải thích suông.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Mẹo an toàn dùng được cả đời', x:
             '<p>Trước khi chạy một lệnh nguy hiểm có ký tự đại diện, <b>thay lệnh đó bằng ' +
             '<code>echo</code></b>. Bash mở rộng y hệt, nhưng <code>echo</code> chỉ in ra chứ ' +
@@ -614,6 +649,12 @@ Lesson.register({
             'include\n' +
             'src' },
 
+          { t: 'cal', kind: 'info', x:
+            '<p><code>project-copy</code> có đủ bốn thư mục con <code>build docs include src</code> — ' +
+            'đúng như cây gốc. <code>-r</code> (<i>recursive</i>) là lý do <code>cp</code> chịu đi xuống ' +
+            'từng thư mục con thay vì chỉ dừng ở cấp ngoài cùng; thiếu nó, lệnh sẽ từ chối ngay khi gặp ' +
+            'một thư mục, như bạn sắp thấy dưới đây.</p>' },
+
           { t: 'p', x: 'Giờ thử chép một thư mục mà <b>quên</b> <code>-r</code>:' },
           { t: 'code', where: 'wsl', code:
             'cp project target-dir\n' +
@@ -621,6 +662,12 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'cp: -r not specified; omitting directory \'project\'\n' +
             'ma thoat: 1' },
+
+          { t: 'cal', kind: 'info', x:
+            '<p><code>cp</code> phát hiện <code>project</code> là thư mục và <b>từ chối</b> chép, nói rõ ' +
+            'lý do — <code>omitting directory</code> — thay vì âm thầm bỏ qua nó. Mã thoát <b>1</b> xác ' +
+            'nhận lệnh thất bại, đúng quy ước bạn đã học ở Bài 4. Đây là kiểu bảo vệ chủ động giống hệt ' +
+            '<code>rm</code> sẽ làm ở bước dưới với thư mục <code>project/build</code>.</p>' },
 
           { t: 'p', x:
             'Tiếp theo, so sánh <code>cp -r</code> với <code>cp -a</code>. Khác biệt nằm ở ' +
@@ -638,6 +685,19 @@ Lesson.register({
             'dst-r:\n' +
             'total 0\n' +
             '-rw-r--r-- 1 shinarus shinarus 0 2026-08-06 00:13 old.txt' },
+
+          { t: 'cal', kind: 'info', title: 'Vì sao old.txt hiện 17:00 chứ không phải 10:00 bạn vừa gõ', x:
+            '<p><code>dst-a/old.txt</code> giữ nguyên mốc thời gian của bản gốc — nhưng con số hiển thị ' +
+            'là <b>17:00</b>, không phải <b>10:00</b> bạn gõ trong <code>touch -d</code>. Đây không phải ' +
+            'lỗi chép: bản <code>touch</code> uutils trên máy này (đã nói ở Bài 4) hiểu chuỗi giờ ' +
+            '<b>không kèm múi giờ</b> theo <b>UTC</b>, còn <code>ls</code> luôn hiển thị theo múi giờ hệ ' +
+            'thống — <b>UTC+7</b> trên máy này. 10:00 UTC cộng 7 tiếng đúng bằng 17:00, và ' +
+            '<code>dst-a</code> giữ nguyên con số đó vì <code>cp -a</code> chép thẳng mốc thời gian ở ' +
+            'tầng inode, không diễn giải lại chuỗi chữ nào nữa.</p>' +
+            '<p><code>dst-r/old.txt</code> thì không liên quan gì tới 10:00 hay 17:00 — nó mang đúng thời ' +
+            'điểm bạn chạy <code>cp -r</code>, vì <code>-r</code> tạo file hoàn toàn mới.</p>' +
+            '<p>Máy bạn ở múi giờ khác sẽ thấy một con số khác 17:00, nhưng theo đúng công thức này: ' +
+            '10:00 UTC cộng độ lệch múi giờ của máy bạn.</p>' },
 
           { t: 'cal', kind: 'why', title: 'Vì sao dân nhúng luôn dùng cp -a', x:
             '<p><code>cp -r</code> tạo file <b>mới tinh</b>: thời gian là lúc chép, quyền có thể ' +
@@ -668,7 +728,9 @@ Lesson.register({
             'lên thư mục cha mà <b>giữ nguyên tên</b>, vì đích là một thư mục.</p>' +
             '<p><code>rm</code> từ chối thư mục và trả về 1. Đây là <b>lớp bảo vệ cố ý</b>: xoá một ' +
             'thư mục là xoá mọi thứ bên trong, nên hệ thống bắt bạn nói rõ ý định bằng ' +
-            '<code>-r</code>.</p>' }
+            '<code>-r</code>.</p>' +
+            '<p>Thêm <code>-r</code> rồi chạy lại, lệnh thành công và mã thoát trở về <b>0</b> — xác ' +
+            'nhận <code>rm -r</code> chính là cách sửa đúng cho lỗi vừa gặp, không phải một lệnh khác.</p>' }
         ]},
 
       { title: 'Xem file: cat, head, tail và wc',
@@ -715,6 +777,10 @@ Lesson.register({
             'line 3' },
 
           { t: 'cal', kind: 'info', title: 'Vì sao head -c 20 dừng đúng chỗ đó', x:
+            '<p>Chú ý <code>tail -3</code> và <code>tail -n +198</code> in ra <b>y hệt nhau</b>: dòng ' +
+            '198, 199, 200. File có đúng 200 dòng, nên "từ dòng 198 tới hết" và "ba dòng cuối" luôn là ' +
+            'cùng một tập — phép tính <code>200 − 198 + 1 = 3</code> xác nhận điều đó. Đây là cách kiểm ' +
+            'tra nhanh xem bạn tính đúng dòng bắt đầu cho <code>-n +</code> hay chưa.</p>' +
             '<p><code>line 1\\n</code> là 7 byte, <code>line 2\\n</code> thêm 7 nữa là 14, rồi ' +
             '<code>line 3</code> là 6 byte nữa — vừa tròn <b>20</b>. Nó cắt <b>ngay trước</b> ký tự ' +
             'xuống dòng thứ ba, nên phải thêm lệnh <code>echo</code> để dấu nhắc không dính vào ' +
@@ -848,6 +914,27 @@ Lesson.register({
             'lrwxrwxrwx 1 root root 29 Mar 30 23:50 /usr/bin/ls -> ../lib/cargo/bin/coreutils/ls\n' +
             '/usr/lib/cargo/bin/coreutils/ls' },
 
+          { t: 'cmdx', cmd: 'readlink -f /usr/bin/ls',
+            title: 'Vì sao cần -f',
+            rows: [
+              ['readlink', 'Không có tuỳ chọn, nó chỉ in đúng <b>một</b> thứ: chuỗi đường dẫn được ghi ' +
+               'bên trong liên kết mềm.',
+               'Với <code>/usr/bin/ls</code> chuỗi đó là <code>../lib/cargo/bin/coreutils/ls</code> — ' +
+               'một đường dẫn <b>tương đối</b>, tính từ thư mục chứa liên kết.'],
+              ['-f', '<i>canonicalize</i> — đi theo mọi liên kết mềm trên đường, kể cả liên kết lồng ' +
+               'trong liên kết, rồi trả về một đường dẫn <b>tuyệt đối</b> duy nhất.',
+               'Nhờ vậy kết quả là <code>/usr/lib/cargo/bin/coreutils/ls</code> chứ không phải chuỗi ' +
+               'tương đối bên trên — bạn không phải tự tính "lùi một cấp từ /usr/bin rồi vào lib" bằng tay.']
+            ]},
+
+          { t: 'cal', kind: 'info', x:
+            '<p><code>ls -l</code> cho thấy chữ đầu dòng là <code>l</code> kèm mũi tên — đúng dấu hiệu ' +
+            'liên kết mềm bạn vừa học ở phần lý thuyết. Đích ghi trong liên kết là đường dẫn ' +
+            '<b>tương đối</b> <code>../lib/cargo/bin/coreutils/ls</code>, tính từ <code>/usr/bin</code>; ' +
+            '<code>readlink -f</code> quy nó về đường dẫn tuyệt đối ' +
+            '<code>/usr/lib/cargo/bin/coreutils/ls</code> — chính là đường dẫn bạn sẽ dùng ở bước tiếp ' +
+            'theo.</p>' },
+
           { t: 'p', x: 'Đó mới là liên kết mềm. Giờ nhìn vào đích của nó, kèm số inode:' },
           { t: 'code', where: 'wsl', code:
             'ls -li /usr/lib/cargo/bin/coreutils/ls \\\n' +
@@ -872,6 +959,18 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '114\n' +
             '11M\t/usr/lib/cargo/bin/coreutils/' },
+
+          { t: 'cmdx', cmd: 'du -sh /usr/lib/cargo/bin/coreutils/',
+            title: 'Hai tuỳ chọn để có đúng một dòng tổng',
+            rows: [
+              ['-s', '<i>summarize</i> — chỉ in <b>một</b> tổng cho toàn bộ đối số, không liệt kê từng ' +
+               'thư mục con.',
+               'Thiếu nó, <code>du</code> in kích thước của từng thư mục con trước, dòng tổng chỉ là ' +
+               'dòng cuối cùng — khó đọc khi cây có hàng trăm thư mục.'],
+              ['-h', '<i>human-readable</i> — cùng ý nghĩa như ở <code>ls -h</code> phần lý thuyết: đổi ' +
+               'byte thành <code>K M G</code>.',
+               'Thiếu nó, con số hiện ra là số khối, khó hình dung hơn hẳn <code>11M</code>.']
+            ]},
 
           { t: 'cal', kind: 'info', title: 'Con số biết nói: 114 lệnh, 11 MB', x:
             '<p>Thư mục có <b>114</b> tên lệnh nhưng chỉ chiếm <b>11 MB</b> — vì trên đĩa chỉ có ' +

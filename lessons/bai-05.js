@@ -345,7 +345,8 @@ Lesson.register({
             '<p><b>Hai.</b> <code>proc</code> và <code>sys</code> có kích thước <b>0</b>, trong khi mọi ' +
             'thư mục thật đều là 4096. Đây là dấu hiệu đầu tiên cho thấy chúng không nằm trên đĩa.</p>' +
             '<p><b>Ba.</b> Cột số ngay sau phần quyền là số liên kết. <code>proc</code> có <b>252</b> — ' +
-            'con số này thay đổi theo số tiến trình đang chạy, vì mỗi tiến trình là một thư mục con.</p>' },
+            'con số này đổi theo hoạt động của tiến trình/luồng trên máy, và sẽ được lần lại chính xác ' +
+            'ngay bên dưới.</p>' },
 
           { t: 'p', x: 'Và kiểm chứng lại lời khẳng định từ Bài 1:' },
           { t: 'code', where: 'wsl', code: 'ls -la /boot' },
@@ -372,6 +373,15 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '/home/shinarus/embedded/bai05/a/b/c' },
 
+          { t: 'cal', kind: 'info', x:
+            '<p>Bạn gõ <code>~/embedded/bai05/a/b/c</code>, nhưng <code>pwd</code> in ra ' +
+            '<code>/home/shinarus/embedded/bai05/a/b/c</code> — không còn dấu vết của ký tự ' +
+            '<code>~</code>. Đúng như bảng ký hiệu ở trên đã nói: <code>~</code> được bash thay bằng ' +
+            'đường dẫn tuyệt đối tới thư mục nhà <b>trước khi</b> <code>cd</code> hay <code>mkdir</code> ' +
+            'nhìn thấy đối số. <code>pwd</code> không bao giờ trả lời bằng một đường dẫn chứa ' +
+            '<code>~</code>, vì bản thân kernel không biết ký hiệu đó nghĩa là gì — với nó chỉ tồn tại ' +
+            'đường dẫn tuyệt đối.</p>' },
+
           { t: 'p', x: 'Lùi hai cấp bằng đường dẫn tương đối, rồi về nhà, rồi quay lại chỗ cũ:' },
           { t: 'code', where: 'wsl', code:
             'cd ../..\n' +
@@ -394,7 +404,18 @@ Lesson.register({
                'Nhảy qua nhảy lại giữa hai thư mục xa nhau, ví dụ giữa cây mã nguồn kernel và thư mục build.'],
               ['pwd', '<i>print working directory</i> — in đường dẫn tuyệt đối của chỗ đang đứng.',
                '<b>Lệnh đầu tiên nên gõ</b> mỗi khi một lệnh báo "không tìm thấy file". Nguyên nhân thường là bạn đang đứng nhầm chỗ.']
-            ]}
+            ]},
+
+          { t: 'cal', kind: 'why', title: 'Vì sao có 4 dòng kết quả cho 3 lần gọi pwd', x:
+            '<p>Dòng 1 và dòng 2 đến từ hai lệnh <code>pwd</code> tường minh, sau <code>cd ../..</code> ' +
+            'và <code>cd ~</code>. Nhưng dòng 3 không phải kết quả của <code>pwd</code> — nó đến từ ' +
+            'chính <code>cd -</code>. Theo trang hướng dẫn của bash: <b>khi tham số đầu tiên của ' +
+            '<code>cd</code> là <code>-</code>, bản thân <code>cd</code> tự in đường dẫn tuyệt đối của ' +
+            'thư mục mới ra màn hình</b>, y hệt như vừa gọi thêm một lệnh <code>pwd</code>.</p>' +
+            '<p>Dòng 4 mới thật sự là kết quả của lệnh <code>pwd</code> tường minh cuối cùng, và nó ' +
+            'trùng khớp tuyệt đối với dòng 3 (<code>.../bai05/a</code>) — bằng chứng rằng ' +
+            '<code>cd -</code> đã đưa bạn quay lại đúng thư mục lưu trong <code>$OLDPWD</code>, không ' +
+            'lệch một ký tự.</p>' }
         ]},
 
       { title: 'Đọc thông tin máy bạn từ /proc',
@@ -406,6 +427,21 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'model name\t: 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz\n' +
             '6' },
+
+          { t: 'cmdx', cmd: 'grep \'model name\' /proc/cpuinfo | head -1',
+            title: 'Mổ xẻ câu lệnh',
+            rows: [
+              ['grep \'model name\'', 'Lọc ra mọi dòng chứa cụm đó.',
+               '<code>/proc/cpuinfo</code> lặp lại một khối đầy đủ — gồm cả dòng <code>model name</code> ' +
+               '— <b>cho mỗi nhân logic</b>, nên với máy 6 nhân thì lệnh này một mình sẽ in ra 6 dòng giống hệt nhau.'],
+              ['| head -1', 'Chỉ giữ lại dòng đầu tiên trong ống dẫn đó.',
+               'Sáu nhân của bạn cùng một model CPU, nên chỉ cần xem một dòng là đủ; trên chip lai ' +
+               '(nhân hiệu năng khác nhân tiết kiệm điện) hai dòng đầu có thể khác nhau.'],
+              ['grep -c ^processor', 'Đếm số dòng khớp thay vì in chúng ra.',
+               '<code>-c</code> là <i>count</i> — trả về một con số duy nhất, không phải danh sách.'],
+              ['^processor', 'Regex neo vào <b>đầu dòng</b>: chỉ khớp dòng bắt đầu đúng bằng chữ <code>processor</code>.',
+               'Mỗi khối trong <code>/proc/cpuinfo</code> mở đầu bằng đúng một dòng <code>processor\\t: N</code>, nên đếm dòng này tương đương đếm số nhân logic.']
+            ]},
 
           { t: 'cal', kind: 'info', x:
             '<p>Con số <b>6</b> khớp đúng với <code>nr_cpus=6</code> mà bạn thấy trong ' +
@@ -430,6 +466,17 @@ Lesson.register({
             'initrd=\\initrd.img WSL_ROOT_INIT=1 panic=-1 nr_cpus=6 hv_utils.timesync_implicit=1\n' +
             'console=hvc0 debug pty.legacy_count=0 WSL_ENABLE_CRASH_DUMP=1' },
 
+          { t: 'cal', kind: 'info', x:
+            '<p><code>MemTotal</code> báo <b>5 036 152 kB</b>, tức xấp xỉ 4.8 GiB — đúng khớp giới hạn ' +
+            'RAM mà cùng một file <code>.wslconfig</code> vừa nêu ở trên quy định cho máy ảo WSL2, ' +
+            'chứ không phải RAM vật lý của máy Windows.</p>' +
+            '<p><code>MemFree</code> (<b>3 572 016 kB</b>) chỉ tính phần RAM hoàn toàn chưa ai đụng ' +
+            'tới. <code>MemAvailable</code> (<b>4 469 136 kB</b>) lớn hơn hẳn vì tài liệu kernel định ' +
+            'nghĩa nó là "ước lượng lượng RAM có thể dùng để khởi động thêm ứng dụng mới mà không phải ' +
+            'swap", cộng thêm cả phần bộ nhớ đang giữ làm cache trang nhưng thu hồi lại được ngay khi ' +
+            'cần. Khi lo máy sắp hết RAM, con số cần nhìn là <code>MemAvailable</code>, không phải ' +
+            '<code>MemFree</code>.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Ba file này bạn sẽ dùng cả đời', x:
             '<p><code>/proc/version</code> cho biết kernel nào, build bằng trình biên dịch nào. ' +
             'Câu hỏi đầu tiên khi một board cư xử lạ.</p>' +
@@ -453,7 +500,14 @@ Lesson.register({
             'trên cả sáu nhân. Không chương trình nào cập nhật file này — <b>kernel sinh ra nội dung ' +
             'ngay tại thời điểm bạn đọc</b>.</p>' +
             '<p>Nếu đây là một file thật trên đĩa, phải có ai đó ghi vào nó vài lần mỗi giây, và ổ SSD ' +
-            'của bạn sẽ mòn vì một con số vô nghĩa.</p>' },
+            'của bạn sẽ mòn vì một con số vô nghĩa.</p>' +
+            '<p>Hai lần đọc chứng minh điều đó bằng số: cột đầu tăng <b>7.04 − 4.03 = 3.01 giây</b>, ' +
+            'khớp với đúng 3 giây của <code>sleep 3</code> (phần dư 0.01s là thời gian gõ và xử lý ' +
+            'lệnh). Cột thứ hai tăng <b>33.41 − 15.41 = 18.00 giây</b> — chia cho 6, đúng số nhân đã ' +
+            'đếm ở trên, ra <b>3.00 giây</b> khớp tuyệt đối với thời gian <code>sleep</code>. Đây không ' +
+            'phải trùng hợp: hàm <code>uptime_proc_show()</code> trong kernel (<code>fs/proc/uptime.c</code>) ' +
+            'lặp qua <code>for_each_possible_cpu()</code> và <b>cộng dồn</b> thời gian nhàn rỗi của từng ' +
+            'nhân vào một tổng duy nhất, nên trong 3 giây rảnh, cả 6 nhân cùng rảnh thì tổng phải tăng đúng 18.</p>' },
 
           { t: 'p', x: 'Bằng chứng cuối cùng, bằng ba lệnh:' },
           { t: 'code', where: 'wsl', code:
@@ -485,6 +539,18 @@ Lesson.register({
             'none on /dev type devtmpfs (rw,nosuid,relatime,size=2512316k,mode=755)\n' +
             'sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,noatime)\n' +
             'proc on /proc type proc (rw,nosuid,nodev,noexec,noatime)' },
+
+          { t: 'cmdx', cmd: 'mount | grep -E \'^(proc|sysfs|none on /dev) \'',
+            title: 'Mổ xẻ câu lệnh',
+            rows: [
+              ['grep -E', 'Bật <b>regex mở rộng</b> (extended regular expressions).',
+               'Không có <code>-E</code>, dấu <code>|</code> và cặp ngoặc <code>()</code> bên dưới chỉ là ' +
+               'ký tự thường, phải viết <code>\\|</code> và <code>\\(\\)</code> mới có tác dụng đặc biệt.'],
+              ['^(proc|sysfs|none on /dev)', 'Neo vào đầu dòng, khớp một trong ba cụm cách nhau bởi <code>|</code> (hoặc).',
+               'Ba cụm này là chữ đầu ba dòng cần lọc; mount còn in ra vài chục dòng khác (cgroup, tmpfs, overlay…) mà bài chưa cần tới.'],
+              [') ', 'Dấu cách đóng ngay sau ngoặc.',
+               'Chặn nhầm những dòng vô tình cùng bắt đầu bằng <code>proc</code>, ví dụ nếu có mount thứ hai tên <code>procfoo</code>.']
+            ]},
 
           { t: 'cal', kind: 'tip', title: 'Ba dòng này bạn sẽ tự gõ lại ở Bài 46', x:
             '<p>Khi dựng rootfs bằng tay, chính bạn phải gắn ba thứ này, nếu không hệ thống sẽ chạy ' +
@@ -579,6 +645,16 @@ Lesson.register({
             '0\n' +
             ' 00 00 00 00 00 00 00 00' },
 
+          { t: 'cmdx', cmd: 'od -An -tx1',
+            title: 'Mổ xẻ câu lệnh',
+            rows: [
+              ['od', '<i>octal dump</i> — in nội dung nhị phân ra dạng người đọc được, không đoán là văn bản như <code>cat</code>.', ''],
+              ['-An', '<code>-A n</code>: bỏ cột địa chỉ (offset) ở đầu mỗi dòng.',
+               'Không có nó, mỗi dòng sẽ bắt đầu bằng một số thứ tự byte — thừa với 8 byte cần xem ở đây.'],
+              ['-tx1', '<code>-t x1</code>: định dạng mỗi đơn vị là <b>hệ mười sáu (x)</b>, mỗi đơn vị dài <b>1 byte</b>.',
+               'Kết quả 8 nhóm <code>00</code> chính là 8 byte đầu tiên mà <code>/dev/zero</code> sinh ra — luôn luôn là số 0, đúng như tên gọi.']
+            ]},
+
           { t: 'cal', kind: 'tip', x:
             '<p><code>/dev/null</code> nuốt mọi thứ ghi vào và báo thành công — đó là lý do ' +
             '<code>2>/dev/null</code> ở Bài 4 làm thông báo lỗi biến mất. <code>/dev/zero</code> thì ' +
@@ -636,9 +712,18 @@ Lesson.register({
             '56' },
 
           { t: 'cal', kind: 'info', x:
-            '<p>Con số này là lý do <code>ls -l /</code> báo <code>/proc</code> có 252 liên kết, và nó ' +
-            'thay đổi mỗi giây. Một thiết bị nhúng tối giản thường chỉ có <b>dưới 15</b> tiến trình — ' +
-            'bạn sẽ tự đếm lại con số đó ở Bài 49 và thấy khác biệt rất rõ.</p>' }
+            '<p><b>56 không phải là lý do trực tiếp của con số 252 ở trên</b> — kiểm tra thật trên máy ' +
+            'cho thấy chênh lệch còn lớn hơn thế. Đếm luôn cả các luồng (không chỉ tiến trình) bằng ' +
+            '<code>ps -eLf | wc -l</code> ra khoảng 78 dòng, và cột thứ hai của ' +
+            '<code>cat /proc/loadavg</code> (số lượng "tác vụ" kernel đang biết) còn cao hơn nữa, tới ' +
+            'vài trăm — vẫn không khớp phép cộng <b>2 + số tiến trình</b> hay đổi ngay khi bạn tự chạy ' +
+            'thêm vài tiến trình mới rồi đo lại. Số liên kết của <code>/proc</code> là một con số nội bộ ' +
+            'do kernel gán cho toàn hệ thống (kể cả các luồng/tiến trình kernel không hiện trong ' +
+            '<code>ls /proc</code>), không phải phép đếm thư mục con theo đúng nghĩa như một thư mục ' +
+            'thật — nên đừng cố cộng trừ nó cho khớp. Điều chắc chắn duy nhất: con số <b>56</b> ở đây ' +
+            'là tổng tiến trình đang chạy mà bạn <i>nhìn thấy được</i> qua <code>/proc</code>, và một ' +
+            'thiết bị nhúng tối giản thường chỉ có <b>dưới 15</b> — bạn sẽ tự đếm lại con số đó ở Bài 49 ' +
+            'và thấy khác biệt rất rõ.</p>' }
         ]}
     ]},
 

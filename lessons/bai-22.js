@@ -1214,7 +1214,7 @@ Lesson.register({
             'Pid:\t1391\n' +
             'Threads:\t4' },
 
-          { t: 'cal', kind: 'info', title: 'Ba điều bảng này nói ra', x:
+          { t: 'cal', kind: 'info', title: 'Bốn điều output này nói ra', x:
             '<ol>' +
             '<li><b>Cột PID giống hệt nhau ở cả bốn dòng.</b> Bốn dòng thực thi, một tiến ' +
             'trình. Không có <code>ps -L</code>, bạn chỉ thấy một dòng và không biết bên trong ' +
@@ -1224,6 +1224,12 @@ Lesson.register({
             '<li><b>Chữ <code>l</code> trong <code>Sl+</code></b> là dấu hiệu "đa luồng". Khi ' +
             'gỡ lỗi trên thiết bị lạ, đây là cách nhanh nhất để biết một daemon có bao nhiêu ' +
             'luồng mà không cần đọc mã nguồn.</li>' +
+            '<li><b><code>ls /proc/1391/task</code> in ra đúng bốn số <code>1391 1393 1394 ' +
+            '1395</code></b> — hệt bốn TID trong bảng <code>ps -L</code> ở trên, chỉ là nhìn qua ' +
+            'một cửa khác: mỗi luồng là một thư mục con thật sự trong <code>/proc</code>, đúng ' +
+            'tinh thần "mọi thứ là file" của Bài 19. Dòng <code>Threads: 4</code> đọc từ ' +
+            '<code>/proc/1391/status</code> là cùng con số 4 đó — ba cách hỏi khác nhau, một câu ' +
+            'trả lời giống nhau.</li>' +
             '</ol>' +
             '<p>Thử thêm: chạy <code>./sleepers &amp;</code> rồi <code>top -H -p $!</code> ở cửa ' +
             'sổ khác — <code>top</code> sẽ liệt kê từng luồng thành từng dòng riêng, kèm mức CPU ' +
@@ -1327,6 +1333,16 @@ Lesson.register({
             'atomic: 31 ms\n' +
             'mutex: 136 ms' },
 
+          { t: 'cal', kind: 'why', title: 'Đọc phần correctness trước khi qua phần timing', x:
+            '<p><code>race_o0</code> lần chạy này mất <b>593 291</b> phép cộng (<b>29,7 %</b>) — ' +
+            'một con số thứ tư, khác cả ba con số đã thấy ở bước 2 (41,5 % / 20,5 % / 39,5 %). ' +
+            'Đó tiếp tục là bằng chứng, không phải trục trặc: không hề có "con số đúng" cho bản ' +
+            'không khoá, chỉ có ngẫu nhiên.</p>' +
+            '<p><code>atomic</code> và <code>mutex</code> đều ra đúng <b>2 000 000</b>. Khác với ' +
+            'lần <code>-O2</code> ở bước 2 ra đúng đáp án nhờ may mắn (cửa sổ va chạm hẹp), hai ' +
+            'cách này đúng vì có cơ chế loại trừ lẫn nhau thật sự — ở mức phần cứng và ở mức nhân. ' +
+            'Phần timing dưới đây đo xem cơ chế nào rẻ hơn.</p>' },
+
           { t: 'code', where: 'wsl', code:
             'objdump -d --no-show-raw-insn atomic | sed -n "/<increment>:/,/^$/p" | grep -i lock' },
 
@@ -1373,6 +1389,13 @@ Lesson.register({
             'exit code = 124' },
 
           { t: 'p', x:
+            '<code>pid=1911</code> là PID thật của lần chạy này — trên máy bạn nó sẽ là một số ' +
+            'khác. Điều không đổi là <b>mã thoát 124</b> và việc chỉ có đúng hai dòng ' +
+            '<code>holding …, requesting …</code> được in ra: cả hai luồng dừng lại đúng ở bước ' +
+            '"đang xin khoá thứ hai" và không bao giờ tiến thêm được, đúng như <code>timeout</code> ' +
+            'phải tự tay giết nó thay vì nó tự thoát.' },
+
+          { t: 'p', x:
             'Giờ khám nghiệm tại chỗ: chạy nền, để nó kẹt, rồi hỏi nhân từng luồng đang ở đâu.' },
 
           { t: 'code', where: 'wsl', code:
@@ -1390,6 +1413,12 @@ Lesson.register({
             '   2008    2011 Sl+  futex_do_wait        deadlock\n' +
             'State:\tS (sleeping)\n' +
             'Threads:\t3' },
+
+          { t: 'cmdx', cmd: 'ps -L -o pid,tid,stat,wchan:20,comm -p $KP',
+            title: 'Vì sao thêm :20 sau wchan',
+            rows: [
+              ['<code>wchan:20</code>', 'Ép cột WCHAN rộng tối thiểu 20 ký tự, thay vì để <code>ps</code> tự co lại', 'Không có <code>:20</code>, cột này cắt còn đúng <b>6 ký tự</b>: <code>futex_</code> thay vì <code>futex_do_wait</code>, <code>hrtime</code> thay vì <code>hrtimer_nanosleep</code> — tự kiểm chứng bằng cách chạy lại lệnh trên mà bỏ <code>:20</code>']
+            ]},
 
           { t: 'cal', kind: 'tip', title: 'Cần SIGKILL, vì SIGTERM cũng không cứu được', x:
             '<p>Để ý dòng cuối phải dùng <code>kill -9</code>. Vì sao <code>SIGTERM</code> ' +
@@ -1502,6 +1531,15 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'busy_wait : real 2.00 s | CPU 1.99 s | CPU_pct 99%\n' +
             'cond_wait : real 2.00 s | CPU 0.00 s | CPU_pct 0%' },
+
+          { t: 'p', x:
+            'Số <code>real</code> và <code>CPU</code> có thể lệch vài phần trăm giây trên máy ' +
+            'bạn, tuỳ tải hệ thống lúc đó — không phải dấu hiệu sai. Điều <b>phải</b> giữ nguyên ' +
+            'là khoảng cách giữa hai dòng: <code>busy_wait</code> đốt gần trọn <b>2 giây CPU</b> ' +
+            'để chờ đúng 2 giây đồng hồ (<code>CPU_pct</code> quanh 99–100 %), còn ' +
+            '<code>cond_wait</code> hoàn thành việc y hệt mà <code>CPU_pct</code> luôn là ' +
+            '<b>0 %</b>. Đây chính là con số đã thấy ở phần lý thuyết, giờ bạn tự đo lại trên máy ' +
+            'mình để tin chắc nó không phải chỉ là lời nói suông.' },
 
           { t: 'p', x:
             '<b>5b.</b> <code>errno</code> có bị các luồng giẫm lên nhau không? Đặt ' +

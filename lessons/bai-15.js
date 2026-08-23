@@ -299,7 +299,7 @@ Lesson.register({
       '\tmovl\t$0, %eax\n' +
       '\tret' },
 
-    { t: 'cmdx', cmd: 'Đọc hello.s mà không cần biết assembly', title: 'Năm chi tiết đáng chú ý',
+    { t: 'cmdx', cmd: 'hello.s', title: 'Đọc hello.s mà không cần biết assembly — năm chi tiết đáng chú ý',
       rows: [
         ['<code>.section .rodata</code>', 'Vùng <b>chỉ đọc</b>. Ba chuỗi ký tự của bạn nằm ở đây', 'Ghi vào vùng này lúc chạy sẽ gây <code>Segmentation fault</code> — đó là lý do sửa chuỗi hằng làm chương trình chết'],
         ['<code>.globl main</code>', 'Xuất ký hiệu <code>main</code> ra ngoài', 'Chính là chữ <code>T</code> hoa mà <code>nm</code> hiện ở Bài 14'],
@@ -528,8 +528,9 @@ Lesson.register({
           'rất rõ ở đây.</p>' },
 
         { t: 'p', x:
-          'Còn 843 dòng kia là gì? Phần lớn là dòng đánh dấu bắt đầu bằng <code>#</code> — ' +
-          'không phải chỉ dẫn tiền xử lý nữa, mà là <b>bản đồ nguồn</b>.' },
+          'Còn 843 dòng kia là gì? Một phần là dòng đánh dấu bắt đầu bằng <code>#</code> — ' +
+          'không phải chỉ dẫn tiền xử lý nữa, mà là <b>bản đồ nguồn</b>. Phần còn lại là nội ' +
+          'dung khai báo thật sự được chép vào từ các header.' },
 
         { t: 'code', where: 'wsl', code:
           'grep -c \'^#\' hello.i\n' +
@@ -544,6 +545,14 @@ Lesson.register({
         { t: 'cal', kind: 'tip', title: 'Những dòng # đó là lý do lỗi chỉ đúng file và dòng', x:
           '<p>Dạng <code># 12 "/usr/include/stdio.h"</code> nghĩa là "các dòng tiếp theo vốn ' +
           'đến từ dòng 12 của file <code>stdio.h</code>".</p>' +
+          '<p><code>grep -c</code> vừa đếm được <b>117</b> dòng như vậy trong tổng ' +
+          '<b>849</b> dòng của <code>hello.i</code> — khoảng một phần bảy. Ba dòng đầu tiên ' +
+          'lấy từ đầu ra thật của bạn, <code># 1 "/usr/include/stdc-predef.h" 1 3 4</code>, ' +
+          'còn mang thêm hai con số sau tên file: <b>1</b> nghĩa là "bắt đầu một file mới", ' +
+          '<b>3</b> nghĩa là "nội dung sau đây đến từ một system header, tắt bớt một số cảnh ' +
+          'báo", <b>4</b> nghĩa là "bọc nội dung này trong một khối <code>extern \"C\"</code> ' +
+          'ngầm định để dùng chung được với C++". Đây không phải số dòng — chúng mô tả ' +
+          '<i>loại</i> file vừa được chèn vào.</p>' +
           '<p>Nhờ vậy, khi giai đoạn 2 phát hiện lỗi ở dòng 700 của file <code>.i</code>, nó ' +
           'tra bản đồ và báo cho bạn <code>hello.c:9</code> — vị trí trong file <b>bạn thật ' +
           'sự viết</b>. Không có cơ chế này, mọi thông báo lỗi sẽ trỏ vào một file trung gian ' +
@@ -601,7 +610,7 @@ Lesson.register({
           '    return 0;\n' +
           '}' },
 
-        { t: 'cmdx', cmd: 'Đối chiếu bốn dòng', title: 'Ngoặc đặt sai chỗ, kết quả sai hẳn',
+        { t: 'cmdx', cmd: 'gcc -E macro.c | tail -8', title: 'Đối chiếu bốn dòng — ngoặc đặt sai chỗ, kết quả sai hẳn',
           rows: [
             ['<code>2 + 3 * 2 + 3</code>', 'Nhân ưu tiên hơn cộng: <code>2 + 6 + 3</code> = <b>11</b>', 'Tham số <code>2 + 3</code> bị xé đôi vì không có ngoặc bảo vệ'],
             ['<code>((2 + 3) * (2 + 3))</code>', '<code>5 * 5</code> = <b>25</b>', 'Ngoặc quanh <b>tham số</b> giữ nó nguyên khối'],
@@ -661,6 +670,17 @@ Lesson.register({
           '--- tong so header:\n' +
           '32' },
 
+        { t: 'cmdx', cmd: 'gcc -H -E hello.c -o /dev/null', title: 'Cờ -H: in tên mọi header dùng tới',
+          rows: [
+            ['<code>-H</code>', 'In tên mỗi file header được dùng tới, kèm theo mọi hoạt động bình ' +
+              'thường khác. Mỗi tên được thụt vào để cho biết nó nằm sâu bao nhiêu tầng trong ' +
+              'ngăn xếp <code>#include</code>', 'Số dấu chấm đứng trước mỗi tên chính là độ sâu đó'],
+            ['<code>-E</code>', 'Chỉ chạy tới hết giai đoạn 1 rồi dừng — như bạn đã dùng ở đầu Bước 2', 'Không cần <code>-H</code> chạy hết bốn giai đoạn chỉ để đếm header'],
+            ['<code>-o /dev/null</code>', 'Vứt bỏ mã nguồn đã tiền xử lý, vì lần này bạn chỉ cần danh ' +
+              'sách header in ra <code>stderr</code>, không cần nội dung file <code>.i</code>', null],
+            ['<code>2&gt;&amp;1</code>', 'Gộp <code>stderr</code> (nơi <code>-H</code> in danh sách) vào cùng dòng với <code>stdout</code>, để <code>grep</code>/<code>head</code> phía sau đọc được cả hai', null]
+          ]},
+
         { t: 'cal', kind: 'info', title: 'Số dấu chấm chính là độ sâu lồng nhau', x:
           '<p>Một chấm = header bạn tự viết <code>#include</code>. Năm chấm = header được kéo ' +
           'vào bởi header được kéo vào bởi… bốn tầng. Tổng cộng <b>32 file</b> cho một chương ' +
@@ -688,6 +708,18 @@ Lesson.register({
         { t: 'code', where: 'out', nocopy: true, code:
           'Hello Embedded Linux\n' +
           'SQUARE(7) = 49' },
+
+        { t: 'cal', kind: 'info', title: 'Cả hai dòng đều là bằng chứng của Bước 2', x:
+          '<p><code>Hello Embedded Linux</code> chính là macro <code>NAME</code> mà bạn đã ' +
+          'thấy bị thay bằng <code>"Embedded Linux"</code> trong <code>hello.i</code> ở ' +
+          'Bước 2 — không phải trình biên dịch "biết" giá trị đó, nó chỉ in ra chuỗi mà giai ' +
+          'đoạn 1 đã dán sẵn vào chỗ gọi <code>printf</code>.</p>' +
+          '<p><code>SQUARE(7) = 49</code> xác nhận điều bạn đọc được ở Bước 2: ' +
+          '<code>SQUARE(7)</code> trở thành <code>((7) * (7))</code> sau tiền xử lý, rồi ' +
+          '<b>49</b> là kết quả phép nhân đó. Bạn sẽ thấy ngay bên dưới, trong file ' +
+          '<code>hello.s</code>, con số <b>49</b> này đã có sẵn dưới dạng <code>movl $49</code> ' +
+          '— tức phép nhân đã được tính xong từ trước, không hề chạy lúc <code>./hello</code> ' +
+          'thực thi.</p>' },
 
         { t: 'p', x:
           'Bốn giai đoạn, bốn lệnh riêng, kết quả y hệt như gõ một lệnh <code>gcc</code> duy ' +
@@ -768,7 +800,16 @@ Lesson.register({
           '  [ 5] .rodata           PROGBITS         0000000000000000  00000086\n' +
           '  [11] .symtab           SYMTAB           0000000000000000  00000130' },
 
-        { t: 'cmdx', cmd: 'Ba dòng này nói gì về hello.o', title: 'Đọc một file .o',
+        { t: 'cmdx', cmd: 'readelf -S hello.o', title: 'Cờ -S: liệt kê bảng section header',
+          rows: [
+            ['<code>-S</code> / <code>--section-headers</code>', 'Hiển thị thông tin trong bảng ' +
+              'section header của file, nếu file có bảng đó', 'Cũng là tên đầy đủ <code>--sections</code> — cả ba cách viết cùng một cờ'],
+            ['<code>| grep -E \'\\.text|\\.rodata|\\.symtab\'</code>', 'Đầu ra đầy đủ của ' +
+              '<code>-S</code> liệt kê <b>toàn bộ</b> section trong file, thường vài chục dòng; ' +
+              'lệnh trên chỉ giữ lại ba section đáng chú ý nhất cho bước này', 'Bài 18 là bài tra cứu readelf/objdump/nm đầy đủ, không lọc bớt']
+          ]},
+
+        { t: 'cmdx', cmd: 'file hello.o\nnm hello.o', title: 'Ba dòng này nói gì về hello.o — đọc một file .o',
           rows: [
             ['<code>relocatable</code>', '"Có thể dời chỗ" — <b>chưa phải chương trình chạy được</b>', 'Đối lập với <code>executable</code> mà bạn sẽ thấy ở file <code>hello</code>'],
             ['<code>T main</code>', 'File này <b>cung cấp</b> hàm <code>main</code>', 'Chữ hoa = toàn cục, xuất ra cho trình liên kết dùng'],
@@ -891,6 +932,15 @@ Lesson.register({
           '0000000000000018 T sub\n' +
           'add(2,3) = 5\n' +
           'sub(9,4)  = 5' },
+
+        { t: 'cal', kind: 'info', title: 'sub() không hề gọi add() — hai kết quả trùng nhau là ngẫu nhiên', x:
+          '<p><code>nm ops.o</code> giờ có <b>hai</b> chữ <code>T</code>: <code>add</code> ở ' +
+          'địa chỉ <code>0x0</code>, <code>sub</code> ở <code>0x18</code> — hai hàm khác nhau, ' +
+          'hai địa chỉ khác nhau, đúng như bạn vừa thêm.</p>' +
+          '<p>Cả hai lời gọi cùng in ra <b>5</b> chỉ vì phép tính trong <code>main.c</code>: ' +
+          '<code>2 + 3 = 5</code> và <code>9 - 4 = 5</code>. Đừng nhầm đây là dấu hiệu ' +
+          '<code>sub()</code> bí mật gọi <code>add()</code> — cứ đổi tham số của một trong hai ' +
+          'lời gọi trong <code>main.c</code>, hai con số sẽ tách ra ngay.</p>' },
 
         { t: 'p', x:
           'Chữ <code>U</code> đã tìm được chữ <code>T</code> tương ứng. Giờ thử lỗi ngược lại: ' +

@@ -346,6 +346,18 @@ Lesson.register({
             '-rw-r--r-- 1 shinarus shinarus   140992 Jun 20 14:03 config-6.12.94+deb13-cloud-arm64\n' +
             '-rw-r--r-- 1 shinarus shinarus 30771136 Jun 20 14:03 vmlinuz-6.12.94+deb13-cloud-arm64' },
 
+          { t: 'cal', kind: 'info', title: 'Bảng ký hiệu chỉ 83 byte — mở ra xem nó nói gì',
+            x: '<p>Bảng ở trên gọi <code>System.map</code> là "bảng ký hiệu". Một bảng ký hiệu ' +
+               'thật của nhân Linux liệt kê <b>hàng trăm nghìn</b> địa chỉ — Bài 18 bạn đã thấy ' +
+               '<code>nm</code> làm việc tương tự trên một chương trình bé xíu. 83 byte không đủ ' +
+               'chứa nổi một dòng như thế, nên hãy mở thử: <code>cat kernel/boot/System.map-' +
+               '6.12.94+deb13-cloud-arm64</code> chỉ in ra đúng một dòng — <code>ffffffffffffffff ' +
+               'B The real System.map is in the linux-image-&lt;version&gt;-dbg package</code>.</p>' +
+               '<p>Gói <code>linux-signed-arm64</code> bạn vừa bung là gói <b>chạy</b>, không phải ' +
+               'gói gỡ lỗi — Debian cố tình để lại một dòng trỏ sang gói khác thay vì nhúng cả ' +
+               'bảng ký hiệu thật vào đây. Muốn dịch một địa chỉ nhân thành tên hàm thật, bạn cần ' +
+               '<code>vmlinux</code> hoặc gói <code>-dbg</code> tương ứng, không phải file này.</p>' },
+
           { t: 'p', x:
             'Ba file này chính là ba thứ Chặng 07 sẽ dạy bạn tự tạo ra: bảng ký hiệu, file cấu ' +
             'hình, và ảnh nhân. Kiểm tra định dạng của ảnh nhân rồi đặt cho nó một cái tên ngắn:' },
@@ -494,6 +506,15 @@ Lesson.register({
               ['<code>&gt; initramfs.cpio.gz</code>', 'Hứng kết quả vào file.', 'Chuyển hướng đặt <b>ngoài</b> ngoặc để hứng cả đường ống.']
             ]},
 
+          { t: 'cal', kind: 'info', title: '3872 khối × 512 byte đã báo trước kết quả',
+            x: '<p><code>cpio</code> luôn in số khối nó vừa ghi ở cuối, và mỗi khối mặc định là ' +
+               '<b>512 byte</b> — đúng đơn vị mà <code>--block-size</code> nhân lên nếu bạn đổi nó. ' +
+               '<b>3872 × 512 = 1 982 464</b>, đúng bằng kích thước kho <code>newc</code> ' +
+               '<b>chưa nén</b> mà lệnh <code>zcat | wc -c</code> ngay dưới đây sẽ xác nhận lại lần ' +
+               'nữa. Con số này không đổi dù bạn dựng lại cây bao nhiêu lần, vì nó chỉ phụ thuộc ' +
+               'nội dung bảy mục và các trường header có độ rộng cố định — khác hẳn file <b>đã ' +
+               'nén</b> ở bước sau.</p>' },
+
           { t: 'code', where: 'wsl', code:
             'ls -l initramfs.cpio.gz\n' +
             'zcat initramfs.cpio.gz | wc -c' },
@@ -544,6 +565,19 @@ Lesson.register({
             '\n' +
             '/bin/sh: can\'t access tty; job control turned off\n' +
             '~ #' },
+
+          { t: 'cal', kind: 'info', title: 'Ba chi tiết trong log này đã được lý thuyết báo trước',
+            x: '<p><code>Freeing unused kernel memory: 2112K</code> là đúng con số <b>2112K init</b> ' +
+               'mà dòng <code>Memory:</code> đã liệt kê ở phần lý thuyết — đây là bộ nhớ nhân dùng ' +
+               'tạm lúc khởi tạo rồi trả lại ngay khi xong việc, đúng như tên gọi <code>init</code>.</p>' +
+               '<p><code>Run /init as init process</code> ở đây rơi vào <b>1,609774 s</b> — nằm gọn ' +
+               'trong khoảng bạn vừa đọc ở phần lý thuyết (<b>2,057 s</b> và <b>3,268 s</b> ở hai ' +
+               'lần chạy khác). Giá trị tuyệt đối đổi theo tải máy host; thứ tự và nội dung các ' +
+               'dòng thì không.</p>' +
+               '<p><code>/bin/sh: can\'t access tty; job control turned off</code> trông như một ' +
+               'lỗi nhưng không phải: shell đang chạy trên cổng nối tiếp ảo, không có terminal ' +
+               'điều khiển, nên BusyBox tự tắt <code>Ctrl-Z</code>/<code>fg</code>/<code>bg</code>. ' +
+               'Mọi lệnh khác — như bạn sẽ gõ ngay sau đây — vẫn chạy bình thường.</p>' },
 
           { t: 'cal', kind: 'tip', title: 'Bạn đang đứng trong một máy ARM64',
             x: '<p>Dấu nhắc <code>~ #</code> ấy là shell chạy trên CPU ARM64, do TCG dịch từng ' +
@@ -604,6 +638,14 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             '238 boot.log' },
 
+          { t: 'cal', kind: 'info', title: '238 là số dòng, không phải số giây',
+            x: '<p>Đúng <b>238</b> — con số bạn đã gặp nhiều lần ở phần lý thuyết, giờ tự tay đếm ' +
+               'ra bằng <code>wc -l</code> trên một lần chạy có <code>timeout</code>, không ai gõ ' +
+               'tay can thiệp. Cấu trúc và số lượng dòng log ổn định vì chúng chỉ phụ thuộc trình ' +
+               'tự khởi tạo cố định của nhân với đúng một cấu hình phần cứng — khác hẳn <b>mốc ' +
+               'thời gian</b> ghi trong ngoặc vuông ở đầu mỗi dòng, thứ luôn đổi theo tải máy host ' +
+               'như callout ở trên đã nói.</p>' },
+
           { t: 'p', x: 'Giờ trích ra đúng sáu mốc — kèm số dòng, để thấy chúng nằm rải ra sao:' },
 
           { t: 'code', where: 'wsl', code:
@@ -619,12 +661,18 @@ Lesson.register({
             '162:[    0.884952] Freeing initrd memory: 1008K\n' +
             '229:[    1.713551] Run /init as init process' },
 
-          { t: 'cal', kind: 'info', title: 'Đọc kỹ hai dòng dễ bỏ qua nhất',
+          { t: 'cal', kind: 'info', title: 'Đọc kỹ ba dòng dễ bỏ qua nhất',
             x: '<p><b>Dòng 5</b> — <code>Machine model: linux,dummy-virt</code>. Nhân biết mình ' +
                'chạy trên máy nào vì nó <b>đọc device tree</b>, không phải vì nó được biên dịch ' +
                'riêng cho máy đó. Chính cái cây bạn đã dump ra ở Bài 30 và Bài 31. Đây là điểm ' +
                'khác biệt lớn nhất giữa ARM và x86, và là lý do Chặng 08 dành cả chặng cho ' +
                'Device Tree.</p>' +
+               '<p><b>Dòng 38</b> — <code>Kernel command line: console=ttyAMA0 rdinit=/init</code>. ' +
+               'Đây là bằng chứng cho quy tắc "đọc <code>Kernel command line</code> trước tiên" ở ' +
+               'callout phía trên: nhân nhận <b>nguyên văn</b> đúng chuỗi bạn gõ sau ' +
+               '<code>-append</code>, vì ở đây không có bootloader nào đứng giữa để chỉnh sửa nó. ' +
+               'Sang Chặng 06, biến môi trường <code>bootargs</code> của U-Boot sẽ là nơi dòng này ' +
+               'có thể bị ghi đè trước khi tới tay nhân.</p>' +
                '<p><b>Dòng 115</b> — <code>legacy console [ttyAMA0] enabled</code>. Trước dòng ' +
                'này, 114 dòng log đã được nhân ghi vào <b>bộ đệm trong RAM</b> chứ chưa gửi ra ' +
                'UART. Khi console được bật, nhân xả cả bộ đệm ra một lượt. Nghĩa là 114 dòng đầu ' +
@@ -652,6 +700,27 @@ Lesson.register({
             '\t\trng-seed = <0xb67ec42a 0x2395009 0x13b0429c 0x2ee2d991 0x1fecb38d 0x5123e495 0x1ab824c0 0xba9546b0>;\n' +
             '\t\tkaslr-seed = <0x283d62da 0xcf6d58b8>;\n' +
             '\t};' },
+
+          { t: 'cmdx', cmd: 'qemu-system-aarch64 -machine virt,dumpdtb=boot.dtb … | dtc -I dtb -O dts … | sed -n \'/chosen {/,/};/p\'',
+            title: 'Ba lệnh, ba việc khác nhau',
+            rows: [
+              ['<code>-machine virt,dumpdtb=boot.dtb</code>', 'Không boot gì cả — chỉ dựng cây thiết bị rồi ghi ra file nhị phân <code>boot.dtb</code> và thoát.', 'Phải giữ nguyên mọi tham số khác (<code>-kernel</code>, <code>-initrd</code>, <code>-append</code>): cây sinh ra phụ thuộc toàn bộ dòng lệnh, không riêng <code>-m</code>.'],
+              ['<code>-display none -serial null -monitor none</code>', 'Tắt cả ba lối ra QEMU thường dùng.', '<code>-display none</code> không chọn backend đồ hoạ nào; <code>-serial null</code> nối cổng nối tiếp vào một "void device" tự huỷ mọi dữ liệu; <code>-monitor none</code> tắt hẳn dấu nhắc <code>(qemu)</code>. Không dùng <code>-nographic</code> ở đây vì mục tiêu là im lặng hoàn toàn, không phải chuyển console ra terminal.'],
+              ['<code>dtc -I dtb -O dts</code>', 'Dịch file nhị phân vừa dump sang văn bản đọc được.', '<code>-I</code>/<code>-O</code> là định dạng vào/ra; Chặng 08 sẽ dùng lại chính công cụ này để đi sâu vào Device Tree.'],
+              ['<code>sed -n \'/chosen {/,/};/p\'</code>', 'Chỉ in đúng đoạn nằm giữa hai mẫu.', '<code>-n</code> tắt in mặc định; <code>addr1,addr2</code> là một <b>vùng địa chỉ theo regex</b> — in mọi dòng kể từ dòng khớp <code>/chosen {/</code> tới dòng khớp <code>/};/</code>, gồm cả hai đầu mút. Thiếu <code>-n</code> thì cả 393 dòng của file sẽ đổ ra màn hình.']
+            ]},
+
+          { t: 'cal', kind: 'warn', title: 'Hai dòng cuối sẽ không bao giờ giống trên máy bạn',
+            x: '<p><code>rng-seed</code> và <code>kaslr-seed</code> là số ngẫu nhiên QEMU sinh mới ' +
+               'cho <b>mỗi lần</b> chạy <code>dumpdtb</code>, nên hai dòng này chắc chắn khác giữa ' +
+               'lần chạy của bạn và lần chạy ở đây — đừng so chúng để kiểm tra xem mình làm đúng ' +
+               'hay sai.</p>' +
+               '<p>Bốn dòng còn lại thì ngược lại: <code>linux,initrd-start</code>, ' +
+               '<code>linux,initrd-end</code>, <code>bootargs</code> và <code>stdout-path</code> ' +
+               'chỉ phụ thuộc dòng lệnh QEMU bạn gõ, nên với <b>đúng cùng</b> lệnh, chúng sẽ giống ' +
+               'hệt trên mọi máy — kể cả khi <code>initrd-end</code> lệch vài byte vì file ' +
+               '<code>initramfs.cpio.gz</code> của bạn có kích thước hơi khác, như callout ở ' +
+               'Bước 3 đã nói.</p>' },
 
           { t: 'p', x:
             'Kiểm chứng bằng máy tính của shell, dùng chính kích thước file trên đĩa của bạn:' },
@@ -819,6 +888,15 @@ Lesson.register({
             'error: missing initramfs.cpio.gz\n' +
             'rc=1\n' +
             '135M\t/home/shinarus/bai32' },
+
+          { t: 'cal', kind: 'info', title: 'Ba con số này khớp với những gì đã hứa từ đầu bài',
+            x: '<p><code>error: missing initramfs.cpio.gz</code> và <code>rc=1</code> là đúng hai ' +
+               'dòng <code>run.sh</code> tự in ra ở nhánh <code>[ -f "$f" ] || { echo …; exit 1; }</code> ' +
+               'bạn đã mổ xẻ ở trên — không phải một lỗi mới phát sinh, mà là nhánh xử lý lỗi ' +
+               '<b>đang hoạt động đúng như thiết kế</b> khi thiếu file.</p>' +
+               '<p><code>135M</code> khớp với con số <b>khoảng 135 MB</b> đã nêu ở ngay đầu phần ' +
+               'thực hành — phần lớn trong đó là ảnh nhân 30 MB và hai gói <code>.deb</code> gốc, ' +
+               'chứ không phải initramfs (chỉ hơn 1 MB đã nén).</p>' },
 
           { t: 'cal', kind: 'tip', title: 'Giữ lại thư mục này',
             x: '<p>Đừng xoá <code>~/bai32</code>. <code>Image</code> và ' +

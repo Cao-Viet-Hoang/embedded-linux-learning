@@ -1513,6 +1513,14 @@ Lesson.register({
               'đúng khuôn này — hãy tự viết trước khi đọc gợi ý ở phần "Lỗi thường gặp".',
               'Hàm <code>main</code> chỉ gọi lần lượt bốn hàm rồi in tiêu đề bảng.'] },
 
+          { t: 'cmdx', cmd: '__atomic_store_n(&v->flag, 1, __ATOMIC_RELEASE)  /  __atomic_load_n(&v->flag, __ATOMIC_ACQUIRE)',
+            title: 'Cờ nguyên tử: vì sao bench_shm không cần mutex mà vẫn an toàn',
+            rows: [
+              ['<code>__ATOMIC_RELEASE</code> ở bên ghi', 'Ghi <code>v-&gt;flag = 1</code> kiểu <i>release</i>: mọi lần ghi vào <code>v-&gt;data</code> ngay trước đó bị "khoá" lại, không được phép trôi ra sau lệnh này', 'Nếu bên kia thấy cờ đã lên 1 thì chắc chắn khối 4 KB cũng đã ghi xong — không có chuyện thấy cờ trước, thấy dữ liệu cũ sau'],
+              ['<code>__ATOMIC_ACQUIRE</code> ở bên đọc', 'Đọc <code>v-&gt;flag</code> kiểu <i>acquire</i>: mọi lần đọc <code>v-&gt;data</code> ngay sau đó bị "khoá" lại, không được phép trôi ra trước lệnh này', 'Cặp release/acquire này chính là toàn bộ cơ chế đồng bộ của <code>bench_shm</code> — không mutex, không semaphore nào cả'],
+              ['<code>while (...flag... == 0) ;</code>', 'Vòng chờ bận (<i>busy-wait</i>) — không lệnh nào bên trong chạm tới nhân', 'Đây là lý do <code>strace</code> ở dưới chỉ đếm được đúng <b>1</b> syscall cho toàn bộ 1000 khối: vòng chờ này đốt CPU thật (giống vòng chờ bận ở Bài 22, ~99% một lõi) nhưng không hề vượt ranh giới user/kernel']
+            ]},
+
           { t: 'cal', kind: 'why', title: 'Vì sao vòng while quanh mỗi read và write?', x:
             '<p><code>read()</code> và <code>write()</code> <b>không hứa</b> chuyển đủ số byte ' +
             'bạn yêu cầu. Chúng trả về số byte <i>thực sự</i> chuyển được, có thể ít hơn — ' +
@@ -1524,6 +1532,10 @@ Lesson.register({
             '<p>Ghi nhớ quy tắc: <b>mọi <code>read</code> và <code>write</code> trên pipe, FIFO ' +
             'hay socket đều phải nằm trong vòng lặp cho tới khi đủ số byte.</b> Bài 24 sẽ dùng ' +
             'lại quy tắc này ngay từ dòng đầu.</p>' },
+
+          { t: 'p', x:
+            'Biên dịch rồi chạy liền năm lần — mục tiêu là lấy một <b>khoảng</b> số liệu thật, ' +
+            'không phải tin vào một lần chạy may rủi:' },
 
           { t: 'code', where: 'wsl', code:
             'gcc -Wall -Wextra -O2 -o ipc_bench ipc_bench.c\n' +
@@ -1580,6 +1592,13 @@ Lesson.register({
             '<p>Cờ <code>O_NOFOLLOW</code> đáng chú ý: nó ngăn kẻ tấn công đặt một symlink ở ' +
             '<code>/dev/shm</code> để lừa chương trình của bạn ghi ra chỗ khác. glibc thêm hộ ' +
             'bạn.</p>' +
+            '<p>Con số <code>ftruncate(3, 4100)</code> cũng không phải ngẫu nhiên. ' +
+            '<code>struct shared_buf</code> trong <code>bench_shm</code> gồm ' +
+            '<code>volatile int flag</code> (4 byte) rồi tới <code>char data[4096]</code> — ' +
+            'cộng lại đúng <b>4100</b> byte, không có byte đệm nào chen giữa vì mảng ' +
+            '<code>char</code> không đòi căn chỉnh. <code>ftruncate</code> luôn phải bằng đúng ' +
+            '<code>sizeof(struct ...)</code> của bạn, chứ không phải con số tròn 4096 mà bạn có ' +
+            'thể đoán nhầm.</p>' +
             '<p>Và <b>2001 so với 1</b> là toàn bộ lời giải thích cho bảng tốc độ. Không cần ' +
             'lý thuyết nào thêm.</p>' }
         ]},

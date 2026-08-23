@@ -490,7 +490,11 @@ Lesson.register({
           'rsync        /usr/bin/rsync' },
 
         { t: 'cal', kind: 'tip', title: 'Kiểm tra trước rẻ hơn chờ rồi gãy',
-          x: '<p>Vòng lặp trên chạy mất chưa tới một giây. Một bản build gãy ở bước ' +
+          x: '<p>Không dòng nào trong chín dòng trên ghi <code>MISSING</code> — nghĩa là cả chín công ' +
+             'cụ then chốt đã sẵn sàng, và bản build sắp chạy sẽ không gãy vì thiếu phụ thuộc. Nếu dù ' +
+             'chỉ một dòng in ra <code>MISSING</code>, dừng lại và cài gói tương ứng trước khi đi ' +
+             'tiếp.</p>' +
+             '<p>Vòng lặp trên chạy mất chưa tới một giây. Một bản build gãy ở bước ' +
              '<code>binutils_for_host</code> vì thiếu <code>makeinfo</code> làm bạn mất 4 phút; ' +
              'gãy ở <code>kernel_headers</code> vì thiếu <code>rsync</code> làm bạn mất 16 phút. ' +
              'Thói quen "kiểm tra điều kiện đầu vào trước khi khởi động việc dài" đáng để mang ' +
@@ -519,6 +523,18 @@ Lesson.register({
         { t: 'code', where: 'out', nocopy: true, code:
           '-rw-r--r-- 1 shinarus shinarus 2448288 Aug  7 22:02 crosstool-ng-1.28.0.tar.xz\n' +
           '5750e29a2bda5cd8d67900592576b1670a1987a4dcd5e4f6beae09138a1f5699  crosstool-ng-1.28.0.tar.xz' },
+
+        { t: 'cal', kind: 'why', title: 'Vì sao chạy <code>sha256sum</code> — và vì sao con số này một mình chưa đủ',
+          x: '<p>Chuỗi hex ở dòng dưới chỉ có ý nghĩa khi bạn <b>đem so</b> nó với một nguồn độc lập với ' +
+             'chính bản tải về. Tự nó không chứng minh được gì: một file bị hỏng giữa đường, hoặc bị ' +
+             'thay bằng bản khác, vẫn in ra một chuỗi hex trông y hệt thật — chỉ là chuỗi khác.</p>' +
+             '<p>Trang phát hành của crosstool-NG trên GitHub kèm sẵn bốn file kiểm chứng cho mỗi bản ' +
+             'tải — <code>.md5</code>, <code>.sha1</code>, <code>.sha512</code> và <code>.sig</code> ' +
+             '(chữ ký GPG) — dùng đúng nguyên lý này: tải file phụ đó về rồi so khớp bằng ' +
+             '<code>sha1sum -c</code> hay tương đương. Không có sẵn <code>.sha256</code> riêng cho ' +
+             'thuật toán này, nhưng nguyên tắc như nhau ở cả ba thuật toán băm.</p>' +
+             '<p>Bài 38 sẽ đưa đúng thói quen này lên một bậc: xác minh bằng GPG, chứng minh không chỉ ' +
+             '"dữ liệu còn nguyên" mà còn "đúng người đã ký".</p>' },
 
         { t: 'cal', kind: 'info', title: '2,4 MB làm ra một toolchain 354 MB',
           x: '<p><b>2 448 288</b> byte — chưa tới 2,4 MB. Toolchain nó tạo ra nặng ' +
@@ -560,6 +576,18 @@ Lesson.register({
           ['<code>--enable-local</code>', 'Chạy <code>ct-ng</code> <b>ngay trong thư mục mã nguồn</b>, không cài vào <code>/usr/local</code>', '<b>Nên dùng.</b> Không cần <code>sudo</code>, và giữ được nhiều phiên bản crosstool-NG song song trên cùng một máy'],
           ['(không có <code>--prefix</code>)', 'Mặc định sẽ cài toàn hệ thống — nhưng <code>--enable-local</code> đã loại bỏ nhu cầu đó', 'Dự án nhúng thật thường ghim luôn cả phiên bản crosstool-NG vào kho mã nguồn']
         ]},
+
+        { t: 'cal', kind: 'info', title: 'Ba dòng xác nhận đúng thứ bạn vừa cài ở bước 1',
+          x: '<p><code>checking for ncursesw via pkg-config... yes</code> và ' +
+             '<code>checking for working ncursesw/curses.h... yes</code> là bằng chứng trực tiếp rằng ' +
+             'gói <code>libncurses-dev</code> cài ở bước 1 hoạt động đúng — thiếu nó, ' +
+             '<code>./configure</code> sẽ dừng ngay tại đây, vì <code>menuconfig</code> (bạn sẽ gọi ở ' +
+             'bước 3) chỉ là một giao diện dựng trên ncurses.</p>' +
+             '<p>Dòng <code>checking for working ncursesw.h... no</code> ngay sau đó không phải lỗi — ' +
+             'đó chỉ là một trong ba cách <code>configure</code> thử tìm header ncurses bản rộng ' +
+             '(wide-char), và cách tiếp theo (<code>ncurses.h</code> thường) đã thành công. Miễn ' +
+             '<code>config.status: creating Makefile</code> xuất hiện ở cuối như trên, cấu hình đã ' +
+             'xong sạch sẽ.</p>' },
 
         { t: 'code', where: 'wsl', code: 'make' },
 
@@ -625,6 +653,18 @@ Lesson.register({
           '\n' +
           'Now configured for "aarch64-unknown-linux-musl"' },
 
+        { t: 'cal', kind: 'info', title: 'Ai là Chris Packham, và vì sao tên anh ấy xuất hiện ở đây',
+          x: '<p>Đoạn banner giữa hai dải dấu sao không phải cảnh báo lỗi. Mỗi sample trong ' +
+             '<code>samples/</code> đi kèm một file nhỏ ghi tên và địa chỉ của người đã đóng góp cấu ' +
+             'hình mẫu đó cho dự án — ở đây là Chris Packham, người nộp sample ' +
+             '<code>aarch64-unknown-linux-musl</code>. <code>ct-ng &lt;sample&gt;</code> in banner ' +
+             'này mỗi lần bạn nạp một sample <b>local</b>, đúng ký hiệu <code>[L...]</code> đã báo ' +
+             'trước ở bảng trên.</p>' +
+             '<p>Dòng đáng tin cậy nhất trong cả khối là dòng cuối: ' +
+             '<code>Now configured for "aarch64-unknown-linux-musl"</code> — xác nhận ' +
+             '<code>.config</code> đã được ghi đúng target bạn chọn, không phải một target khác do ' +
+             'gõ nhầm tên sample.</p>' },
+
         { t: 'p', x:
           'Xem lại toàn bộ quyết định bằng một lệnh duy nhất — đây là cách nhanh nhất để kiểm tra ' +
           'mình sắp build cái gì:' },
@@ -682,6 +722,19 @@ Lesson.register({
           'Progress bar (LOG_PROGRESS_BAR) [N/y/?] n\n' +
           'Log to a file (LOG_TO_FILE) [Y/n/?] y\n' +
           '  Compress the log file (LOG_FILE_COMPRESS) [Y/n/?] y' },
+
+        { t: 'cal', kind: 'info', title: 'Hai dòng sau không phải điều bạn vừa yêu cầu',
+          x: '<p>Chỉ có dòng đầu (<code>Progress bar → n</code>) là do ba lệnh <code>sed</code> ở trên ' +
+             'gây ra. Hai dòng còn lại là <code>oldconfig</code> hỏi lại toàn bộ nhóm tuỳ chọn ghi ' +
+             'log, và gợi ý giữ nguyên mặc định của chính crosstool-NG: <code>CT_LOG_TO_FILE</code> ' +
+             '(mặc định <b>Y</b>) là thứ tạo ra chính file <code>build.log</code> bạn sẽ đọc ở bước ' +
+             '4, còn <code>CT_LOG_FILE_COMPRESS</code> (mặc định <b>Y</b>, chỉ hỏi vì phụ thuộc dòng ' +
+             'trước) nén file log lại <b>sau khi</b> toolchain build xong — đó là lý do bạn sẽ thấy ' +
+             '<code>build.log.bz2</code> nằm sẵn trong thư mục toolchain thành phẩm ở bước 5, chứ ' +
+             'không phải bản <code>build.log</code> trần.</p>' +
+             '<p><code>yes \'\' |</code> chấp nhận cả hai mặc định này, đúng như tài liệu của ' +
+             'crosstool-NG khuyên cho <code>LOG_TO_FILE</code>: "Definitely, say Y." Tuỳ chọn duy ' +
+             'nhất bạn thật sự đổi so với mặc định là tắt <i>Progress bar</i>.</p>' },
 
         { t: 'code', where: 'wsl', code:
           "grep -nE '^CT_DEBUG_CT_SAVE_STEPS|^# CT_LOG_PROGRESS_BAR' .config" },

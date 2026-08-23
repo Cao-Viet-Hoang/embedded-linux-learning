@@ -590,6 +590,18 @@ Lesson.register({
               ['<code>R</code> / <code>r</code>', 'Dữ liệu chỉ đọc', 'Hằng số, chuỗi thông báo lỗi']
             ]},
 
+          { t: 'cal', kind: 'info', title: '167 197 so với 942 — phần lộ ra ngoài chỉ là phần nổi', x:
+            '<p><b>167 197</b> ký hiệu loại <code>T</code>/<code>t</code> — gần như toàn bộ số hàm C viết ' +
+            'nên nhân đang chạy trong máy bạn. Nhưng chỉ <b>942</b>, con số ở dòng thứ ba, có tiền tố ' +
+            '<code>__x64_sys_</code> — nghĩa là được phép nhận yêu cầu trực tiếp từ user space. Tỉ lệ ' +
+            'giữa hai con số đó chưa tới <b>0,6%</b>.</p>' +
+            '<p>Hơn 166 nghìn hàm còn lại là bộ máy nội bộ — <code>vfs_write</code>, ' +
+            '<code>ext4_file_write_iter</code> và mọi hàm bạn sắp chứng minh sự tồn tại ngay dưới đây đều ' +
+            'nằm trong nhóm này. Chúng gọi lẫn nhau bằng lời gọi hàm C thường, không đi qua giao diện ' +
+            'syscall, nên không bao giờ đứng tên trong nhóm 942. Con số 942 sẽ quay lại ngay sau khi bạn ' +
+            'tự tay chứng minh bảy hàm cụ thể trong chuỗi <code>write()</code> có thật trong bộ nhớ máy ' +
+            'bạn.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Con số của bạn sẽ lệch một vài đơn vị — và đó là đúng', x:
             'Đọc <code>/proc/kallsyms</code> tám lần liên tiếp trong cùng một phiên WSL cho <b>đúng ' +
             'cùng một con số</b>, không sai một dòng. Nhưng qua một lần khởi động lại, con số dịch đi ' +
@@ -679,6 +691,12 @@ Lesson.register({
             '359.74 1942.67\n' +
             'close(3)                                = 0' },
 
+          { t: 'cmdx', cmd: 'stat -f -c %T "$f"', title: 'Hỏi hệ thống file, không hỏi file',
+            rows: [
+              ['<code>-f</code>', 'Đổi hẳn nghĩa của <code>stat</code>: hỏi <b>trạng thái hệ thống file</b> chứa đường dẫn này, không hỏi trạng thái của chính file', 'Thiếu cờ này, <code>stat</code> trả về quyền, kích thước, thời gian sửa — không liên quan gì tới loại hệ thống file'],
+              ['<code>-c %T</code>', 'Định dạng in ra: chỉ tên hệ thống file, dạng người đọc được', 'Cùng ký tự <code>%T</code> nhưng đổi nghĩa hoàn toàn khi có <code>-f</code>: không có <code>-f</code> thì <code>%T</code> lại nghĩa là kiểu thiết bị của một file thiết bị khối/ký tự — hai bảng định dạng tách biệt, chỉ trùng ký hiệu']
+            ]},
+
           { t: 'cal', kind: 'warn', title: '<code>stat -f</code> nói "ext2/ext3" nhưng đó là ext4', x:
             'Bản <code>stat</code> trên máy bạn (coreutils viết bằng Rust, xem <b>Bài 4</b>) gộp chung ' +
             'ba đời ext vào một tên vì chúng chia sẻ mã nhận dạng. Muốn tên chính xác thì hỏi bảng mount ' +
@@ -747,6 +765,21 @@ Lesson.register({
             'drivers_autoprobe\n' +
             'drivers_probe\n' +
             'uevent' },
+
+          { t: 'cal', kind: 'info', title: 'Đọc hai con số 34 và 69: bus khác lớp thiết bị', x:
+            '<p><b>34</b> là số bus đang được nhân đăng ký — mỗi thư mục con của <code>/sys/bus</code> ' +
+            'ứng với một loại đường kết nối phần cứng hoặc ảo mà nhân biết nói chuyện: <code>pci</code>, ' +
+            '<code>virtio</code>, <code>i2c</code>, <code>platform</code>… <b>69</b> lớn hơn hẳn, vì ' +
+            '<code>/sys/class</code> nhóm thiết bị theo <b>chức năng</b> chứ không theo đường kết nối: mọi ' +
+            'thiết bị mạng — dù cắm qua PCI, qua virtio hay không qua bus vật lý nào cả — đều đứng chung ' +
+            'trong lớp <code>net</code>, bất kể bus nào phía dưới.</p>' +
+            '<p>Hình dạng của <code>/sys/bus/virtio</code> — <code>devices</code> rồi <code>drivers</code> ' +
+            '— là bộ khung mọi bus đều có: <code>devices</code> là symlink trỏ vào <code>/sys/devices</code>, ' +
+            'liệt kê thiết bị nào đã được phát hiện trên bus này; <code>drivers</code> liệt kê driver nào ' +
+            'đã nạp cho bus đó. Hai file còn lại là công tắc điều khiển việc ghép cặp: ghi <code>0</code> ' +
+            'vào <code>drivers_autoprobe</code> để tắt tự động dò driver cho thiết bị mới xuất hiện; ghi ' +
+            'tên một thiết bị vào <code>drivers_probe</code> để ép nhân thử ghép lại thủ công đúng thiết ' +
+            'bị đó. Bạn sẽ gặp lại <code>uevent</code> ngay dưới đây, lần này ở cấp từng thiết bị.</p>' },
 
           { t: 'p', x:
             'Mọi thư mục bus đều có đúng hình dạng đó: một danh sách <b>thiết bị</b> đang cắm và một ' +

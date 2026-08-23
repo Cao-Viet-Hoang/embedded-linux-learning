@@ -441,14 +441,20 @@ Lesson.register({
                'Không có <code>=</code> thì kết quả có thêm một dòng <code>COMMAND</code>.']
             ]},
 
-          { t: 'cal', kind: 'why', title: 'Vì sao hỏi hai lần bằng hai cách', x:
+          { t: 'cal', kind: 'why', title: 'Vì sao hỏi bằng ba cách khác nhau', x:
             '<p><code>$SHELL</code> chỉ là một <b>biến môi trường</b> ghi shell đăng nhập mặc định của ' +
             'tài khoản. Nó <b>không</b> cho biết bạn đang thật sự ở trong shell nào — gõ <code>sh</code> ' +
             'rồi xem, <code>$SHELL</code> vẫn nói <code>/bin/bash</code> trong khi bạn đang ở trong ' +
             '<code>sh</code>.</p>' +
             '<p><code>ps -p $$</code> hỏi thẳng kernel về tiến trình thật. Khi gỡ lỗi một script chạy ' +
             'sai trên thiết bị nhúng — nơi <code>/bin/sh</code> thường là BusyBox chứ không phải bash — ' +
-            'sự phân biệt này tiết kiệm cho bạn hàng giờ.</p>' }
+            'sự phân biệt này tiết kiệm cho bạn hàng giờ.</p>' +
+            '<p>Dòng thứ ba, <code>bash --version | head -1</code>, trả lời một câu hỏi mà hai lệnh trên ' +
+            'không trả lời được: <b>số phiên bản cụ thể</b>. <code>$SHELL</code> và <code>ps -p $$</code> ' +
+            'chỉ cho biết chương trình là bash, không cho biết bản nào. Con số ' +
+            '<b>5.3.9(1)-release</b> in ra đây khớp đúng với con số đã nêu ở đầu bài, và đây mới là cách ' +
+            'kiểm chứng thật — không phải chỉ tin lời kể. Biết chính xác số phiên bản quan trọng khi bạn ' +
+            'cần tra xem một tính năng shell có tồn tại trên bản đang chạy hay không.</p>' }
         ]},
 
       { title: 'Dựng sân tập và tách một câu lệnh thành từng mảnh',
@@ -475,6 +481,15 @@ Lesson.register({
             'drwxr-xr-x 2 shinarus shinarus 4096 Aug  6 00:16 docs\n' +
             '-rw-r--r-- 1 shinarus shinarus    0 Aug  6 00:16 notes.md\n' +
             '-rw-r--r-- 1 shinarus shinarus    6 Aug  6 00:16 report.txt' },
+
+          { t: 'cal', kind: 'info', title: 'Hai con số 0 và 6 không phải ngẫu nhiên', x:
+            '<p><code>notes.md</code> nặng <b>0</b> byte vì <code>touch</code> chỉ tạo ra một file rỗng, ' +
+            'không ghi gì vào đó. <code>report.txt</code> nặng <b>6</b> byte — đúng bằng độ dài chuỗi ' +
+            '<code>hello\\n</code> mà lệnh <code>printf</code> ở bước trước đã ghi vào nó: năm ký tự ' +
+            '<code>h-e-l-l-o</code> cộng một ký tự xuống dòng.</p>' +
+            '<p>Cột kích thước của <code>ls -l</code> không phải con số trang trí — nó luôn khớp chính ' +
+            'xác với số byte thật sự nằm trong file, và đây là cách rẻ nhất để kiểm tra một file có rỗng ' +
+            'hay không mà không cần mở nó ra xem.</p>' },
 
           { t: 'p', x:
             'Ba dòng dưới đây <b>cho kết quả giống hệt nhau</b>. Hãy chạy cả ba và đối chiếu:' },
@@ -617,10 +632,28 @@ Lesson.register({
             '\n' +
             'Arguments:' },
 
+          { t: 'cal', kind: 'info', title: 'Đây chính là điều cảnh báo uutils ở trên đã báo trước', x:
+            '<p>Dòng đầu tiên là <code>List directory contents.</code> — một câu mô tả ngắn — chứ ' +
+            '<b>không</b> phải dòng <code>Usage: ...</code> đứng đầu như bạn thường thấy trong tài liệu ' +
+            'GNU. Dòng <code>Usage: ls [OPTION]... [FILE]...</code> ở đây bị đẩy xuống dòng thứ tư, và ' +
+            'mục <code>Arguments:</code> ở cuối hoàn toàn không tồn tại trong <code>--help</code> của ' +
+            'GNU. Muốn thấy khác biệt tận mắt ngay trên máy mình, chạy <code>gnuls --help | head -6</code> ' +
+            'và so hai kết quả — bản GNU vào thẳng <code>Usage:</code> ở dòng một.</p>' },
+
           { t: 'code', where: 'wsl', code: 'help cd | head -3' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'cd: cd [-L|[-P [-e]]] [-@] [dir]\n' +
             '    Change the shell working directory.' },
+
+          { t: 'cal', kind: 'tip', title: 'Dòng cú pháp này chính là khuôn bạn học ở đầu bài', x:
+            '<p>Dòng <code>cd: cd [-L|[-P [-e]]] [-@] [dir]</code> đúng y khuôn ' +
+            '<b>lệnh [tuỳ chọn] [đối số]</b> đã học ở đầu bài: <code>-L</code>, <code>-P</code>, ' +
+            '<code>-e</code>, <code>-@</code> là các tuỳ chọn ngắn của chính <code>cd</code>, còn ' +
+            '<code>[dir]</code> là đối số duy nhất — để trong ngoặc vuông vì có thể bỏ qua. Ngoặc lồng ' +
+            '<code>[-P [-e]]</code> nói rằng <code>-e</code> chỉ có nghĩa khi đi kèm <code>-P</code>; ' +
+            'cách đọc ký hiệu này lặp lại ở hầu hết trang <code>man</code> bạn sẽ đọc suốt khoá học.</p>' +
+            '<p>Vậy dù <code>cd</code> không có file, không có trang man riêng, nó vẫn theo đúng khuôn ' +
+            'câu lệnh chung — cái khác duy nhất là nơi tra cứu tài liệu, như bảng ở trên đã nêu.</p>' },
 
           { t: 'code', where: 'wsl', code:
             'man cd\n' +
@@ -717,6 +750,12 @@ Lesson.register({
             'echo $?' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '143' },
+
+          { t: 'cal', kind: 'info', title: '128 + 15 = 143, đúng như dự đoán', x:
+            '<p>Đây chính là con số mà mục <b>Quy tắc 128 + N</b> ở phần lý thuyết đã báo trước. ' +
+            '<code>kill</code> không kèm tên tín hiệu mặc định gửi <b>SIGTERM</b>, số hiệu <b>15</b>, ' +
+            'nên shell báo <code>128 + 15 = 143</code>. Bạn vừa tự tay tạo ra con số này, không phải đọc ' +
+            'nó trong bảng nữa.</p>' },
 
           { t: 'cmdx', cmd: 'sleep 30 &',
             title: 'Mổ xẻ câu lệnh',

@@ -499,7 +499,7 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'apt policy tree\n' +
           'apt depends gpiod\n' +
-          'apt rdepends libgpiod3 | head -8' },
+          'apt rdepends libgpiod3' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'tree:\n' +
@@ -518,14 +518,20 @@ Lesson.register({
           '  Depends: libgpiod-dev (= 2.2.1-3build1)\n' +
           '  Depends: swupdate (>= 2.1)\n' +
           '  Depends: svxlink-server (>= 2.1)\n' +
+          '  Depends: svxlink-calibration-tools (>= 2.1)\n' +
+          '  Depends: remotetrx (>= 2.1)\n' +
           '  Depends: python3-libgpiod (= 2.2.1-3build1)\n' +
           '  Depends: openfpgaloader (>= 2.1)\n' +
-          '  Depends: gpiod (>= 2.1)' },
+          '  Depends: eg25-manager (>= 2.1)\n' +
+          '  Depends: libflashprog1 (>= 2.1)\n' +
+          '  Depends: gpiod (>= 2.1)\n' +
+          '  Depends: fldigi (>= 2.1)\n' +
+          '  Depends: flashprog (>= 2.1)' },
 
         { t: 'cmdx', cmd: 'Ba lệnh hỏi apt', title: 'Hỏi gì, và câu trả lời dùng để làm gì',
           rows: [
             ['<code>apt policy <i>goi</i></code>', '<b>Đã cài bản nào</b> và <b>sẽ cài bản nào</b>', 'Số <code>500</code> là độ ưu tiên. Khi một gói có ở nhiều kho, apt chọn số cao nhất'],
-            ['<code>apt depends <i>goi</i></code>', 'Gói này cần những gì để chạy', 'Đọc <b>xuôi</b> cây phụ thuộc'],
+            ['<code>apt depends <i>goi</i></code>', 'Gói này cần những gì để chạy', 'Đọc <b>xuôi</b> cây phụ thuộc — ở trên, <code>gpiod</code> cần <code>libc6</code> (máy nào cũng có) và <code>libgpiod3</code>. Chính <code>libgpiod3</code> là thứ bạn sẽ cố tình để thiếu ở bước 6'],
             ['<code>apt rdepends <i>goi</i></code>', 'Những ai đang cần gói này', 'Đọc <b>ngược</b>. Dùng trước khi gỡ bất cứ thư viện nào']
           ]},
 
@@ -609,6 +615,8 @@ Lesson.register({
           '14' },
 
         { t: 'p', x:
+          'Dòng đầu — <code>ii tree 2.3.1-1 amd64</code> — xác nhận gói đã cài xong hoàn chỉnh, ' +
+          'đúng ký hiệu <code>ii</code> bạn vừa học ở phần lý thuyết. ' +
           '<b>Mười bốn dòng — chỉ một file thực thi duy nhất</b>, phần còn lại là thư mục, tài ' +
           'liệu và trang man. Đúng bố cục FHS mà bạn đã học ở <b>Bài 5</b>: chương trình vào ' +
           '<code>/usr/bin</code>, tài liệu vào <code>/usr/share/doc</code>, trang man vào ' +
@@ -764,6 +772,19 @@ Lesson.register({
           'drwxr-xr-x root/root         0 2026-02-04 00:59 ./usr/\n' +
           'drwxr-xr-x root/root         0 2026-02-04 00:59 ./usr/bin/\n' +
           '-rwxr-xr-x root/root     97792 2026-02-04 00:59 ./usr/bin/tree' },
+
+        { t: 'cal', kind: 'info', title: 'Hai con số trong -I, và một chi tiết dễ bỏ qua trong -c', x:
+          '<p><code>-I</code> vừa mổ xẻ đúng khối <b>737 byte</b> mà <code>ar tv</code> gọi là ' +
+          '<code>control.tar.zst</code> ở trên: bên trong nó là hai file văn bản, <b>580 byte</b> ' +
+          '<code>control</code> và <b>367 byte</b> <code>md5sums</code> — 947 byte trước khi nén, ' +
+          '737 byte sau khi nén. Không có gì khác trong đó.</p>' +
+          '<p><code>-c</code> cho thấy mọi file đều thuộc <code>root/root</code>, dù chính bạn — ' +
+          'một người dùng thường — vừa tải file <code>.deb</code> này về. Quyền sở hữu đã được ghi ' +
+          'sẵn vào <code>data.tar.zst</code> từ lúc nhà bảo trì đóng gói; đổi chủ một file thành ' +
+          '<code>root</code> là việc chỉ <code>root</code> mới làm được, nên đây là một phần lý do ' +
+          '<code>apt install</code>/<code>dpkg -i</code> luôn cần <code>sudo</code> — còn ' +
+          '<code>dpkg-deb -x</code> ở bước tiếp theo thì không, vì nó chỉ bung ra một thư mục của ' +
+          'riêng bạn, không phải <code>/</code>.</p>' },
 
         { t: 'cmdx', cmd: 'dpkg-deb', title: 'Bốn thao tác trên một file .deb chưa cài',
           rows: [
@@ -1318,6 +1339,15 @@ Lesson.register({
           '     0.0 MB  gcc-aarch64-linux-gnu\n' +
           '     0.0 MB  cpp-aarch64-linux-gnu\n' +
           '   459.7 MB  TONG 7 goi' },
+
+        { t: 'cmdx', cmd: 'dpkg-query -W -f=\'${Installed-Size}\\t${Package}\\n\' | grep aarch64 | sort -rn', title: 'Cú pháp định dạng của dpkg-query, và vì sao sort cần -rn',
+          rows: [
+            ['<code>-W</code>', 'Liệt kê thông tin gói theo mẫu tự chọn', '<b>W</b> = --show. Không kèm <code>-f</code> thì nó in bảng cột cố định, gần giống <code>dpkg -l</code>'],
+            ['<code>-f=&#39;…&#39;</code>', 'Định dạng riêng cho mỗi dòng in ra', '<b>f</b> = --showformat. Cú pháp <code>${Ten_truong}</code> chèn giá trị một trường bất kỳ trong sổ dpkg'],
+            ['<code>${Installed-Size}</code>, <code>${Package}</code>', 'Hai biến được chèn vào', 'Đúng hai trường bạn đã thấy trong <code>dpkg -s</code> ở Bước 1 — chèn được bất kỳ trường nào xuất hiện ở đó'],
+            ['<code>\\t</code> · <code>\\n</code>', 'Tab giữa hai trường, xuống dòng giữa hai gói', 'Thiếu nó mọi giá trị dính liền thành một dòng dài không tách được'],
+            ['<code>sort -rn</code>', 'Sắp theo giá trị số, từ lớn xuống nhỏ', '<b>n</b> = so sánh như số — thiếu nó, chuỗi <code>"9"</code> bị coi là lớn hơn <code>"80"</code> vì so sánh từng ký tự. <b>r</b> = đảo chiều, để gói nặng nhất lên đầu']
+          ]},
 
         { t: 'cal', kind: 'info', title: 'Ba con số đáng suy nghĩ', x:
           '<p><b>773 → 776.</b> Đúng ba gói đã được thêm trong bài này: <code>tree</code>, ' +

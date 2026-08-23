@@ -913,8 +913,11 @@ Lesson.register({
               'sig_atomic_t stop = 0;</code> ở phía trên.'] },
 
           { t: 'cal', kind: 'why', title: 'Một dòng, khác biệt giữa đúng và sai', x:
-            '<p>Chương trình vẫn nhận tín hiệu, handler vẫn chạy, nhưng giờ nó không đụng vào ' +
-            'bộ đệm tĩnh nữa nên <code>main</code> đọc được đúng giá trị của mình.</p>' +
+            '<p>So hai lần chạy: bản gốc in ra <b>"number is 999"</b> dù <code>main</code> gọi ' +
+            '<code>number_to_string(42)</code>; bản sửa in ra đúng <b>"number is 42"</b> — con ' +
+            'số bạn thật sự truyền vào. Chương trình vẫn nhận tín hiệu, handler vẫn chạy, nhưng ' +
+            'giờ nó không đụng vào bộ đệm tĩnh nữa nên <code>main</code> đọc được đúng giá trị ' +
+            'của mình.</p>' +
             '<p>Hãy khắc sâu hình mẫu này: <b>handler đặt cờ, luồng chính làm việc</b>. Nó giải ' +
             'quyết trọn vẹn cả ba vấn đề cùng lúc — an toàn tín hiệu, tái nhập, và tính suy luận ' +
             'được của mã. Gần như mọi bộ xử lý tín hiệu bạn viết trong đời nên có đúng một dòng ' +
@@ -1190,6 +1193,15 @@ Lesson.register({
               'thứ <b>phải</b> giống là: cờ <code>SA_RESTART</code> có mặt, dòng ngủ cuối cùng ' +
               'kết thúc bằng <code>ERESTART_RESTARTBLOCK</code>, và mã thoát là ' +
               '<code>0</code>.'] },
+
+          { t: 'cmdx', cmd: 'strace -e trace=rt_sigaction,clock_nanosleep -o sigterm_trace.txt ./shutdown &',
+            title: 'Vì sao dừng bằng pkill -x shutdown chứ không phải kill -TERM $! như mọi bước trước',
+            rows: [
+              ['<code>-e trace=rt_sigaction,clock_nanosleep</code>', 'Chỉ ghi lại đúng hai syscall cần xem', 'Không có cờ này, file log dài hàng trăm dòng gồm toàn bộ <code>mmap</code>/<code>openat</code> lúc chương trình nạp thư viện dùng chung — <code>strace --help</code> gọi đây là <code>-e trace=SET</code>, "trace only specified syscalls"'],
+              ['<code>-o sigterm_trace.txt</code>', 'Ghi log ra file thay vì in xen vào <code>stderr</code>', 'Không có cờ này, dòng trace sẽ lẫn ngay với chính dòng <code>"SIGTERM -> cleaning up..."</code> mà <code>shutdown</code> in ra'],
+              ['<code>./shutdown &amp;</code>', '<code>strace</code> tự <code>fork</code> rồi <code>exec</code> chương trình đích như một tiến trình <b>con của chính nó</b>', '<b><code>$!</code> sau lệnh này là PID của <code>strace</code>, không phải của <code>shutdown</code>.</b> Đo thật: gửi <code>kill -TERM $!</code> tới PID đó không có tác dụng gì — cả hai tiến trình vẫn chạy tiếp sau nửa giây chờ'],
+              ['<code>pkill -TERM -x shutdown</code>', 'Gửi tín hiệu tới tiến trình có tên khớp <b>chính xác</b> ("exact match") chuỗi <code>shutdown</code>, bất kể nó là con của ai', 'Đây là lý do bước này đổi cách gửi tín hiệu so với bốn bước trước — mục tiêu thật giờ nằm sau một lớp <code>strace</code>']
+            ]},
 
           { t: 'cal', kind: 'info', title: 'Bốn điều bản ghi này nói ra', x:
             '<ol>' +

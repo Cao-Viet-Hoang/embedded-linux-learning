@@ -582,7 +582,16 @@ Lesson.register({
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'lrwxrwxrwx 1 root root 15 Aug  1 16:46 /dev/stderr -> /proc/self/fd/2\n' +
           'lrwxrwxrwx 1 root root 15 Aug  1 16:46 /dev/stdin -> /proc/self/fd/0\n' +
-          'lrwxrwxrwx 1 root root 15 Aug  1 16:46 /dev/stdout -> /proc/self/fd/1' }
+          'lrwxrwxrwx 1 root root 15 Aug  1 16:46 /dev/stdout -> /proc/self/fd/1' },
+        { t: 'cal', kind: 'info', title: 'Ba lối tắt này trỏ đúng vào ba fd bạn vừa thấy', x:
+          '<p><code>/dev/stdin</code>, <code>/dev/stdout</code>, <code>/dev/stderr</code> chỉ là symlink ' +
+          'cố định trỏ tới <code>/proc/self/fd/0</code>, <code>/proc/self/fd/1</code>, ' +
+          '<code>/proc/self/fd/2</code> — đúng chiêu <code>/proc/self</code> "tự thấy mình trong gương" ' +
+          'mà fd 3 của lệnh <code>ls</code> ở trên vừa minh hoạ.</p>' +
+          '<p>Ba đường dẫn này không cố định cho một tiến trình cụ thể nào — mở chúng ở bất kỳ chương ' +
+          'trình nào, <code>self</code> lại trỏ về đúng ba fd của chương trình đó. Bạn sẽ gặp chúng như ' +
+          'lối viết thay cho số hiệu fd, ví dụ <code>echo loi &gt; /dev/stderr</code> thay vì ' +
+          '<code>echo loi 1&gt;&amp;2</code>.</p>' }
       ]},
 
       /* ---------- BƯỚC 2 ---------- */
@@ -598,6 +607,14 @@ Lesson.register({
           "ls: cannot access 'missing.txt': No such file or directory\n" +
           'a.txt\n' +
           'rc=2' },
+        { t: 'cal', kind: 'info', title: 'Vì sao rc=2, không phải rc=1', x:
+          '<p><code>ls</code> trả về <b>2</b> khi nó không truy cập được một tham số bạn đưa thẳng trên ' +
+          'dòng lệnh — đúng trường hợp <code>missing.txt</code>. Tài liệu của <code>ls</code> gọi mức ' +
+          'này là "trouble nghiêm trọng", cao hơn mã <b>1</b> dành cho những trục trặc nhỏ hơn, như một ' +
+          'file biến mất giữa chừng lúc đang liệt kê một thư mục chứ không phải một tham số bạn gõ ' +
+          'thẳng.</p>' +
+          '<p>Cùng lúc đó dòng <code>a.txt</code> vẫn in ra bình thường: một tham số lỗi không cản các ' +
+          'tham số còn lại được xử lý tiếp.</p>' },
         { t: 'p', x:
           'Hai dòng đó đi qua hai kênh khác nhau, dù trên màn hình chúng nằm cạnh nhau. Bây giờ ' +
           'chặn từng kênh một:' },
@@ -623,7 +640,15 @@ Lesson.register({
           'ls a.txt missing.txt &> result2.txt\n' +
           'diff result.txt result2.txt && echo "TWO FILES ARE IDENTICAL"' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
-          'TWO FILES ARE IDENTICAL' }
+          'TWO FILES ARE IDENTICAL' },
+        { t: 'cal', kind: 'why', title: 'diff im lặng là bằng chứng mạnh nhất có thể', x:
+          '<p><code>diff</code> không in gì trước dòng <code>TWO FILES ARE IDENTICAL</code> — với ' +
+          '<code>diff</code>, im lặng nghĩa là <b>hai file byte-for-byte giống nhau</b>, mã thoát 0 ' +
+          'khiến <code>&amp;&amp;</code> chạy tiếp lệnh <code>echo</code>.</p>' +
+          '<p>Vậy <code>&amp;&gt; f</code> đúng là <b>viết tắt</b> của <code>&gt; f 2&gt;&amp;1</code>, ' +
+          'không phải một cơ chế khác đi tới cùng kết quả bằng đường khác. Nhớ rằng <code>&amp;&gt;</code> ' +
+          'là <b>riêng của bash</b> — một script mở đầu bằng <code>#!/bin/sh</code> chạy qua dash sẽ ' +
+          'không hiểu cú pháp này.</p>' }
       ]},
 
       /* ---------- BƯỚC 3 ---------- */
@@ -667,6 +692,13 @@ Lesson.register({
           '19\n' +
           '18\n' +
           '17' },
+        { t: 'cal', kind: 'info', title: 'Vì sao là 19, 18, 17 chứ không phải 20, 19, 18', x:
+          '<p><code>grep 1</code> so khớp <b>chuỗi ký tự</b> "1", không so khớp giá trị số. Trong dải ' +
+          '1–20, số <b>20</b> không chứa ký tự "1" nên bị loại — <code>grep</code> chỉ giữ lại 1, 10, ' +
+          '11, 12, …, 19. Sắp giảm dần bằng <code>sort -rn</code> thì lớn nhất còn lại là <b>19</b>, ' +
+          'nên <code>head -3</code> in ra đúng 19, 18, 17.</p>' +
+          '<p>Bài học rộng hơn: <code>grep</code> không biết gì về số học. Lọc số bằng công cụ so khớp ' +
+          'chuỗi luôn cần kiểm lại bằng mắt trước khi tin kết quả.</p>' },
         { t: 'cal', kind: 'tip', title: 'Cách xây một đường ống dài mà không sai', x:
           '<p>Đừng viết cả bốn tầng rồi mới chạy. Gõ <code>seq 1 20</code>, xem. Thêm ' +
           '<code>| grep 1</code>, xem. Thêm <code>| sort -rn</code>, xem. <b>Mỗi lần thêm một ' +
@@ -703,7 +735,16 @@ Lesson.register({
           '--- saved.txt still has all 5 lines\n' +
           '1\n2\n3\n4\n5\n' +
           '--- after tee -a\n' +
-          '1\n2\n3\n4\n5\n6\n7\n8' }
+          '1\n2\n3\n4\n5\n6\n7\n8' },
+        { t: 'cal', kind: 'why', title: 'Ba con số 5, rồi 1-5, rồi 1-8 chứng minh cả rẽ nhánh lẫn nối thêm', x:
+          '<p>Dòng đầu tiên, <b>5</b>, là <code>wc -l</code> đếm được ở đầu <b>sau</b> của ống — chứng ' +
+          'minh <code>tee</code> vẫn đẩy tiếp dữ liệu cho tầng kế bên, đúng như bảng <code>tee</code> ở ' +
+          'phần lý thuyết đã liệt kê.</p>' +
+          '<p><code>saved.txt</code> đã có sẵn đủ 5 dòng dù bạn chưa hề gọi lệnh nào ghi trực tiếp vào ' +
+          'nó — đó là tác dụng phụ của <code>tee saved.txt</code> đứng giữa ống. Sau đó <code>tee -a</code> ' +
+          'nối thêm <b>6, 7, 8</b> vào cuối thay vì xoá 5 dòng cũ, dù đầu ra của chính nó bị vứt vào ' +
+          '<code>/dev/null</code> — cờ <code>-a</code> chỉ đổi cách <code>tee</code> mở file, không liên ' +
+          'quan gì tới việc đầu ra stdout của nó có được xem hay không.</p>' }
       ]},
 
       /* ---------- BƯỚC 5 ---------- */
@@ -719,6 +760,13 @@ Lesson.register({
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'rc of whole pipe = 0\n' +
           'PIPESTATUS = 1 0' },
+        { t: 'cal', kind: 'info', title: 'Đọc đúng hai con số vừa in ra', x:
+          '<p><code>rc of whole pipe = 0</code> là mã thoát của <code>true</code> — tầng <b>cuối cùng</b>, ' +
+          'và <code>true</code> luôn trả về 0. <code>$?</code> chỉ nhìn thấy đúng con số đó.</p>' +
+          '<p><code>PIPESTATUS = 1 0</code> lại cho thấy toàn bộ sự thật: phần tử đầu tiên, <b>1</b>, là ' +
+          'mã thoát thật của <code>false</code> — tầng đã thất bại; phần tử thứ hai, <b>0</b>, là của ' +
+          '<code>true</code>. Chỉ nhìn <code>$?</code>, bạn sẽ tin rằng cả đường ống trót lọt dù tầng ' +
+          'đầu vừa chết.</p>' },
         { t: 'p', x: 'Bật <code>pipefail</code> và chạy lại đúng câu lệnh đó:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'set -o pipefail\n' +
@@ -727,6 +775,11 @@ Lesson.register({
           'set +o pipefail' },
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'rc with pipefail = 1' },
+        { t: 'cal', kind: 'why', title: 'rc nhảy từ 0 lên 1 — đúng bằng mã thoát của false', x:
+          '<p>Cùng một câu lệnh <code>false | true</code>, chỉ khác việc bật <code>set -o pipefail</code> ' +
+          'trước đó, kết quả đổi từ <b>0</b> sang <b>1</b>. Đó chính là định nghĩa trong bảng cmdx ở ' +
+          'phần lý thuyết: pipefail khiến cả ống trả về <b>mã khác 0 cuối cùng gặp được</b>; ở đây chỉ có ' +
+          'một mã khác 0 duy nhất — mã 1 của <code>false</code>.</p>' },
         { t: 'cal', kind: 'danger', title: 'Nếu quên pipefail, script CI của bạn sẽ nói dối', x:
           '<p><code>make 2&gt;&amp;1 | tee build.log</code> — nếu <code>make</code> thất bại mà ' +
           '<code>tee</code> thành công, cả câu lệnh trả về <b>0</b>. Hệ thống tích hợp liên tục ' +
@@ -786,6 +839,15 @@ Lesson.register({
           'hello $NAME\n' +
           'current directory is $(pwd)\n' +
           '7' },
+        { t: 'cal', kind: 'info', title: 'Ba dòng cuối xác nhận cả hai vế của quy tắc dấu nháy', x:
+          '<p><code>with-subst.txt</code> chứa <code>hello shinarus</code> và đường dẫn thật của thư ' +
+          'mục hiện tại — <code>$NAME</code> và <code>$(pwd)</code> đã bị thay bằng giá trị lúc chạy, ' +
+          'đúng như <code>&lt;&lt;EOF</code> không có nháy đã làm ở phần lý thuyết.</p>' +
+          '<p><code>no-subst.txt</code> giữ nguyên văn <code>$NAME</code> và <code>$(pwd)</code> — cặp ' +
+          'nháy quanh <code>\'EOF\'</code> đã tắt hoàn toàn việc thay thế.</p>' +
+          '<p>Số <b>7</b> cuối cùng là <code>wc -c &lt;&lt;&lt; "abcdef"</code>: chuỗi <code>abcdef</code> ' +
+          'chỉ có 6 ký tự, nhưng here-string tự thêm một dấu xuống dòng ở cuối trước khi đưa vào stdin, ' +
+          'nên <code>wc -c</code> đếm được 7 byte.</p>' },
         { t: 'p', x: 'Tiếp theo, bật tấm lưới an toàn <code>noclobber</code> và thử ghi đè:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'echo "original" > nc.txt\n' +
@@ -800,6 +862,14 @@ Lesson.register({
           'rc=1\n' +
           'rc=0\n' +
           'overwrite no matter what' },
+        { t: 'cal', kind: 'tip', title: 'Bốn dòng này là cả một cuộc thử nghiệm hoàn chỉnh', x:
+          '<p>Lần ghi đầu tiên bị chặn đúng như lời hứa: <code>bash: nc.txt: cannot overwrite existing ' +
+          'file</code> và <code>rc=1</code> — nội dung cũ <code>original</code> vẫn còn nguyên trong ' +
+          '<code>nc.txt</code> lúc này.</p>' +
+          '<p>Đổi sang <code>&gt;|</code>, lệnh thành công (<code>rc=0</code>) và <code>cat</code> cho ' +
+          'thấy nội dung đã đổi thành <code>overwrite no matter what</code> — <code>&gt;|</code> là lối ' +
+          'thoát duy nhất khỏi <code>noclobber</code> mà không cần tắt nó bằng <code>set +o ' +
+          'noclobber</code>.</p>' },
         { t: 'p', x:
           'Rồi biến đầu ra của lệnh thành file để đưa cho <code>diff</code> — thứ mà đường ống ' +
           'không làm được vì <code>diff</code> cần hai nguồn cùng lúc:' },
@@ -816,6 +886,13 @@ Lesson.register({
           '> 7\n' +
           'rc=1\n' +
           'lr-x------ 1 shinarus shinarus 64 Aug  1 16:51 /dev/fd/63 -> pipe:[12458]' },
+        { t: 'cal', kind: 'info', title: 'Kết quả giống hệt ví dụ ở phần lý thuyết — và đó là điểm cần nhớ', x:
+          '<p><code>rc=1</code> chỉ đơn giản nghĩa là hai dải số khác nhau, không phải lỗi — bạn đã học ' +
+          'điều này ở mục 6 phần lý thuyết. Dòng <code>/dev/fd/63 -&gt; pipe:[12458]</code> lộ đúng cơ ' +
+          'chế: <code>&lt;(echo hi)</code> chỉ là một pipe được gắn một cái tên trong hệ thống file để ' +
+          '<code>ls</code> mở như một file bình thường.</p>' +
+          '<p>Vì đây là process substitution, số hiệu pipe có thể khác trên máy bạn mỗi lần chạy — chỉ ' +
+          'riêng <code>rc=1</code> và cấu trúc bốn dòng của <code>diff</code> ở trên là cố định.</p>' },
         { t: 'p', x:
           'Và <code>xargs</code>, giải bài toán ngược lại: nhiều lệnh <b>không</b> đọc stdin, ' +
           'chúng chỉ nhận tham số. <code>xargs</code> biến dòng chảy thành tham số:' },
@@ -847,7 +924,17 @@ Lesson.register({
         { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
           'fifo 644 mypipe\n' +
           'prw-r--r-- 1 shinarus shinarus 0 Aug  6 07:59 mypipe\n' +
-          'data flowing through the pipe' }
+          'data flowing through the pipe' },
+        { t: 'cal', kind: 'why', title: 'Dòng cuối chứng minh đúng lời hứa của FIFO: hai tiến trình độc lập', x:
+          '<p><code>cat mypipe &gt; received.txt &amp;</code> chạy <b>trong nền</b>, là một tiến trình ' +
+          'hoàn toàn tách biệt khỏi lệnh <code>echo</code> chạy sau nó — không có dấu <code>|</code> nào ' +
+          'nối trực tiếp hai lệnh này trên cùng một dòng. Chúng gặp nhau <b>duy nhất</b> qua file ' +
+          '<code>mypipe</code> nằm trên hệ thống file.</p>' +
+          '<p>Dòng <code>data flowing through the pipe</code> xuất hiện trong <code>received.txt</code> ' +
+          'chứng minh dữ liệu đã đi trọn vẹn từ tiến trình ghi sang tiến trình đọc, đúng như phần lý ' +
+          'thuyết đã nói: named pipe dùng khi "cần hai chương trình chạy độc lập nói chuyện với nhau". ' +
+          'Đường ống ẩn danh <code>|</code> không làm được việc này vì nó chỉ tồn tại trong đúng một câu ' +
+          'lệnh.</p>' }
       ]},
 
       /* ---------- BƯỚC 7 ---------- */
@@ -885,6 +972,10 @@ Lesson.register({
           '2 source.txt\n' +
           '1\n' +
           '10' },
+        { t: 'cal', kind: 'info', title: 'Đúng 2 dòng còn lại — như bạn đã thấy ở Bước 4', x:
+          '<p><code>grep 1</code> giữ lại những dòng <b>chứa ký tự "1"</b> trong 10 dòng <code>1</code> ' +
+          'tới <code>10</code>. Chỉ có <b>1</b> và <b>10</b> thoả điều kiện đó — các số 2 đến 9 không có ' +
+          'ký tự "1" nên bị loại, kể cả khi bạn nghĩ "lọc số 1" nghĩa là một phép so sánh số học.</p>' },
         { t: 'cal', kind: 'why', title: 'Vì sao phải là && chứ không phải dấu chấm phẩy', x:
           '<p><code>&amp;&amp;</code> chỉ chạy <code>mv</code> khi <code>grep</code> thành công. ' +
           'Nếu đổi thành <code>;</code>, một lần <code>grep</code> thất bại sẽ khiến ' +
@@ -910,6 +1001,12 @@ Lesson.register({
             ['<code>exec 3&gt;&amp;-</code>', 'Đóng fd 3', 'Dấu <code>-</code> nghĩa là đóng'],
             ['<code>exec &gt; f 2&gt;&amp;1</code>', 'Chuyển hướng <b>toàn bộ</b> phần còn lại của script vào f', 'Mẹo ghi log cho cả script chỉ bằng một dòng']
           ]},
+        { t: 'cal', kind: 'info', title: 'Bad file descriptor xác nhận fd 3 đã đóng thật, không chỉ trống', x:
+          '<p>Dòng đầu, <code>line via fd 3</code>, chứng minh <code>exec 3&gt; note.log</code> hoạt ' +
+          'động: ghi qua <code>&gt;&amp;3</code> đúng là ghi vào file. Sau <code>exec 3&gt;&amp;-</code>, ' +
+          'cố ghi lại vào fd 3 cho ra <code>bash: line 6: 3: Bad file descriptor</code> và ' +
+          '<code>rc=1</code> — đúng loại lỗi bạn nhận được khi thao tác trên một số fd mà kernel không ' +
+          'còn coi là hợp lệ, khác hẳn việc ghi vào một fd đang mở nhưng trỏ sai chỗ.</p>' },
         { t: 'p', x: 'Dọn dẹp và kiểm tra thư mục làm việc:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           'cd ~\n' +

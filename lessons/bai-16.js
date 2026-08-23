@@ -902,7 +902,16 @@ Lesson.register({
           'gcc -Wall -c print.c\n' +
           'gcc -o program main.o ops.o print.o\n' +
           'add(2,3) = 5\n' +
-          'subtract(9,4) = 5' }
+          'subtract(9,4) = 5' },
+
+        { t: 'cal', kind: 'info', title: 'Lần chạy đầu tiên làm đủ bốn việc — và một mốc cần nhớ', x:
+          '<p>Chưa có file <code>.o</code> nào tồn tại, nên <code>make</code> phải làm cả bốn việc: ' +
+          'biên dịch <code>main.c</code>, <code>ops.c</code>, <code>print.c</code>, rồi liên kết — ' +
+          'đúng cơ chế "chạy lần đầu" bạn vừa đọc ở phần lý thuyết phía trên.</p>' +
+          '<p><code>add(2,3) = 5</code> và <code>subtract(9,4) = 5</code> khớp với ' +
+          '<code>FACTOR</code> đang là <b>1</b> trong <code>ops.h</code>: <code>(2+3)*1=5</code> và ' +
+          '<code>(9-4)*1=5</code>. Ghi nhớ đúng hai con số này — bước 4 sẽ đổi <code>FACTOR</code> ' +
+          'và dùng chính hai giá trị này để phát hiện một Makefile báo sai.</p>' }
       ]},
 
       /* ─────────── BƯỚC 2 ─────────── */
@@ -1043,6 +1052,11 @@ Lesson.register({
           '<p>Lỗi <code>.PHONY</code> thì <code>make</code> thoát với mã <b>0</b> — nghĩa là ' +
           '"thành công". Trong một script CI, không ai phát hiện ra. Bạn chỉ nhận ra khi build ' +
           'tiếp theo dùng lại object cũ và cho kết quả sai.</p>' +
+          '<p>Bằng chứng nằm ngay trong hai lần chạy <code>ls program</code> ở trên: trước khi thêm ' +
+          '<code>.PHONY</code>, nó in ra <code>program</code> — file thực thi vẫn còn nguyên, chứng ' +
+          'tỏ công thức <code>rm -f</code> chưa từng chạy. Sau khi thêm <code>.PHONY</code>, ' +
+          '<code>ls program</code> báo <code>cannot access \'program\': No such file or ' +
+          'directory</code> — lần này <code>rm -f</code> đã thực sự xoá nó.</p>' +
           '<p>Nhớ lại <b>Bài 4</b>: mã thoát 0 là lời hứa "tôi đã làm xong việc". ' +
           '<code>make</code> ở đây <i>không nói dối</i> — nó thật sự đã hoàn thành việc "đảm bảo ' +
           'file <code>clean</code> tồn tại". Chỉ là việc đó không phải việc bạn muốn.</p>' },
@@ -1085,6 +1099,13 @@ Lesson.register({
           'gcc -Wall -Wextra -O2 -o program main.o ops.o print.o\n' +
           'add(2,3) = 5\n' +
           'subtract(9,4) = 5' },
+
+        { t: 'cal', kind: 'info', title: 'Kết quả giống hệt bước 1 — bản rút gọn vẫn đúng, ít nhất là lúc này', x:
+          '<p><code>add(2,3) = 5</code> và <code>subtract(9,4) = 5</code> — đúng bằng kết quả ở ' +
+          'bước 1, khi <code>FACTOR</code> vẫn là <b>1</b>. Makefile ngắn hơn nhưng cho ra cùng một ' +
+          'chương trình đúng: rút gọn cú pháp chưa làm mất gì.</p>' +
+          '<p>Đừng vội kết luận nó tương đương bản 1. Thí nghiệm tiếp theo sẽ lộ ra đúng chỗ khác ' +
+          'nhau.</p>' },
 
         { t: 'p', x:
           'Ngắn hơn, dễ mở rộng hơn. Giờ đổi hằng số <code>FACTOR</code> trong header từ 1 thành ' +
@@ -1141,6 +1162,13 @@ Lesson.register({
           'ls *.c | wc -l' },
 
         { t: 'code', where: 'out', nocopy: true, code: '61' },
+
+        { t: 'cal', kind: 'info', title: '61, không phải 60 — vì sao', x:
+          '<p>Vòng lặp <code>for</code> ở trên chỉ sinh đúng <b>60</b> file <code>mod1.c</code> … ' +
+          '<code>mod60.c</code>. Dòng <code>printf</code> ngay sau đó tạo thêm <code>main.c</code> — ' +
+          'điểm vào chương trình — nên tổng cộng có <b>61</b> file <code>.c</code>. Bước này vẫn gọi ' +
+          'là "dự án 60 file" vì 60 là số mô-đun dùng để đo tốc độ; <code>main.c</code> chỉ gọi ' +
+          'chúng, không tính vào số đo.</p>' },
 
         { t: 'code', where: 'wsl', name: 'Makefile dùng wildcard', code:
           'cat > Makefile <<\'EOF\'\n' +

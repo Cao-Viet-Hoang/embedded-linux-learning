@@ -855,6 +855,16 @@ Lesson.register({
             'qemu-aarch64: Could not open \'/lib/ld-linux-aarch64.so.1\': No such file or directory\n' +
             'exit code = 255' },
 
+          { t: 'cal', kind: 'why', title: 'Mã thoát đổi từ <b>126</b> sang <b>255</b> — vì sao đó là dấu hiệu tốt',
+            x: '<p>Ở mục lý thuyết, gọi thẳng <code>./temp_daemon_arm64</code> khi <code>binfmt_misc</code> ' +
+               'còn tắt cho mã thoát <b>126</b> — con số riêng mà <code>bash</code> dùng khi chính nó từ ' +
+               'chối <code>exec</code> một file. Lần này bạn gọi <code>qemu-aarch64</code> tường minh và mã ' +
+               'thoát đổi thành <b>255</b>. Đây là hai loại thất bại khác hẳn nhau: mã thoát Unix chỉ có 8 ' +
+               'bit, nên khi một chương trình gọi <code>exit(-1)</code> (hoặc bất kỳ giá trị âm nào), vỏ ' +
+               'shell nhận về <b>255</b> — đúng bằng <code>-1</code> cắt còn 8 bit thấp. Nói cách khác: lần ' +
+               'này chính <code>qemu-aarch64</code> <i>đã</i> khởi chạy, cố mở trình thông dịch, thất bại và ' +
+               'tự thoát bằng mã lỗi chung của nó, thay vì bị nhân chặn lại từ đầu như trước.</p>' },
+
           { t: 'code', where: 'wsl', code:
             'export QEMU_LD_PREFIX=/usr/aarch64-linux-gnu\n' +
             './temp_daemon_arm64 &\n' +
@@ -974,6 +984,13 @@ Lesson.register({
             'strip: Unable to recognise the architecture of the input file `s1\'\n' +
             'exit code = 1' },
 
+          { t: 'cal', kind: 'warn', title: 'Mã thoát <b>1</b> — dễ lọt qua nếu chỉ nhìn màn hình',
+            x: '<p><code>s1</code> vẫn còn nguyên như bản gốc: <code>strip</code> thất bại thì không sửa gì ' +
+               'trên file, chỉ in lỗi ra <code>stderr</code> rồi thoát với mã <b>1</b>. Chính mã thoát khác ' +
+               '0 này là thứ một <code>Makefile</code> thật phải kiểm tra sau mỗi lệnh <code>strip $@</code> — ' +
+               'đúng nguy cơ mà callout <code>danger</code> ở phần lý thuyết đã cảnh báo: nếu không kiểm mã ' +
+               'thoát, <code>make</code> có thể lặng lẽ đi tiếp với một file <i>chưa hề được strip</i>.</p>' },
+
           { t: 'code', where: 'wsl', code:
             'aarch64-linux-gnu-strip s1\n' +
             'cp temp_daemon_arm64_static s2 && aarch64-linux-gnu-strip s2\n' +
@@ -1017,6 +1034,15 @@ Lesson.register({
             'aarch64-linux-gnu-gcc -Wall -Wextra -O2 -pthread -Wl,-z,max-page-size=4096 -o build/aarch64-linux-gnu/temp_daemon temp_daemon.c\n' +
             'aarch64-linux-gnu-strip build/aarch64-linux-gnu/temp_daemon\n' +
             'build/aarch64-linux-gnu/temp_daemon: ELF 64-bit LSB pie executable, ARM aarch64' },
+
+          { t: 'cal', kind: 'why', title: 'Đúng như <code>BUILD</code> đã hứa ở mục lý thuyết',
+            x: '<p><code>make</code> trần tạo <code>build/native/</code> và gọi <code>gcc</code> không tiền ' +
+               'tố; <code>make CROSS_COMPILE=aarch64-linux-gnu-</code> tạo <code>build/aarch64-linux-gnu/</code> ' +
+               'và gọi <code>aarch64-linux-gnu-gcc</code>, <code>aarch64-linux-gnu-strip</code>. Đây chính là ' +
+               'kết quả của biểu thức <code>$(patsubst %-,%,…)</code> đã mổ xẻ ở mục <code>CROSS_COMPILE=</code> ' +
+               '— không phải suy đoán, mà là thứ vừa chạy thật. Hai dòng <code>file</code> cuối mỗi khối cũng ' +
+               'tự xác nhận đúng kiến trúc: <code>x86-64</code> cho bản đầu, <code>ARM aarch64</code> cho bản ' +
+               'sau, đúng như dòng <code>@file $@ | cut -d, -f1-2</code> trong <code>Makefile</code> hứa làm.</p>' },
 
           { t: 'code', where: 'wsl', code:
             'stat -c \'%s %n\' build/native/temp_daemon build/aarch64-linux-gnu/temp_daemon\n' +
@@ -1171,6 +1197,13 @@ Lesson.register({
             'real	0m1.103s\n' +
             'primes below 3000000 = 216816\n' +
             'primes below 3000000 = 216816' },
+
+          { t: 'cal', kind: 'info', title: 'Trước khi so thời gian, để ý hai dòng cuối cùng',
+            x: '<p>Cả hai lần chạy đều in đúng <code>primes below 3000000 = 216816</code>. Phép đo tốc độ chỉ ' +
+               'có ý nghĩa khi hai bên tính ra <b>cùng một kết quả</b> — nếu không, bạn có thể đang so một ' +
+               'bản chạy đúng với một bản chạy sai (và một vòng lặp tính sai, bỏ sót việc, thường lại ' +
+               'nhanh hơn). Con số <b>216 816</b> khớp nhau ở cả x86 lẫn ARM64 qua <code>qemu-aarch64</code> ' +
+               'xác nhận phép mô phỏng tính đúng ở mức bit, nên bảng thời gian dưới đây mới đáng tin.</p>' },
 
           { t: 'table',
             head: ['Cách chạy', 'Thời gian (trung vị)', 'Tỉ lệ'],

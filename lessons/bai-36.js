@@ -376,6 +376,14 @@ Lesson.register({
             '-rw-r--r-- 1 shinarus shinarus 30771136 Aug 16 18:17 Image\n' +
             '-rw-r--r-- 1 shinarus shinarus  1035397 Aug 16 18:17 initramfs.cpio.gz' },
 
+          { t: 'cal', kind: 'info', title: 'Hai con số này còn quay lại nhiều lần trong bài',
+            x: '<b>30 771 136</b> byte (<code>Image</code>) và <b>1 035 397</b> byte ' +
+               '(<code>initramfs.cpio.gz</code>) không phải để nhớ, mà để đối chiếu: chúng sẽ ' +
+               'in lại y nguyên trong <code>Bytes transferred</code> của <code>tftpboot</code> ' +
+               'ở bước sau, và trong <code>Data Size</code> của <code>mkimage</code> ở bước 3. ' +
+               'Bất cứ chỗ nào hai con số đó lệch đi là dấu hiệu file bị cắt xén hoặc gửi dở ' +
+               'chừng.' },
+
           { t: 'p', x:
             'Bây giờ đến phần dễ sai nhất của cả bài. Cách <i>ngắn gọn</i> để nối mạng cho ' +
             'QEMU là tuỳ chọn <code>-nic</code>, và trực giác bảo rằng nó phải chạy. Hãy thử ' +
@@ -484,6 +492,13 @@ Lesson.register({
             'Using virtio-net#31 device\n' +
             'host 10.0.2.2 is alive' },
 
+          { t: 'cal', kind: 'info', title: 'Ping xác nhận tầng mạng, không xác nhận file',
+            x: '<code>host 10.0.2.2 is alive</code> chỉ chứng minh gói tin đi và về được giữa ' +
+               'máy ảo và host — tầng mạng ổn. Nó không nói gì về việc file có tồn tại trong ' +
+               'thư mục TFTP hay không, vì đó là chuyện của tầng ứng dụng (TFTP chạy trên UDP, ' +
+               'ping dùng ICMP — hai giao thức khác nhau hoàn toàn). Vì ping đã xác nhận mạng ' +
+               'ổn, phép thử tiếp theo cho phép bạn loại trừ nguyên nhân mạng ngay từ đầu.' },
+
           { t: 'p', x:
             'Trước khi tải file thật, hãy cố tình tải một file <b>không tồn tại</b>. Bạn cần ' +
             'nhận ra thông báo này ngay lập tức, vì 90% sự cố TFTP là gõ sai tên file hoặc để ' +
@@ -539,6 +554,13 @@ Lesson.register({
             ['<code>Bytes transferred</code>', 'Con số này U-Boot đồng thời ghi vào biến <code>filesize</code> — chính là thứ ta sắp dùng cho tham số kích thước của <code>booti</code>.']
           ]},
 
+          { t: 'cal', kind: 'info', title: 'Bytes transferred khớp chính xác với ls -l ở bước trước',
+            x: '<b>30 771 136</b> và <b>1 035 397</b> — đúng bằng hai con số bạn đã thấy trong ' +
+               '<code>ls -l tftp/</code> ở đầu bước này. Đây là bằng chứng cụ thể rằng TFTP đã ' +
+               'chuyển đủ từng byte, không cắt xén giữa chừng: nếu đường truyền đứt gánh, U-Boot ' +
+               'thường tự báo <code>TFTP error</code> hoặc treo ở dấu <code>*</code> trước khi ' +
+               'kịp in dòng <code>done</code>, chứ hiếm khi âm thầm trả về một con số nhỏ hơn.' },
+
           { t: 'p', x: 'Và boot — y hệt Bài 35, chỉ khác là ba file đến từ mạng chứ không từ ổ đĩa:' },
 
           { t: 'code', where: 'uboot', code:
@@ -558,6 +580,13 @@ Lesson.register({
             "/bin/sh: can't access tty; job control turned off\n" +
             '~ # cat /proc/cmdline\n' +
             'console=ttyAMA0 rdinit=/init' },
+
+          { t: 'cal', kind: 'info', title: 'cat /proc/cmdline xác nhận đúng bootargs vừa đặt',
+            x: 'Dòng in ra — <code>console=ttyAMA0 rdinit=/init</code> — giống hệt chuỗi bạn ' +
+               'vừa gán bằng <code>setenv bootargs</code> ba lệnh trước. Đây là bằng chứng trực ' +
+               'tiếp rằng U-Boot đã truyền đúng dòng lệnh cho kernel qua mạng, chứ không chỉ ' +
+               'suy luận từ việc máy không báo lỗi gì. Bạn sẽ dùng lại đúng phép kiểm tra này ở ' +
+               'các bước sau, mỗi khi đổi <code>bootargs</code>.' },
 
           { t: 'cal', kind: 'info', title: 'Vòng lặp phát triển vừa rút xuống còn vài giây',
             x: 'Đo được <b>24,5 MiB/s</b> cho kernel và <b>21,5 MiB/s</b> cho initramfs — ' +
@@ -1053,6 +1082,16 @@ Lesson.register({
             '35:\t\t\tdata = /incbin/("tftp/initramfs.cpio.gz");\n' +
             '9a360d9cae41351a235019ad34a64a930293b04c9dcef0da0443d8492a026b32  virt-bios.dtb' },
 
+          { t: 'cal', kind: 'info', title: 'grep -n xác nhận sed chỉ sửa đúng một dòng',
+            x: 'Ba dòng <code>grep -n</code> in ra cho thấy dòng 10 (<code>tftp/Image</code>) và ' +
+               'dòng 35 (<code>tftp/initramfs.cpio.gz</code>) không đổi, chỉ dòng 24 chuyển từ ' +
+               '<code>virt.dtb</code> sang <code>virt-bios.dtb</code> — đúng và chỉ đúng phần ' +
+               'bạn định sửa. Lệnh <code>mkimage</code> ngay phía trên bị chuyển hướng ra ' +
+               '<code>/dev/null</code> nên không in lại bảng hash như ở bước 3; giá trị ' +
+               '<code>sha256sum</code> của <code>virt-bios.dtb</code> — bắt đầu bằng ' +
+               '<code>9a360d9c…</code> — là cách duy nhất ở đây để bạn tự có bằng chứng về nội ' +
+               'dung DTB mới trước khi đưa nó vào FIT và boot thử.' },
+
           { t: 'p', x: 'Khởi động lại máy ảo và boot ảnh mới. Lần này không cần <code>earlycon</code> nữa:' },
 
           { t: 'code', where: 'uboot', code:
@@ -1110,6 +1149,13 @@ Lesson.register({
             'od -A d -t x1 -j 5000000 -N 1 tftp/kernel-bad.itb\n' +
             'cmp tftp/kernel.itb tftp/kernel-bad.itb\n' +
             'ls -l tftp/kernel.itb tftp/kernel-bad.itb' },
+
+          { t: 'cmdx', title: 'od — nhìn đúng một byte trong một file 31 MB', cmd: 'od -A d -t x1 -j 5000000 -N 1 tftp/kernel-bad.itb', rows: [
+            ['<code>-A d</code>', 'In địa chỉ offset theo hệ <b>thập phân</b> (decimal). Mặc định <code>od</code> in offset theo octal — đổi sang decimal để khớp thẳng với con số <code>seek=</code> bạn gõ ở <code>dd</code>, khỏi phải quy đổi hệ cơ số trong đầu.'],
+            ['<code>-t x1</code>', 'Định dạng mỗi đơn vị là <b>1 byte, in hex</b> (hai chữ số). Không có nó, <code>od</code> mặc định gộp 2 byte một đơn vị — dễ đọc nhầm byte khi so trước/sau.'],
+            ['<code>-j 5000000</code>', '<i>skip</i> — bỏ qua 5 000 000 byte đầu trước khi đọc. Cùng một con số với <code>seek=</code> của <code>dd</code> bên dưới, để bạn soi đúng byte sắp bị ghi đè.'],
+            ['<code>-N 1</code>', '<i>read-bytes</i> — chỉ đọc đúng 1 byte rồi dừng, thay vì đổ cả file ra màn hình.']
+          ]},
 
           { t: 'cmdx', title: 'dd — ghi đè đúng một byte, không đụng gì khác', cmd: 'dd of=… bs=1 seek=5000000 count=1 conv=notrunc', rows: [
             ['<code>bs=1</code>', 'Kích thước một khối là 1 byte, để <code>seek</code> và <code>count</code> đếm theo byte thay vì theo khối.'],

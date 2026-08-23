@@ -415,6 +415,10 @@ Lesson.register({
             '/usr/bin/nano' },
 
           { t: 'cal', kind: 'tip', x:
+            '<p>Kết quả in ra là <code>/usr/bin/nano</code>, <b>không phải</b> vim — dù ' +
+            '<code>vi</code> ở trên trỏ tới <code>vim.basic</code>. Đó là vì <code>vi</code> và ' +
+            '<code>editor</code> là <b>hai nhóm alternatives độc lập</b> trên Debian/Ubuntu: đổi ' +
+            'cái này không đụng tới cái kia.</p>' +
             '<p><code>/usr/bin/editor</code> là trình soạn thảo mặc định mà các chương trình khác ' +
             'gọi khi cần bạn nhập văn bản. Muốn ép chúng dùng vim, đặt biến ' +
             '<code>export EDITOR=vim</code> — Bài 13 sẽ nói về biến môi trường và nơi khai báo ' +
@@ -548,7 +552,24 @@ Lesson.register({
             'CONFIG_I2C=m\n' +
             'CONFIG_DEBUG=m' },
 
+          { t: 'cmdx', cmd: 'vim -Es -c \'1i|# kernel config\' -c \'wq\' kernel.conf',
+            title: 'Vì sao dấu | ở đây không phải dấu ngăn cách lệnh',
+            rows: [
+              ['1i', 'Chèn nội dung <b>trước dòng 1</b> — chỉ số dòng đứng ngay trước <code>i</code>.', ''],
+              ['|', 'Với hầu hết lệnh vim, <code>|</code> ngăn cách hai lệnh trên cùng một dòng. Nhưng ' +
+               'tài liệu vim (<code>:help :insert</code>) ghi rõ: sau <code>:insert</code> và ' +
+               '<code>:append</code>, chữ đứng sau <code>|</code> được dùng làm <b>nội dung cần ' +
+               'chèn</b>, không phải một lệnh khác.', ''],
+              ['# kernel config', 'Dòng văn bản được chèn. Gõ tay trong vim, bạn còn phải kết thúc ' +
+               'bằng một dòng chỉ có dấu <code>.</code> — ở đây không cần, vì <code>-c</code> truyền ' +
+               'nguyên một dòng lệnh vào vim và dòng đó tự kết thúc.', '']
+            ]},
+
           { t: 'cal', kind: 'why', title: 'Ba dòng vừa đổi — mười nghìn dòng cũng vậy', x:
+            '<p>Kết quả có bốn dòng: <code># kernel config</code> do lệnh <code>1i</code> vừa chèn ở ' +
+            'trên, và ba dòng <code>CONFIG_*</code> đã đổi từ <code>=y</code> sang <code>=m</code> do ' +
+            'lệnh <code>%s</code> chạy ngay sau. Dòng chú thích đứng yên vì nó không khớp mẫu ' +
+            '<code>=y</code> — <code>%s</code> chỉ chạm vào dòng khớp.</p>' +
             '<p><code>:%s/=y/=m/g</code> mất đúng một lệnh dù file có 4 dòng hay 14.000 dòng. ' +
             'Ở Chặng 07 bạn sẽ dùng chính lệnh này trên file <code>.config</code> thật.</p>' +
             '<p><code>%</code> nghĩa là "mọi dòng trong file". Không có nó, lệnh chỉ tác động lên ' +
@@ -569,6 +590,10 @@ Lesson.register({
             '<p><code>s/cũ/mới/g</code> trong vim và trong <code>sed</code> là <b>một</b> cú pháp — ' +
             'cả hai đều thừa kế từ <code>ed</code>, trình soạn thảo dòng lệnh của Unix năm 1969. ' +
             'Chữ <code>ed</code> nằm ngay trong tên <code>sed</code> (<i>stream editor</i>).</p>' +
+            '<p>Nhìn đúng kết quả vừa in ra: ba dòng <code>CONFIG_*</code> quay lại <code>=y</code>, ' +
+            'còn dòng <code># kernel config</code> đứng yên vì nó không chứa <code>=m</code> — đúng ' +
+            'mẫu mà <code>sed -i \'s/=m/=y/g\'</code> tìm. <code>sed</code> cũng chỉ chạm vào dòng ' +
+            'khớp mẫu, giống hệt <code>%s</code> ở trên.</p>' +
             '<p>Học một lần, dùng ở hai nơi. Bài 11 sẽ khai thác <code>sed</code> đến tận cùng.</p>' +
             '<p>Nguyên tắc chọn: sửa <b>một</b> file và cần nhìn kết quả thì dùng vim; sửa ' +
             '<b>hàng trăm</b> file trong một vòng lặp thì dùng <code>sed</code>.</p>' }
@@ -673,6 +698,16 @@ Lesson.register({
               ['qa!', '<i>quit all</i> — đóng mọi cửa sổ, vứt thay đổi.',
                'Trong script luôn dùng dạng có <code>!</code>, nếu không vim sẽ dừng lại chờ bạn trả lời.']
             ]},
+
+          { t: 'cal', kind: 'info', title: 'Ba dòng in ra là bằng chứng, không phải lý thuyết', x:
+            '<p>Lệnh đầu chạy với <code>-u NONE</code> — bỏ qua mọi file cấu hình — và in ra ' +
+            '<code>tabstop=8</code>: đó là giá trị mặc định gốc của vim, chưa ai đụng vào.</p>' +
+            '<p>Lệnh sau nạp đúng <code>~/.vimrc</code> bạn vừa viết và in ra <code>tabstop=4</code> ' +
+            'rồi <code>expandtab</code> — không có tiền tố <code>no</code>, nghĩa là tuỳ chọn đang ' +
+            '<b>bật</b>. Cùng một câu hỏi <code>set tabstop?</code>, chỉ khác ở chỗ có nạp ' +
+            '<code>.vimrc</code> hay không, mà ra hai con số khác nhau — đó là bằng chứng trực tiếp ' +
+            'rằng hai dòng <code>set tabstop=4</code> và <code>set expandtab</code> bạn vừa gõ vào ' +
+            '<code>~/.vimrc</code> đã thật sự có tác dụng, không phải suy đoán.</p>' },
 
           { t: 'cal', kind: 'why', title: 'expandtab: một dòng cấu hình cứu bạn nhiều giờ', x:
             '<p><code>expandtab</code> biến phím Tab thành các dấu cách. Đây là điều bạn muốn với ' +

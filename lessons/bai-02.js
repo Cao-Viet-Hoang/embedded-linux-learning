@@ -451,7 +451,19 @@ Lesson.register({
           { t: 'p', x:
             'Dòng thứ hai đáng chú ý: kernel <b>in lại chính chuỗi cmdline</b> mà nó nhận được. ' +
             'Trên board thật, đây là cách nhanh nhất để kiểm chứng bootloader có truyền đúng tham số ' +
-            'hay không.' }
+            'hay không.' },
+
+          { t: 'cal', kind: 'info', title: 'Còn hai dòng kia thì sao', x:
+            '<p>Dòng đầu tiên — <code>Linux version 6.18.33.2-microsoft-standard-WSL2</code> — là ' +
+            'đúng chuỗi bạn đã đọc được ở <b>Bài 1</b> bằng lệnh <code>uname -a</code>. Điểm khác ' +
+            'nhau nằm ở <b>cách lấy</b>: <code>uname</code> hỏi thẳng kernel đang chạy ngay lúc bạn ' +
+            'gõ lệnh, còn dòng này là một <b>bản ghi log cố định</b> — kernel chỉ in nó đúng một lần, ' +
+            'tại thời điểm khởi động, rồi giữ nguyên trong vùng đệm vòng suốt phiên làm việc. Hai ' +
+            'cách hỏi khác nhau, cùng xác nhận một sự thật.</p>' +
+            '<p>Dòng thứ ba bị cắt cụt vì <code>head -3</code>: <code>KERNEL supported cpus:</code> ' +
+            'chỉ là <b>tiêu đề</b> của một danh sách — các dòng liệt kê chủng loại CPU x86 mà kernel ' +
+            'này biết cách hỗ trợ nằm ngay sau đó, nhưng không lọt vào ba dòng đầu. Bỏ ' +
+            '<code>| head -3</code> đi nếu bạn muốn xem trọn danh sách.</p>' }
         ]},
 
       { title: 'Tìm chính xác mốc bàn giao sang userspace',
@@ -517,7 +529,19 @@ Lesson.register({
           { t: 'p', x:
             'Mỗi nhánh trong cây này là một dịch vụ do PID 1 khởi chạy. Trên một thiết bị nhúng gọn ' +
             'gàng, cây này chỉ có <b>ba đến năm nhánh</b>. Ở đây nó rậm rạp vì Ubuntu là bản phân phối ' +
-            'cho máy tính cá nhân — đúng sự khác biệt mà Bài 1 đã mô tả.' }
+            'cho máy tính cá nhân — đúng sự khác biệt mà Bài 1 đã mô tả.' },
+
+          { t: 'cal', kind: 'info', title: 'Đọc đúng năm nhánh trong output', x:
+            '<p>Output liệt kê đúng năm nhánh con trực tiếp của <code>systemd(1)</code>: ' +
+            '<code>agetty</code> (chờ đăng nhập trên một terminal ảo), <code>chronyd-starter</code> ' +
+            '— sinh ra một tiến trình <code>chronyd</code> con, rồi chính tiến trình đó lại sinh ' +
+            'thêm một <code>chronyd</code> nữa (chuỗi cha–con hai tầng, đến từ cơ chế <code>fork</code> ' +
+            'mà Bài 20 sẽ mổ xẻ), <code>cron</code> (chạy tác vụ theo lịch), <code>dbus-daemon</code> ' +
+            '(kênh giao tiếp giữa các tiến trình), và <code>login</code> với <code>bash</code> làm ' +
+            'con của nó — chính là phiên bạn đang gõ lệnh ngay bây giờ.</p>' +
+            '<p>Đây là bảng "Mỗi giai đoạn bàn giao cái gì" ở đầu bài, nhìn thấy tận mắt: mục ' +
+            '<code>chạy service</code> của giai đoạn 4 không phải một câu mô tả trừu tượng, mà chính ' +
+            'là năm nhánh này.</p>' }
         ]},
 
       { title: 'Nhìn thấy mili-giây thứ nhất mà WSL2 không có',

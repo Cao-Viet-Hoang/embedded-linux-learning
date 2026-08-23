@@ -482,7 +482,18 @@ Lesson.register({
                '<li>Không có trình nạp động chạy trước <code>main()</code>, nên số khối bạn đếm ' +
                'được là của <i>chương trình</i>, không lẫn công việc phân giải ký hiệu.</li>' +
                '<li>Cùng một tập mã mỗi lần chạy, nên số đo lặp lại được.</li>' +
-               '</ul>' }
+               '</ul>' },
+
+          { t: 'cal', kind: 'info', title: '705 248 và 705 256 byte — chênh nhau đúng 8 byte',
+            x: '<p><code>loop_arm64</code> nặng <b>705 248</b> byte, <code>tiny_arm64</code> nặng ' +
+               '<b>705 256</b> byte — chênh nhau vỏn vẹn <b>8 byte</b>, dù <code>loop.c</code> có ' +
+               'một vòng lặp 200 triệu bước còn <code>tiny.c</code> chỉ gọi <code>printf</code> ' +
+               'một lần rồi thoát. Sự chênh lệch tí hon đó tự nó đã là bằng chứng: gần như toàn bộ ' +
+               '705 KB kia là <b>glibc được liên kết tĩnh vào</b>, không phải mã của bạn — logic ' +
+               'vòng lặp trong <code>loop.c</code> chỉ tốn thêm vài chục byte mã máy so với ' +
+               '<code>tiny.c</code>. Bạn sẽ thấy đúng hệ quả này ở bước 2: phần lớn trong ' +
+               '<b>1 096</b> khối lệnh của <code>tiny_arm64</code> hoá ra cũng là công việc của ' +
+               'thư viện C khởi tạo, không phải của <code>main()</code>.</p>' }
         ]},
 
       /* ── BƯỚC 2 ── */
@@ -633,6 +644,16 @@ Lesson.register({
             ' and_i64 loc4,loc4,loc3\n' +
             ' qemu_ld_i64 x1,loc4,noat+al+tlb+leq,0' },
 
+          { t: 'cal', kind: 'info', title: 'op.log nặng gấp hơn 10 lần tb.log — vì sao',
+            x: '<p><code>op.log</code> nặng <b>1 206 222</b> byte, so với <b>114 597</b> byte ' +
+               'của <code>tb.log</code> ở bước 2 — hơn <b>10,5 lần</b>, dù cả hai ghi lại đúng ' +
+               'cùng một lần chạy của cùng một chương trình. Lý do nằm ở chỗ mỗi mục nhật ký ghi ' +
+               'một tầng khác nhau: <code>in_asm</code> in <i>một dòng byte thô</i> cho mỗi khối, ' +
+               'còn <code>op</code> in ra <i>từng thao tác TCG</i> bên trong khối đó — và bảng ' +
+               'dưới đây cho thấy một lệnh ARM64 có thể nở ra tới năm thao tác. Nhật ký càng gần ' +
+               'phần cứng thật thì càng gọn; càng gần tầng trung gian thì càng dài, vì mỗi lệnh ' +
+               'gốc bị viết lại tường minh thành nhiều bước nhỏ hơn.</p>' },
+
           { t: 'p', x:
             'Đối chiếu với bản assembly ở bước 2 thì mọi thứ khớp từng dòng một. Bảng dưới ghép ' +
             'ba cột lại; đây là chỗ ba giai đoạn dịch trở nên cụ thể.' },
@@ -739,6 +760,17 @@ Lesson.register({
             'real\t0m0.624s\n' +
             'real\t0m0.635s' },
 
+          { t: 'cal', kind: 'info', title: 'Đọc sáu con số này trước khi tắt cơ chế nào',
+            x: '<p>Ba lần đo dao động chút ít vì nhiễu của bộ lập lịch hệ điều hành: native đi từ ' +
+               '<b>0,245 s</b> đến <b>0,287 s</b> (~17 %), qemu-aarch64 đi từ <b>0,576 s</b> đến ' +
+               '<b>0,635 s</b> (~10 %). Đó là lý do đo ba lần chứ không phải một — một lần đo lẻ ' +
+               'có thể rơi đúng vào một đỉnh nhiễu và làm bạn hiểu sai chi phí thật.</p>' +
+               '<p>Lấy trung bình cộng: native <b>(0,245+0,248+0,287)/3 ≈ 0,260 s</b>, ' +
+               'qemu-aarch64 <b>(0,576+0,624+0,635)/3 ≈ 0,612 s</b> — đúng hai con số ở dòng đầu ' +
+               'bảng bên dưới. Tỉ lệ 0,612 ÷ 0,260 ≈ <b>2,35 lần</b>: với mã thuần tính toán như ' +
+               '<code>loop.c</code>, đây là chi phí TCG khi mọi cơ chế tăng tốc còn nguyên vẹn. Ba ' +
+               'bước tiếp theo tháo dần từng cơ chế để xem con số này phình lên bao nhiêu.</p>' },
+
           { t: 'p', x:
             'Giờ tắt <b>nối khối</b>. Bộ đệm khối vẫn còn — QEMU vẫn dịch mỗi khối đúng một lần — ' +
             'nhưng sau mỗi khối nó phải quay về vòng điều phối và tra bảng băm thay vì nhảy thẳng:' },
@@ -749,6 +781,15 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'real\t0m2.623s\n' +
             'real\t0m2.490s' },
+
+          { t: 'cal', kind: 'info', title: 'Tắt một cơ chế, chậm ngay gấp hơn 4 lần',
+            x: '<p>Trung bình hai lần đo: <b>(2,623+2,490)/2 ≈ 2,557 s</b> — đúng con số ở hàng ' +
+               '<code>-d nochain</code> trong bảng bên dưới. So với mặc định vừa đo ở trên ' +
+               '(0,612 s), tỉ lệ là 2,557 ÷ 0,612 ≈ <b>4,18 lần</b>: chỉ mất một lệnh nhảy vá sẵn ' +
+               'ở cuối mỗi khối mà chương trình chậm hẳn đi hơn bốn lần. Bộ đệm khối vẫn nguyên — ' +
+               'QEMU không dịch lại lệnh nào cả — toàn bộ chi phí tăng thêm nằm ở việc phải quay ' +
+               'về vòng điều phối và tra bảng băm sau <i>mỗi</i> khối thay vì nhảy thẳng sang khối ' +
+               'kế như trước.</p>' },
 
           { t: 'p', x:
             'Cuối cùng, tháo nốt: <code>-one-insn-per-tb</code> ép mỗi khối chỉ chứa <b>đúng một ' +

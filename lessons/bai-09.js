@@ -640,6 +640,12 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'shell PID = 314\n' +
             'PPID = 313' },
+          { t: 'cal', kind: 'info', title: 'PPID 313 không phải một con số ngẫu nhiên', x:
+            '<p><code>$$</code> trả về đúng <b>314</b>, khớp với PID của <code>bash</code> trong ' +
+            'hai lệnh <code>ps</code> phía trên. Còn <code>313</code> — cha của shell của bạn — sẽ ' +
+            'lộ diện ngay ở bước tiếp theo khi bạn dựng lại cả cây bằng <code>--forest</code>: đó ' +
+            'không phải một shell đăng nhập bình thường mà là tiến trình <code>Relay</code> của ' +
+            'WSL2, cầu nối giữa cửa sổ Windows và máy ảo Linux.</p>' },
           { t: 'p', x: 'Bây giờ đếm toàn bộ máy:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: 'ps -e --no-headers | wc -l' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code: '56' },
@@ -669,6 +675,16 @@ Lesson.register({
             'đã mổ xẻ ở Bài 6.</p>' },
           { t: 'p', x: 'Vẽ cây bằng <code>pstree</code>:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: 'pstree -p 1 | head -9' },
+          { t: 'cmdx', cmd: 'pstree -p 1', title: 'Đừng lẫn -p của pstree với -p của ps',
+            rows: [
+              ['<code>-p</code>', 'In kèm PID sau mỗi tên tiến trình (<i>show PIDs</i>)',
+               'Ở <code>ps -p PID</code>, <code>-p</code> lại có nghĩa hoàn toàn khác: "chỉ lọc đúng ' +
+               'PID này". Cùng một chữ cái, hai lệnh, hai nghĩa trái ngược'],
+              ['<code>1</code>', 'Không phải tham số của <code>-p</code> — đây là tham số <b>độc lập</b> ' +
+               'chọn gốc để vẽ cây (PID hoặc tên người dùng)',
+               'Bỏ số này thì <code>pstree</code> tự lấy gốc là <code>init</code>, tức PID 1, nên kết ' +
+               'quả thường giống hệt']
+            ]},
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'systemd(1)-+-agetty(273)\n' +
             '           |-chronyd-starter(137)---chronyd(220)---chronyd(226)\n' +
@@ -905,12 +921,22 @@ Lesson.register({
             '[stubborn] received SIGTERM, not going anywhere\n' +
             '    PID STAT COMMAND\n' +
             '   4312 S    stubborn.sh' },
+          { t: 'cal', kind: 'info', title: 'Tín hiệu đã tới nơi — nhưng PID 4312 vẫn còn ở STAT S', x:
+            '<p>Bảng ở đầu bài nói SIGTERM mặc định là "thoát", nhưng dòng cuối vẫn cho thấy ' +
+            '<code>4312 S stubborn.sh</code> — tiến trình <b>còn sống</b>. Kernel đã chuyển tín hiệu ' +
+            'tới đúng nơi, chương trình đã <b>bắt</b> nó bằng <code>trap</code> và tự quyết định in ' +
+            'dòng chữ kia thay vì thoát. "Mặc định" chỉ áp dụng khi chương trình không đăng ký hàm ' +
+            'xử lý riêng.</p>' },
           { t: 'p', x: 'Thử SIGINT, tức <kbd>Ctrl</kbd>+<kbd>C</kbd>:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'kill -INT $B\nsleep 1\nps -o pid,stat,comm -p $B --no-headers' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '[stubborn] received SIGINT, not that either\n' +
             '   4312 S    stubborn.sh' },
+          { t: 'p', x:
+            'Cùng PID <b>4312</b>, cùng trạng thái <code>S</code> như sau SIGTERM — script bắt ' +
+            'SIGINT bằng cách y hệt, nên kết quả cũng y hệt. Ngay cả tín hiệu bạn gửi bằng phím tắt ' +
+            'quen thuộc <kbd>Ctrl</kbd>+<kbd>C</kbd> cũng bị chặn lại theo cách này.' },
           { t: 'p', x: 'Bây giờ tín hiệu không ai chống được:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'kill -KILL $B\nsleep 1\nps -o pid,stat,comm -p $B --no-headers\necho "rc=$?"' },

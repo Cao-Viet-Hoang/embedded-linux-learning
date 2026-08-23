@@ -765,6 +765,12 @@ Lesson.register({
             '                     int fd, const void buf[count], size_t count);' },
 
           { t: 'cal', kind: 'tip', title: 'man mục 2 là tài liệu tham khảo chính của cả Chặng 03', x:
+            '<p>Mười ba dòng bạn vừa giới hạn bằng <code>head -13</code> chỉ đủ tới hết mục ' +
+            '<b>SYNOPSIS</b>. Dòng <code>LIBRARY: Standard C library (libc, -lc)</code> xác nhận ' +
+            'đúng điều bạn đã thấy ở sơ đồ user/kernel phía trên: <code>write()</code> mà bạn gọi ' +
+            'trong C là một hàm nằm trong <code>libc.so.6</code>, không phải bản thân syscall. ' +
+            'Bỏ <code>| head -13</code> đi để đọc tiếp — <b>RETURN VALUE</b> và <b>ERRORS</b> nằm ' +
+            'ngay phía dưới, chưa xuất hiện trong 13 dòng này.</p>' +
             '<p><code>man 2 write</code> — syscall. <code>man 3 printf</code> — hàm thư viện C. ' +
             'Cùng một cái tên có thể tồn tại ở nhiều mục: thử <code>man 2 open</code> và ' +
             '<code>man 3 fopen</code>.</p>' +
@@ -848,6 +854,15 @@ Lesson.register({
             'fd src=3  fd dst=4\n' +
             'IDENTICAL BYTE FOR BYTE' },
 
+          { t: 'cal', kind: 'info', title: 'fd=3 và fd=4 không phải ngẫu nhiên, và cmp im lặng là kết quả tốt', x:
+            '<p><code>copy</code> không mở gì khác trước đó, nên khi nó gọi <code>open(argv[1], ...)</code> ' +
+            'lần đầu, 0/1/2 đã bị shell chiếm hết — đúng quy tắc "trả về số nhỏ nhất còn trống" ở mục ' +
+            '<i>File descriptor</i> phía trên. <code>src</code> nhận <b>3</b>, rồi <code>dst</code> nhận <b>4</b> ' +
+            'khi <code>open(argv[2], ...)</code> chạy tiếp ngay sau đó.</p>' +
+            '<p><code>cmp</code> không in gì cả khi hai file giống hệt nhau — im lặng ở đây là thành công, ' +
+            'không phải chương trình treo. Đó là bằng chứng vòng lặp <code>while (written &lt; n)</code> đã ' +
+            'ghi đúng và đủ số byte, kể cả khi một lần gọi <code>write</code> chọn ghi ít hơn yêu cầu.</p>' },
+
           { t: 'cmdx', cmd: 'while ((n = read(src, buf, sizeof buf)) > 0)',
             title: 'Vì sao vòng lặp phải viết đúng như vậy',
             rows: [
@@ -889,6 +904,14 @@ Lesson.register({
             'close(4)                                = 0\n' +
             'write(1, "fd src=3  fd dst=4\\n", 19)    = 19\n' +
             '+++ exited with 0 +++' },
+
+          { t: 'cal', kind: 'tip', title: 'Đúng chín dòng bạn đã đọc kỹ ở mục lý thuyết phía trên', x:
+            '<p>Đây là chính xác đoạn vết bạn đã phân tích theo sáu điểm ở mục lý thuyết ' +
+            '<i>strace — nhìn xuyên qua một chương trình không có mã nguồn</i>: hai <code>openat</code> ' +
+            'cấp fd 3 và 4, cặp <code>read</code>/<code>write</code> 21 byte, dòng ' +
+            '<code>read(3, "", 4096) = 0</code> báo hết file, hai <code>close</code>, rồi một ' +
+            '<code>write(1, …)</code> duy nhất ứng với lệnh <code>printf</code> trong mã nguồn. Dòng nào ' +
+            'chưa rõ nghĩa, quay lại sáu điểm đã liệt kê ở đó trước khi làm bước tiếp theo.</p>' },
 
           { t: 'p', x:
             'Rồi đếm tổng thể xem một chương trình 60 dòng thật ra tốn bao nhiêu lời gọi vào nhân:' },
@@ -952,6 +975,17 @@ Lesson.register({
             'exit=1\n' +
             'open /etc/shadow: Permission denied (errno=13)\n' +
             'exit=1' },
+
+          { t: 'cal', kind: 'info', title: 'Cùng một nhánh if trong copy.c, hai nguyên nhân khác nhau', x:
+            '<p>Cả hai lệnh đều rơi vào đúng nhánh <code>if (src &lt; 0)</code> của <code>copy.c</code> — ' +
+            'cả hai đều lỗi khi mở <b>đối số nguồn</b>, chưa hề chạm tới <code>dst</code>. Nhưng ' +
+            '<code>errno</code> khác nhau đúng như bảng hằng lỗi ở mục <i>errno</i> phía trên: thiếu ' +
+            'file ra <b>2 (ENOENT)</b>, không đủ quyền ra <b>13 (EACCES)</b>. Cùng một dòng ' +
+            '<code>strerror(errno)</code> tự in đúng câu tương ứng — chương trình không cần viết riêng ' +
+            'nhánh cho từng loại lỗi.</p>' +
+            '<p>Mã thoát <b>1</b> ở cả hai lần đến từ đúng một dòng <code>return 1;</code> ngay sau ' +
+            'nhánh đó — <code>copy</code> phân biệt nguyên nhân khi <i>in thông báo</i>, nhưng không hề ' +
+            'phân biệt khi <i>quyết định mã thoát</i>.</p>' },
 
           { t: 'p', x:
             'Bây giờ tới bài học quan trọng nhất về <code>errno</code>. Biên dịch và chạy ' +
@@ -1057,6 +1091,15 @@ Lesson.register({
             'for i in 1 2 3; do time ./lines stdio   b.txt; done\n' +
             'cmp a.txt b.txt && echo "FILES ARE IDENTICAL"' },
 
+          { t: 'cmdx', cmd: "TIMEFORMAT='real %3R  user %3U  sys %3S'",
+            title: 'Ba trường in ra bởi time — cột nào mới thật sự đo syscall',
+            rows: [
+              ['<code>%R</code>', 'Thời gian thực đã trôi qua (<i>wall clock</i>)', 'Gồm cả lúc tiến trình bị hệ điều hành tạm dừng để nhường CPU — không phải con số đo riêng chương trình'],
+              ['<code>%U</code>', 'Số giây CPU chạy trong <b>user mode</b>', 'Thời gian tính toán thuần trong mã của bạn, không tính lúc chờ nhân'],
+              ['<code>%S</code>', 'Số giây CPU chạy trong <b>kernel mode</b>', 'Cột quan trọng nhất bài này: mỗi syscall cộng thêm đúng vào đây'],
+              ['<code>%3</code>', 'In 3 chữ số sau dấu phẩy', 'Giống mặc định của bash; đặt lại <code>TIMEFORMAT</code> ở đây chỉ để gộp cả ba số thành một dòng dễ so sánh, thay vì in trên ba dòng riêng như mặc định']
+            ]},
+
           { t: 'code', where: 'out', nocopy: true, code:
             'real 0.131  user 0.032  sys 0.099\n' +
             'real 0.130  user 0.036  sys 0.095\n' +
@@ -1149,6 +1192,13 @@ Lesson.register({
             'xxd -s 5242880  -l 16 sparse.bin\n' +
             'xxd -s 10485760 -l 16 sparse.bin' },
 
+          { t: 'cmdx', cmd: 'xxd -s 5242880 -l 16 sparse.bin',
+            title: 'Hai cờ của xxd cần để đọc đúng một vùng trong file lớn',
+            rows: [
+              ['<code>-s &lt;offset&gt;</code>', 'Nhảy tới vị trí byte tuyệt đối trước khi đọc (<i>seek</i>)', 'Không có nó, <code>xxd</code> luôn đọc từ đầu file — vô dụng với file 10 MB mà bạn chỉ muốn xem ở giữa'],
+              ['<code>-l &lt;len&gt;</code>', 'Chỉ đọc và in đúng <i>len</i> byte rồi dừng', 'Không có nó, <code>xxd</code> in hết phần còn lại của file — với <code>sparse.bin</code> là hàng triệu dòng toàn số 0']
+            ]},
+
           { t: 'code', where: 'out', nocopy: true, code:
             '00000000: 4845 4144 0000 0000 0000 0000 0000 0000  HEAD............\n' +
             '00500000: 0000 0000 0000 0000 0000 0000 0000 0000  ................\n' +
@@ -1210,6 +1260,17 @@ Lesson.register({
             'write to /dev/full -> exit=1',
             notes: ['Dòng đầu là 8 byte ngẫu nhiên — máy bạn chắc chắn ra giá trị khác. Ba dòng còn lại phải giống hệt.'] },
 
+          { t: 'cal', kind: 'info', title: '/dev/zero luôn trả về số 0, /dev/null luôn nuốt trọn dữ liệu', x:
+            '<p>Dòng thứ hai (<code>dd if=/dev/zero</code>) toàn <b>0000</b> — <code>/dev/zero</code> không ' +
+            'đọc từ đâu cả, driver của nó chỉ chép byte 0 vào bộ đệm bạn đưa, bao nhiêu cũng được. Ghi vào ' +
+            '<code>/dev/null</code> thì ngược lại: dữ liệu bị driver vứt ngay khi vào tới, không chạm RAM ' +
+            'hay đĩa, nên <code>echo hello &gt; /dev/null</code> luôn trả về <b>exit=0</b> dù không ai đọc ' +
+            'lại được "hello" ở đâu nữa.</p>' +
+            '<p>Cả hai đều mang <b>major 1</b> như bạn vừa thấy ở dòng <code>ls -l</code> phía trên — cùng ' +
+            'driver bộ nhớ trong nhân, chỉ khác số hiệu phụ. Dùng chúng để tạo dữ liệu giả ' +
+            '(<code>/dev/zero</code>) hoặc bỏ output không cần (<code>/dev/null</code>) mà không tốn một ' +
+            'byte đĩa thật nào.</p>' },
+
           { t: 'cal', kind: 'tip', title: '/dev/full tồn tại để bạn thử được nhánh xử lý lỗi', x:
             '<p>Ba thiết bị đầu thì quen thuộc. Cái thứ tư mới là công cụ nghề: <b>mọi lần ghi ' +
             'vào <code>/dev/full</code> đều thất bại với <code>ENOSPC</code></b> (errno 28, ' +
@@ -1237,6 +1298,15 @@ Lesson.register({
             '0-5\n' +
             '6.18.33.2-microsoft-standard-WSL2\n' +
             '--w------- 1 root root 0 Aug  5 22:11 /proc/sys/vm/drop_caches' },
+
+          { t: 'cal', kind: 'info', title: '0-5 chính là sáu CPU đã nhắc ở mục đo giá syscall', x:
+            '<p><code>0-5</code> là danh sách CPU logic đang bật, đánh số từ 0 — nghĩa là máy có đúng ' +
+            '<b>6 CPU</b>, khớp với con số "WSL2 là một máy ảo chạy chung 6 CPU với Windows" đã nêu ở ' +
+            'mục <i>Một syscall đắt hơn một lời gọi hàm bao nhiêu?</i> phía trên. Đó cũng là lý do phép ' +
+            'đo syscall dao động mạnh giữa các lần chạy: 6 CPU đó chia sẻ với toàn bộ tiến trình Windows ' +
+            'khác đang chạy cùng lúc.</p>' +
+            '<p><code>osrelease</code> xác nhận đúng bản nhân bạn đang chạy suốt bài này: ' +
+            '<code>6.18.33.2-microsoft-standard-WSL2</code>.</p>' },
 
           { t: 'cal', kind: 'why', title: 'Đây chính là cách bạn sẽ bật một chiếc đèn LED', x:
             '<p>Trên một board thật, bật đèn LED đúng nghĩa đen là:</p>' +

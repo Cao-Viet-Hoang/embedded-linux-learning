@@ -306,6 +306,10 @@ Lesson.register({
             '* Ubuntu    Running         2' },
 
           { t: 'cal', kind: 'warn', x:
+            '<p>Cột <code>VERSION</code> trên máy bạn hiện đúng <b>2</b>, và dấu <code>*</code> đứng trước ' +
+            '<code>Ubuntu</code> nghĩa là đây là distro <b>mặc định</b> khi bạn gõ <code>wsl</code> trơn. ' +
+            'Con số <b>2</b> xác nhận đúng thứ bảng e820 vừa chứng minh ở trên: đây là một máy ảo Hyper-V ' +
+            'thật với kernel Linux thật, không phải lớp dịch lệnh của WSL1.</p>' +
             '<p>Nếu cột <code>VERSION</code> hiện <b>1</b>, hãy dừng lại và chuyển đổi trước khi học tiếp:</p>' +
             '<p><code>wsl --set-version Ubuntu 2</code></p>' +
             '<p>WSL1 không có kernel Linux thật, nên phần lớn nội dung khoá học sẽ không chạy đúng.</p>' }
@@ -321,6 +325,12 @@ Lesson.register({
             'time (i=1; while [ $i -le 500 ]; do touch f$i; i=$((i+1)); done)' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'real    0m0.017s' },
+
+          { t: 'p', x:
+            'Ghi lại con số này — <b>0,017 giây</b> để tạo 500 file trên hệ thống file gốc. Đây là ' +
+            '<b>mốc chuẩn</b>. Bước tiếp theo chạy lại <i>nguyên văn</i> cùng một vòng lặp, chỉ đổi thư ' +
+            'mục làm việc sang <code>/mnt/c</code>, để phép so sánh chỉ còn một biến duy nhất là vùng ' +
+            'lưu trữ.' },
 
           { t: 'code', where: 'wsl', name: 'đo ở ổ đĩa Windows', code:
             'mkdir -p /mnt/c/temp/bench && cd /mnt/c/temp/bench && rm -rf t && mkdir t && cd t\n' +
@@ -425,6 +435,18 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '0' },
 
+          { t: 'cal', kind: 'info', x:
+            '<p>Số <b>0</b> in ra <b>không</b> phải nhân xác nhận điều gì — đó chỉ là hành vi chuẩn của ' +
+            '<code>tee</code>: nó chép nguyên văn dữ liệu nhận từ luồng vào ra <b>cả</b> màn hình lẫn file ' +
+            'được chỉ định, nên byte <code>0</code> bạn gõ hiện lại y hệt trước khi được ghi vào ' +
+            '<code>/proc/sys/fs/binfmt_misc/qemu-aarch64</code>. Ghi coi như thành công vì lệnh không báo ' +
+            'lỗi quyền hay <code>No such file or directory</code>.</p>' +
+            '<p>Giá trị vừa ghi có nghĩa cụ thể: <b>0 tắt</b>, <b>1 bật</b> luật nhận diện file ARM64 mà ' +
+            'gói <code>qemu-user</code> đã đăng ký ở bước trước. Tắt nó đi để bước dưới đây cho bạn thấy ' +
+            'đúng phản ứng thô của CPU x86 khi gặp lệnh ARM64 — nếu để nguyên ở trạng thái bật, nhân sẽ ' +
+            'âm thầm gọi <code>qemu-aarch64</code> giúp bạn và <code>Exec format error</code> sẽ không ' +
+            'bao giờ xuất hiện. Bài 27 mổ xẻ đầy đủ cơ chế đứng sau luật này.</p>' },
+
           { t: 'p', x: 'Giờ thử chạy bản ARM64 trực tiếp:' },
           { t: 'code', where: 'wsl', code:
             './hello-arm64; echo "exit=$?"' },
@@ -460,6 +482,9 @@ Lesson.register({
             '1' },
 
           { t: 'cal', kind: 'info', title: 'Cơ chế vừa tắt/mở tên là gì?', x:
+            '<p>Số <b>1</b> vừa hiện lại — đúng như số <b>0</b> lúc tắt — là <code>tee</code> chép lại giá ' +
+            'trị mới ghi; nó xác nhận luật đã được bật lại, không phải tắt như lúc bạn vừa chạy thử ' +
+            'ARM64 trần trụi ở trên.</p>' +
             '<p>Đó là <code>binfmt_misc</code> — một bảng trong nhân Linux cho phép đăng ký luật ' +
             '"nếu file bắt đầu bằng dãy byte này, hãy chạy nó bằng chương trình kia". Gói ' +
             '<code>qemu-user-binfmt</code> (đi kèm khi bạn cài <code>qemu-user</code> ở bước trước) ' +

@@ -590,6 +590,15 @@ Lesson.register({
             notes: ['Chạy lại vài lần. Thứ tự hai dòng PARENT/CHILD có thể đảo — đó là bộ lập ' +
               'lịch, không phải lỗi của bạn.'] },
 
+          { t: 'cal', kind: 'tip', title: 'Đối chiếu ba con số của chính bạn, đừng chỉ tin lời giải thích ở trên', x:
+            '<p>Trên máy bạn ba con số là <b>13383</b>/<b>13384</b>/<b>13330</b> thay vì ' +
+            '<b>13341</b>/<b>13342</b>/<b>13330</b> ở phần lý thuyết, nhưng quan hệ giữa chúng ' +
+            'giữ nguyên: ở nhánh cha, <code>fork</code> trả về <b>13384</b> — đúng bằng PID vừa ' +
+            'in ra ở nhánh con; ở nhánh con, <code>getppid()</code> trả về <b>13383</b> — đúng ' +
+            'bằng PID của cha. Dòng <code>both run this line</code> in ra đúng <b>hai lần</b>, ' +
+            'mỗi lần với một PID khác nhau. Đó là lý do bài yêu cầu bạn tự chạy lại thay vì đọc ' +
+            'transcript ở trên — ba con số của bạn khác, quan hệ giữa chúng thì không.</p>' },
+
           { t: 'p', x:
             'Bây giờ dựng lại cái bẫy đệm, để bạn thấy nó bằng mắt chứ không chỉ tin lời cảnh ' +
             'báo. Chép <code>fork_twice.c</code> thành <code>buffer_trap.c</code> rồi <b>xoá ' +
@@ -735,6 +744,14 @@ Lesson.register({
             notes: [
               'Cột đầu là PID, xuất hiện vì có <code>-f</code>. Không có <code>-f</code> thì strace bỏ qua toàn bộ đời sống của con.',
               'Vẫn phải dùng <code>-o</code> như Bài 19: nếu để vết ra màn hình, nó sẽ trộn lẫn với chữ <code>hi</code> mà chương trình in ra.'
+            ]},
+
+          { t: 'cmdx', cmd: 'strace -f -e trace=clone,execve,wait4 -o trace.txt ./runcmd echo hi',
+            title: 'Ba cờ quyết định bạn nhìn thấy gì trong trace.txt',
+            rows: [
+              ['<code>-f</code>', 'Theo dõi luôn các tiến trình con sinh ra bằng <code>fork</code>/<code>vfork</code>/<code>clone</code>', 'Thiếu cờ này, dòng <code>13415 execve(...)</code> của con sẽ không xuất hiện — strace mặc định chỉ nhìn tiến trình gốc'],
+              ['<code>-e trace=clone,execve,wait4</code>', 'Chỉ ghi vết đúng ba syscall này, bỏ qua hàng trăm syscall khác (đọc bộ nhớ, mmap, ioctl…)', 'Không có bộ lọc, <code>trace.txt</code> sẽ dài hàng trăm dòng nhiễu không liên quan tới fork/exec/wait'],
+              ['<code>-o trace.txt</code>', 'Ghi vết ra file thay vì in thẳng ra <code>stderr</code>', 'Bắt buộc ở đây vì chương trình đích tự in ra <code>stdout</code> — không tách riêng sẽ lẫn lộn hai luồng']
             ]},
 
           { t: 'cal', kind: 'why', title: 'Bốn điều bản ghi này chứng minh', x:
@@ -890,6 +907,15 @@ Lesson.register({
               'thể là <code>Relay(...)</code> hoặc <code>SessionLeader</code> tuỳ phiên WSL — ' +
               'điểm chung là nó <b>không phải PID 1</b>.'] },
 
+          { t: 'cal', kind: 'info', title: 'Đọc đúng thứ tự đổi PPID trong ba dòng đầu tiên', x:
+            '<p>Dòng đầu <code>initial ppid=13442</code> khớp đúng cha ruột vừa <code>fork</code> ' +
+            'ra nó. Dòng thứ hai, chụp lại <b>sau khi cha đã thoát</b>, cho ' +
+            '<code>ppid after parent died=13328</code> — một số hoàn toàn khác 13442, và quan ' +
+            'trọng hơn: <b>không phải 1</b>. Truy tiếp bằng <code>ps</code> ở trên cho thấy 13328 ' +
+            'chính là <code>Relay(13330)</code> — đúng khái niệm subreaper đã nêu ở phần lý ' +
+            'thuyết: nhân đi tìm subreaper gần nhất trong cây tiến trình của phiên WSL, chứ ' +
+            'không giao thẳng mồ côi cho PID 1.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Mồ côi không phải lỗi', x:
             '<p>Khác zombie, mồ côi hoàn toàn bình thường và còn là <b>kỹ thuật cố ý</b> — bạn ' +
             'sẽ dùng đúng nó ở Bước 5 để daemon hoá. Chương trình mồ côi vẫn chạy, vẫn ghi log, ' +
@@ -961,7 +987,15 @@ Lesson.register({
             '<p>Bổ sung: dòng cuối cùng của <code>main</code> dùng <code>execlp("cat", …)</code> ' +
             'thay vì <code>system()</code>. Tiến trình cha tự biến mình thành <code>cat</code> — ' +
             'không tốn thêm một <code>fork</code> nào. Đúng mẹo tiết kiệm đã nói ở phần lý ' +
-            'thuyết.</p>' },
+            'thuyết.</p>' +
+            '<p>Bằng chứng nằm ngay trong <code>out</code> ở trên: dòng <code>-rw-r--r-- ...</code> ' +
+            'chỉ xuất hiện <b>sau</b> dòng "contents of result.txt", do chính <code>cat</code> ' +
+            'đọc lại từ file mà in ra. Nếu <code>dup2</code> làm sai thứ tự hoặc thất bại thì ' +
+            '<code>ls</code> đã in thẳng ra terminal ngay khi con chạy — tức là <b>trước</b> dòng ' +
+            'dẫn của cha, và bạn sẽ thấy dòng đó xuất hiện <b>hai lần</b> (một lần từ chính ' +
+            '<code>ls</code>, một lần từ <code>cat</code> đọc lại file). Chỉ thấy đúng một dòng, ' +
+            'đúng vị trí, là bằng chứng toàn bộ output của <code>ls</code> đã đi thẳng vào ' +
+            '<code>result.txt</code>, chưa từng chạm terminal.</p>' },
 
           { t: 'p', x:
             'Việc cuối của bước này: <b>đo</b> giá của <code>fork</code> và <code>exec</code>, ' +

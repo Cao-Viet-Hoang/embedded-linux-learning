@@ -482,7 +482,14 @@ Lesson.register({
               ['<code>-I dtb</code>', 'Định dạng <b>vào</b> là nhị phân', '<code>-I</code> = input. Nhận cả <code>dts</code>, <code>dtb</code>, <code>fs</code>'],
               ['<code>-O dts</code>', 'Định dạng <b>ra</b> là văn bản', 'Chiều thường dùng hơn là <code>-I dts -O dtb</code> — biên dịch, và bạn sẽ dùng nó ở Chặng 08'],
               ['<code>-o virt.dts</code>', 'File kết quả. Không có nó thì kết quả đổ ra màn hình', '393 dòng thì nên ghi ra file']
-            ]}
+            ]},
+
+          { t: 'cal', kind: 'info', title: 'Vì sao 1 MB nhị phân chỉ dịch ra 393 dòng văn bản',
+            x: '<p>Con số <b>393</b> là nội dung <i>thật</i> của device tree — mọi nút, mọi thuộc ' +
+               'tính, không hơn. So với <b>1 048 576</b> byte của <code>virt.dtb</code> ở bước ' +
+               'trên, chỉ một phần rất nhỏ mang dữ liệu; phần còn lại là khoảng trống được cấp ' +
+               'sẵn cho firmware chèn thêm, đúng như hộp thoại vừa giải thích.</p>' +
+               '<p>Nhớ con số 393: bước 2 sẽ trích ra từng nút cụ thể nằm trong 393 dòng này.</p>' }
         ]},
 
       /* ── BƯỚC 2 ── */
@@ -662,6 +669,16 @@ Lesson.register({
             '    x-file-slots = 32 (0x20)\n' +
             '    acpi-mr-restore = true' },
 
+          { t: 'cal', kind: 'info', title: 'Hai con số trong qtree đối chiếu được với những gì bạn đã đọc',
+            x: '<p><code>mmio_size = 33554432 (0x2000000)</code> của <code>platform-bus-device</code> ' +
+               'là đúng <b>32 MB</b> — khớp kích thước vùng <code>platform-bus</code> ở ' +
+               '<code>0x0c000000</code> trong bảng đầu bài. <code>info qtree</code> không chỉ liệt ' +
+               'kê thiết bị, nó còn cho xem <b>tham số thật</b> QEMU đã cấu hình cho từng cái.</p>' +
+               '<p><code>x-file-slots = 32 (0x20)</code> của <code>fw_cfg_mem</code> là số ô tối đa ' +
+               'trong thư mục tệp mà fw-cfg quản lý — đúng cơ chế bạn vừa đọc ở phần lý thuyết: mỗi ' +
+               'ô giữ một tệp có tên (ảnh nhân, initrd, device tree, dòng lệnh…) mà ' +
+               '<code>-kernel</code> gửi cho guest qua kênh này.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Ba lệnh monitor đáng thuộc lòng',
             x: '<p><code>info mtree -f</code> — cái gì ở địa chỉ nào. Dùng khi truy một truy cập ' +
                'bộ nhớ đi đâu.</p>' +
@@ -696,6 +713,23 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             '391' },
+
+          { t: 'cmdx', cmd: 'dump() { qemu-system-aarch64 -M "$1" -cpu cortex-a57 -m "$2" ${3:+$3} -machine dumpdtb=tmp.dtb …; dtc … | grep -vE …; }',
+            title: 'Mổ hàm shell dump()',
+            rows: [
+              ['<code>"$1" "$2" "$3"</code>', 'Ba tham số vị trí của hàm: tên machine, dung lượng RAM, và một tham số phụ tuỳ chọn', 'Gọi <code>dump virt 512</code> nghĩa là <code>$1=virt</code>, <code>$2=512</code>, <code>$3</code> rỗng'],
+              ['<code>${3:+$3}</code>', 'Chỉ chèn <code>$3</code> vào dòng lệnh khi tham số thứ ba <b>có được truyền</b>; nếu không có thì thay bằng chuỗi rỗng', 'Cú pháp bash chuẩn <code>${parameter:+word}</code> — chỉ quan tâm tham số có tồn tại hay không, không quan tâm giá trị của nó'],
+              ['<code>>/dev/null 2>&amp;1</code>', 'Vứt cả stdout lẫn stderr của QEMU — hàm chỉ cần file <code>tmp.dtb</code>, không cần xem log', 'Nếu QEMU báo lỗi tham số, hàm sẽ im lặng thất bại; kiểm file kết quả nếu nghi ngờ'],
+              ['<code>grep -vE \'rng-seed|kaslr-seed\'</code>', 'Lọc bỏ hai dòng số ngẫu nhiên trước khi hàm trả kết quả', 'Nhờ lọc ngay trong hàm, mọi lần gọi <code>dump</code> về sau đều tự động sạch, không phải lọc lại']
+            ]},
+
+          { t: 'cal', kind: 'info', title: 'Vì sao 391 dòng, không phải 393 như bước 1?',
+            x: '<p>Đúng hai dòng ít hơn con số 393 ở bước 1 — không phải sai số. Hàm ' +
+               '<code>dump()</code> lọc bỏ đúng hai dòng ngẫu nhiên <code>rng-seed</code> và ' +
+               '<code>kaslr-seed</code> trước khi trả kết quả, như đoạn trên vừa giải thích. Từ ' +
+               'đây tới hết bước, mọi <code>base.dts</code>, <code>m1g.dts</code>, ' +
+               '<code>smp2.dts</code> đều đã sạch số ngẫu nhiên, nên mọi <code>diff</code> sau ' +
+               'này chỉ còn hiện thay đổi thật.</p>' },
 
           { t: 'p', x: 'Bây giờ đổi dung lượng RAM:' },
 
@@ -902,6 +936,15 @@ Lesson.register({
                '<p>QEMU chỉ nạp phần được đánh dấu <code>LOAD</code>, nên 105 byte kia mới là ' +
                'thứ thật sự vào RAM.</p>' },
 
+          { t: 'cal', kind: 'info', title: 'readelf xác nhận đúng những gì link.ld yêu cầu',
+            x: '<p><code>Entry point address: 0x40080000</code> đúng bằng con số bạn đặt ở ' +
+               '<code>. = 0x40080000;</code> trong <code>link.ld</code>. Trình liên kết đã đặt ' +
+               'lệnh đầu tiên của <code>_start</code> đúng nơi bạn yêu cầu, không nơi nào khác.</p>' +
+               '<p><code>Type: EXEC (Executable file)</code> nghĩa là một file có địa chỉ ' +
+               '<b>cố định</b>, khác <code>ET_DYN</code> (shared object / PIE) mà chương trình ' +
+               'Linux thông thường hay dùng. Đúng thứ bạn cần: không có ai nạp lại địa chỉ giúp ' +
+               'một chương trình bare-metal, nên nó phải chạy đúng tại địa chỉ đã liên kết.</p>' },
+
           { t: 'p', x: 'Chạy nó:' },
 
           { t: 'code', where: 'wsl', code:
@@ -1069,6 +1112,12 @@ Lesson.register({
             '    bus: i2c-bus.2\n' +
             '      type i2c-bus\n' +
             '      dev: tmp105, id ""' },
+
+          { t: 'p', x:
+            'Kết quả đảo ngược hẳn so với <code>virt</code>: <code>tmp105</code> giờ có nhà — nó ' +
+            'ngồi dưới <code>bcm2835-i2c</code>, trên <code>i2c-bus.2</code>. Đây chính xác là ' +
+            'thứ <code>virt</code> không có: một bộ điều khiển I2C thật của SoC, sẵn một bus để ' +
+            'thiết bị I2C cắm vào.' },
 
           { t: 'p', x: 'Và trên một SoC công nghiệp của NXP:' },
 

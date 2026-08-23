@@ -517,6 +517,15 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'Hello from bare metal ARM64' },
 
+          { t: 'cal', kind: 'why', title: 'Một tham số duy nhất đổi, và kết quả lật từ lỗi sang đúng',
+            x: '<p>So hai lần chạy: cùng file <code>hello.elf</code>, cùng <code>-M virt</code>, cùng ' +
+               '<code>-m 128</code> — chỉ thêm đúng một tham số <code>-cpu cortex-a57</code>. Lần trước QEMU ' +
+               'từ chối nạp file với <code>incompatible architecture</code>; lần này <code>out31.txt</code> ' +
+               'chứa đúng chuỗi <code>hello.S</code> của bạn in ra, không thiếu không thừa một ký tự.</p>' +
+               '<p>Đây là bằng chứng thực nghiệm chứ không chỉ suy luận: nguyên nhân duy nhất của lỗi ban đầu ' +
+               'là CPU mặc định sai, không phải file <code>hello.elf</code> hỏng, không phải cờ biên dịch ' +
+               'sai — đổi đúng một tham số là đủ sửa cả hai triệu chứng bạn đã thấy ở trên.</p>' },
+
           { t: 'cmdx', cmd: 'qemu-system-aarch64 -M virt -cpu cortex-a57 -m 128 -kernel hello.elf -display none -serial file:out31.txt -monitor none',
             title: 'Mổ xẻ dòng lệnh tối thiểu',
             rows: [
@@ -643,6 +652,12 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'Hello from bare metal ARM64' },
 
+          { t: 'p', x:
+            'So với lệnh <code>-serial null</code> lúc nãy — màn hình trống trơn dù chương trình vẫn chạy — ' +
+            'lần này đúng chuỗi bạn viết trong <code>hello.S</code> hiện ngay trên chính terminal đang gõ ' +
+            'lệnh. Chardev không đổi cách guest ghi vào PL011; nó chỉ đổi <b>đầu ra</b> đang nối vào, đúng như ' +
+            'sơ đồ chardev ở trên mô tả.' },
+
           { t: 'cal', kind: 'tip', title: 'Thoát ra: Ctrl+A rồi X',
             x: '<p>Chương trình đang quay trong <code>wfi</code> và không bao giờ tự dừng. ' +
                '<kbd>Ctrl</kbd>+<kbd>C</kbd> lúc này đi <i>vào guest</i> chứ không giết QEMU.</p>' +
@@ -726,6 +741,17 @@ Lesson.register({
               ['<code>drive=hd0</code>', 'Nối mặt tiền vào hậu trường tên <code>hd0</code>', 'Sai tên ở đây là lỗi ngay lúc khởi động, không phải lúc guest chạy']
             ]},
 
+          { t: 'cal', kind: 'info', title: 'Dòng hd0 xác nhận hai nửa đã ghép đúng',
+            x: '<p>Tên <code>hd0</code> mở đầu dòng chính là cái tên bạn đặt bằng <code>id=hd0</code> — QEMU ' +
+               'nhắc lại đúng tên đó, không tự đổi. Số trong ngoặc <code>(#block195)</code> là một số hiệu nội ' +
+               'bộ QEMU tự sinh cho backend này, khác với <code>id=hd0</code> bạn gõ — chỉ dùng để phân biệt ' +
+               'các backend với nhau khi có nhiều ổ, không phải thứ bạn tự đặt hay cần nhớ.</p>' +
+               '<p><code>Attached to: /machine/peripheral-anon/device[0]</code> là bằng chứng phần mặt tiền ' +
+               '<code>-device virtio-blk-device,drive=hd0</code> đã tìm thấy đúng hậu trường và gắn vào — nếu ' +
+               'bạn gõ sai <code>drive=</code> thành một tên không tồn tại, QEMU sẽ báo lỗi ngay lúc khởi động ' +
+               'thay vì in được dòng này. <code>Cache mode: writeback</code> là giá trị QEMU tự chọn khi bạn ' +
+               'không khai <code>cache=</code> — đúng chế độ mặc định được tài liệu ghi rõ.</p>' },
+
           { t: 'cal', kind: 'info', title: 'floppy0 ở đâu ra? Và vì sao nó vô hại',
             x: '<p><code>floppy0: [not inserted]</code> là tàn dư từ mã dùng chung của QEMU cho ' +
                'mọi kiến trúc. Machine <code>virt</code> của ARM không hề có bộ điều khiển đĩa ' +
@@ -750,6 +776,16 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'virtio-net-device.0: index=0,type=nic,model=virtio-net-device,macaddr=52:54:00:12:34:56\n' +
             ' \\ net0: index=0,type=user,net=10.0.2.0,restrict=off' },
+
+          { t: 'cmdx', cmd: 'hostfwd=tcp::2222-:22',
+            title: 'Cú pháp hostfwd: [giao thức]:[host]:cổng_host-[guest]:cổng_guest',
+            rows: [
+              ['<code>tcp</code>', 'Giao thức chuyển tiếp. QEMU còn nhận <code>udp</code> và <code>unix</code>', 'Bỏ trống thì mặc định là <code>tcp</code>'],
+              ['<code>:</code> (trống trước cổng host)', 'Bỏ trống địa chỉ host nghĩa là lắng nghe trên <b>mọi</b> giao diện mạng của host', 'Ghi rõ một IP nếu muốn giới hạn chỉ một card mạng'],
+              ['<code>2222</code>', 'Cổng của <b>host</b> — nơi bạn sẽ gõ <code>ssh -p 2222</code> ở Chặng 09', ''],
+              ['<code>-</code>', 'Dấu phân cách bắt buộc giữa nửa host và nửa guest', 'Không phải dấu trang trí, thiếu nó QEMU không phân tích được chuỗi'],
+              ['<code>:22</code>', 'Bỏ trống địa chỉ guest, chỉ ghi cổng — theo tài liệu QEMU, khi bỏ trống nó mặc định là <code>x.x.x.15</code>, tức <code>10.0.2.15</code> trong đúng dải <code>net=10.0.2.0</code> bạn vừa thấy ở dòng trên', 'Guest chỉ có một địa chỉ nên hầu như không cần ghi tường minh']
+            ]},
 
           { t: 'cal', kind: 'info', title: 'Mạng "user" — không cần quyền root, đổi lại có giới hạn',
             x: '<p><code>type=user</code> là chồng giao thức TCP/IP mà QEMU tự cài đặt <b>bên ' +
@@ -875,6 +911,16 @@ Lesson.register({
               ['<code>stepi</code>', 'Chạy đúng <b>một lệnh máy</b> rồi dừng. Viết tắt <code>si</code>', 'Khác <code>step</code> — cái đó chạy một <i>dòng mã nguồn C</i>, mà ở đây không có mã C']
             ]},
 
+          { t: 'cal', kind: 'info', title: 'x0 khớp đúng con số bạn đã thấy trong bảng disassembly',
+            x: '<p>Nhìn lại <code>x/8i $pc</code> ở đầu bước này: dòng thứ hai là ' +
+               '<code>adr x0, 0x40080028</code>. Sau đúng hai lần <code>stepi</code>, thanh ghi ' +
+               '<code>x0</code> giờ mang chính giá trị <code>0x40080028</code> đó — không phải trùng hợp, mà là ' +
+               'bằng chứng lệnh <code>adr</code> vừa chạy đúng như bản dịch ngược đã dự đoán.</p>' +
+               '<p><code>x/s $x0</code> đọc từ địa chỉ ấy như một chuỗi kết thúc bằng byte 0, và kết quả là ' +
+               'chính xác <code>"Hello from bare metal ARM64\\n"</code> — dữ liệu mà <code>put_loop</code> sắp ' +
+               'sao chép từng byte sang thanh ghi dữ liệu PL011. Bạn vừa nhìn thấy chuỗi <b>tại nguồn</b> của ' +
+               'nó trong RAM, trước cả khi nó được in ra.</p>' },
+
           { t: 'p', x:
             'Thay vì bấm <code>stepi</code> hơn hai mươi lần cho hết vòng lặp, đặt điểm dừng tại ' +
             'lệnh <code>wfi</code> rồi cho chạy thẳng tới đó:' },
@@ -891,6 +937,15 @@ Lesson.register({
             'Breakpoint 1, 0x0000000040080018 in done ()\n' +
             'pc             0x40080018          0x40080018 <done>\n' +
             'VM status: paused (debug)' },
+
+          { t: 'cal', kind: 'info', title: 'continue vừa chạy hết toàn bộ vòng lặp còn lại, không chỉ một lệnh',
+            x: '<p>Trước đó bạn mới <code>stepi</code> đúng hai lệnh, PC còn đứng ở lệnh thứ ba của ' +
+               '<code>put_loop</code>. <code>continue</code> để CPU chạy tự do — không dừng cho tới khi gặp ' +
+               'điểm dừng — và nó dừng đúng tại <code>0x40080018</code>, chính địa chỉ bạn vừa đặt bằng ' +
+               '<code>break</code>, với tên <code>&lt;done&gt;</code> thay vì <code>&lt;put_loop&gt;</code>.</p>' +
+               '<p>Nghĩa là toàn bộ 28 byte của chuỗi <code>hello.S</code> — cái bạn vừa đọc bằng ' +
+               '<code>x/s $x0</code> — đã được vòng lặp sao chép hết sang PL011 trong khoảng thời gian giữa ' +
+               'hai lệnh GDB này, không cần bạn bấm <code>stepi</code> thêm lần nào.</p>' },
 
           { t: 'cal', kind: 'tip', title: 'monitor — gõ lệnh QEMU từ bên trong GDB',
             x: '<p>Bạn đang chạy QEMU với <code>-monitor none</code>, vậy mà ' +

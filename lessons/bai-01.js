@@ -412,7 +412,11 @@ Lesson.register({
             'cat /proc/version' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'Linux version 6.18.33.2-microsoft-standard-WSL2 (root@f1bbfb02316b)\n' +
-            '(gcc (GCC) 13.2.0, GNU ld (GNU Binutils) 2.41) #1 SMP PREEMPT_DYNAMIC ...' },
+            '(gcc (GCC) 13.2.0, GNU ld (GNU Binutils) 2.41) #1 SMP PREEMPT_DYNAMIC ...',
+            notes: ['Phần trong ngoặc đơn <code>(root@f1bbfb02316b)</code> là <b>user@host</b> của máy đã build ' +
+                   'ra đúng gói kernel này — đây là khuôn dạng chuẩn của <code>/proc/version</code>, không phải ' +
+                   'đặc thù của WSL2. Số này sẽ <b>khác trên máy bạn</b> mỗi khi Microsoft phát hành bản kernel ' +
+                   'mới; nó không phải thứ cần nhớ hay đối chiếu.'] },
 
           { t: 'cmdx', cmd: 'cat /proc/version', title: 'Mổ xẻ câu lệnh',
             rows: [
@@ -477,6 +481,18 @@ Lesson.register({
             'drwxr-xr-x  2 root root 4096 Apr 20 15:46 .\n' +
             'drwxr-xr-x 19 root root 4096 Jul 31 22:35 ..' },
 
+          { t: 'cmdx', cmd: 'ls -la /boot', title: 'Mổ xẻ câu lệnh',
+            rows: [
+              ['-l', 'Định dạng chi tiết (<i>long</i>): mỗi mục một dòng, kèm quyền, chủ sở hữu, kích thước, thời gian sửa.',
+               'Không có <code>-l</code>, hai dòng <code>drwxr-xr-x…</code> phía trên sẽ không xuất hiện — bạn chỉ ' +
+               'thấy tên mục, không thấy đó là thư mục hay file.'],
+              ['-a', 'Hiện <b>mọi</b> mục, kể cả mục ẩn bắt đầu bằng dấu chấm (<i>all</i>).',
+               'Đây chính là mấu chốt của bước này: không có <code>-a</code>, cả <code>.</code> lẫn <code>..</code> ' +
+               'đều bị giấu, và một thư mục trống sẽ không in ra dòng nào — bạn không phân biệt được ' +
+               '"thư mục trống" với "thư mục không tồn tại". Có <code>-a</code>, thấy đúng hai dòng <code>.</code>/' +
+               '<code>..</code> mới là bằng chứng chắc chắn rằng <code>/boot</code> tồn tại nhưng rỗng.']
+            ]},
+
           { t: 'p', x:
             '<b>Trống rỗng.</b> Chỉ có hai mục <code>.</code> và <code>..</code> là thư mục hiện tại ' +
             'và thư mục cha — nghĩa là không có file nào cả.' },
@@ -495,6 +511,18 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             '    PID COMMAND\n' +
             '      1 systemd' },
+
+          { t: 'cmdx', cmd: 'ps -p 1 -o pid,comm', title: 'Mổ xẻ câu lệnh',
+            rows: [
+              ['-p 1', 'Chỉ chọn đúng tiến trình có PID bằng <b>1</b>, thay vì liệt kê toàn bộ hệ thống.',
+               'Không có <code>-p</code>, <code>ps</code> mặc định chỉ hiện tiến trình của riêng bạn trên terminal ' +
+               'hiện tại — vẫn có thể bỏ sót tiến trình số 1, vì nó không gắn với terminal nào cả.'],
+              ['-o pid,comm', 'Chọn đúng hai cột muốn xem: <code>pid</code> (số hiệu tiến trình) và ' +
+               '<code>comm</code> (tên chương trình đang chạy, không kèm tham số dòng lệnh).',
+               'Không có <code>-o</code>, lệnh vẫn chạy được nhưng sẽ in thêm các cột mặc định như TTY và TIME — ' +
+               'thừa thông tin so với câu hỏi "tiến trình 1 tên gì".']
+            ]},
+
           { t: 'p', x:
             'Tiến trình số 1 tên <code>systemd</code>. Nó là chương trình đầu tiên kernel khởi chạy ' +
             'sau khi gắn được rootfs, và là tổ tiên của mọi tiến trình khác trên máy. Trên thiết bị ' +

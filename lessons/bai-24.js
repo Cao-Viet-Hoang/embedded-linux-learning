@@ -1786,6 +1786,19 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             'compiled: 0 warnings\n' },
 
+          { t: 'cal', kind: 'info', title: '0 cảnh báo — vì sao con số này đáng kiểm tra ngay',
+            x: '<p>Mã socket đầy những phép ép kiểu con trỏ dạng ' +
+               '<code>(struct sockaddr *)&amp;addr</code>, như bạn thấy trong <code>tcp_server.c</code> ' +
+               'và <code>tcp_client.c</code>. Viết sai kiểu, quên dấu <code>&amp;</code>, hay lẫn ' +
+               '<code>struct sockaddr_in</code> với <code>struct sockaddr</code> là những lỗi ' +
+               '<code>-Wall -Wextra</code> bắt được ngay ở bước biên dịch, dưới dạng ' +
+               '<code>incompatible pointer type</code> — thay vì để nó trồi lên thành một lỗi runtime ' +
+               'khó dò ở các bước đo đạc phía sau.</p>' +
+               '<p><b>0 cảnh báo</b> nghĩa là không phép ép kiểu nào bị nghi ngờ. Nếu bước này của bạn ' +
+               'ra bất kỳ dòng <code>warning:</code> nào, hãy dừng lại và đọc kỹ trước khi sang bước 2 ' +
+               '— đừng mang một cảnh báo chưa hiểu vào phần đo thời gian, nơi bạn cần tin vào số đo chứ ' +
+               'không phải đoán xem chương trình có đang làm đúng hay không.</p>' },
+
           { t: 'cal', kind: 'tip', title: 'Một Makefile ba dòng đỡ mỏi tay',
             x: '<p>Bài 16 đã dạy quy tắc mẫu. Đặt file <code>Makefile</code> với nội dung ' +
                '<code>CFLAGS = -Wall -Wextra -O2</code>, <code>LDLIBS =</code> và ' +
@@ -1813,6 +1826,19 @@ Lesson.register({
             '[server] received 16 bytes: GET TEMPERATURE\n' +
             '[client] reply: temperature 42.5 C\n' +
             '[server] closed fd 4\n' },
+
+          { t: 'cal', kind: 'info', title: 'Đọc lại đúng ba con số đã học ở phần lý thuyết',
+            x: '<p>Đây là lần đầu <i>bạn</i> tự chạy đúng trình tự <code>socket → bind → listen → ' +
+               'accept</code>, không chỉ đọc mã người khác viết. Ba con số cần khớp với phần lý ' +
+               'thuyết ở trên: <b>listen fd = 3</b> (socket nghe, lấy đúng số nhỏ nhất còn trống sau ' +
+               '0/1/2), <b>new fd = 4</b> (mô tả file <i>riêng</i> mà <code>accept()</code> sinh ra ' +
+               'cho khách này — <code>listen_fd</code> vẫn còn đó để nghe khách sau), và ' +
+               '<b>received 16 bytes</b> — đúng bằng độ dài chuỗi <code>"GET TEMPERATURE\\n"</code> ' +
+               '(15 ký tự cộng 1 ký tự xuống dòng).</p>' +
+               '<p>Cổng tạm lần này là <b>42404</b>, khác với <b>42392</b> ở ví dụ trong phần lý ' +
+               'thuyết. Đó không phải sai lệch — nhân cấp một cổng mới từ dải 32768–60999 mỗi lần ' +
+               '<code>connect()</code>, nên số này sẽ khác cả trên máy bạn lẫn giữa các lần bạn chạy ' +
+               'lại chính lệnh trên.</p>' },
 
           { t: 'p', x:
             'Bây giờ nhìn socket nghe từ bên ngoài. Chạy lại máy chủ ở nền rồi hỏi hệ thống ' +
@@ -2007,7 +2033,14 @@ Lesson.register({
                'một lần vào/ra nhân — Bài 19 đo một syscall trần trụi hết <b>139–317 ns</b>. ' +
                'Nghĩa là <code>epoll</code> gần như không thêm gì lên trên cái giá bắt buộc ' +
                'phải trả. Còn gần 69 µs của <code>select</code>/<code>poll</code> là 500 lần ' +
-               'kiểm tra, mỗi lần một chút, cộng lại.</p>' }
+               'kiểm tra, mỗi lần một chút, cộng lại.</p>' +
+               '<p><b>select 68,66 µs</b> và <b>poll 68,93 µs</b> ở lần chạy này gần như bằng ' +
+               'nhau — đúng tinh thần "nhìn cột epoll theo chiều dọc, đừng so <code>select</code> ' +
+               'với <code>poll</code> theo chiều ngang" mà phần lý thuyết đã nói. Cả hai đều cao ' +
+               'hơn đôi chút so với bảng lý thuyết (<b>63,71</b> và <b>59,32 µs</b>) — chênh lệch ' +
+               'đó là dao động giữa các lần đo ở thang micro giây, cùng loại nhiễu bạn vừa thấy ở ' +
+               'bước 4 với con số 1,3 ms, không phải bằng chứng cho một cơ chế nào khác nhau giữa ' +
+               'hai lần chạy.</p>' }
         ]},
 
       /* ---------- BƯỚC 6 ---------- */
@@ -2221,6 +2254,27 @@ Lesson.register({
             '[daemon] signal 15 (Terminated) via signalfd — beginning graceful shutdown\n' +
             '[daemon] served 5 requests, closed every file descriptor cleanly, exiting 0\n' +
             'exit code = 0\n' },
+
+          { t: 'cmdx', cmd: 'echo GET | nc -q1 127.0.0.1 9006',
+            title: 'nc — dò một máy chủ TCP từ dòng lệnh, không cần viết client riêng',
+            rows: [
+              ['nc', 'Netcat, xuất hiện lần đầu trong khoá học: mở một kết nối TCP/UDP từ dòng lệnh ' +
+               'rồi nối <code>stdin</code>/<code>stdout</code> với nó — dùng để dò nhanh một máy chủ ' +
+               'mà không cần biên dịch một <code>tcp_client</code> riêng',
+               'Bản trên máy này là <code>netcat-openbsd</code>; cờ có thể khác trên bản GNU hay ' +
+               'BusyBox <code>nc</code> thường thấy trên rootfs nhúng ở <b>Chặng 09</b>'],
+              ['echo GET |', 'Gửi đúng chuỗi <code>"GET\\n"</code> làm toàn bộ dữ liệu client gửi',
+               'Daemon không phân biệt "GET" với "GET TEMPERATURE" vì vòng đọc của nó chỉ cần ' +
+               '<code>read()</code> trả về nhiều hơn 0 byte — nội dung yêu cầu không hề được kiểm tra'],
+              ['127.0.0.1 9006', 'Cú pháp <code>nc &lt;host&gt; &lt;port&gt;</code>: địa chỉ và cổng ' +
+               'của daemon vừa khởi động', ''],
+              ['-q1', 'Sau khi <code>stdin</code> gặp EOF (khi <code>echo</code> đã ghi xong và ' +
+               'đóng ống), đợi thêm <b>1 giây</b> rồi tự đóng kết nối và thoát',
+               'Không có <code>-q</code>, <code>nc</code> mặc định treo chờ vô thời hạn sau khi ' +
+               'stdin đóng — script sẽ không bao giờ chạy tới vòng lặp kế tiếp. Các dòng ' +
+               '<code>temperature=... samples=...</code> trong output chính là những gì <code>nc</code> ' +
+               'nhận về từ daemon rồi in ra trước khi thoát']
+            ]},
 
           { t: 'cal', kind: 'info', title: 'Ba bằng chứng nằm trong output này',
             x: '<ul>' +

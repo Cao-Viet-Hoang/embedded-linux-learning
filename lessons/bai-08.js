@@ -496,6 +496,10 @@ Lesson.register({
               ['<code>id -nG</code>', '<code>-n</code> = tên thay vì số, <code>-G</code> = chỉ danh sách nhóm',
                'Dạng gọn để mắt đọc nhanh, hoặc để đưa vào script']
             ]},
+          { t: 'cal', kind: 'info', x:
+            '<p>Đây đúng là bộ số bạn đã đọc kỹ ở đầu bài: UID <b>1000</b>, và nhóm <code>27(sudo)</code> ' +
+            'vẫn nằm trong danh sách. Khác biệt duy nhất là lần này chính tay bạn gõ lệnh và thấy nó ' +
+            'hiện ra, không phải đọc một đoạn chép sẵn.</p>' },
           { t: 'p', x: 'Bây giờ xem hai dòng của chính bạn và của root trong sổ hộ tịch của hệ thống:' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'grep "^shinarus:" /etc/passwd\n' +
@@ -521,12 +525,38 @@ Lesson.register({
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             "head: cannot open '/etc/shadow' for reading: Permission denied\n" +
             'rc=1' },
+          { t: 'cal', kind: 'why', title: 'Đây là lần đầu bạn thấy quyền tệp chặn một lệnh thật', x:
+            '<p><code>Permission denied</code> đến từ chính kernel: bit <code>r</code> trên ' +
+            '<code>/etc/shadow</code> chỉ bật cho chủ sở hữu <code>root</code> và nhóm <code>shadow</code> ' +
+            '— UID 1000 của bạn không khớp cả hai, đúng như quyền <code>640 root:shadow</code> vừa đọc ' +
+            'ở trên. Không cần đợi ai xác nhận, chính con số đó đã dự đoán trước kết quả này.</p>' +
+            '<p><code>rc=1</code> ở đây chỉ là "thất bại chung chung" mà <code>head</code> tự chọn — ' +
+            'khác hẳn hai mã <b>126</b>/<b>127</b> có ý nghĩa cố định mà bạn sẽ gặp ở bước 4. Bước 7 sẽ ' +
+            'cho bạn thấy một kiểu từ chối khác hẳn cả về câu chữ lẫn nguyên nhân: ' +
+            '<code>Operation not permitted</code>, xảy ra khi thao tác cần một đặc quyền chứ không ' +
+            'phải chỉ thiếu một bit quyền.</p>' },
           { t: 'p', x: 'Cuối cùng, xem ba dòng trong sổ nhóm:' },
           { t: 'code', where: 'wsl', lang: 'bash', code: 'grep -E "^(sudo|dialout|kvm):" /etc/group' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'dialout:x:20:\n' +
             'sudo:x:27:shinarus\n' +
             'kvm:x:991:' },
+          { t: 'cmdx', cmd: 'grep -E "^(sudo|dialout|kvm):" /etc/group', title: 'Cờ và ký hiệu trong mẫu tìm',
+            rows: [
+              ['<code>grep</code>', 'Lọc ra những dòng khớp một mẫu, in nguyên dòng khớp', ''],
+              ['<code>-E</code>', 'Bật <i>biểu thức chính quy mở rộng</i> — dấu <code>|</code> được ' +
+               'hiểu là "hoặc" thay vì một ký tự thường',
+               'Không có <code>-E</code>, muốn dùng <code>|</code> phải viết <code>\\|</code>. Bài 11 ' +
+               'sẽ nói kỹ về hai kiểu biểu thức chính quy'],
+              ['<code>^</code>', 'Neo mẫu vào <b>đầu dòng</b> — chỉ khớp khi tên nhóm nằm ngay từ ký tự ' +
+               'đầu tiên, không khớp nếu nó nằm giữa dòng', ''],
+              ['<code>(sudo|dialout|kvm)</code>', 'Ba lựa chọn trong một cặp ngoặc, khớp bất kỳ cái nào ' +
+               'trong ba tên', 'Không có ngoặc thì <code>|</code> chia cắt toàn bộ mẫu, không riêng gì ' +
+               'phần bên trong'],
+              ['<code>:</code>', 'Dấu hai chấm ngay sau tên nhóm, đúng định dạng mỗi dòng của ' +
+               '<code>/etc/group</code>', 'Đảm bảo mẫu dừng đúng ở tên nhóm — không có nó, một nhóm khác ' +
+               'tên dài hơn nhưng bắt đầu bằng cùng chuỗi ký tự cũng sẽ khớp nhầm']
+            ]},
           { t: 'cal', kind: 'why', title: 'Ba dòng này nói trước tương lai của bạn', x:
             '<p><code>sudo:x:27:shinarus</code> — tên bạn nằm ở trường cuối. Đó là toàn bộ lý do ' +
             'bạn dùng được <code>sudo</code>.</p>' +
@@ -595,6 +625,15 @@ Lesson.register({
             '644 -rw-r--r-- greet.sh\n' +
             '600 -rw------- greet.sh\n' +
             '777 -rwxrwxrwx greet.sh' },
+          { t: 'cal', kind: 'info', title: 'Bốn dòng này khớp đúng bảng bạn vừa đọc ở trên', x:
+            '<p>So khớp từng ký tự với bảng "Bốn con số bạn sẽ gõ 95% thời gian": <code>rwxr-xr-x</code>, ' +
+            '<code>rw-r--r--</code>, <code>rw-------</code>, <code>rwxrwxrwx</code> — đúng cả bốn, ' +
+            'không lệch một chữ cái nào.</p>' +
+            '<p>Chú ý mỗi lệnh <b>đặt lại toàn bộ</b> chín bit chứ không cộng dồn vào kết quả của dòng ' +
+            'trước: từ <code>755</code> nhảy thẳng xuống <code>600</code> rồi vọt lên <code>777</code> mà ' +
+            'không cần đi qua bước trung gian nào. Đây chính là tính "tuyệt đối" của dạng số đã nêu ở ' +
+            'phần lý thuyết — đổi thứ tự bốn lệnh này, mỗi dòng kết quả vẫn y hệt, không phụ thuộc vào ' +
+            'trạng thái trước đó.</p>' },
           { t: 'p', x:
             'Bây giờ dạng chữ. Đưa file về <code>644</code> rồi cộng trừ từng chút một — và ' +
             '<b>để ý con số thay đổi thế nào sau mỗi lệnh</b>:' },
@@ -876,6 +915,14 @@ Lesson.register({
             '<code>sudo</code> chỉ nâng quyền cho <code>echo</code>, còn việc mở file là do shell ' +
             'của bạn làm với quyền thường. Bài 10 sẽ dạy cách đúng bằng ' +
             '<code>sudo tee</code>.</p>' },
+
+          { t: 'cal', kind: 'info', title: 'sudo -n thất bại ngay lập tức — đúng như bảng lý thuyết đã hứa', x:
+            '<p><code>sudo: interactive authentication is required</code> là hệ quả trực tiếp của cờ ' +
+            '<code>-n</code> (<i>non-interactive</i>): <code>sudo</code> cần mật khẩu của bạn nhưng bị ' +
+            'cấm hỏi, nên nó thoát ngay với <code>rc=1</code> thay vì dừng lại chờ bạn gõ.</p>' +
+            '<p>Đây đúng là công dụng đã nêu ở bảng phần lý thuyết: dùng <code>sudo -n</code> trong ' +
+            'script để <b>kiểm tra</b> xem lệnh phía sau có cần mật khẩu hay không, mà không làm cả ' +
+            'script bị treo chờ một input không bao giờ tới.</p>' },
           { t: 'code', where: 'wsl', lang: 'bash', code:
             'ls -l /dev/kvm /dev/null /dev/sda\n' +
             'head -c 4 /dev/sda' },

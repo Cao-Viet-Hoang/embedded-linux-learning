@@ -983,6 +983,18 @@ Lesson.register({
               '227:#define SYSCALL_DEFINE3(name, ...) SYSCALL_DEFINEx(3, _##name, __VA_ARGS__)\n' +
               '234:#define SYSCALL_DEFINEx(x, sname, ...)\t\t\t\t\\' },
 
+          { t: 'cal', kind: 'why', title: 'Dòng 227 trả lời câu hỏi bỏ ngỏ ở bước trước: vì sao name lại là _write', x:
+            '<p>Ở bước trước bạn đã thấy khẳng định “với <code>name = _write</code> thì ' +
+            '<code>__arm64_sys##name</code> trở thành <code>__arm64_sys_write</code>” mà chưa rõ vì sao ' +
+            '<code>name</code> lại có dấu <code>_</code> ở đầu. Dòng <b>227</b> chính là câu trả lời: ' +
+            '<code>SYSCALL_DEFINE3(write, …)</code> không định nghĩa gì trực tiếp, nó chỉ gọi tiếp ' +
+            '<code>SYSCALL_DEFINEx(3, _##name, …)</code> — tự thêm một dấu gạch dưới vào trước tên gốc. ' +
+            'Với tên gốc là <code>write</code>, tham số <code>sname</code> mà <code>SYSCALL_DEFINEx</code> ' +
+            'ở dòng <b>234</b> nhận được đã là <code>_write</code>, và chính <code>sname</code> đó được ' +
+            'truyền tiếp làm <code>name</code> cho macro sinh ký hiệu bạn đọc ở ' +
+            '<code>syscall_wrapper.h</code>. Hai dòng ngắn này khép kín toàn bộ chuỗi: ' +
+            '<code>write</code> → <code>_write</code> → <code>__arm64_sys_write</code>.</p>' },
+
           { t: 'fig',
             cap: 'Vì sao grep không tìm thấy __arm64_sys_write: cái tên chỉ xuất hiện sau chặng tiền xử ' +
                  'lý, tức là sau khi grep đã hết việc.',
@@ -1130,6 +1142,19 @@ Lesson.register({
               '9386-F:\tfs/ext4/\n' +
               '9387-F:\tinclude/trace/events/ext4.h\n' +
               '9388-F:\tinclude/uapi/linux/ext4.h' },
+
+          { t: 'cal', kind: 'info', title: 'Đúng dòng S: mà phần lý thuyết bảo bạn đọc trước tiên', x:
+            '<p>Dòng <b>9381</b> ghi <code>S:\tMaintained</code> — đây chính là dòng bạn được dặn kiểm ' +
+            'tra trước khi cắm đầu vào một driver. Với ext4, tin tốt: có <b>hai</b> maintainer đang hoạt ' +
+            'động (<code>tytso@mit.edu</code>, <code>adilger.kernel@dilger.ca</code>), không phải ' +
+            '<code>Orphan</code> hay <code>Obsolete</code>.</p>' +
+            '<p>Bốn dòng <code>F:</code> chính là câu trả lời cho nửa sau câu hỏi “phân hệ đó gồm những ' +
+            'đường dẫn nào”: <code>fs/ext4/</code> — nơi bạn đã đọc mã ở bước 3 — cộng thêm ba đường dẫn ' +
+            'khác mà riêng <code>grep -rn</code> trong <code>fs/ext4/</code> sẽ không bao giờ cho bạn ' +
+            'thấy, vì chúng nằm ngoài thư mục đó: tài liệu ở ' +
+            '<code>Documentation/filesystems/ext4/</code>, và hai header dùng chung ở ' +
+            '<code>include/</code>. Đây là điểm khác biệt giữa “biết file nào” (cách 1–3) và “biết cả ' +
+            'phân hệ” (cách 4).</p>' },
 
           { t: 'p', x:
             'Đi chiều ngược lại — có một file, muốn biết nó thuộc phân hệ nào — thì đã có sẵn script ' +

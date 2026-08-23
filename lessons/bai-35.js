@@ -402,6 +402,23 @@ Lesson.register({
             'truncate -s 128M disk.img\n' +
             'mkfs.ext4 -F -q -L BOOT disk.img' },
 
+          { t: 'cmdx', cmd: 'mkfs.ext4 -F -q -L BOOT disk.img',
+            title: 'Tạo ext4 trên một file thường, không phải một phân vùng',
+            rows: [
+              ['<code>-F</code>', '<i>Force.</i> <code>disk.img</code> là một file thường vừa tạo bằng ' +
+                                  '<code>truncate</code>, không phải phân vùng của một ổ đĩa thật. Thiếu ' +
+                                  'cờ này, <code>mkfs.ext4</code> từ chối chạy vì thấy đích không phải ' +
+                                  '"a partition on a block special device".'],
+              ['<code>-q</code>', '<i>Quiet</i> — bỏ bảng log tạo superblock/group descriptor. Không ảnh ' +
+                                  'hưởng tới kết quả, chỉ đỡ rối màn hình.'],
+              ['<code>-L BOOT</code>', 'Đặt nhãn ổ đĩa (volume label), tối đa 16 byte. Không bắt buộc, ' +
+                                       'nhưng là thói quen tốt để phân biệt ổ đĩa khi board thật gắn ' +
+                                       'nhiều thẻ nhớ cùng lúc.'],
+              ['<code>disk.img</code>', '<b>128 MiB</b> toàn số 0, vừa tạo ở dòng <code>truncate</code> ' +
+                                        'phía trên — chưa có hệ thống file nào bên trong cho tới đúng lúc ' +
+                                        'lệnh này chạy xong.']
+            ] },
+
           { t: 'p', x:
             'Bình thường để chép file vào ảnh này bạn sẽ <code>mount</code> nó — nhưng ' +
             '<code>mount</code> cần quyền root. May thay bộ công cụ <code>e2fsprogs</code> có ' +
@@ -438,6 +455,15 @@ Lesson.register({
               ['<code>disk.img</code>', 'Ảnh đĩa cần sửa. <code>Allocated inode: 13</code> là bằng chứng ' +
                                         'file đã thực sự nằm trong hệ thống file.']
             ] },
+
+          { t: 'cal', kind: 'info', title: 'Đọc kỹ ba dòng cuối của <code>ls -l /</code>',
+            x: 'Cả hai file đã nằm trong ext4 với đúng thuộc tính: mã <code>100644</code> ở đầu mỗi dòng ' +
+               'nghĩa là "file thường, quyền 644" — giống hệt file gốc trên host, không bị đổi thành thư ' +
+               'mục hay link tượng trưng. Quan trọng hơn, cột kích thước đọc đúng <b>30 771 136</b> byte ' +
+               'cho <code>Image</code> và <b>1 035 397</b> byte cho <code>initramfs.cpio.gz</code> — khớp ' +
+               'chính xác với hai file ở <code>~/bai32</code>. Đây là bằng chứng đầu tiên trong ba bằng ' +
+               'chứng độc lập mà bước 4 sẽ đối chiếu lại (cột <code>ls</code> của U-Boot và biến ' +
+               '<code>filesize</code>): dữ liệu sang đĩa không hề bị cắt xén.' },
 
           { t: 'cal', kind: 'why', title: 'Vì sao ext4 chứ không phải FAT?',
             x: 'Thẻ SD của board thật hay dùng phân vùng FAT cho boot, vì mọi bootloader đều đọc ' +
@@ -617,6 +643,15 @@ Lesson.register({
             'word at 0x40000000 (0xedfe0dd0) != word at 0x50000000 (0xdeadbeef)\n' +
             'Total of 0 word(s) were the same' },
 
+          { t: 'cal', kind: 'info', title: 'Vì sao <code>Total of 0 word(s)</code>, không phải 1, 2 hay 3',
+            x: 'Bảng lệnh phía trên đã nói <code>cmp</code> "dừng ở ô khác đầu tiên". Ở đây bốn ô tại ' +
+               '<code>0x50000000</code> đều là <code>deadbeef</code>, còn <b>ngay ô đầu tiên</b> tại ' +
+               '<code>0x40000000</code> đã là <code>0xedfe0dd0</code> (dữ liệu device tree) — khác biệt lộ ' +
+               'ra từ ô số 0. Vì vậy <code>cmp</code> báo lệch rồi dừng ngay lập tức, và dòng ' +
+               '<code>Total of 0 word(s) were the same</code> có nghĩa "chưa kịp đếm được ô nào giống ' +
+               'trước khi dừng" — bình thường và đúng như dự tính, vì hai vùng RAM này vốn chứa hai thứ ' +
+               'hoàn toàn không liên quan.' },
+
           { t: 'cal', kind: 'tip', title: 'Vì sao dân trong nghề hay dùng 0xdeadbeef',
             x: 'Đó là một giá trị <b>không bao giờ xuất hiện tình cờ</b> trong dữ liệu thật, lại ' +
                'đọc được thành chữ tiếng Anh nên nhớ rất dễ. Mẹo dùng: trước khi nạp một file, ' +
@@ -662,6 +697,14 @@ Lesson.register({
             '=> size virtio 0 Image\n' +
             '=> printenv filesize\n' +
             'filesize=1d587c0' },
+
+          { t: 'cal', kind: 'info', title: '<code>virtio info</code> xác nhận đúng ổ đĩa 128 MiB bạn vừa tạo',
+            x: 'Dòng <code>Capacity: 128.0 MB = 0.1 GB (262144 x 512)</code> là U-Boot tự tính: ' +
+               '<b>262 144 sector</b> × <b>512 byte/sector</b> = 134 217 728 byte = đúng <b>128 MiB</b> — ' +
+               'bằng chính kích thước bạn đặt bằng <code>truncate -s 128M disk.img</code> ở bước 1. Ngay ' +
+               'dưới đó, <code>ls virtio 0</code> liệt kê lại đúng hai file với đúng hai kích thước ' +
+               '<b>30 771 136</b> và <b>1 035 397</b> byte mà <code>debugfs</code> đã ghi ở bước 1 — cùng ' +
+               'một ổ đĩa, nhìn từ hai công cụ khác nhau (host và U-Boot), ra cùng một kết quả.' },
 
           { t: 'cal', kind: 'info', title: 'Lệnh <code>size</code> không in gì cả — đúng như thiết kế',
             x: 'Nó <b>chỉ</b> đặt biến <code>filesize</code> rồi im lặng, vì nó sinh ra để dùng ' +
@@ -788,6 +831,16 @@ Lesson.register({
             'Linux (none) 6.12.94+deb13-cloud-arm64 #1 SMP Debian 6.12.94-1 (2026-06-20) aarch64 GNU/Linux\n' +
             '~ # ls /\n' +
             'bin   dev   init  proc  root  sys' },
+
+          { t: 'cal', kind: 'why', title: '<code>/proc/cmdline</code> chứng minh bootargs đã tới đúng nơi',
+            x: 'Chuỗi <code>console=ttyAMA0 rdinit=/init</code> trong <code>/proc/cmdline</code> là ' +
+               '<b>y hệt</b>, không thiếu không thừa một ký tự, chuỗi bạn vừa gõ vào ' +
+               '<code>setenv bootargs</code>. Đây là bằng chứng trực tiếp cho điều bảng thuật ngữ đầu bài ' +
+               'đã nói: U-Boot không đọc hiểu nội dung <code>bootargs</code>, nó chỉ chép nguyên văn vào ' +
+               'device tree rồi kernel tự đọc ra thành <code>/proc/cmdline</code>. <code>uname -a</code> ' +
+               'xác nhận thêm đúng kernel bạn nạp từ <code>~/bai32/Image</code>, và <code>ls /</code> cho ' +
+               'thấy đúng bộ thư mục tối giản của initramfs ở <b>Bài 32</b> — không có ổ đĩa gốc nào khác ' +
+               'được gắn vào.' },
 
           { t: 'cal', kind: 'why', title: 'Hai dòng "Loading … to …" chứng minh U-Boot vừa làm gì',
             x: 'Bạn nạp ramdisk vào <code>0x44000000</code>, nhưng U-Boot lại báo ' +
@@ -917,10 +970,33 @@ Lesson.register({
             'myvar=flash-test\n' +
             'bootdelay=3' },
 
+          { t: 'cal', kind: 'why', title: 'Đây mới là bằng chứng persistence thật — khác hẳn lần thất bại ở trên',
+            x: 'So với lần trước, khác biệt nằm ngay dòng đầu: <code>Loading Environment from Flash... ' +
+               'OK</code>, không còn <code>bad CRC</code>. Lần này bạn đã <b>thoát hẳn tiến trình QEMU</b> ' +
+               '— không chỉ gõ <code>reset</code> — rồi mở một tiến trình QEMU hoàn toàn mới trỏ vào cùng ' +
+               'file <code>flash1.img</code>, và <code>myvar=flash-test</code>, <code>bootdelay=3</code> ' +
+               'vẫn còn nguyên. Đây chính là phép thử mà cấu hình <code>-bios</code> ở trên đã trượt: dữ ' +
+               'liệu giờ nằm trên một file thật của máy host, không phải trong RAM của một tiến trình đã ' +
+               'chết.' },
+
           { t: 'p', x:
             'Và vì bây giờ môi trường là một file thật trên máy host, bạn <b>nhìn thấy nó</b>:' },
 
           { t: 'code', where: 'wsl', code: 'od -A d -t x1z -N 32 flash1.img' },
+
+          { t: 'cmdx', cmd: 'od -A d -t x1z -N 32 flash1.img',
+            title: 'Đọc một vùng flash trực tiếp từ máy host',
+            rows: [
+              ['<code>-A d</code>', 'Cột địa chỉ theo hệ <b>thập phân</b> — cùng quy ước bạn đã dùng với ' +
+                                    '<code>od</code> ở <b>Bài 33</b>.'],
+              ['<code>-t x1z</code>', '<code>x1</code> = mỗi ô <b>1 byte</b> hệ 16, khác với <code>-t ' +
+                                      'x4</code> ở Bài 33 vốn gộp 4 byte thành một từ để đọc giá trị CPU ' +
+                                      'thấy. Ở đây bạn muốn đúng <b>thứ tự byte thật trên đĩa</b> để đối ' +
+                                      'chiếu với 4 byte CRC32, nên không gộp. Hậu tố <code>z</code> in ' +
+                                      'thêm cột ASCII bên phải, giữa hai dấu <code>&gt;…&lt;</code>.'],
+              ['<code>-N 32</code>', 'Chỉ đọc <b>32 byte</b> đầu — đủ thấy CRC32 và vài cặp ' +
+                                     '<code>tên=giá_trị</code> đầu tiên, không cần đọc hết 256 KiB.']
+            ] },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '0000000 9c 26 49 19 61 72 63 68 3d 61 72 6d 00 62 61 75  >.&I.arch=arm.bau<\n' +
@@ -1041,6 +1117,15 @@ Lesson.register({
                '64 byte header. Hãy biến <code>iminfo</code> thành <b>phản xạ đầu tiên</b> mỗi ' +
                'khi <code>bootm</code> báo lỗi — nó trả lời đúng câu hỏi "cái tôi vừa nạp ' +
                'thực chất là gì?".' },
+
+          { t: 'cal', kind: 'why', title: '<code>source</code> vừa chạy lại đúng bốn lệnh bạn gõ tay ở bước 5',
+            x: 'Nhìn kỹ log sau <code>## Executing script at 40200000</code>: dòng ' +
+               '<code>=== course boot script ===</code> chính là lệnh <code>echo</code> đầu tiên trong ' +
+               '<code>boot.cmd</code> — bằng chứng nội dung file thật sự được <b>thực thi</b>, không chỉ ' +
+               'nạp vào RAM rồi bỏ đó. Hai dòng <code>bytes read</code> tiếp theo báo đúng ' +
+               '<b>30 771 136</b> byte cho kernel và <b>1 035 397</b> byte cho initramfs — không sai một ' +
+               'byte so với bước 5 — rồi log đi tới đúng <code>Starting kernel ...</code>. Một lệnh ' +
+               '<code>source</code> vừa thay thế nguyên vẹn bốn lệnh bạn từng gõ tay, không thiếu bước nào.' },
 
           { t: 'p', x:
             'Bước cuối: giao cho máy. Thoát QEMU, khởi động lại bằng cấu hình pflash, rồi đặt ' +

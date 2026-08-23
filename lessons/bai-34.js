@@ -235,6 +235,15 @@ Lesson.register({
               'aarch64-linux-gnu-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0\n' +
               '6' },
 
+          { t: 'cal', kind: 'info', title: 'Hai con số này sẽ quay lại ở các bước sau',
+            x: '<code>aarch64-linux-gnu-gcc 15.2.0</code> — đúng phiên bản bộ công cụ chéo bạn ' +
+               'dựng ở <b>Chặng 04</b>, chưa hề đổi. Ghi nhớ chuỗi này: nó sẽ xuất hiện lại ' +
+               'nguyên xi trong lệnh <code>version</code> gõ tại dấu nhắc <code>=&gt;</code> ở ' +
+               'bước 6 — nếu khác đi, nghĩa là bạn đang chạy một bản build từ máy khác hoặc bộ ' +
+               'công cụ khác. Còn <code>nproc</code> in ra <b>6</b> — đúng con số bạn sẽ gõ sau ' +
+               'dấu <code>-j</code> ở bước 4, vì không có lý do gì để bảo <code>make</code> chạy ' +
+               'nhiều tiến trình song song hơn số lõi CPU thật có.' },
+
           { t: 'code', where: 'wsl',
             code:
               'mkdir -p ~/bai34\n' +
@@ -470,7 +479,8 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true,
             code:
-              'REAL 35.38 s | USER 150.01 s | SYS 21.78 s | MAXRSS 82668 kB' },
+              'REAL 35.38 s | USER 150.01 s | SYS 21.78 s | MAXRSS 82668 kB\n' +
+              '853 /tmp/ub-build.log' },
 
           { t: 'cal', kind: 'info', title: '150 giây công việc gói trong 35 giây đồng hồ',
             x: '<b>USER</b> là tổng thời gian CPU thật sự làm việc, cộng dồn mọi lõi; ' +
@@ -558,7 +568,17 @@ Lesson.register({
                'ký hiệu và metadata liên kết — hữu ích cho GDB, hoàn toàn vô dụng với CPU. Đây ' +
                'đúng là hiện tượng bạn đã đo ở <b>Bài 18</b> với <code>strip</code>. Còn ' +
                '<code>bss = 0</code> vì U-Boot khai báo vùng BSS riêng lúc chạy, không dựa vào ' +
-               'trường này.' }
+               'trường này.' },
+
+          { t: 'cal', kind: 'info', title: 'Thư mục phình từ 402 MB lên 481 MB — vào đâu?',
+            x: 'Cộng năm file trong bảng trên: <b>10 654 232 + 1 498 688 + 1 498 688 + ' +
+               '4 303 720 + 218 243 ≈ 18 MB</b> — quá xa so với <b>79 MB</b> chênh lệch giữa ' +
+               '<code>402M</code> lúc mới clone (bước 1) và <code>481M</code> bây giờ. Phần còn ' +
+               'thiếu, khoảng <b>61 MB</b>, là hàng chục nghìn file <code>.o</code> trung gian mà ' +
+               '<code>make</code> cố tình giữ lại trong cây mã nguồn — không phải rác, mà là bộ ' +
+               'nhớ đệm phụ thuộc. Đó chính là lý do bản build lại ở bước 7 chỉ mất <b>4,19 ' +
+               'giây</b> thay vì <b>35,38 giây</b>: hầu hết <code>.o</code> đã có sẵn, chỉ file ' +
+               'nào thật sự đổi mới bị dịch lại.' }
         ] },
 
       /* ---------- Bước 5 ---------- */
@@ -597,6 +617,22 @@ Lesson.register({
               'No USB controllers found\n' +
               'Net:   eth0: virtio-net#32\n' +
               'Hit any key to stop autoboot:  0' },
+
+          { t: 'cal', kind: 'info', title: 'Ba dòng đầu tiên trông như lỗi, nhưng không phải',
+            x: '<code>Bloblist</code> là một vùng bộ nhớ nhỏ U-Boot dùng để truyền dữ liệu nội bộ ' +
+               'giữa các giai đoạn khởi động (ví dụ từ SPL sang U-Boot chính). Ở bước 2 bạn đã ' +
+               'xác nhận <code>qemu_arm64_defconfig</code> <b>không có SPL/TPL</b>, nên không có ' +
+               'giai đoạn nào trước đó để lại một bloblist ở địa chỉ cố định — U-Boot đi tìm, ' +
+               'không thấy, và báo <code>Bloblist at 0 not found (err=-2)</code>, đúng như dự ' +
+               'đoán. Nó liền thử cấp phát một bloblist mới (kích thước mặc định của cấu hình ' +
+               'này là <code>0x400</code> = <b>1024</b> byte, đúng con số sau chữ <code>ptr</code> ' +
+               'trong dòng log), nhưng lần thử đầu tiên diễn ra <i>trước khi</i> bộ cấp phát bộ ' +
+               'nhớ tạm của U-Boot được khởi tạo, nên giới hạn cấp phát khi đó vẫn là <code>0</code> ' +
+               '— cấp phát thất bại, in ra <code>alloc space exhausted … limit 0</code>. Vài dòng ' +
+               'mã sau đó bộ cấp phát đã sẵn sàng, U-Boot thử lại đúng việc này lần hai — đó là lý ' +
+               'do dòng <code>Bloblist at 0 not found</code> xuất hiện <b>hai lần</b> nhưng dòng ' +
+               'cấp phát lỗi chỉ xuất hiện <b>một lần</b>. Lần thử thứ hai thành công trong im ' +
+               'lặng, và U-Boot đi tiếp — không dòng nào trong ba dòng này khiến máy dừng lại.' },
 
           { t: 'p', x:
             'Đọc từng dòng — mỗi dòng là một nhiệm vụ trong bốn nhiệm vụ của Bài 33 đang được ' +
@@ -723,6 +759,11 @@ Lesson.register({
               ['<code>flashstart / flashsize</code>', '<code>0x0</code> / <code>0x4000000</code>',
                'Flash <b>64 MiB</b> bắt đầu tại địa chỉ 0. <code>u-boot.bin</code> của bạn nằm ' +
                'ở byte số 0 của vùng này'],
+              ['<code>flashoffset</code>', '<code>0x16de40</code>',
+               'Đổi ra hệ 10 đúng bằng <b>1 498 688</b> — chính kích thước <code>u-boot.bin</code> ' +
+               'ở bước 4. Trường này báo phần flash bị chiếm bởi chính U-Boot (gọi là ' +
+               '<i>"monitor"</i> trong mã nguồn); nó xác nhận file bạn build và bản đang nằm ' +
+               'trong flash là một, không lệch byte nào'],
               ['<code>relocaddr</code>', '<code>0x5f690000</code>',
                '<b>Hệ quả của <code>CONFIG_POSITION_INDEPENDENT=y</code>.</b> U-Boot đã tự chép ' +
                'mình lên gần đỉnh RAM để nhường toàn bộ khoảng dưới cho kernel'],
@@ -933,6 +974,15 @@ Lesson.register({
               'Applying: board: qemu-arm: print a board banner at boot\n' +
               '685728b6 board: qemu-arm: print a board banner at boot\n' +
               'ece349ad Prepare v2026.07' },
+
+          { t: 'cal', kind: 'info', title: 'Mã băm giống hệt bước 7a — không phải trùng hợp',
+            x: 'Commit mới mang hash <b><code>685728b6</code></b> — <b>y hệt</b> commit bạn tạo ' +
+               'bằng <code>git commit -am</code> ở bước 7a, dù lần này bạn không gõ nội dung nào, ' +
+               'chỉ áp một file patch. Đó là vì <code>git format-patch</code> đã đóng gói đủ tác ' +
+               'giả, ngày giờ và nội dung thay đổi vào file patch, còn <code>git am</code> dựng ' +
+               'lại commit từ đúng những dữ liệu đó — cùng đầu vào cho ra cùng hash. Đây chính là ' +
+               'khác biệt lớn nhất so với <code>diff</code>/<code>patch</code> thường, thứ chỉ ' +
+               'chép nội dung thay đổi chứ không mang theo danh tính commit.' },
 
           { t: 'cmdx', cmd: 'git am  ·  patch -p1',
             title: 'Hai cách áp patch, chọn cái nào',

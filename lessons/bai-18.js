@@ -913,6 +913,15 @@ Lesson.register({
           '   1651\t    624\t  16424\t  18699\t   490b\tsample\n' +
           '16184 sample' },
 
+        { t: 'cal', kind: 'info', title: 'Cột bss đã lớn hơn cả file — đúng nghịch lý mở đầu bài', x:
+          '<p><code>size</code> báo <code>bss = 16 424</code> byte, còn <code>stat</code> ngay dưới ' +
+          'cho biết cả file <code>sample</code> chỉ nặng <b>16 184</b> byte — <b>nhỏ hơn chính phần ' +
+          '<code>.bss</code> của nó</b>. Đây đúng là con số bạn đã suy ra ở mục 4: <code>.bss</code> có ' +
+          'kiểu <code>NOBITS</code> nên không chiếm byte nào trên đĩa, chỉ ghi lại <i>kích thước</i> để ' +
+          'kernel tự cấp phát và điền số 0 lúc nạp.</p>' +
+          '<p>Để chắc đây không phải trùng hợp giữa hai con số, hãy đổi hẳn kích thước mảng rồi đo lại — ' +
+          'bước tiếp theo làm đúng việc đó.</p>' },
+
         { t: 'p', x: 'Tăng mảng lên 1 MB rồi đo lại — đây là phép thử quyết định:' },
 
         { t: 'code', where: 'wsl', code:
@@ -951,6 +960,10 @@ Lesson.register({
           'mảng).<br>' +
           '<b>1 064 592</b> — 1 MB mảng trong <code>.data</code>. <b>Gấp 65,8 lần</b> so với ' +
           'chương trình gốc.</p>' +
+          '<p>Nhìn thẳng vào cột <code>bss</code> của <code>size</code>: nó nhảy từ <b>16 424</b> lên ' +
+          '<b>1 048 616</b> byte — đúng khoảng 1 MB mà bạn vừa thêm vào mảng. Nhưng file trên đĩa gần ' +
+          'như không nhúc nhích, vì phần tăng thêm đó <b>chưa từng được ghi thành byte thật</b> — nó chỉ ' +
+          'đổi một con số trong section header.</p>' +
           '<p>Khác biệt lớn giữa hai trường hợp cuối chỉ là bốn ký tự <code>= { 1 }</code>.</p>' +
           '<p>Hãy nhớ kỹ điều này khi sau này bạn thấy một ảnh firmware phình bất thường.</p>' }
       ]},
@@ -1059,6 +1072,16 @@ Lesson.register({
           '14480 sample_strip\n' +
           'embedded device: 43 7\n' +
           'nm: sample_strip: no symbols' },
+
+        { t: 'cal', kind: 'info', title: 'File nhỏ đi 1 704 byte, chương trình chạy y hệt, bảng ký hiệu biến mất', x:
+          '<p><code>sample_strip</code> còn <b>14 480</b> byte so với <b>16 184</b> byte của bản gốc — ' +
+          'giảm <b>1 704</b> byte, tức khoảng <b>10,5 %</b>. <code>./sample_strip</code> vẫn in đúng ' +
+          '<code>embedded device: 43 7</code> giống hệt bản chưa strip, vì <code>strip</code> chỉ đụng ' +
+          'tới <code>.symtab</code> và <code>.strtab</code> — hai section không có cờ <code>A</code>, ' +
+          'chưa bao giờ được nạp và không phải là mã hay dữ liệu mà chương trình cần để chạy.</p>' +
+          '<p>Cái mất hiện ngay ở dòng cuối: <code>nm sample_strip</code> báo <code>no symbols</code> vì ' +
+          'bảng ký hiệu đã bị cắt hẳn. Trên bản liên kết tĩnh, số byte tuyệt đối tiết kiệm được sẽ lớn ' +
+          'hơn nhiều — đo ngay dưới đây.</p>' },
 
         { t: 'p', x: 'Trên bản liên kết tĩnh, con số lớn hơn nhiều:' },
 
