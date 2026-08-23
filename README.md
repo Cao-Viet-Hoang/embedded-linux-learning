@@ -54,7 +54,7 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   36. Nạp kernel qua mạng và FIT image
   37. Kiến trúc kernel
   38. Source kernel và cách định hướng
-- Bộ bài tập đã viết: **15 / 70** — `bt-01` … `bt-15` đi kèm Bài 1 → 15. Xem ở mục **Bài tập** trên sidebar.
+- Bộ bài tập đã viết: **17 / 70** — `bt-01` … `bt-17` đi kèm Bài 1 → 17. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau). Mục §0 chỉ ra phần còn lại nằm ở đâu: [`docs/`](docs/) và [`.claude/skills/`](.claude/skills/).
 
 ## Tính năng

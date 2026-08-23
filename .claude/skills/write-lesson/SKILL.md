@@ -89,9 +89,19 @@ Every lesson follows this arc. Keep the order.
 1. **`intro`** — why this lesson exists, framed around a problem the learner will recognise.
 2. **`goals`** — 4–6 concrete, testable outcomes.
 3. **Theory sections (`h2`)** — 3–6 of them. Interleave `p`, `table`, `fig`, `terms`, `cal`.
-4. **`h2` "Thực hành: …"** *(= "Practice: …")* — one `steps` block, 4–6 steps. Each step:
-   `p` (what and why) → `code` (the command) → `code where:'out'` (real output) →
-   `cmdx` (dissect any non-trivial command) → `cal` (what just happened / why it matters).
+4. **`h2` "Thực hành: …"** *(= "Practice: …")* — one `steps` block, 4–6 steps. **Every command
+   run inside a step** — not every step — follows this unit: `p` (what you're about to run and
+   why) → `code` (the command) → `code where:'out'` (real output) → `cmdx` (dissect any
+   non-trivial command) → `cal` or a follow-up `p`/`notes` (what *this* output specifically
+   shows, in terms of the values printed — not just "what just happened" in the abstract).
+   **The unit repeats per command, not once per step.** A step that runs two or three commands
+   back to back needs an interpretation for each one, not a single lead-in `p` shared by all of
+   them plus one `cal` at the end covering only the most interesting output — a beginner cannot
+   infer unaided that a given line of output confirms, contradicts, or is simply consistent with
+   what came before. The only output allowed to go without its own explanation is one whose
+   meaning was already taught for an identical shape earlier in the *same* step (e.g. the same
+   command run twice with only one argument changed, where the first call's `cal` already
+   established how to read that output).
 5. **`h2` "Lỗi thường gặp"** *(= "Common errors")* — a `table` whose header is exactly
    `Thông báo | Nguyên nhân | Cách xử lý` *(= Message | Cause | Fix)*.
    Include errors actually hit while verifying the commands.
@@ -107,6 +117,17 @@ Every lesson follows this arc. Keep the order.
   ("52× slower") — never a vague one like `chậm hơn nhiều` ("much slower").
 - **Dissect every non-obvious command** with `cmdx`. A beginner should never meet an
   unexplained flag.
+- **Every command shown must answer two questions on the page, not just in the writer's
+  head: why am I running this, and what does *this* output tell me?** The `p` before a `code`
+  block answers the first. A `cal` or a follow-up `p`/`notes` after the matching
+  `code where:'out'` block must answer the second — explicitly, pointing at the actual values
+  printed (a specific line, number, or field), not a generic restatement of the command's
+  purpose that would read the same regardless of what came out. If a command's output genuinely
+  needs no interpretation (a directory listing used only to set up files for the next command,
+  say), that is a reason to consider `nocopy`-ing it out of the reader's attention, not a licence
+  to leave a *meaningful* result unglossed. This is the most common gap in existing Thực hành
+  sections: a run of two or three commands sharing one lead-in paragraph, where only the last
+  output gets a `cal` and the earlier ones are left for the learner to interpret alone.
 - **Show the failure on purpose** when the failure teaches something. Lesson 3 makes the
   learner hit `Exec format error` deliberately, then explains why that is the correct outcome.
 - **Cross-reference forward and backward**, e.g. `Bài 17 sẽ phân tích kỹ` ("lesson 17 will

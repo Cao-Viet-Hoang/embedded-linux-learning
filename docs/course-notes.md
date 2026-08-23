@@ -72,6 +72,17 @@
   - `bt-14` E6 deliberately ends unanswered and points at lesson 15; `bt-15` E6 ends
     unanswered and points at lesson 17 (what the extra 14 KB in the executable is). Keep
     that hand-off chain intact when writing `bt-16`.
+  - **`bt-16` and `bt-17` were written on 2026-08-23**, continuing that hand-off chain:
+    `bt-16` E6 ends unanswered pointing at lesson 17 (why `printf` needs no source in the
+    project, and what the static/dynamic size gap is), and `bt-17` E6 ends unanswered
+    pointing at lesson 18 (why file size, `size`'s text+data+bss total, and the
+    post-`strip` size are three different numbers). `bt-17`'s trục deliberately picked
+    "linker always prefers `.so` when both formats are present" over soname — soname
+    scored the same 5 points in the audit but was demoted to breadth (A8/B4/C4) because it
+    shares the same *kind* of evidence (`readelf -d | grep NEEDED`) as the chosen trục, and
+    spiralling both would make two trục lean on one data source. **Bài 18 (ELF anatomy /
+    `strip`) must not pick a trục that resolves via `readelf -d | grep NEEDED` or `nm -D`
+    output alone** — those diagnostic moves are already spent in `bt-17`.
 
 - **Exercise sets `bt-12` and `bt-13` were written on 2026-08-17/18** and their trục are
   recorded in §13.8 of the `write-exercise` skill. Two content decisions a later set must
