@@ -325,7 +325,8 @@ Lesson.register({
             'ls -l linux-cloud.deb' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '-rw-r--r-- 1 shinarus shinarus 27985180 Aug  8 12:04 linux-cloud.deb' },
+            '-rw-r--r-- 1 shinarus shinarus 27985180 Aug  8 12:04 linux-cloud.deb',
+            notes: ['Tên người dùng và ngày giờ sẽ khác trên máy bạn; kích thước file thì phải giống hệt nếu tải đúng phiên bản.'] },
 
           { t: 'cmdx', cmd: 'curl -fLo linux-cloud.deb <url>', title: 'Vì sao ba cờ này, không phải một',
             rows: [
@@ -344,7 +345,8 @@ Lesson.register({
             'total 30196\n' +
             '-rw-r--r-- 1 shinarus shinarus       83 Jun 20 14:03 System.map-6.12.94+deb13-cloud-arm64\n' +
             '-rw-r--r-- 1 shinarus shinarus   140992 Jun 20 14:03 config-6.12.94+deb13-cloud-arm64\n' +
-            '-rw-r--r-- 1 shinarus shinarus 30771136 Jun 20 14:03 vmlinuz-6.12.94+deb13-cloud-arm64' },
+            '-rw-r--r-- 1 shinarus shinarus 30771136 Jun 20 14:03 vmlinuz-6.12.94+deb13-cloud-arm64',
+            notes: ['Tên người dùng sẽ khác trên máy bạn; ngày giờ ở đây là ngày Debian đóng gói nên sẽ giống nhau nếu tải cùng phiên bản.'] },
 
           { t: 'cal', kind: 'info', title: 'Bảng ký hiệu chỉ 83 byte — mở ra xem nó nói gì',
             x: '<p>Bảng ở trên gọi <code>System.map</code> là "bảng ký hiệu". Một bảng ký hiệu ' +
@@ -418,7 +420,8 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             '-rwxr-xr-x 1 shinarus shinarus 1980944 Jul 26 12:53 busybox-pkg/usr/bin/busybox\n' +
-            'busybox-pkg/usr/bin/busybox: ELF 64-bit LSB executable, ARM aarch64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=be06e2cf9300eff8480d09bd8840d4fa7176dcd1, for GNU/Linux 3.7.0, stripped' },
+            'busybox-pkg/usr/bin/busybox: ELF 64-bit LSB executable, ARM aarch64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=be06e2cf9300eff8480d09bd8840d4fa7176dcd1, for GNU/Linux 3.7.0, stripped',
+            notes: ['Tên người dùng, ngày giờ đóng gói và <code>BuildID</code> sẽ khác trên máy bạn nếu tải bản BusyBox khác; kích thước 1 980 944 byte thì phải giống hệt với đúng phiên bản <b>1.38.0-3</b>.'] },
 
           { t: 'cal', kind: 'why', title: 'Đọc dòng file này như một danh sách kiểm tra',
             x: '<p>Bốn từ khoá, bốn điều kiện phải đúng, và bạn kiểm được cả bốn chỉ bằng một ' +

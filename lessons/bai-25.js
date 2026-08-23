@@ -316,7 +316,9 @@ Lesson.register({
     { t: 'code', where: 'out', nocopy: true, code:
       '111M\t/usr/libexec/gcc/x86_64-linux-gnu/15\n' +
       '30M\t/usr/lib/gcc/x86_64-linux-gnu/15\n' +
-      '-rwxr-xr-x 1 root root 37475472 Mar 22 17:08 /usr/libexec/gcc/x86_64-linux-gnu/15/cc1' },
+      '-rwxr-xr-x 1 root root 37475472 Mar 22 17:08 /usr/libexec/gcc/x86_64-linux-gnu/15/cc1',
+      notes: ['Mốc thời gian <code>Mar 22 17:08</code> là lúc gói gcc được cài trên máy này, sẽ ' +
+        'khác trên máy bạn — con số cần nhớ là kích thước byte.'] },
 
     { t: 'p', x:
       'Riêng <code>cc1</code> — trình biên dịch C thật sự, thứ bạn sẽ mổ ở Bài 26 — đã ' +
@@ -658,7 +660,9 @@ Lesson.register({
             '             not stripped\n' +
             'hello-arm64: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked,\n' +
             '             interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=9bc6c0cc…, for GNU/Linux 3.7.0,\n' +
-            '             not stripped' },
+            '             not stripped',
+            notes: ['Hai giá trị <code>BuildID[sha1]</code> là hash tính từ nội dung file lúc ' +
+              'liên kết, sẽ khác trên máy bạn mỗi lần biên dịch lại.'] },
 
           { t: 'p', x:
             'Chú ý cả trường <code>interpreter</code>: <code>/lib64/ld-linux-x86-64.so.2</code> so ' +

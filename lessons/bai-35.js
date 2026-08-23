@@ -220,8 +220,9 @@ Lesson.register({
          'in ra <code>edfe0dd0</code> thay vì <code>d00dfeed</code>, đừng hoảng: ARM64 là máy ' +
          '<b>little-endian</b> nên khi gộp 4 byte thành một số 32-bit thì thứ tự đảo lại. Gõ ' +
          '<code>md.b</code> ở cùng địa chỉ sẽ thấy đúng <code>d0 0d fe ed</code> theo thứ tự ' +
-         'byte thật. Nhớ con số này rất đáng: nó cho bạn kiểm tra <i>tức khắc</i> xem địa chỉ ' +
-         'nào đó có thật sự chứa device tree hay không, và bạn sẽ dùng lại nó ở Chặng 08.' },
+         'byte thật. Không cần thuộc lòng chuỗi byte này — cứ gõ <code>md.b</code> ở địa chỉ ' +
+         'nghi ngờ, thấy đúng <code>d0 0d fe ed</code> là biết ngay đó có phải device tree hay ' +
+         'không, và bạn sẽ dùng lại đúng phép kiểm tra này ở Chặng 08.' },
 
     { t: 'table',
       head: ['Lệnh', 'Việc nó làm', 'Khi nào bạn cần'],
@@ -463,7 +464,9 @@ Lesson.register({
                'cho <code>Image</code> và <b>1 035 397</b> byte cho <code>initramfs.cpio.gz</code> — khớp ' +
                'chính xác với hai file ở <code>~/bai32</code>. Đây là bằng chứng đầu tiên trong ba bằng ' +
                'chứng độc lập mà bước 4 sẽ đối chiếu lại (cột <code>ls</code> của U-Boot và biến ' +
-               '<code>filesize</code>): dữ liệu sang đĩa không hề bị cắt xén.' },
+               '<code>filesize</code>): dữ liệu sang đĩa không hề bị cắt xén. Số inode ' +
+               '<code>13</code>/<code>14</code> và mốc giờ <code>16-Aug-2026 17:35</code> sẽ ' +
+               'khác trên máy bạn; chỉ hai con số kích thước byte mới cần khớp.' },
 
           { t: 'cal', kind: 'why', title: 'Vì sao ext4 chứ không phải FAT?',
             x: 'Thẻ SD của board thật hay dùng phân vùng FAT cho boot, vì mọi bootloader đều đọc ' +
@@ -1067,7 +1070,9 @@ Lesson.register({
                'cộng <b>8 byte</b> tiền tố độ dài mà kiểu <code>script</code> thêm vào. Chính 64 ' +
                'byte header này là thứ mà file <code>Image</code> ở bước 4 <b>không có</b>, nên ' +
                '<code>bootm</code> mới từ chối nó. Cùng một cơ chế, hai kết cục — và ' +
-               '<b>Bài 36</b> sẽ dùng cơ chế đó ở quy mô 32 MB.' },
+               '<b>Bài 36</b> sẽ dùng cơ chế đó ở quy mô 32 MB. Dòng <code>Created:</code>, tên ' +
+               'người dùng <code>shinarus</code> và mốc giờ <code>Aug 16 16:43</code> sẽ khác ' +
+               'trên máy bạn; chỉ hai con số 233 và 305 byte mới cần khớp.' },
 
           { t: 'p', x: 'Đưa script lên đĩa, cạnh kernel:' },
 
@@ -1116,7 +1121,8 @@ Lesson.register({
                'thời gian, và còn <code>Verifying Checksum ... OK</code>. Khác biệt duy nhất là ' +
                '64 byte header. Hãy biến <code>iminfo</code> thành <b>phản xạ đầu tiên</b> mỗi ' +
                'khi <code>bootm</code> báo lỗi — nó trả lời đúng câu hỏi "cái tôi vừa nạp ' +
-               'thực chất là gì?".' },
+               'thực chất là gì?". Mốc giờ <code>Created:</code> ở đây lặp lại đúng lúc build ' +
+               'script lúc nãy nên cũng sẽ khác trên máy bạn.' },
 
           { t: 'cal', kind: 'why', title: '<code>source</code> vừa chạy lại đúng bốn lệnh bạn gõ tay ở bước 5',
             x: 'Nhìn kỹ log sau <code>## Executing script at 40200000</code>: dòng ' +

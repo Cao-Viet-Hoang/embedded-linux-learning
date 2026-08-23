@@ -513,17 +513,17 @@ Lesson.register({
     { t: 'code', where: 'wsl', code:
       'gcc -Wall -Wextra -pthread -O1 -o race_o1 race.c\n' +
       'gcc -Wall -Wextra -pthread -O2 -o race_o2 race.c\n' +
-      'echo "--- -O1, 5 lan ---"; for i in 1 2 3 4 5; do ./race_o1; done\n' +
-      'echo "--- -O2, 3 lan ---"; for i in 1 2 3; do ./race_o2; done' },
+      'echo "--- -O1, 5 runs ---"; for i in 1 2 3 4 5; do ./race_o1; done\n' +
+      'echo "--- -O2, 3 runs ---"; for i in 1 2 3; do ./race_o2; done' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      '--- -O1, 5 lan ---\n' +
+      '--- -O1, 5 runs ---\n' +
       'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
       'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
       'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
       'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
       'expected 2000000, actual 1000000, lost 1000000 increments (50.0%)\n' +
-      '--- -O2, 3 lan ---\n' +
+      '--- -O2, 3 runs ---\n' +
       'expected 2000000, actual 2000000, lost 0 increments (0.0%)\n' +
       'expected 2000000, actual 2000000, lost 0 increments (0.0%)\n' +
       'expected 2000000, actual 2000000, lost 0 increments (0.0%)' },

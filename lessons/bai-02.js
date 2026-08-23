@@ -541,7 +541,9 @@ Lesson.register({
             'con của nó — chính là phiên bạn đang gõ lệnh ngay bây giờ.</p>' +
             '<p>Đây là bảng "Mỗi giai đoạn bàn giao cái gì" ở đầu bài, nhìn thấy tận mắt: mục ' +
             '<code>chạy service</code> của giai đoạn 4 không phải một câu mô tả trừu tượng, mà chính ' +
-            'là năm nhánh này.</p>' }
+            'là năm nhánh này.</p>' +
+            '<p>Các số trong ngoặc là PID thật của máy này lúc chạy lệnh, sẽ khác trên máy bạn — chỉ ' +
+            'tên tiến trình và hình dạng cây là thứ bạn nên nhận ra giống hệt.</p>' }
         ]},
 
       { title: 'Nhìn thấy mili-giây thứ nhất mà WSL2 không có',

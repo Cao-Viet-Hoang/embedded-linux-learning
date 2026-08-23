@@ -916,7 +916,7 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'cd /var/lib/apt/lists\n' +
           'head -8 archive.ubuntu.com_ubuntu_dists_resolute_InRelease\n' +
-          'echo \'--- cuoi file ---\'\n' +
+          'echo \'--- end of file ---\'\n' +
           'tail -3 archive.ubuntu.com_ubuntu_dists_resolute_InRelease' },
 
         { t: 'code', where: 'out', nocopy: true, code:
@@ -928,7 +928,7 @@ Lesson.register({
           'Suite: resolute\n' +
           'Version: 26.04\n' +
           'Codename: resolute\n' +
-          '--- cuoi file ---\n' +
+          '--- end of file ---\n' +
           '43BaDciqYoThL5ZQV+ADjemG3v2zl5gzeDVsMn6YOyrbQ4aTcxw=\n' +
           '=JYDG\n' +
           '-----END PGP SIGNATURE-----' },
@@ -1030,7 +1030,7 @@ Lesson.register({
           'mkdir -p ~/embedded/bai12 && cd ~/embedded/bai12\n' +
           'apt-get download gpiod libgpiod3\n' +
           'sudo dpkg -i gpiod_*.deb\n' +
-          'echo "ma tra ve = $?"' },
+          'echo "exit code = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'Get:1 http://archive.ubuntu.com/ubuntu resolute/universe amd64 gpiod amd64 2.2.1-3build1 [47.0 kB]\n' +
@@ -1048,7 +1048,7 @@ Lesson.register({
           ' dependency problems - leaving unconfigured\n' +
           'Errors were encountered while processing:\n' +
           ' gpiod\n' +
-          'ma tra ve = 1' },
+          'exit code = 1' },
 
         { t: 'cal', kind: 'why', title: 'Đọc kỹ: dpkg đã bung file ra rồi mới báo lỗi', x:
           '<p>Dòng <code>Unpacking gpiod</code> chạy <b>thành công</b>. Chỉ tới bước cấu hình ' +
@@ -1065,12 +1065,12 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'dpkg -l gpiod | tail -1\n' +
           'gpiodetect\n' +
-          'echo "ma tra ve = $?"' },
+          'echo "exit code = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'iU  gpiod  2.2.1-3build1  amd64  Tools for interacting with Linux GPIO character device - binary\n' +
           'gpiodetect: error while loading shared libraries: libgpiod.so.3: cannot open shared object file: No such file or directory\n' +
-          'ma tra ve = 127' },
+          'exit code = 127' },
 
         { t: 'cmdx', cmd: 'Ba manh mối trong hai dòng trên', title: 'Học cách đọc triệu chứng',
           rows: [
@@ -1095,7 +1095,7 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'sudo apt-get check\n' +
-          'echo "ma tra ve = $?"' },
+          'echo "exit code = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'Reading package lists...\n' +
@@ -1105,7 +1105,7 @@ Lesson.register({
           'The following packages have unmet dependencies:\n' +
           ' gpiod : Depends: libgpiod3 (>= 2.1) but it is not installed\n' +
           'E: Unmet dependencies. Try \'apt --fix-broken install\' with no packages (or specify a solution).\n' +
-          'ma tra ve = 100' },
+          'exit code = 100' },
 
         { t: 'cal', kind: 'info', title: 'apt-get check là lệnh chẩn đoán nên gõ đầu tiên', x:
           '<p>Nó không cài, không gỡ, không tải gì — chỉ đọc sổ và trả lời một câu duy nhất: ' +
@@ -1157,17 +1157,17 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'dpkg -l gpiod libgpiod3 | tail -2\n' +
           'gpiodetect\n' +
-          'echo "ma tra ve = $?"\n' +
-          'sudo apt-get check && echo \'he thong sach\'' },
+          'echo "exit code = $?"\n' +
+          'sudo apt-get check && echo \'system clean\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'ii  gpiod            2.2.1-3build1  amd64  Tools for interacting with Linux GPIO character device - binary\n' +
           'ii  libgpiod3:amd64  2.2.1-3build1  amd64  C library for interacting with Linux GPIO device - shared libraries\n' +
-          'ma tra ve = 0\n' +
+          'exit code = 0\n' +
           'Reading package lists...\n' +
           'Building dependency tree...\n' +
           'Reading state information...\n' +
-          'he thong sach' },
+          'system clean' },
 
         { t: 'cal', kind: 'info', title: 'gpiodetect không in gì cả — và đó là kết quả đúng', x:
           '<p><code>iU</code> đã thành <code>ii</code>, mã trả về từ <b>127</b> xuống <b>0</b>: ' +
@@ -1322,15 +1322,15 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'dpkg -l | grep -c \'^ii\'\n' +
           'dpkg-query -W -f=\'${Installed-Size}\\n\' |\n' +
-          '  awk \'{t += $1} END {printf "%.1f MB trong %d goi\\n", t/1024, NR}\'\n' +
+          '  awk \'{t += $1} END {printf "%.1f MB in %d packages\\n", t/1024, NR}\'\n' +
           'dpkg-query -W -f=\'${Installed-Size}\\t${Package}\\n\' |\n' +
           '  grep aarch64 | sort -rn |\n' +
           '  awk \'{t += $1; printf "%8.1f MB  %s\\n", $1/1024, $2}\n' +
-          '       END {printf "%8.1f MB  TONG %d goi\\n", t/1024, NR}\'' },
+          '       END {printf "%8.1f MB  TOTAL %d packages\\n", t/1024, NR}\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '776\n' +
-          '2524.9 MB trong 776 goi\n' +
+          '2524.9 MB in 776 packages\n' +
           '   322.1 MB  qemu-efi-aarch64\n' +
           '    83.9 MB  gcc-15-aarch64-linux-gnu\n' +
           '    40.5 MB  cpp-15-aarch64-linux-gnu\n' +
@@ -1338,7 +1338,7 @@ Lesson.register({
           '     0.1 MB  gcc-15-aarch64-linux-gnu-base\n' +
           '     0.0 MB  gcc-aarch64-linux-gnu\n' +
           '     0.0 MB  cpp-aarch64-linux-gnu\n' +
-          '   459.7 MB  TONG 7 goi' },
+          '   459.7 MB  TOTAL 7 packages' },
 
         { t: 'cmdx', cmd: 'dpkg-query -W -f=\'${Installed-Size}\\t${Package}\\n\' | grep aarch64 | sort -rn', title: 'Cú pháp định dạng của dpkg-query, và vì sao sort cần -rn',
           rows: [
@@ -1394,14 +1394,14 @@ Lesson.register({
         { t: 'code', where: 'wsl', code:
           'sudo cp ~/ubuntu.sources.goc /etc/apt/sources.list.d/ubuntu.sources\n' +
           'sudo apt update > /dev/null\n' +
-          'sudo apt-get check && echo \'he thong sach\'\n' +
+          'sudo apt-get check && echo \'system clean\'\n' +
           'cd ~ && rm -rf ~/embedded/bai12 ~/ubuntu.sources.goc' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'Reading package lists...\n' +
           'Building dependency tree...\n' +
           'Reading state information...\n' +
-          'he thong sach' },
+          'system clean' },
 
         { t: 'cal', kind: 'tip', title: 'Vì sao phải trả deb-src về như cũ', x:
           '<p>Không bắt buộc — để bật cũng chẳng hỏng gì, chỉ khiến mỗi lần <code>apt ' +

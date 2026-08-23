@@ -329,6 +329,9 @@ Lesson.register({
       '<code>self</code> thành số PID thật của lệnh <code>ls</code> — máy bạn sẽ ra số khác. ' +
       'fd <b>7</b> trỏ tới <code>/dev/ptmx</code> — đó là đầu cuối giả mà chính shell của bạn ' +
       'giữ mở để kiểm soát tác vụ, không phải do <code>ls</code> tạo ra.</p>' +
+      '<p>Cùng lý do đó, số inode trong <code>pipe:[73676]</code>, mốc thời gian ' +
+      '<code>Aug  5 22:15</code> và tên người dùng <code>shinarus</code> trong đầu ra trên chỉ ' +
+      'đúng cho lần chạy này trên máy đang viết bài — trên máy bạn cả ba sẽ khác.</p>' +
       '<p>Nếu bạn chuyển hướng ra file — <code>ls -l /proc/self/fd &gt; out.txt</code> — thì dòng 1 ' +
       'sẽ trỏ tới <code>out.txt</code> thay vì đích cũ của nó (một ống dẫn hoặc một terminal, tuỳ ' +
       'cách bạn gọi lệnh). Đây là cách nhanh nhất để biết một tiến trình treo đang mở những gì ' +
@@ -995,7 +998,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'gcc -Wall -o error error.c\n' +
             './error\n' +
-            'echo "=== bay gio chuyen huong ===" \n' +
+            'echo "=== now redirecting ===" \n' +
             './error > out.txt 2>&1\n' +
             'cat out.txt' },
 
@@ -1005,7 +1008,7 @@ Lesson.register({
             '3) ret=-1 errno=21 Is a directory\n' +
             '4) ret=3 errno=21 Is a directory  <- succeeded but errno still stale\n' +
             '5) close(999): Bad file descriptor\n' +
-            '=== bay gio chuyen huong ===\n' +
+            '=== now redirecting ===\n' +
             '5) close(999): Bad file descriptor\n' +
             '1) ret=-1 errno=2 No such file or directory\n' +
             '2) ret=-1 errno=13 Permission denied\n' +

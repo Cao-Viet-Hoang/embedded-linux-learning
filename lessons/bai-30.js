@@ -111,7 +111,9 @@ Lesson.register({
 
     { t: 'fig', cap:
       'Bốn tầng: flash ở đáy, thiết bị trong khoảng 0x08–0x0c triệu, cửa sổ PCIe, rồi RAM bắt ' +
-      'đầu đúng ở 0x40000000. Ghi nhớ hai con số: UART 0x09000000, RAM 0x40000000.',
+      'đầu đúng ở 0x40000000. Hai con số hay dùng nhất là UART <code>0x09000000</code> và RAM ' +
+      '<code>0x40000000</code> — không cần thuộc lòng, dump device tree ở phần thực hành dưới ' +
+      'đây là cách tra lại chúng bất cứ lúc nào.',
       svg:
       '<svg viewBox="0 0 720 420" width="720" role="img" aria-label="Bản đồ bộ nhớ của machine virt: flash, thiết bị, cửa sổ PCIe và RAM cùng địa chỉ từng vùng">' +
 
@@ -445,7 +447,8 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             'exit=0\n' +
-            '-rw-r--r-- 1 shinarus shinarus 1048576 Aug  8 10:53 virt.dtb' },
+            '-rw-r--r-- 1 shinarus shinarus 1048576 Aug  8 10:53 virt.dtb',
+            notes: ['Tên người dùng và ngày giờ sẽ khác trên máy bạn; kích thước <b>1 048 576</b> byte thì luôn giống nhau, như callout ngay dưới đây giải thích.'] },
 
           { t: 'cmdx', cmd: 'qemu-system-aarch64 -M virt -cpu cortex-a57 -m 512 -nographic -machine dumpdtb=virt.dtb',
             title: 'Mổ dòng lệnh dump',
@@ -679,14 +682,16 @@ Lesson.register({
                'ô giữ một tệp có tên (ảnh nhân, initrd, device tree, dòng lệnh…) mà ' +
                '<code>-kernel</code> gửi cho guest qua kênh này.</p>' },
 
-          { t: 'cal', kind: 'tip', title: 'Ba lệnh monitor đáng thuộc lòng',
+          { t: 'cal', kind: 'tip', title: 'Ba lệnh monitor nên có sẵn trong tay',
             x: '<p><code>info mtree -f</code> — cái gì ở địa chỉ nào. Dùng khi truy một truy cập ' +
                'bộ nhớ đi đâu.</p>' +
                '<p><code>info qtree</code> — cây thiết bị và thuộc tính từng cái. Dùng khi ' +
                '<code>-device</code> của bạn không có tác dụng như mong đợi, để xem nó có thật ' +
                'sự được tạo ra không.</p>' +
                '<p><code>info registers</code> — trạng thái CPU. Dùng khi guest treo và bạn cần ' +
-               'biết nó đang đứng ở đâu. Bước 6 sẽ dùng tới nó.</p>' }
+               'biết nó đang đứng ở đâu. Bước 6 sẽ dùng tới nó.</p>' +
+               '<p>Không cần thuộc lòng cả ba: gõ <code>help info</code> ngay trong dấu nhắc ' +
+               '<code>(qemu)</code> để QEMU tự liệt kê lại toàn bộ.</p>' }
         ]},
 
       /* ── BƯỚC 4 ── */
@@ -1286,7 +1291,7 @@ Lesson.register({
     { t: 'recap', title: 'Tóm tắt bài này', items: [
       'Một <b>machine</b> trong QEMU là bản mô tả một bo mạch: bản đồ bộ nhớ, danh sách thiết bị và cách chúng nối vào bộ điều khiển ngắt. QEMU 10.2.1 có <b>113</b> machine ARM64; <code>virt</code> là bí danh của <code>virt-10.2</code>.',
       '<code>virt</code> là bo mạch <b>không tồn tại ngoài đời</b> — và chính vì thế nó là bo mạch học tốt nhất: ổn định, nhanh, không có quirk của nhà sản xuất.',
-      'Bốn địa chỉ đáng thuộc: RAM ở <code>0x40000000</code>, PL011 ở <code>0x09000000</code>, GIC ở <code>0x08000000</code>, 32 khe virtio-mmio từ <code>0xa000000</code> tới <code>0xa003e00</code> cách nhau <code>0x200</code>.',
+      'Bốn địa chỉ hay dùng nhất — RAM ở <code>0x40000000</code>, PL011 ở <code>0x09000000</code>, GIC ở <code>0x08000000</code>, 32 khe virtio-mmio từ <code>0xa000000</code> tới <code>0xa003e00</code> cách nhau <code>0x200</code> — không cần nhớ, <code>info mtree -f</code> tra lại được bất cứ lúc nào.',
       '<code>-machine dumpdtb=file.dtb</code> sinh device tree rồi thoát ngay với mã 0. File luôn đúng <b>1 048 576</b> byte vì QEMU cấp trước 1 MB để bootloader còn chỗ chèn thêm. <code>dtc -I dtb -O dts</code> dịch nó về <b>393</b> dòng đọc được.',
       'Trong device tree, <code>compatible</code> là thứ nhân dùng để chọn driver, <code>reg</code> là địa chỉ + độ dài, <code>interrupts</code> là ba số <i>loại · số hiệu · cờ</i>. Nút gốc khai <code>#address-cells = 2</code> nên mỗi địa chỉ viết thành <b>hai</b> ô 32 bit.',
       '<code>chosen/stdout-path = "/pl011@9000000"</code> là lý do bạn thấy được log boot. Nhân im lặng khi boot thì đây là chỗ kiểm đầu tiên.',

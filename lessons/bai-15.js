@@ -657,7 +657,7 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'gcc -H -E hello.c -o /dev/null 2>&1 | head -6\n' +
-          'echo \'--- tong so header:\'\n' +
+          'echo \'--- total headers:\'\n' +
           'gcc -H -E hello.c -o /dev/null 2>&1 | grep -c \'^\\.\'' },
 
         { t: 'code', where: 'out', nocopy: true, code:
@@ -667,7 +667,7 @@ Lesson.register({
           '.... /usr/include/features-time64.h\n' +
           '..... /usr/include/x86_64-linux-gnu/bits/wordsize.h\n' +
           '..... /usr/include/x86_64-linux-gnu/bits/timesize.h\n' +
-          '--- tong so header:\n' +
+          '--- total headers:\n' +
           '32' },
 
         { t: 'cmdx', cmd: 'gcc -H -E hello.c -o /dev/null', title: 'Cờ -H: in tên mọi header dùng tới',
@@ -700,9 +700,9 @@ Lesson.register({
           'vào của mỗi lệnh là đầu ra của lệnh trước.' },
 
         { t: 'code', where: 'wsl', code:
-          'gcc -S hello.i -o hello.s     # giai doan 2: .i -> .s\n' +
-          'gcc -c hello.s -o hello.o     # giai doan 3: .s -> .o\n' +
-          'gcc    hello.o -o hello       # giai doan 4: .o -> file chay duoc\n' +
+          'gcc -S hello.i -o hello.s     # stage 2: .i -> .s\n' +
+          'gcc -c hello.s -o hello.o     # stage 3: .s -> .o\n' +
+          'gcc    hello.o -o hello       # stage 4: .o -> executable\n' +
           './hello' },
 
         { t: 'code', where: 'out', nocopy: true, code:
@@ -806,7 +806,8 @@ Lesson.register({
               'section header của file, nếu file có bảng đó', 'Cũng là tên đầy đủ <code>--sections</code> — cả ba cách viết cùng một cờ'],
             ['<code>| grep -E \'\\.text|\\.rodata|\\.symtab\'</code>', 'Đầu ra đầy đủ của ' +
               '<code>-S</code> liệt kê <b>toàn bộ</b> section trong file, thường vài chục dòng; ' +
-              'lệnh trên chỉ giữ lại ba section đáng chú ý nhất cho bước này', 'Bài 18 là bài tra cứu readelf/objdump/nm đầy đủ, không lọc bớt']
+              'lệnh trên chỉ giữ lại ba section đáng chú ý nhất cho bước này', 'Bài 18 là bài tra cứu readelf/objdump/nm đầy đủ, không lọc bớt'],
+            ['<code>00000040</code>, <code>00000086</code>, <code>00000130</code>', 'Cột <b>Offset</b> — vị trí byte của mỗi section bên trong file <code>hello.o</code>', 'Các con số này phụ thuộc phiên bản binutils/gcc, sẽ khác trên máy bạn']
           ]},
 
         { t: 'cmdx', cmd: 'file hello.o\nnm hello.o', title: 'Ba dòng này nói gì về hello.o — đọc một file .o',
@@ -917,7 +918,9 @@ Lesson.register({
           '<code>undefined reference to \'sub\'</code>: cần cái gì.</p>' +
           '<p>Ba câu hỏi cần tự đặt khi gặp lỗi này: (1) tôi đã <b>viết</b> hàm đó chưa? ' +
           '(2) file <code>.o</code> chứa nó có nằm trong lệnh liên kết không? (3) nó có bị ' +
-          '<code>static</code> che không? Ở đây là trường hợp (1).</p>' },
+          '<code>static</code> che không? Ở đây là trường hợp (1).</p>' +
+          '<p>Con số <code>0x3a</code> phụ thuộc phiên bản GCC/binutils đang dùng, sẽ khác trên ' +
+          'máy bạn — điều cần khớp là <i>hình dạng</i> thông báo, không phải offset cụ thể.</p>' },
 
         { t: 'code', where: 'wsl', name: 'bổ sung định nghĩa còn thiếu', code:
           'cat >> ops.c <<\'EOF\'\n' +

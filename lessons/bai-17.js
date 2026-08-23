@@ -554,6 +554,11 @@ Lesson.register({
       'lrwxrwxrwx 1 shinarus shinarus    15 Aug  5 21:38 libops.so.1 -> libops.so.1.0.0\n' +
       '-rwxr-xr-x 1 shinarus shinarus 15216 Aug  5 21:38 libops.so.1.0.0' },
 
+    { t: 'cal', kind: 'tip', title: 'Thời gian và tên người dùng trong ls -l sẽ khác trên máy bạn', x:
+      '<p>Mốc thời gian <code>Aug  5 21:38</code> và tên người dùng <code>shinarus</code> chỉ ' +
+      'phản ánh máy và thời điểm lệnh này được chạy lúc viết bài — trên máy bạn sẽ là ngày giờ ' +
+      'thật và tên đăng nhập của chính bạn.</p>' },
+
     { t: 'code', where: 'wsl', code:
       'readelf -d libops.so.1.0.0 | grep SONAME\n' +
       'gcc -Wall main.c -L. -lops -Wl,-rpath,\'$ORIGIN\' -o prog_versioned\n' +
@@ -1146,7 +1151,9 @@ Lesson.register({
           '<p>Hai file đầu chỉ là liên kết mềm, không chứa mã máy nào. Kích thước <b>11</b> và ' +
           '<b>15</b> mà <code>ls -l</code> in ra chính là <b>độ dài chuỗi đường dẫn đích</b> ' +
           '(<code>libops.so.1</code> có 11 ký tự, <code>libops.so.1.0.0</code> có 15 ký tự) — vì ' +
-          'nội dung của một liên kết mềm chính là chuỗi đường dẫn đó, như bạn đã học ở Bài 6.</p>' },
+          'nội dung của một liên kết mềm chính là chuỗi đường dẫn đó, như bạn đã học ở Bài 6.</p>' +
+          '<p>Mốc thời gian <code>Aug  5 21:42</code> và tên người dùng <code>shinarus</code> chỉ ' +
+          'là của lần chạy này — trên máy bạn sẽ khác.</p>' },
 
         { t: 'code', where: 'wsl', code:
           'readelf -d libops.so.1.0.0 | grep SONAME\n' +

@@ -241,7 +241,10 @@ Lesson.register({
       'chung mãi mãi.</p>' +
       '<p>Hệ quả đo được ở phần thực hành: <code>fork</code> tốn khoảng <b>215–235 µs</b> trên máy ' +
       'bạn <i>bất kể</i> tiến trình đang dùng bao nhiêu RAM — bởi vì gần như không có byte nào ' +
-      'thật sự được chép.</p>' },
+      'thật sự được chép.</p>' +
+      '<p>Con số <code>0x5e06c6e64010</code> cụ thể do ASLR sinh ngẫu nhiên mỗi lần chạy — trên ' +
+      'máy bạn sẽ ra một địa chỉ khác hẳn; điều cần khớp chỉ là <b>cha và con in ra cùng một ' +
+      'con số</b>.</p>' },
 
     /* ══════════════════════════════════════════════
        4. EXEC

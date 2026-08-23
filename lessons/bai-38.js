@@ -349,10 +349,10 @@ Lesson.register({
 
     { t: 'code', where: 'wsl', name: 'Tìm định nghĩa, không tìm lời gọi',
       code:
-        '# Sai: ra hàng chục dòng, phần lớn là nơi GỌI hàm\n' +
+        '# Wrong: returns dozens of lines, mostly places that CALL the function\n' +
         'grep -rn "vfs_write" fs/\n' +
         '\n' +
-        '# Đúng: kiểu trả về nằm đầu dòng nên "^" lọc ra ĐỊNH NGHĨA\n' +
+        '# Right: the return type sits at the start of the line, so "^" filters to the DEFINITION\n' +
         'grep -rn "^ssize_t vfs_write" fs/' },
 
     { t: 'cal', kind: 'why', title: 'Vì sao dấu ^ lại tìm ra được định nghĩa', x:

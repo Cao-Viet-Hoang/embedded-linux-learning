@@ -136,7 +136,9 @@ Lesson.register({
       '  Class:                             ELF64\n' +
       '  Type:                              DYN (Position-Independent Executable file)\n' +
       '  Machine:                           AArch64\n' +
-      '  Entry point address:               0x1740' },
+      '  Entry point address:               0x1740',
+      notes: ['Hai địa chỉ entry point phụ thuộc phiên bản linker, có thể khác một chút trên máy ' +
+        'bạn — điều cần so là <b>có</b> hay <b>không</b>, không phải khớp tuyệt đối.'] },
 
     { t: 'cal', kind: 'tip', title: '<code>readelf</code> native đọc được file ARM64 — và điều đó là bình thường',
       x: '<p>Bạn vừa dùng <code>readelf</code> <b>không có tiền tố</b> trên một file ARM64 và nó ' +
@@ -487,8 +489,9 @@ Lesson.register({
     { t: 'h2', x: 'Bốn con số kích thước, và cách đọc chúng' },
 
     { t: 'p', x:
-      'Cùng một <code>temp_daemon.c</code>, bốn cách dịch, bốn kích thước. Đây là bảng bạn nên ' +
-      'nhớ, vì mọi tranh luận về "ảnh nhúng nặng quá" đều bắt đầu từ đây.' },
+      'Cùng một <code>temp_daemon.c</code>, bốn cách dịch, bốn kích thước — bạn luôn kiểm tra lại ' +
+      'được bằng <code>stat -c \'%s %n\' &lt;file&gt;</code>, không cần thuộc lòng. Nhưng hãy để ý ' +
+      'hình dạng của bảng, vì mọi tranh luận về "ảnh nhúng nặng quá" đều bắt đầu từ đây.' },
 
     { t: 'table',
       head: ['Cách dịch', 'Kích thước file', 'Phần <code>text</code>', 'So với x86'],
@@ -887,7 +890,9 @@ Lesson.register({
             '    410 temp_daemon_arm /usr/bin/qemu-aarch64 ./temp_daemon_arm64 ./temp_daemon_arm64\n' +
             '[daemon] signal 15 (Terminated) via signalfd - beginning graceful shutdown\n' +
             '[daemon] served 3 requests, closed every file descriptor cleanly, exiting 0\n' +
-            'exit code = 0' },
+            'exit code = 0',
+            notes: ['Số PID <code>410</code> là thật, sẽ khác trên máy bạn mỗi lần chạy — cứ đối ' +
+              'chiếu tên tiến trình và nội dung log.'] },
 
           { t: 'cal', kind: 'info', title: 'Đọc kỹ dòng <code>ps</code> — nó kể toàn bộ câu chuyện',
             x: '<p><code>/usr/bin/qemu-aarch64 ./temp_daemon_arm64 ./temp_daemon_arm64</code></p>' +
@@ -1128,7 +1133,10 @@ Lesson.register({
             'crc32.o\n' +
             'deflate.o\n' +
             'infback.o\n' +
-            'inffast.o' },
+            'inffast.o',
+            notes: ['Tên người dùng <code>shinarus</code> trong đường dẫn là của máy đang viết ' +
+              'bài, sẽ khác trên máy bạn — cây thư mục con dưới <code>staging/</code> mới là phần ' +
+              'cần đối chiếu.'] },
 
           { t: 'p', x:
             'Cây thư mục ấy là một sysroot thu nhỏ: <code>include/</code> cho trình biên dịch, ' +

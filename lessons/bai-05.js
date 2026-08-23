@@ -682,6 +682,8 @@ Lesson.register({
             'State:\tS (sleeping)\n' +
             'VmRSS:\t    7952 kB' },
 
+          { t: 'p', x: 'Số <code>443</code> trong <code>/proc/443/exe</code> là PID thật, sẽ khác trên máy bạn mỗi lần chạy.' },
+
           { t: 'cmdx', cmd: 'tr \'\\0\' \' \' < /proc/$!/cmdline',
             title: 'Mổ xẻ câu lệnh',
             rows: [

@@ -329,6 +329,10 @@ Lesson.register({
         '-rw-r--r-- 1 shinarus shinarus 30771136 Aug 16 11:14 /home/shinarus/bai32/Image\n' +
         '-rw-r--r-- 1 shinarus shinarus  1035397 Aug 16 11:14 /home/shinarus/bai32/initramfs.cpio.gz' },
 
+    { t: 'p', x:
+      'Tên người dùng <code>shinarus</code> và mốc giờ <code>Aug 16 11:14</code> sẽ khác trên máy ' +
+      'bạn; hai con số kích thước byte mới cần khớp.' },
+
     { t: 'steps', items: [
 
       /* ---------- Bước 1 ---------- */

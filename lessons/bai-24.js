@@ -369,7 +369,7 @@ Lesson.register({
       'được. Hãy thử bỏ nó ra, rồi khởi động lại máy chủ ngay sau khi nó vừa thoát.' },
 
     { t: 'code', where: 'wsl', code:
-      '# tcp_server_no_reuse.c giong het tcp_server.c nhung KHONG co dong setsockopt\n' +
+      '# tcp_server_no_reuse.c is identical to tcp_server.c but WITHOUT the setsockopt line\n' +
       './tcp_server_no_reuse 1 &\n' +
       'sleep 0.4\n' +
       './tcp_client 127.0.0.1 9003 > /dev/null\n' +
@@ -406,7 +406,7 @@ Lesson.register({
          'không phục vụ ai.</p>' },
 
     { t: 'code', where: 'wsl', code:
-      '# tcp_server.c CO SO_REUSEADDR: lam lai dung kich ban tren\n' +
+      '# tcp_server.c HAS SO_REUSEADDR: repeat the exact same scenario above\n' +
       './tcp_server 1 & sleep 0.4\n' +
       './tcp_client 127.0.0.1 9000 > /dev/null\n' +
       'wait\n' +
@@ -574,7 +574,7 @@ Lesson.register({
     { t: 'code', where: 'wsl', code:
       'gcc -Wall -Wextra -o boundary_server boundary_server.c\n' +
       'gcc -Wall -Wextra -o boundary_client boundary_client.c\n' +
-      '# lan 1: ba lan write lien tiep, khong nghi\n' +
+      '# round 1: three writes in a row, no sleep\n' +
       './boundary_server & sleep 0.4; ./boundary_client 0; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
@@ -586,7 +586,7 @@ Lesson.register({
       '[server] read() returned 0 -> client closed. Total read() calls = 2\n' },
 
     { t: 'code', where: 'wsl', code:
-      '# lan 2: cung chuong trinh, nhung nghi 300 ms giua cac lan write\n' +
+      '# round 2: same program, but sleep 300 ms between writes\n' +
       './boundary_server & sleep 0.4; ./boundary_client 300; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
@@ -732,7 +732,7 @@ Lesson.register({
       'thứ TCP không cho bạn. Nhưng cái giá phải trả xuất hiện ngay khi bộ đệm nhận hơi nhỏ.' },
 
     { t: 'code', where: 'wsl', code:
-      '# cung khach gui 10 byte, nhung ben nhan chi dua bo dem 6 byte\n' +
+      '# same client, sends 10 bytes, but the receiver only provides a 6-byte buffer\n' +
       './udp_server 6 & sleep 0.4; ./udp_client; wait' },
 
     { t: 'code', where: 'out', nocopy: true, code:
@@ -810,7 +810,7 @@ Lesson.register({
     { t: 'h3', x: 'Đo thử: TCP chậm hơn UDP bao nhiêu?' },
 
     { t: 'code', where: 'wsl', code:
-      '# 10 000 luot khu hoi 16 byte tren loopback, ba lan moi giao thuc\n' +
+      '# 10,000 round trips of 16 bytes over loopback, three runs per protocol\n' +
       'for i in 1 2 3; do ./rtt tcp; done\n' +
       'for i in 1 2 3; do ./rtt udp; done' },
 
@@ -1137,7 +1137,7 @@ Lesson.register({
       ]},
 
     { t: 'code', where: 'wsl', code:
-      '# cung kich ban khach cham + khach nhanh, nhung dung select_server\n' +
+      '# same scenario: slow client + fast client, but using select_server\n' +
       'gcc -Wall -Wextra -o select_server select_server.c\n' +
       './select_server 2 & sleep 0.4\n' +
       './slow_client 2000 & sleep 0.3\n' +
@@ -1197,7 +1197,7 @@ Lesson.register({
       '}\n' },
 
     { t: 'code', where: 'wsl', code:
-      '# mo /dev/null 1500 lan de day so fd len cao, roi thu FD_SET\n' +
+      '# open /dev/null 1500 times to push the fd number up, then try FD_SET\n' +
       'gcc -Wall -Wextra -o select_overflow select_overflow.c\n' +
       './select_overflow\n' +
       'echo "exit code = $?"' },
@@ -1849,7 +1849,9 @@ Lesson.register({
             'ss -tlnp | grep \':9000\'' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'LISTEN 0      16            0.0.0.0:9000      0.0.0.0:*    users:(("tcp_server",pid=1331,fd=3))\n' },
+            'LISTEN 0      16            0.0.0.0:9000      0.0.0.0:*    users:(("tcp_server",pid=1331,fd=3))\n',
+            notes: ['<code>pid=1331</code> là PID thật của lần chạy này, sẽ khác trên máy bạn — ' +
+              'điều cần đối chiếu là tên tiến trình và số fd, không phải con số PID.'] },
 
           { t: 'cmdx', cmd: 'ss -tlnp', title: 'Đọc từng cột',
             rows: [

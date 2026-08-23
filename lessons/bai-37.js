@@ -691,6 +691,10 @@ Lesson.register({
             '359.74 1942.67\n' +
             'close(3)                                = 0' },
 
+          { t: 'p', x:
+            'Đường dẫn <code>/home/shinarus/bai37/real.txt</code> chứa tên người dùng của máy này, sẽ ' +
+            'khác trên máy bạn.' },
+
           { t: 'cmdx', cmd: 'stat -f -c %T "$f"', title: 'Hỏi hệ thống file, không hỏi file',
             rows: [
               ['<code>-f</code>', 'Đổi hẳn nghĩa của <code>stat</code>: hỏi <b>trạng thái hệ thống file</b> chứa đường dẫn này, không hỏi trạng thái của chính file', 'Thiếu cờ này, <code>stat</code> trả về quyền, kích thước, thời gian sửa — không liên quan gì tới loại hệ thống file'],
@@ -740,7 +744,9 @@ Lesson.register({
             'cấp phát 0 byte. Đọc cho tới khi <code>read()</code> trả về 0, đúng như bạn đã làm khi viết ' +
             'lại <code>cp</code> ở <b>Bài 19</b>.</p>' +
             '<p>Và hai lần <code>cat</code> cách nhau một giây cho hai giá trị khác nhau — file này ' +
-            'không có nội dung, nó có một <b>hàm sinh nội dung</b>.</p>' }
+            'không có nội dung, nó có một <b>hàm sinh nội dung</b>.</p>' +
+            '<p>Mốc giờ <code>Aug 18 22:04</code> trong <code>ls -l</code> ở trên chỉ là lúc máy này ' +
+            'khởi động, sẽ khác trên máy bạn.</p>' }
         ]},
 
       /* ── BƯỚC 4 ─────────────────────────────────────────────── */
@@ -943,7 +949,10 @@ Lesson.register({
             '<p>Còn con số <b>6394,4×</b>? Đó là <code>strace</code> tự làm hỏng phép đo của chính nó: ' +
             'mỗi syscall bị chặn hai lần bằng <code>ptrace</code>, đẩy 150 ns lên <b>98 microgiây</b> — ' +
             'chậm hơn <b>650 lần</b>. Ghi nhớ điều này: <b><code>strace</code> để đếm và để xem, không ' +
-            'bao giờ để đo thời gian.</b></p>' }
+            'bao giờ để đo thời gian.</b></p>' +
+            '<p>Các địa chỉ như <code>0x000071d6dd16e000</code> đến từ ASLR nên sẽ khác ở mỗi lần chạy ' +
+            'trên máy bạn; điều cố định là có ba dòng <code>[vdso]</code>/<code>[vvar]</code>/' +
+            '<code>[vvar_vclock]</code> không tên file.</p>' }
         ]},
 
       /* ── BƯỚC 6 ─────────────────────────────────────────────── */

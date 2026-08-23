@@ -471,7 +471,8 @@ Lesson.register({
           { t: 'code', where: 'out', nocopy: true, code:
             '-rwxr-xr-x 1 shinarus shinarus 705248 Aug  8 10:30 loop_arm64\n' +
             '-rwxr-xr-x 1 shinarus shinarus  15960 Aug  8 10:30 loop_x86\n' +
-            '-rwxr-xr-x 1 shinarus shinarus 705256 Aug  8 10:30 tiny_arm64' },
+            '-rwxr-xr-x 1 shinarus shinarus 705256 Aug  8 10:30 tiny_arm64',
+            notes: ['Tên người dùng và ngày giờ sẽ khác trên máy bạn; ba kích thước byte thì phải giống hệt.'] },
 
           { t: 'cal', kind: 'why', title: 'Vì sao ép -static ở đây?',
             x: '<p>Không phải để tiết kiệm gì cả — bản tĩnh <b>to gấp 44 lần</b> bản động, đúng ' +
@@ -707,7 +708,8 @@ Lesson.register({
             'OBJD-H: 55534154415541564157488bef4881c478fbffffffe633c04881c488040000c5\n' +
             'OBJD-H: f877415f415e415d415c5b5dc3\n' +
             '\n' +
-            'OUT: [size=167]' },
+            'OUT: [size=167]',
+            notes: ['Địa chỉ <code>0x7b0c10000000</code> là nơi kernel Linux cấp bộ nhớ cho vùng JIT của QEMU lúc chạy, nên nó sẽ khác trên máy bạn — cỡ byte ở hai dòng <code>size=</code> mới là thứ ổn định.'] },
 
           { t: 'p', x:
             'Hai thông tin ở đây, cả hai đều đáng nhớ.' },
@@ -882,7 +884,11 @@ Lesson.register({
                '<p>Đó là câu trả lời cho "vì sao mô phỏng chậm nhưng vẫn đủ dùng": <b>chi phí ' +
                'dịch tỉ lệ với kích thước mã, còn lợi ích tỉ lệ với thời gian chạy.</b> Nhân ' +
                'Linux mà bạn sẽ boot ở Bài 32 có hàng triệu lệnh, nhưng nó chạy hàng tỉ lệnh — ' +
-               'nên nó boot được trong vài chục giây thay vì vài giờ.</p>' },
+               'nên nó boot được trong vài chục giây thay vì vài giờ.</p>' +
+               '<p>Con số <b>1 175</b> khối của <code>loop_arm64</code> ở trên là số đã đo sẵn, ' +
+               'không lặp lại phép đo trực tiếp trong bài này; muốn tự kiểm chứng, chạy lại đúng ' +
+               'ba lệnh ở đầu bước 6 nhưng đổi <code>tiny_arm64</code> thành <code>loop_arm64</code> ' +
+               '(chờ lâu hơn và ra file log lớn hơn nhiều, vì vòng lặp chạy 200 triệu bước).</p>' },
 
           { t: 'p', x:
             'Nhật ký <code>exec</code> ngốn <b>3,3 MB</b> cho một chương trình in một dòng. Dọn ' +

@@ -551,8 +551,9 @@ Lesson.register({
 
     { t: 'p', x:
       'Mọi đầu ra dưới đây là kết quả thật, chạy trên đúng máy bạn đang dùng. Riêng số hiệu ' +
-      'pipe (<code>pipe:[1971]</code>) và số fd sẽ khác ở máy bạn — đó là bình thường, chúng do ' +
-      'kernel cấp phát động.' },
+      'pipe (<code>pipe:[1971]</code>), số fd và các mốc thời gian kiểu <code>Aug 1 16:46</code> ' +
+      'trong cột <code>ls -l</code> sẽ khác ở máy bạn — đó là bình thường, chúng do kernel cấp ' +
+      'phát động hoặc do đúng lúc bạn gõ lệnh.' },
 
     { t: 'steps', items: [
 

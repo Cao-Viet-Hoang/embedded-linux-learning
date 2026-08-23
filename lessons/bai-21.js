@@ -890,7 +890,9 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             'pid=9433\n' +
-            'main expected "number is 42", actually got: "number is 999"' },
+            'main expected "number is 42", actually got: "number is 999"',
+            notes: ['<code>pid=9433</code> chỉ đúng cho lần chạy này trên máy đang viết bài — ' +
+              'PID đổi mỗi lần chạy, trên máy bạn sẽ khác.'] },
 
           { t: 'p', x:
             'Bây giờ sửa lại cho đúng. Chỉ cần <b>một</b> thay đổi: handler không được đụng vào ' +
@@ -963,7 +965,10 @@ Lesson.register({
             notes: ['<code>COMMAND</code> hiện <code>zombies_unreape</code>, cụt so với tên thật ' +
               '<code>zombies_unreaped</code> — nhân chỉ giữ đúng <b>15</b> ký tự cho ' +
               '<code>comm</code> của một tiến trình. Đây là hành vi thật của Linux, không phải ' +
-              'lỗi đánh máy trong bài.'] },
+              'lỗi đánh máy trong bài.',
+              'Con số <code>pid=9826</code> và các <code>PID</code>/<code>PPID</code> ' +
+              '<code>9828</code>–<code>9832</code> trong bảng chỉ đúng cho lần chạy này — trên ' +
+              'máy bạn chúng sẽ khác, đổi mỗi lần chạy.'] },
 
           { t: 'p', x:
             'Năm zombie, đúng như dự đoán. Giờ chạy bản có handler <code>SIGCHLD</code> ' +
@@ -1022,6 +1027,8 @@ Lesson.register({
             'exit=0' },
 
           { t: 'cal', kind: 'tip', title: 'Số 12918 xuất hiện hai lần — đó không phải trùng hợp', x:
+            '<p>Mọi con số PID trong đầu ra trên (<code>12918</code>, <code>12919</code>) chỉ đúng ' +
+            'cho lần chạy này — trên máy bạn chúng sẽ khác, đổi mỗi lần chạy.</p>' +
             '<p><code>ssi_pid</code> trả về <b>12918</b>, đúng bằng <code>$$</code> của shell. ' +
             'Chương trình vừa xác định được chính xác ai đã gửi tín hiệu cho nó.</p>' +
             '<p>Trên thiết bị thật, điều này rất có giá khi gỡ lỗi: một dịch vụ bị dừng bất ' +
@@ -1216,7 +1223,7 @@ Lesson.register({
             '<code>SA_RESTART</code> có mặt rành rành ở dòng trên. Đúng như đã cảnh báo: ' +
             '<code>sleep</code> không nằm trong nhóm được khởi động lại. Nhờ vậy vòng lặp thoát ' +
             '<b>trong 0,5 giây còn lại</b> thay vì ngủ hết nhịp.</li>' +
-            '<li><b><code>si_code=SI_USER</code>, <code>si_pid=482</code></b> — nhân ghi rõ tín ' +
+            '<li><b><code>si_code=SI_USER</code>, <code>si_pid=441</code></b> — nhân ghi rõ tín ' +
             'hiệu do một tiến trình người dùng gửi, và đó là tiến trình nào. So sánh: một ' +
             '<code>SIGSEGV</code> do lỗi con trỏ sẽ hiện <code>si_code=SEGV_MAPERR</code> kèm ' +
             'địa chỉ gây lỗi.</li>' +

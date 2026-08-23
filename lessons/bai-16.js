@@ -345,12 +345,12 @@ Lesson.register({
       'C := bye\n' +
       '\n' +
       'try:\n' +
-      '\t@echo "B (dung =)  = $(B)"\n' +
-      '\t@echo "D (dung :=) = $(D)"' },
+      '\t@echo "B (using =)  = $(B)"\n' +
+      '\t@echo "D (using :=) = $(D)"' },
 
     { t: 'code', where: 'out', nocopy: true, code:
-      'B (dung =)  = bye world\n' +
-      'D (dung :=) = hello world' },
+      'B (using =)  = bye world\n' +
+      'D (using :=) = hello world' },
 
     { t: 'cal', kind: 'warn', title: 'Hai dòng này giải thích rất nhiều lỗi build khó hiểu', x:
       '<p><code>B</code> dùng <code>=</code>, nên <code>$(A)</code> chỉ được tra <b>lúc dòng ' +

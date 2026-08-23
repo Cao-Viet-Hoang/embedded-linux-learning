@@ -347,10 +347,10 @@ Lesson.register({
           { t: 'p', x: 'Kiểm tra board của bạn có nằm trong nhóm cần SPL không:' },
 
           { t: 'code', where: 'wsl',
-            code: "grep -E 'CONFIG_(SPL|TPL)=' configs/qemu_arm64_defconfig || echo 'khong co SPL/TPL'" },
+            code: "grep -E 'CONFIG_(SPL|TPL)=' configs/qemu_arm64_defconfig || echo 'no SPL/TPL'" },
 
           { t: 'code', where: 'out', nocopy: true,
-            code: 'khong co SPL/TPL' },
+            code: 'no SPL/TPL' },
 
           { t: 'cal', kind: 'why', title: 'Vì sao qemu_arm64 không cần SPL',
             x: 'Vì RAM của máy ảo <code>virt</code> <b>không cần hiệu chỉnh</b> — nó chỉ là một ' +
@@ -539,6 +539,8 @@ Lesson.register({
               '   text\t   data\t    bss\t    dec\t    hex\tfilename\n' +
               '1434148\t  62768\t      0\t1496916\t 16d754\tu-boot\n' +
               '481M\t.' },
+
+          { t: 'p', x: 'Tên người dùng <code>shinarus</code> và mốc giờ <code>Aug 16 12:13</code> sẽ khác trên máy bạn; các kích thước byte mới cần khớp.' },
 
           { t: 'table',
             head: ['File', 'Kích thước', 'Là gì, dùng khi nào'],
@@ -950,13 +952,13 @@ Lesson.register({
               'git reset --hard ece349ad\n' +
               'git log --oneline -1\n' +
               'git apply --check ~/bai34/0001-*.patch\n' +
-              'echo "ket qua kiem tra: $?"' },
+              'echo "check result: $?"' },
 
           { t: 'code', where: 'out', nocopy: true,
             code:
               'HEAD is now at ece349ad Prepare v2026.07\n' +
               'ece349ad Prepare v2026.07\n' +
-              'ket qua kiem tra: 0' },
+              'check result: 0' },
 
           { t: 'cal', kind: 'tip', title: 'Luôn --check trước khi áp',
             x: '<code>git apply --check</code> thử áp patch trong bộ nhớ và <b>không chạm vào ' +
@@ -1061,7 +1063,7 @@ Lesson.register({
           { t: 'code', where: 'wsl',
             code:
               'patch -p1 < ~/bai34/0001-*.patch\n' +
-              'echo "ma thoat: $?"' },
+              'echo "exit code: $?"' },
 
           { t: 'code', where: 'out', nocopy: true,
             code:
@@ -1070,7 +1072,7 @@ Lesson.register({
               'Apply anyway? [n]\n' +
               'Skipping patch.\n' +
               '1 out of 1 hunk ignored -- saving rejects to file board/emulation/qemu-arm/qemu-arm.c.rej\n' +
-              'ma thoat: 1' },
+              'exit code: 1' },
 
           { t: 'p', x:
             '<code>patch</code> nhận ra nội dung đã có sẵn, hỏi hai câu, rồi bỏ cuộc — nhưng nó ' +
@@ -1113,7 +1115,7 @@ Lesson.register({
           { t: 'code', where: 'wsl',
             code:
               'git am ~/bai34/0001-*.patch\n' +
-              'echo "ma thoat: $?"' },
+              'echo "exit code: $?"' },
 
           { t: 'code', where: 'out', nocopy: true,
             code:
@@ -1125,7 +1127,7 @@ Lesson.register({
               'hint: To restore the original branch and stop patching, run "git am --abort".\n' +
               'Applying: board: qemu-arm: print a board banner at boot\n' +
               'Patch failed at 0001 board: qemu-arm: print a board banner at boot\n' +
-              'ma thoat: 128' },
+              'exit code: 128' },
 
           { t: 'p', x:
             'Khác biệt lớn nhất so với <code>patch</code>: Git <b>tự nói cho bạn ba lối thoát</b>. ' +

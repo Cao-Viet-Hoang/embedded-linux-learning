@@ -767,7 +767,10 @@ Lesson.register({
           '<p>Ba lần thì không ai để ý. Hãy nhân nó lên quy mô thật.</p>' },
         { t: 'p', x:
           'Trên máy này <code>/usr/include</code> có <b>2062</b> file <code>.h</code>. Đo cùng ' +
-          'một công việc bằng bốn cách:' },
+          'một công việc bằng bốn cách. Con số này (và số <b>281</b> file khớp <code>ioctl</code> ' +
+          'bên dưới) phụ thuộc những gói bạn đã cài ở các bài trước — máy bạn hoàn toàn có thể ' +
+          'ra số khác, điều cần khớp là <i>tỉ lệ</i> giữa bốn cách đo, không phải bản thân con ' +
+          'số:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           "find /usr/include -name '*.h' 2>/dev/null | wc -l\n" +
           '\n' +
@@ -828,7 +831,11 @@ Lesson.register({
           "ls: cannot access 'space.c': No such file or directory\n" +
           '-rw-r--r-- 1 shinarus shinarus 7 Aug  6 08:04 trap/normal.c\n' +
           'rc=123' },
-        { t: 'p', x: 'Một tên file bị xé thành bốn. Cách sửa là đổi ký tự phân cách:' },
+        { t: 'p', x:
+          'Một tên file bị xé thành bốn. Tên người dùng <code>shinarus</code> và mốc giờ ' +
+          '<code>Aug 6 08:04</code> trong dòng <code>ls -l</code> ở trên là của máy viết tài ' +
+          'liệu này, trên máy bạn cả hai sẽ khác — chỉ hành vi bị xé tên file mới là điều cần ' +
+          'khớp. Cách sửa là đổi ký tự phân cách:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           "find trap -name '*.c' -print0 | xargs -0 ls -l\n" +
           'echo "rc=$?"\n' +
@@ -1261,7 +1268,9 @@ Lesson.register({
           'sát một cây mã nguồn xa lạ trước khi động vào nó.</p>' },
         { t: 'p', x:
           'Bài tập cuối — và cũng là một cái bẫy. Đếm xem tên <code>struct</code> nào hay gặp ' +
-          'nhất trong toàn bộ header hệ thống. Chạy cả ba câu và so sánh:' },
+          'nhất trong toàn bộ header hệ thống. Như con số ở phần trên, các số đếm bên dưới cũng ' +
+          'phụ thuộc gói đã cài trên máy bạn nên có thể khác — điều quan trọng là <i>cùng một ' +
+          'nguyên nhân sai</i> lặp lại ở cả ba câu. Chạy cả ba câu và so sánh:' },
         { t: 'code', where: 'wsl', lang: 'bash', code:
           "echo '=== character class: lowercase only'\n" +
           "grep -rhoE --include='*.h' 'struct [a-z_]+' /usr/include 2>/dev/null | sort | uniq -c | sort -rn | head -3\n" +

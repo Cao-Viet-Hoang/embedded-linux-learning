@@ -101,7 +101,7 @@ Lesson.register({
       '<code>-device</code> tạo phần cứng — mạng cũng có hai nửa, và phải nối chúng lại bằng ' +
       'một cái tên:' },
 
-    { t: 'cmdx', cmd: '-netdev user,id=net0,tftp=/home/ban/bai36/tftp -device virtio-net-device,netdev=net0',
+    { t: 'cmdx', cmd: '-netdev user,id=net0,tftp=$HOME/bai36/tftp -device virtio-net-device,netdev=net0',
       title: 'Hai nửa của một card mạng ảo',
       rows: [
         ['<code>-netdev</code>', 'Nửa "hạ tầng": gói tin đi từ máy ảo ra sẽ được xử lý thế nào.'],
@@ -382,7 +382,8 @@ Lesson.register({
                'in lại y nguyên trong <code>Bytes transferred</code> của <code>tftpboot</code> ' +
                'ở bước sau, và trong <code>Data Size</code> của <code>mkimage</code> ở bước 3. ' +
                'Bất cứ chỗ nào hai con số đó lệch đi là dấu hiệu file bị cắt xén hoặc gửi dở ' +
-               'chừng.' },
+               'chừng. Tên người dùng <code>shinarus</code> và mốc giờ <code>Aug 16 18:17</code> ' +
+               'sẽ khác trên máy bạn.' },
 
           { t: 'p', x:
             'Bây giờ đến phần dễ sai nhất của cả bài. Cách <i>ngắn gọn</i> để nối mạng cho ' +
@@ -620,7 +621,8 @@ Lesson.register({
                'thật chỉ vài chục KB. Phần thừa là số 0, hoàn toàn vô hại: cả U-Boot lẫn kernel ' +
                'đều đọc trường <code>totalsize</code> trong header <code>d00dfeed</code> ' +
                '(Bài 35) để biết dữ liệu thật dừng ở đâu. Cái giá duy nhất là FIT của bạn sẽ ' +
-               'phình thêm 1 MB.' },
+               'phình thêm 1 MB. Tên người dùng và mốc giờ trong <code>ls -l</code> ở trên sẽ ' +
+               'khác trên máy bạn; chỉ 1 048 576 byte là cố định.' },
 
           { t: 'cal', kind: 'warn', title: 'Ghi nhớ dòng lệnh này — bước 5 sẽ chứng minh nó SAI',
             x: 'Dòng <code>dumpdtb</code> ở trên trông hoàn toàn hợp lý và là thứ bạn sẽ tìm ' +
@@ -741,6 +743,10 @@ Lesson.register({
             notes: ['Đã lược vài dòng <code>Created:</code> lặp lại của từng thành phần cho gọn.'] },
 
           { t: 'p', x:
+            'Dòng <code>Created:</code> chỉ ghi lại mốc giờ bạn chạy <code>mkimage</code>, nên ' +
+            'sẽ khác trên máy bạn mỗi lần build.' },
+
+          { t: 'p', x:
             'Ba giá trị <code>Hash value</code> đó không phải thứ gì bí ẩn — chúng đúng bằng ' +
             'SHA-256 của ba file gốc. Tự kiểm chứng:' },
 
@@ -824,6 +830,10 @@ Lesson.register({
             '   Hash(es) for Image 1 (fdt-1): sha256+\n' +
             '   Hash(es) for Image 2 (ramdisk-1): sha256+',
             notes: ['Đã lược bớt các dòng mô tả trùng với output của <code>mkimage</code> ở bước 3.'] },
+
+          { t: 'p', x:
+            'Dòng <code>Created:</code> ở đây lặp lại đúng mốc giờ build lúc nãy nên cũng sẽ ' +
+            'khác trên máy bạn.' },
 
           { t: 'cal', kind: 'tip', title: 'Dấu + là "đã kiểm tra và khớp"',
             x: '<code>sha256+</code> — dấu cộng phía sau nghĩa là U-Boot đã tính lại hash và ' +
@@ -1179,7 +1189,8 @@ Lesson.register({
                'byte mới tìm ra khác biệt ở byte thứ 5 000 001 (<code>cmp</code> đếm từ 1, ' +
                '<code>dd</code> và <code>od</code> đếm từ 0 — cùng một chỗ). Không một thao tác ' +
                'kiểm tra thông thường nào — kích thước, tên file, ngày tháng — phát hiện được ' +
-               'chuyện này.' },
+               'chuyện này. Tên người dùng và mốc giờ trong <code>ls -l</code> ở trên sẽ khác ' +
+               'trên máy bạn; chỉ kích thước 32 856 448 byte mới cần khớp.' },
 
           { t: 'p', x: 'Nạp bản hỏng vào máy ảo và boot thử:' },
 
@@ -1245,7 +1256,8 @@ Lesson.register({
                'firmware mà thiết bị của bạn sẽ tin tưởng tuyệt đối. Trong sản xuất thật, file ' +
                'này <b>không nằm trên máy lập trình viên</b> — nó nằm trong HSM hoặc một máy ' +
                'build cách ly, và mất nó đồng nghĩa với việc phải thu hồi toàn bộ thiết bị đã ' +
-               'bán. Khoá trong bài này là khoá đồ chơi, đừng bao giờ dùng lại nó ở đâu khác.' },
+               'bán. Khoá trong bài này là khoá đồ chơi, đừng bao giờ dùng lại nó ở đâu khác. ' +
+               'Tên người dùng và mốc giờ trong <code>ls -l</code> ở trên sẽ khác trên máy bạn.' },
 
           { t: 'p', x:
             'Thêm một node <code>signature-1</code> vào <b>cấu hình</b> (không phải vào từng ' +

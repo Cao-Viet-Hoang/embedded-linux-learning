@@ -153,7 +153,9 @@ Lesson.register({
       'systemd. PID 109 có <code>PPID = 87</code>: nó là con của <code>systemd-udevd</code>, một ' +
       'tiến trình thợ được đẻ ra để xử lý sự kiện thiết bị.</p>' +
       '<p>Nhớ lại Bài 1: bạn đã đo được userspace của WSL2 khởi động xong trong <b>2,456 s</b>. ' +
-      'Toàn bộ cây này chính là thứ được dựng lên trong hai giây rưỡi đó.</p>' },
+      'Toàn bộ cây này chính là thứ được dựng lên trong hai giây rưỡi đó.</p>' +
+      '<p>Mọi PID và giờ <code>STIME</code> ở trên đều là số thật lấy từ máy này, nhưng chúng đổi ' +
+      'sau mỗi lần khởi động — trên máy bạn con số sẽ khác, quan hệ PPID mới là thứ luôn đúng.</p>' },
 
     { t: 'p', x:
       '<code>pstree</code> vẽ luôn cái cây đó cho bạn. Đây là một phần thật của cây trên máy bạn:' },

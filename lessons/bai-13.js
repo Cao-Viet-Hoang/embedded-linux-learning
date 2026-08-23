@@ -508,12 +508,12 @@ Lesson.register({
           'cp with-shebang.sh not-executable.sh\n' +
           'chmod -x not-executable.sh\n' +
           './not-executable.sh\n' +
-          'echo "ma tra ve = $?"\n' +
+          'echo "exit code = $?"\n' +
           'bash not-executable.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'bash: ./not-executable.sh: Permission denied\n' +
-          'ma tra ve = 126\n' +
+          'exit code = 126\n' +
           'hello from not-executable.sh' },
 
         { t: 'cal', kind: 'info', title: 'Permission denied nhưng bash vẫn chạy được — không hề mâu thuẫn', x:
@@ -533,11 +533,11 @@ Lesson.register({
           'printf \'#!/bin/basj\\necho "this never prints"\\n\' > bad-shebang.sh\n' +
           'chmod +x bad-shebang.sh\n' +
           './bad-shebang.sh\n' +
-          'echo "ma tra ve = $?"' },
+          'echo "exit code = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'bash: ./bad-shebang.sh: /bin/basj: bad interpreter: No such file or directory\n' +
-          'ma tra ve = 126' },
+          'exit code = 126' },
 
         { t: 'cal', kind: 'info', title: 'Cùng mã 126, nhưng nguyên nhân khác hẳn ví dụ trước', x:
           '<p>Kernel đọc đúng dòng <code>#!/bin/basj</code> và cố gọi <b>chính xác chương trình ' +
@@ -560,12 +560,12 @@ Lesson.register({
           'printf \'#!/bin/bash\\r\\necho "does this run"\\r\\n\' > crlf.sh\n' +
           'chmod +x crlf.sh\n' +
           './crlf.sh\n' +
-          'echo "ma tra ve = $?"\n' +
+          'echo "exit code = $?"\n' +
           'cat -A crlf.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'bash: ./crlf.sh: /bin/bash^M: bad interpreter: No such file or directory\n' +
-          'ma tra ve = 126\n' +
+          'exit code = 126\n' +
           '#!/bin/bash^M$\n' +
           'echo "does this run"^M$' },
 
@@ -640,7 +640,7 @@ Lesson.register({
           'EOF\n' +
           'bash quoting.sh\n' +
           'bash -c \'name = "Linux"\'\n' +
-          'echo "ma tra ve = $?"' },
+          'echo "exit code = $?"' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           'version of kernel\n' +
@@ -648,7 +648,7 @@ Lesson.register({
           'today is 2026\n' +
           'today is $(date +%Y)\n' +
           'bash: line 1: name: command not found\n' +
-          'ma tra ve = 127' },
+          'exit code = 127' },
 
         { t: 'cal', kind: 'info', title: 'Ba dòng, ba bài học', x:
           '<p><b>Nháy kép thay thế, nháy đơn thì không.</b> Cả biến <code>$name</code> lẫn thay ' +
@@ -670,21 +670,21 @@ Lesson.register({
           '#!/bin/bash\n' +
           'f="folder/file with spaces.txt"\n' +
           'echo "--- quoted:"\n' +
-          'ls -l "$f"; echo "ma tra ve = $?"\n' +
+          'ls -l "$f"; echo "exit code = $?"\n' +
           'echo "--- unquoted:"\n' +
-          'ls -l $f;   echo "ma tra ve = $?"\n' +
+          'ls -l $f;   echo "exit code = $?"\n' +
           'EOF\n' +
           'bash word-splitting.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '--- quoted:\n' +
           '-rw-r--r-- 1 shinarus shinarus 0 Aug  6 08:29 folder/file with spaces.txt\n' +
-          'ma tra ve = 0\n' +
+          'exit code = 0\n' +
           '--- unquoted:\n' +
           'ls: cannot access \'folder/file\': No such file or directory\n' +
           'ls: cannot access \'with\': No such file or directory\n' +
           'ls: cannot access \'spaces.txt\': No such file or directory\n' +
-          'ma tra ve = 2' },
+          'exit code = 2' },
 
         { t: 'cal', kind: 'why', title: 'Bốn thông báo lỗi cho một file — đó là tách từ đang diễn ra', x:
           '<p>Không có nháy, bash làm hai việc theo thứ tự: thay <code>$f</code> bằng giá trị ' +
@@ -693,7 +693,10 @@ Lesson.register({
           '<p>Có nháy, bước cắt bị bỏ qua. <code>ls</code> nhận đúng <b>một</b> tham số.</p>' +
           '<p>Đây là lý do sâu xa vì sao Bài 4 khuyên bạn đừng đặt tên file có khoảng trắng, và ' +
           'vì sao <code>find -print0 | xargs -0</code> ở Bài 11 phải tồn tại. <b>Cùng một vấn ' +
-          'đề, ba lần gặp lại ở ba bài khác nhau.</b></p>' },
+          'đề, ba lần gặp lại ở ba bài khác nhau.</b></p>' +
+          '<p>Tên người dùng <code>shinarus</code> và mốc giờ <code>Aug 6 08:29</code> ở trên là ' +
+          'của máy viết tài liệu này — trên máy bạn cả hai sẽ khác, và từ đây trở đi trong bài, ' +
+          'mọi tên thư mục ngẫu nhiên do <code>mktemp</code> sinh ra cũng vậy.</p>' },
 
         { t: 'p', x:
           'Tách từ mới là một nửa. Nửa còn lại: biến chứa <code>*</code> sẽ bị bung thành danh ' +
@@ -1210,19 +1213,19 @@ Lesson.register({
           '#!/bin/bash\n' +
           'echo "--- without pipefail"\n' +
           'false | true\n' +
-          'echo "ma tra ve = $?"\n' +
+          'echo "exit code = $?"\n' +
           'set -o pipefail\n' +
           'echo "--- with pipefail"\n' +
           'false | true\n' +
-          'echo "ma tra ve = $?"\n' +
+          'echo "exit code = $?"\n' +
           'EOF\n' +
           'bash pipe.sh' },
 
         { t: 'code', where: 'out', nocopy: true, code:
           '--- without pipefail\n' +
-          'ma tra ve = 0\n' +
+          'exit code = 0\n' +
           '--- with pipefail\n' +
-          'ma tra ve = 1' },
+          'exit code = 1' },
 
         { t: 'cal', kind: 'warn', title: 'Vì sao pipefail là bắt buộc với người làm nhúng', x:
           '<p><code>false</code> thất bại, <code>true</code> thành công, và cả đường ống báo ' +
@@ -1348,7 +1351,9 @@ Lesson.register({
           '<p><code>ls -d /tmp/tmp.* | wc -l</code> trả về <b>0</b>: không còn gì sót lại. Với ' +
           'kernel ở Chặng 07 và Buildroot ở Chặng 11, mỗi thư mục tạm bị bỏ quên là hàng trăm ' +
           'megabyte. ' +
-          'Đây không phải chuyện sạch sẽ cho vui — đó là dung lượng đĩa thật.</p>' }
+          'Đây không phải chuyện sạch sẽ cho vui — đó là dung lượng đĩa thật.</p>' +
+          '<p>Nhắc lại: chuỗi ngẫu nhiên như <code>gr4L6R8t5w</code> là do <code>mktemp</code> ' +
+          'sinh ra tại chỗ, trên máy bạn nó sẽ khác mỗi lần chạy.</p>' }
       ]},
 
       /* ─────────── BƯỚC 6 ─────────── */
@@ -1667,9 +1672,9 @@ Lesson.register({
 
         { t: 'code', where: 'wsl', code:
           'cd ~ && rm -rf ~/b13\n' +
-          'ls -d ~/b13 2>/dev/null || echo "da xoa ~/b13"' },
+          'ls -d ~/b13 2>/dev/null || echo "deleted ~/b13"' },
 
-        { t: 'code', where: 'out', nocopy: true, code: 'da xoa ~/b13' },
+        { t: 'code', where: 'out', nocopy: true, code: 'deleted ~/b13' },
 
         { t: 'cal', kind: 'tip', title: 'Bước tiếp theo tự nhiên: shellcheck', x:
           '<p><code>shellcheck</code> là chương trình đọc script bash và chỉ ra chính xác những ' +

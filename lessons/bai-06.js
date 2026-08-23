@@ -598,10 +598,10 @@ Lesson.register({
             'Bây giờ yêu cầu một mẫu <b>không khớp gì cả</b>. Hãy đọc kỹ thông báo lỗi:' },
           { t: 'code', where: 'wsl', code:
             'ls *.cpp\n' +
-            'echo "ma thoat: $?"' },
+            'echo "exit code: $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'ls: cannot access \'*.cpp\': No such file or directory\n' +
-            'ma thoat: 2' },
+            'exit code: 2' },
 
           { t: 'cal', kind: 'why', title: 'Thông báo lỗi vừa tiết lộ toàn bộ cơ chế', x:
             '<p><code>ls</code> than phiền về một file <b>tên là <code>*.cpp</code></b>. Nghĩa là nó ' +
@@ -658,10 +658,10 @@ Lesson.register({
           { t: 'p', x: 'Giờ thử chép một thư mục mà <b>quên</b> <code>-r</code>:' },
           { t: 'code', where: 'wsl', code:
             'cp project target-dir\n' +
-            'echo "ma thoat: $?"' },
+            'echo "exit code: $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'cp: -r not specified; omitting directory \'project\'\n' +
-            'ma thoat: 1' },
+            'exit code: 1' },
 
           { t: 'cal', kind: 'info', x:
             '<p><code>cp</code> phát hiện <code>project</code> là thư mục và <b>từ chối</b> chép, nói rõ ' +
@@ -714,13 +714,13 @@ Lesson.register({
             'mv project/docs/notes.txt project/\n' +
             'rm project/src/main.c.old\n' +
             'rm project/build\n' +
-            'echo "ma thoat: $?"\n' +
+            'echo "exit code: $?"\n' +
             'rm -r project/build\n' +
-            'echo "ma thoat: $?"' },
+            'echo "exit code: $?"' },
           { t: 'code', where: 'out', lang: 'text', nocopy: true, code:
             'rm: cannot remove \'project/build\': Is a directory\n' +
-            'ma thoat: 1\n' +
-            'ma thoat: 0' },
+            'exit code: 1\n' +
+            'exit code: 0' },
 
           { t: 'cal', kind: 'info', x:
             '<p>Hai lệnh <code>mv</code> đầu tiên không in gì — Unix im lặng khi thành công, đúng ' +
@@ -831,7 +831,10 @@ Lesson.register({
             '<p>Cột số liên kết của cả hai đều là <b>2</b>. Trước khi tạo liên kết cứng, nó là 1.</p>' +
             '<p><code>softlink.txt</code> có inode <b>khác</b> (56515), ký tự đầu là <code>l</code>, ' +
             'và kích thước là <b>10</b> — đúng bằng độ dài chuỗi <code>source.txt</code>. Toàn bộ nội ' +
-            'dung của liên kết mềm chính là đường dẫn đó.</p>' },
+            'dung của liên kết mềm chính là đường dẫn đó.</p>' +
+            '<p>Số inode là số thật do hệ thống file của máy này cấp phát ngay lúc tạo file — trên ' +
+            'máy bạn nó sẽ là số khác (kể cả số 1585 ở phần multi-call binary phía dưới), chỉ có ' +
+            'quan hệ "giống nhau" hay "khác nhau" giữa các số mới là điều cần nhớ.</p>' },
 
           { t: 'p', x: 'Ghi thêm vào <b>một</b> tên, rồi đọc bằng <b>các tên khác</b>:' },
           { t: 'code', where: 'wsl', code:

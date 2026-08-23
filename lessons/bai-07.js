@@ -647,7 +647,10 @@ Lesson.register({
             'dung, rồi <code>:w</code> để ghi đè lên file thật.</p>' +
             '<p><code>process ID</code> cho biết tiến trình vim nào đã tạo file này. Nếu tiến trình ' +
             'đó <b>vẫn còn sống</b> — bạn kiểm tra được bằng <code>ps</code> ở Bài 9 — thì nghĩa là ' +
-            'bạn đang mở cùng file ở một cửa sổ khác, chứ không phải sự cố.</p>' },
+            'bạn đang mở cùng file ở một cửa sổ khác, chứ không phải sự cố.</p>' +
+            '<p>Giờ giấc, PID và tên máy trong dòng <code>dated</code>/<code>process ID</code>/' +
+            '<code>host name</code> đều là số thật của phiên vừa rồi trên máy này — trên máy bạn ' +
+            'chúng sẽ khác, chỉ bố cục và cách đọc là giống hệt.</p>' },
 
           { t: 'p', x: 'Dọn file swap và làm sạch thư mục:' },
           { t: 'code', where: 'wsl', code: 'rm .kernel.conf.swp' }

@@ -496,7 +496,8 @@ Lesson.register({
             '  -display none -serial null -monitor stdio | grep \'CPU #\'' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '* CPU #0: thread_id=417 model=cortex-a15' },
+            '* CPU #0: thread_id=417 model=cortex-a15',
+            notes: ['<code>thread_id=417</code> là PID Linux cấp cho luồng đó lúc chạy, sẽ khác trên máy bạn và khác ở mỗi lần chạy.'] },
 
           { t: 'cal', kind: 'why', title: 'cortex-a15 là CPU 32 bit — và đó là mặc định',
             x: '<p>Machine <code>virt</code> ra đời cho ARM 32 bit trước, rồi mới được mở rộng ' +
@@ -511,7 +512,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'qemu-system-aarch64 -M virt -cpu cortex-a57 -m 128 -kernel hello.elf \\\n' +
             '  -display none -serial file:out31.txt -monitor none\n' +
-            '# Chờ vài giây rồi bấm Ctrl+C — chương trình kết thúc bằng vòng lặp wfi\n' +
+            '# Wait a few seconds then press Ctrl+C — the program ends in a wfi loop\n' +
             'cat out31.txt' },
 
           { t: 'code', where: 'out', nocopy: true, code:
@@ -596,8 +597,9 @@ Lesson.register({
 
           { t: 'cal', kind: 'info', title: 'Bốn thread_id liên tiếp — mỗi lõi ảo là một luồng host',
             x: '<p><code>thread_id</code> là số hiệu tiến trình <i>trên Linux của bạn</i>, không ' +
-               'phải trong guest. Bốn số liên tiếp 437–440 cho thấy QEMU tạo bốn luồng ngay sau ' +
-               'nhau lúc khởi động.</p>' +
+               'phải trong guest, nên bốn con số cụ thể 437–440 sẽ khác trên máy bạn và ở mỗi lần ' +
+               'chạy. Điều đáng nhớ là chúng <b>liên tiếp</b> — cho thấy QEMU tạo bốn luồng ngay ' +
+               'sau nhau lúc khởi động.</p>' +
                '<p>Dấu <code>*</code> đánh dấu lõi mà monitor đang trỏ tới. Khi gỡ lỗi nhiều lõi, ' +
                'lệnh <code>cpu 2</code> ở monitor chuyển dấu sao sang lõi khác — cần biết khi ' +
                'một lõi treo còn ba lõi kia vẫn chạy.</p>' +
@@ -1029,7 +1031,8 @@ Lesson.register({
 
           { t: 'code', where: 'out', nocopy: true, code:
             'booting /home/shinarus/bai31/hello.elf  (exit with Ctrl-A then X)\n' +
-            'Hello from bare metal ARM64' },
+            'Hello from bare metal ARM64',
+            notes: ['<code>/home/shinarus/…</code> chỉ là <code>$HOME</code> của máy này; trên máy bạn dòng đầu sẽ hiện tên người dùng khác.'] },
 
           { t: 'cal', kind: 'why', title: 'Vì sao script này dùng exec và "$@"',
             x: '<p><code>exec</code> thay thế tiến trình bash bằng QEMU thay vì đẻ ra một tiến ' +

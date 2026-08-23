@@ -1371,7 +1371,11 @@ Lesson.register({
           '<p><b>Ba:</b> đây là <b>tính năng</b>, không phải trở ngại. <code>static</code> cho ' +
           'phép bạn thay đổi mọi thứ bên trong file mà chắc chắn không ai khác bị ảnh hưởng — ' +
           'nền tảng để 30 triệu dòng mã kernel còn bảo trì được. <b>Bài 15</b> sẽ giải thích ' +
-          'trọn vẹn cơ chế liên kết đứng sau lỗi này.</p>' },
+          'trọn vẹn cơ chế liên kết đứng sau lỗi này.</p>' +
+          '<p>Tên file <code>/tmp/ccOppQF2.o</code> trong thông báo là file đối tượng tạm mà ' +
+          '<code>gcc</code> tự sinh ra để đưa cho <code>ld</code>, đặt tên ngẫu nhiên mỗi lần ' +
+          'chạy — trên máy bạn nó sẽ mang một cái tên khác, không liên quan gì tới nội dung ' +
+          'lỗi.</p>' },
 
         { t: 'p', x: 'Dọn dẹp khi đã xong:' },
 

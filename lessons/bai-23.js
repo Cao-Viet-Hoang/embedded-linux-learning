@@ -197,7 +197,8 @@ Lesson.register({
       '  [child pid=809] received 17 bytes: temperature 42.5\n' +
       '  [child pid=809] received 17 bytes: temperature 43.1\n' +
       '[parent pid=808] closing write end\n' +
-      '  [child pid=809] read returned 0 -> write end closed' },
+      '  [child pid=809] read returned 0 -> write end closed',
+      notes: ['Các số sau <code>pid=</code> là PID thật, sẽ khác trên máy bạn mỗi lần chạy.'] },
 
     { t: 'cmdx', cmd: 'int fd[2]; pipe(fd);',
       title: 'Một lời gọi, hai mô tả file',
@@ -367,7 +368,9 @@ Lesson.register({
 
     { t: 'code', where: 'out', nocopy: true, code:
       'prw-r--r-- 1 shinarus shinarus 0 Aug  5 22:59 /tmp/named_pipe\n' +
-      'type=fifo  perm=prw-r--r--  size=0' },
+      'type=fifo  perm=prw-r--r--  size=0',
+      notes: ['Tên người dùng <code>shinarus</code> và mốc thời gian <code>Aug 5 22:59</code> là ' +
+        'của máy đang viết bài, sẽ khác trên máy bạn.'] },
 
     { t: 'cmdx', cmd: 'prw-r--r-- 1 shinarus shinarus 0',
       title: 'Đọc kỹ dòng ls: hai chi tiết tiết lộ toàn bộ bản chất',
@@ -501,7 +504,9 @@ Lesson.register({
       '  [write] count=2 temp=43.0 label=sensor 2\n' +
       '             [read] count=2 temp=43.0 label=sensor 2\n' +
       '  [write] count=3 temp=43.5 label=sensor 3\n' +
-      '             [read] count=3 temp=43.5 label=sensor 3' },
+      '             [read] count=3 temp=43.5 label=sensor 3',
+      notes: ['Địa chỉ sau <code>mmap -&gt;</code> do ASLR chọn ngẫu nhiên, sẽ khác trên máy bạn ' +
+        'mỗi lần chạy — các cặp count/temp/label mới là phần cần đối chiếu.'] },
 
     { t: 'cmdx', cmd: 'shm_open(NAME, O_CREAT | O_RDWR, 0600) → ftruncate(fd, n) → mmap(...)',
       title: 'Ba bước, và vì sao thiếu bước nào cũng hỏng',
@@ -524,7 +529,9 @@ Lesson.register({
     { t: 'code', where: 'out', nocopy: true, code:
       'total 4\n' +
       '-rw------- 1 shinarus shinarus 48 Aug  5 22:49 sensor_data\n' +
-      'none            2.5G  4.0K  2.5G   1% /dev/shm' },
+      'none            2.5G  4.0K  2.5G   1% /dev/shm',
+      notes: ['Tên người dùng và mốc thời gian ở đây cũng sẽ khác trên máy bạn, như đã nói ở ' +
+        'phần FIFO.'] },
 
     { t: 'cal', kind: 'why', title: 'Nó chỉ là một file trong RAM — và điều đó giải thích tất cả', x:
       '<p><code>/dev/shm</code> là một <b>tmpfs</b>: hệ thống tập tin sống hoàn toàn trong RAM. ' +
@@ -1567,7 +1574,7 @@ Lesson.register({
           { t: 'code', where: 'wsl', code:
             'strace -f -c -e trace=read,write ./pipe_1k 2>&1 | tail -3\n' +
             'strace -f -c -e trace=read,write ./shm_1k  2>&1 | tail -3\n' +
-            'echo "--- shm_open thuc chat la gi? ---"\n' +
+            'echo "--- what is shm_open really? ---"\n' +
             'strace -e trace=openat,ftruncate,mmap ./shm_1k 2>&1 | grep -E "shm_1k|ftruncate" | head -3' },
 
           { t: 'code', where: 'out', nocopy: true, code:
@@ -1575,7 +1582,7 @@ Lesson.register({
             '100.00    0.044032          22      2001           total\n' +
             '------ ----------- ----------- --------- --------- ----------------\n' +
             '100.00    0.000033          33         1           total\n' +
-            '--- shm_open thuc chat la gi? ---\n' +
+            '--- what is shm_open really? ---\n' +
             'openat(AT_FDCWD, "/dev/shm/shm_1k", O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC, 0600) = 3\n' +
             'ftruncate(3, 4100)                      = 0\n' +
             'mmap(NULL, 4100, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0) = 0x71cda56c2000',
@@ -1721,20 +1728,20 @@ Lesson.register({
             '(không bị <code>Ctrl-C</code> giữa chừng), hệ thống phải sạch — hãy tự kiểm chứng.' },
 
           { t: 'code', where: 'wsl', code:
-            'echo "--- bo nho chia se va semaphore con sot lai ---"\n' +
+            'echo "--- leftover shared memory and semaphore ---"\n' +
             'ls -l /dev/shm/\n' +
-            'echo "--- hang doi thong diep con sot lai ---"\n' +
+            'echo "--- leftover message queue ---"\n' +
             'ls -l /dev/mqueue/\n' +
-            'echo "--- FIFO con sot lai ---"\n' +
-            'ls -l /tmp/*.fifo /tmp/sensor_fifo /tmp/named_pipe 2>/dev/null || echo "  (khong con cai nao)"' },
+            'echo "--- leftover FIFO ---"\n' +
+            'ls -l /tmp/*.fifo /tmp/sensor_fifo /tmp/named_pipe 2>/dev/null || echo "  (none left)"' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '--- bo nho chia se va semaphore con sot lai ---\n' +
+            '--- leftover shared memory and semaphore ---\n' +
             'total 0\n' +
-            '--- hang doi thong diep con sot lai ---\n' +
+            '--- leftover message queue ---\n' +
             'total 0\n' +
-            '--- FIFO con sot lai ---\n' +
-            '  (khong con cai nao)',
+            '--- leftover FIFO ---\n' +
+            '  (none left)',
             notes: ['Sạch tuyệt đối, vì mọi chương trình ở Bài này đều tự <code>*_unlink</code> ' +
               'khi thoát bình thường — đây là kết quả <b>đúng</b> cần thấy, không phải điều gây ' +
               'ngạc nhiên.',
@@ -1752,12 +1759,12 @@ Lesson.register({
             'sleep 0.15\n' +
             'kill -9 $PID\n' +
             'wait $PID 2>/dev/null\n' +
-            'echo "--- sem_demo bi giet giua chung, chua kip sem_unlink ---"\n' +
+            'echo "--- sem_demo was killed mid-run, before sem_unlink ---"\n' +
             'ls -l /dev/shm/' },
 
           { t: 'code', where: 'out', nocopy: true, code:
             '  [child 0] entering critical section, sem = 0\n' +
-            '--- sem_demo bi giet giua chung, chua kip sem_unlink ---\n' +
+            '--- sem_demo was killed mid-run, before sem_unlink ---\n' +
             'total 4\n' +
             '-rw------- 1 shinarus shinarus 32 Aug  5 23:13 sem.uart_lock',
             notes: ['<code>kill -9</code> giết đúng tiến trình cha đang giữ vòng lặp cuối — nó ' +

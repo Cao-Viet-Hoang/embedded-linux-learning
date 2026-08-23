@@ -522,7 +522,8 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           '-rw-r--r-- 1 shinarus shinarus 2448288 Aug  7 22:02 crosstool-ng-1.28.0.tar.xz\n' +
-          '5750e29a2bda5cd8d67900592576b1670a1987a4dcd5e4f6beae09138a1f5699  crosstool-ng-1.28.0.tar.xz' },
+          '5750e29a2bda5cd8d67900592576b1670a1987a4dcd5e4f6beae09138a1f5699  crosstool-ng-1.28.0.tar.xz',
+          notes: ['Tên người dùng và ngày giờ sẽ khác trên máy bạn; hai giá trị phải giống hệt là kích thước file và chuỗi sha256.'] },
 
         { t: 'cal', kind: 'why', title: 'Vì sao chạy <code>sha256sum</code> — và vì sao con số này một mình chưa đủ',
           x: '<p>Chuỗi hex ở dòng dưới chỉ có ý nghĩa khi bạn <b>đem so</b> nó với một nguồn độc lập với ' +
@@ -569,7 +570,8 @@ Lesson.register({
           'config.status: creating kconfig/Makefile\n' +
           'config.status: creating config/configure.in\n' +
           'config.status: creating config.h\n' +
-          'config.status: executing depfiles commands' },
+          'config.status: executing depfiles commands',
+          notes: ['<code>checking for build time…</code> in ra đúng lúc bạn chạy lệnh, nên mốc thời gian này sẽ khác trên máy bạn.'] },
 
         { t: 'cmdx', title: 'Vì sao lại là <code>--enable-local</code>', cmd: './configure --enable-local', rows: [
           ['<code>./configure</code>', 'Kịch bản Autotools quen thuộc: dò công cụ, dò thư viện, rồi sinh <code>Makefile</code>', 'Bạn đã gặp mẫu này ở Bài 16'],
@@ -1021,7 +1023,8 @@ Lesson.register({
 
         { t: 'code', where: 'out', nocopy: true, code:
           '354M\t/home/shinarus/x-tools/aarch64-unknown-linux-musl\n' +
-          'dr-xr-xr-x 8 shinarus shinarus 4096 Aug  8 09:33 /home/shinarus/x-tools/aarch64-unknown-linux-musl' },
+          'dr-xr-xr-x 8 shinarus shinarus 4096 Aug  8 09:33 /home/shinarus/x-tools/aarch64-unknown-linux-musl',
+          notes: ['Tên người dùng và mốc thời gian sẽ khác trên máy bạn; điều cần khớp là chuỗi quyền <code>dr-xr-xr-x</code> và kích thước khoảng 354M.'] },
 
         { t: 'cmdx', title: 'Đọc kỹ chuỗi quyền <code>dr-xr-xr-x</code>', cmd: 'ls -ld ~/x-tools/…', rows: [
           ['<code>d</code>', 'Thư mục', 'Bài 8'],
@@ -1063,15 +1066,15 @@ Lesson.register({
           'export PATH=$HOME/x-tools/aarch64-unknown-linux-musl/bin:$PATH' },
 
         { t: 'code', where: 'wsl', code:
-          '# 1. musl, liên kết động\n' +
+          '# 1. musl, dynamic linking\n' +
           'aarch64-unknown-linux-musl-gcc -Wall -Wextra -O2 -pthread \\\n' +
           '    -Wl,-z,max-page-size=4096 -o d_musl_dyn temp_daemon.c\n' +
           '\n' +
-          '# 2. musl, liên kết tĩnh\n' +
+          '# 2. musl, static linking\n' +
           'aarch64-unknown-linux-musl-gcc -Wall -Wextra -O2 -pthread -static \\\n' +
           '    -Wl,-z,max-page-size=4096 -o d_musl_static temp_daemon.c\n' +
           '\n' +
-          '# 3. glibc, liên kết tĩnh — toolchain của apt, để so sánh\n' +
+          '# 3. glibc, static linking — apt toolchain, for comparison\n' +
           'aarch64-linux-gnu-gcc -Wall -Wextra -O2 -pthread -static \\\n' +
           '    -Wl,-z,max-page-size=4096 -o d_glibc_static temp_daemon.c' },
 
@@ -1207,7 +1210,8 @@ Lesson.register({
           '[daemon] pid 454 - listening on port 9006, epoll fd 5, signalfd 3\n' +
           '[daemon] signal 15 (Terminated) via signalfd - beginning graceful shutdown\n' +
           '[daemon] served 0 requests, closed every file descriptor cleanly, exiting 0\n' +
-          'rc=124' },
+          'rc=124',
+          notes: ['<code>pid 454</code> là PID thật do QEMU cấp, sẽ khác trên máy bạn mỗi lần chạy.'] },
 
         { t: 'cal', kind: 'why', title: 'Ba dòng này chứng minh nhiều hơn bạn tưởng',
           x: '<p>Chúng cho thấy <code>epoll_create1</code>, <code>signalfd4</code>, ' +
@@ -1246,7 +1250,8 @@ Lesson.register({
           '[daemon] pid 426 - listening on port 9006, epoll fd 5, signalfd 3\n' +
           '[daemon] signal 15 (Terminated) via signalfd - beginning graceful shutdown\n' +
           '[daemon] served 0 requests, closed every file descriptor cleanly, exiting 0\n' +
-          'rc=124' },
+          'rc=124',
+          notes: ['Tên người dùng trong đường dẫn và <code>pid 426</code> sẽ khác trên máy bạn.'] },
 
         { t: 'cal', kind: 'tip', title: '<code>-print-sysroot</code> đáng thuộc lòng',
           x: '<p>Đừng gõ tay đường dẫn sysroot — nó dài, và nó đổi theo từng toolchain. ' +
