@@ -45,6 +45,63 @@
     Any future lesson quoting a `grep`-over-the-kernel figure must run three warm-ups first
     and say so, or it will publish a number that is off by more than an order of magnitude.
 
+- **Lesson 39 (`Kconfig và menuconfig`, written 2026-08-24) owns the following. Lessons 40–41,
+  and every later `defconfig`/Buildroot/BusyBox lesson, must *use* these and point back rather
+  than re-teach them:**
+  - **It runs inside lesson 38's tree — `~/bai38/linux-6.18.45`, `ARCH=arm64`** — and leaves it
+    **pristine on purpose**: `.config` is the plain `make ARCH=arm64 defconfig` output, md5
+    `611d4d6d025c3b7e030e1352b8efaf86`, and the practice deletes `./defconfig`,
+    `.config.backup` and `.config.old` at the end. **Lesson 40 may assume exactly that
+    `.config` exists** and may quote its numbers, but must `md5sum` or re-run `defconfig`
+    before quoting anything finer, because the learner may have poked at it in `menuconfig`.
+  - **The Kconfig *language* is spent**: `config` / `menuconfig` / `choice`, the five types
+    (`bool` `tristate` `string` `int` `hex`), `prompt`, `depends on`, `select`, `default`,
+    `def_bool`, `help`, and `bool "…" if EXPERT`. The worked entry read line by line is
+    `drivers/tty/serial/Kconfig` (PL011) plus `arch/x86/Kconfig:1108` `X86_LOCAL_APIC`.
+  - **The four states of a symbol are spent** — `=y`, `=m`, `# … is not set`, and **absent
+    entirely** (dependency unmeetable). The canonical examples used, and therefore burnt:
+    `EXT4_FS=y`, `BTRFS_FS=m`, `# XFS_FS is not set`, `X86_LOCAL_APIC` absent, `ARM_AMBA=y`.
+    Do **not** reuse `# CONFIG_BTRFS_FS_POSIX_ACL is not set` as an "explicitly off" example —
+    it is `=y` in the arm64 defconfig (this was a real error caught during verification).
+  - **`y` vs `m` as the compiler sees it is spent**: `=y` → `#define CONFIG_X 1`; `=m` →
+    `#define CONFIG_X_MODULE 1` **and no plain `CONFIG_X`** (verified: `grep -c '^#define
+    CONFIG_BTRFS_FS 1$'` → `0`), hence `IS_ENABLED()` / `IS_BUILTIN()` / `IS_MODULE()` /
+    `IS_REACHABLE()` in `include/linux/kconfig.h`. Chặng 10 should *apply* this, not re-derive it.
+  - **The generated-file chain is spent**: `syncconfig` → `include/config/auto.conf`
+    (read by `Makefile:798`, for make) + `include/generated/autoconf.h` (for gcc) +
+    `include/config/auto.conf.cmd`. **`make ARCH=arm64 syncconfig` prints nothing at all,
+    even cold** — verified by moving `include/config` and `include/generated` aside. Do not
+    write a lesson that expects it to be chatty.
+  - **The target set is spent**: `defconfig`, `menuconfig`, `nconfig`, `oldconfig`,
+    `olddefconfig`, `listnewconfig`, `helpnewconfig`, `savedefconfig`, `syncconfig`,
+    `tinyconfig`, `allnoconfig`, `allmodconfig`, `localmodconfig`, `mod2yesconfig`.
+  - **Two traps are spent, both verified, both worth pointing back to rather than re-staging:**
+    (a) **y → m → y is not symmetric.** `scripts/config --module SERIAL_AMBA_PL011` +
+    `olddefconfig` silently drops `CONFIG_SERIAL_AMBA_PL011_CONSOLE` (a console cannot be a
+    module); switching back with `--enable` restores the driver but leaves
+    `# CONFIG_SERIAL_AMBA_PL011_CONSOLE is not set` — a kernel that boots with **no console
+    output**. (b) **`select` cannot be overridden by hand**: `--disable SERIAL_CORE` survives
+    in `.config` until the next `olddefconfig` puts it straight back to `=y`, because 72
+    `select SERIAL_CORE` lines in `drivers/tty/serial/Kconfig` demand it.
+  - **`savedefconfig` numbers are spent**: `.config` **11 727 lines / 314 649 B** shrinks to
+    `./defconfig` **1 755 lines / 42 448 B**, and the round trip
+    (`cp defconfig .config && make olddefconfig`) reproduces the original byte for byte.
+    The shipped `arch/arm64/configs/defconfig` is **1 824 lines**.
+  - **The version-bump workflow is spent**: `listnewconfig` → `helpnewconfig` → `olddefconfig`,
+    demonstrated by deleting `CONFIG_BTRFS_FS=m` from `.config` so `listnewconfig` prints
+    exactly `CONFIG_BTRFS_FS=n`. Chặng 11 (Buildroot) should reuse this vocabulary.
+  - **The `menuconfig` screenshots are text captures with the ncurses box art and colour
+    stripped**, taken through a pty harness — the lesson says so explicitly in `notes`. If a
+    later lesson needs a TUI screen, do the same and say the same; do not present a stripped
+    capture as if it were the literal screen.
+  - **mconf marker semantics were read out of `scripts/kconfig/mconf.c`**, not guessed:
+    `[*]`/`[ ]` bool changeable, `-*-` unchangeable (bool or tristate), `<*>`/`<M>`/`< >`
+    tristate changeable, `{*}`/`{M}` when `rev_dep.tri == mod` — selected up to `m`, still
+    raisable to `y` but not lowerable to `n`.
+  - **`scripts/config` accepts either `SERIAL_AMBA_PL011` or `CONFIG_SERIAL_AMBA_PL011`** —
+    lines 8 and 61–62 strip the prefix. An earlier draft wrongly called the long form a
+    common mistake. Verified 2026-08-24.
+
 - **Chặng 02 — `C và công cụ build` (lessons 14–18).** First entry for this module; written
   2026-08-19 while producing `bt-14` and `bt-15`. Decisions a later lesson or set must not
   contradict:

@@ -417,9 +417,10 @@ Cài thêm khi tới chặng tương ứng:
 | 36 | Nạp kernel qua mạng và FIT image | ✅ Đã có |
 | 37 | Kiến trúc kernel | ✅ Đã có |
 | 38 | Source kernel và cách định hướng | ✅ Đã có |
-| 39 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 39 | Kconfig và menuconfig | ✅ Đã có |
+| 40 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4, Chặng 5 và Chặng 6 đã hoàn tất; Chặng 7 đã bắt đầu (38 / 70 bài).** Bài kế tiếp sẽ viết: Bài 39 — *Kconfig và `menuconfig`*.
+**Chặng 0, Chặng 1, Chặng 2, Chặng 3, Chặng 4, Chặng 5 và Chặng 6 đã hoàn tất; Chặng 7 đã bắt đầu (39 / 70 bài).** Bài kế tiếp sẽ viết: Bài 40 — *Build kernel ARM64 và boot*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

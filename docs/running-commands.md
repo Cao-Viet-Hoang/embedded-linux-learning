@@ -119,6 +119,20 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   with `Write` and run the file instead. Delete the temp file afterwards.
 - QEMU: `-nographic` conflicts with `-monitor stdio`. Use
   `-display none -serial null -monitor stdio` instead.
+- **`/tmp` does not survive between `wsl.exe` invocations.** When the last process exits the
+  distro shuts down, and the next `wsl -d Ubuntu -- bash …` starts a fresh VM with an empty
+  `/tmp` (`No such file or directory` on anything the previous call left there — see §10,
+  `docs/environment.md`). Put multi-step scratch state under `~/baiNN/` instead, and delete
+  that directory when the lesson is verified. This bit lesson 39: a probe that wrote
+  intermediate `.config` snapshots to `/tmp` and read them back in the next `Bash` call found
+  nothing, with no error from the write side.
+- **An ncurses TUI (`make menuconfig`, `nconfig`, `ct-ng menuconfig`) prints nothing at all
+  through a pipe** — it needs a terminal, and `wsl … bash -lc 'make menuconfig' > log` just
+  hangs or exits. To capture one, drive it through a Python `pty.fork()` harness the same way
+  lesson 4's job-table probe did, feed it keystrokes, and read the screen back. What you get
+  is **text with the box-drawing characters and colour escapes stripped**, not the literal
+  screen — so any lesson showing such a capture must say so in `notes` rather than implying
+  the learner will see exactly those characters.
 - **`bash -lc` does not source `~/.bashrc`.** It is a login shell but not an interactive
   one, and Ubuntu's `~/.profile` only sources `~/.bashrc` for interactive shells. This means
   verification is blind to anything defined only in `~/.bashrc` — most importantly the
