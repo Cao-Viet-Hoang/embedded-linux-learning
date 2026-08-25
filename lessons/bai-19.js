@@ -1137,9 +1137,19 @@ Lesson.register({
             'tròn lên vì phần dư cũng phải được ghi → <b>559</b>. Đúng khớp với ' +
             '<code>strace</code>.</p>' +
             '<p>Khi một phép đo khớp với phép tính đơn giản như vậy, bạn biết mình đã hiểu đúng ' +
-            'cơ chế chứ không phải chỉ nhớ một con số. Hãy thử: đổi đệm bằng ' +
-            '<code>setvbuf(f, NULL, _IOFBF, 65536)</code> đặt ngay sau <code>fopen</code>, số ' +
-            'lần <code>write</code> phải tụt xuống còn 35.</p>' +
+            'cơ chế chứ không phải chỉ nhớ một con số. Hãy tự đổi cỡ đệm để kiểm chứng lại phép ' +
+            'chia đó một lần nữa — nhưng phải đổi cho <b>đúng cách</b>:</p>' +
+            '<p><code>static char big[65536];</code> rồi ' +
+            '<code>setvbuf(f, big, _IOFBF, sizeof big);</code> đặt ngay sau <code>fopen</code>. ' +
+            'Số lần <code>write</code> tụt xuống đúng <b>35</b> — bằng 2 288 890 ÷ 65 536 = 34 dư ' +
+            '60 666, làm tròn lên. Đưa <code>big[1048576]</code> vào thì chỉ còn <b>3</b> lần.</p>' +
+            '<p><b>Cái bẫy:</b> nếu bạn truyền <code>NULL</code> thay cho <code>big</code> — ' +
+            '<code>setvbuf(f, NULL, _IOFBF, 65536)</code> — số lần <code>write</code> vẫn là ' +
+            '<b>559</b>, y như cũ. Đây là hành vi thật của glibc, đã đo trên máy bạn: khi bạn ' +
+            'không đưa vùng nhớ, glibc <b>bỏ qua cỡ bạn yêu cầu</b> và tự cấp phát một đệm bằng ' +
+            '<code>st_blksize</code> của hệ thống file — ở đây là 4096, đúng con số ' +
+            '<code>stat -f</code> báo. Lời gọi vẫn trả về 0, không có cảnh báo nào. Đây chính là ' +
+            'kiểu tối ưu hoá <i>trông như</i> đã làm mà thực ra không làm gì cả.</p>' +
             '<p>Chú ý cột thời gian dưới <code>strace</code>: <b>4,79 s</b> cho 200 000 lời gọi. ' +
             'Chạy không có <code>strace</code> thì chỉ 0,130 s. <code>strace</code> làm chậm ' +
             '<b>37 lần</b> — dùng nó để đếm, đừng dùng để đo.</p>' }

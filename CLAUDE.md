@@ -318,8 +318,8 @@ cross-references. Guard against a repeat:
   `Chặng 07 — Linux Kernel` has begun: lessons 37 `Kiến trúc kernel`,
   38 `Source kernel và cách định hướng` and 39 `Kconfig và menuconfig` are written.
 - Next lesson to write, when asked: lesson 40, `Build kernel ARM64 và boot`.
-- `node tools/check.js` → `14 modules · 70 lessons · 39 written · 17 bài tập` · `OK`.
-- **Exercise sets written: `bt-01` … `bt-17`.** `bt-01` has **25 items, not 28**, because
+- `node tools/check.js` → `14 modules · 70 lessons · 39 written · 19 bài tập` · `OK`.
+- **Exercise sets written: `bt-01` … `bt-19`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,
   `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar chip

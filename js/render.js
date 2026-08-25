@@ -195,6 +195,10 @@
     if (b.notes && b.notes.length) {
       notes = '<div class="code__notes">' +
         b.notes.map(function (n) {
+          /* Hai dạng đều hợp lệ: ['nhãn', 'giải thích'] và một chuỗi ghi chú trơn.
+             Không có nhánh chuỗi thì n[0]/n[1] cắt đúng hai KÝ TỰ đầu và vứt phần
+             còn lại — xem CLAUDE.md §13 và docs/course-notes.md. */
+          if (typeof n === 'string') { return '<div class="code__note"><span>' + n + '</span></div>'; }
           return '<div class="code__note"><b>' + esc(n[0]) + '</b><span>' + n[1] + '</span></div>';
         }).join('') +
       '</div>';

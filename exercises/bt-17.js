@@ -369,12 +369,12 @@ Exercise.register({
          '<code>libops.so</code> đã build và <code>prog</code> đã liên kết thành công với nó ' +
          'bằng <code>-L. -lops</code>.',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'mv libops.so libops2.so; rồi thử liên kết LẠI một chương trình mới', code:
+        { t: 'code', where: 'wsl', name: 'mv libops.so libops2.so; rồi thử liên kết LẠI một chương trình mới', code:
           '/usr/bin/x86_64-linux-gnu-ld.bfd: cannot find -lops: No such file or directory\n' +
           'collect2: error: ld returned 1 exit status' },
-        { t: 'code', env: 'wsl', label: 'đổi tên trả lại libops.so, copy prog sang /tmp/bt17-run rồi chạy ở đó', code:
+        { t: 'code', where: 'wsl', name: 'đổi tên trả lại libops.so, copy prog sang /tmp/bt17-run rồi chạy ở đó', code:
           './prog: error while loading shared libraries: libops.so: cannot open shared object file: No such file or directory' },
-        { t: 'code', env: 'wsl', label: 'export LD_LIBRARY_PATH=/home/shinarus/bt17chk; cd /tmp; chạy prog bằng đường dẫn tuyệt đối', code:
+        { t: 'code', where: 'wsl', name: 'export LD_LIBRARY_PATH=/home/shinarus/bt17chk; cd /tmp; chạy prog bằng đường dẫn tuyệt đối', code:
           '5 5' } ],
       rows: 7,
       crit: [
@@ -403,13 +403,13 @@ Exercise.register({
          '<code>square</code>, <code>cube</code>, <code>double_it</code>. Chương trình chính ' +
          'chỉ gọi <code>square(5)</code>.',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'ar rcs libmathops.a mathops.o; gcc main.c -L. -lmathops -o prog', code:
+        { t: 'code', where: 'wsl', name: 'ar rcs libmathops.a mathops.o; gcc main.c -L. -lmathops -o prog', code:
           '(không cảnh báo, không lỗi)' },
-        { t: 'code', env: 'wsl', label: 'nm prog | grep -E \' T (cube|double_it|square)$\'', code:
+        { t: 'code', where: 'wsl', name: 'nm prog | grep -E \' T (cube|double_it|square)$\'', code:
           '000000000000118d T cube\n' +
           '00000000000011a4 T double_it\n' +
           '000000000000117a T square' },
-        { t: 'code', env: 'wsl', label: 'stat -c \'%s %n\' prog', code: '16080 prog' } ],
+        { t: 'code', where: 'wsl', name: 'stat -c \'%s %n\' prog', code: '16080 prog' } ],
       rows: 6,
       crit: [
         'Nói rõ CẢ BA hàm có mặt trong prog, không chỉ square — dù main() chỉ gọi square()',
@@ -430,10 +430,10 @@ Exercise.register({
       q: 'Dữ liệu thật, mới đo cho bộ này. Thư mục có cả <code>libmathops.a</code> và ' +
          '<code>libmathops.so</code> (cùng tên, khác đuôi).',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'gcc main.c -L. -lmathops -o prog_default; readelf -d prog_default | grep NEEDED', code:
+        { t: 'code', where: 'wsl', name: 'gcc main.c -L. -lmathops -o prog_default; readelf -d prog_default | grep NEEDED', code:
           ' 0x0000000000000001 (NEEDED)             Shared library: [libmathops.so]\n' +
           ' 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]' },
-        { t: 'code', env: 'wsl', label: 'gcc main.c -L. -Wl,-Bstatic -lmathops -Wl,-Bdynamic -o prog_forced; readelf -d prog_forced | grep NEEDED', code:
+        { t: 'code', where: 'wsl', name: 'gcc main.c -L. -Wl,-Bstatic -lmathops -Wl,-Bdynamic -o prog_forced; readelf -d prog_forced | grep NEEDED', code:
           ' 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]' } ],
       rows: 6,
       crit: [
@@ -502,11 +502,11 @@ Exercise.register({
          'đoạn assembly và trả lời: đoạn nào là PIC, và bằng chứng cụ thể nào (không phải "trông ' +
          'dài hơn") cho biết điều đó?',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'đoạn 1', code:
+        { t: 'code', where: 'wsl', name: 'đoạn 1', code:
           '   8:\tmov    0x0(%rip),%eax        # e <increment+0xe>\n' +
           '   e:\tadd    $0x1,%eax\n' +
           '  11:\tmov    %eax,0x0(%rip)        # 17 <increment+0x17>' },
-        { t: 'code', env: 'wsl', label: 'đoạn 2', code:
+        { t: 'code', where: 'wsl', name: 'đoạn 2', code:
           '   8:\tmov    0x0(%rip),%rax        # f <increment+0xf>\n' +
           '   f:\tmov    (%rax),%eax\n' +
           '  11:\tlea    0x1(%rax),%edx\n' +
@@ -563,17 +563,17 @@ Exercise.register({
          'trong một file <code>utils.c</code> duy nhất, đóng gói thành <code>.a</code>. Chương ' +
          'trình chỉ gọi một hàm (<code>util_a</code>).',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'Cách 1 — cả 5 hàm trong một file utils.c', code:
+        { t: 'code', where: 'wsl', name: 'Cách 1 — cả 5 hàm trong một file utils.c', code:
           'stat -c \'%s %n\' prog_onefile\n16144 prog_onefile' },
-        { t: 'code', env: 'wsl', label: 'nm prog_onefile | grep -E \' T util_\'', code:
+        { t: 'code', where: 'wsl', name: 'nm prog_onefile | grep -E \' T util_\'', code:
           '000000000000115d T util_a\n' +
           '000000000000118d T util_b\n' +
           '00000000000011bd T util_c\n' +
           '00000000000011ed T util_d\n' +
           '000000000000121d T util_e' },
-        { t: 'code', env: 'wsl', label: 'Cách 2 — 5 file .c riêng, mỗi file một hàm', code:
+        { t: 'code', where: 'wsl', name: 'Cách 2 — 5 file .c riêng, mỗi file một hàm', code:
           'stat -c \'%s %n\' prog_split\n16016 prog_split' },
-        { t: 'code', env: 'wsl', label: 'nm prog_split | grep -E \' T util_\'', code:
+        { t: 'code', where: 'wsl', name: 'nm prog_split | grep -E \' T util_\'', code:
           '000000000000115d T util_a' } ],
       rows: 6,
       crit: [
@@ -820,9 +820,9 @@ Exercise.register({
       q: 'Lệnh sau được viết để ép thư viện riêng liên kết tĩnh, thư viện hệ thống vẫn động. ' +
          'Chạy lại cho lỗi. Tìm và sửa.',
       blocks: [
-        { t: 'code', env: 'wsl', label: 'lệnh gõ', code:
+        { t: 'code', where: 'wsl', name: 'lệnh gõ', code:
           'gcc main.c -L. -Wl,-Bstatic -lops -o prog_bad' },
-        { t: 'code', env: 'wsl', label: 'transcript thật', code:
+        { t: 'code', where: 'wsl', name: 'transcript thật', code:
           '/usr/bin/x86_64-linux-gnu-ld.bfd: cannot find -lgcc_s: No such file or directory\n' +
           '/usr/bin/x86_64-linux-gnu-ld.bfd: have you installed the static version of the gcc_s library ?\n' +
           '/usr/bin/x86_64-linux-gnu-ld.bfd: cannot find -lgcc_s: No such file or directory\n' +
