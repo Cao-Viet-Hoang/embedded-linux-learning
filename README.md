@@ -55,7 +55,7 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   37. Kiến trúc kernel
   38. Source kernel và cách định hướng
   39. Kconfig và menuconfig
-- Bộ bài tập đã viết: **19 / 70** — `bt-01` … `bt-19` đi kèm Bài 1 → 19. Xem ở mục **Bài tập** trên sidebar.
+- Bộ bài tập đã viết: **23 / 70** — `bt-01` … `bt-23` đi kèm Bài 1 → 23. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau). Mục §0 chỉ ra phần còn lại nằm ở đâu: [`docs/`](docs/) và [`.claude/skills/`](.claude/skills/).
 
 ## Tính năng

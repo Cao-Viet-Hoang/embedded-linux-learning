@@ -287,6 +287,17 @@
 - Lesson 18 is the reference lesson for `readelf` / `objdump` / `nm` / `size` / `strip`.
   Later modules should point back to it rather than re-teaching the tools: `vmlinux` is
   ELF `EXEC` (Chặng 07), `.ko` is ELF `REL` (Chặng 10).
+- **Bài 24 (`select`/`poll`/`epoll`) — its motivation is already spent by `bt-23` E6.** That
+  exercise has the learner build the two-FIFO reader, watch it deadlock, and name both
+  escape routes (thread-per-FIFO vs. wait-on-many) with the cost of each. Lesson 24 should
+  *pick that experiment up*, not re-derive it. Two details from it that the lesson must not
+  contradict: the reader stalls at **`open()`**, not `read()` — so any lesson-24 example has
+  to open with `O_RDWR` or `O_NONBLOCK` to reach its event loop at all; and the verified
+  transcript is `opened a = 3` · `opened b = 4` · `from a: a1` · `from b: b1`, all appearing
+  at once only after `a` is written (`docs/environment.md`, 2026-08-27).
+- **`bt-23` E4 owns the "shm survives its process" demo** via a 64 MB `pause()`-based leaker
+  killed with `kill -9`. It also spends the `ftruncate` ≠ allocated-pages point (`df` reads
+  `0` until you `memset` the mapping). Do not reintroduce either as new material.
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 

@@ -452,7 +452,11 @@ cùng vẫn chỉ đếm 70 bài.
 | `bt-17` | Bài 17 | 28 | ✅ Đã có |
 | `bt-18` | Bài 18 | 28 | ✅ Đã có |
 | `bt-19` | Bài 19 | 28 | ✅ Đã có |
-| `bt-20` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
+| `bt-20` | Bài 20 | 28 | ✅ Đã có |
+| `bt-21` | Bài 21 | 28 | ✅ Đã có |
+| `bt-22` | Bài 22 | 28 | ✅ Đã có |
+| `bt-23` | Bài 23 | 28 | ✅ Đã có |
+| `bt-24` → `bt-70` | | 28 | ⬜ Viết khi được yêu cầu |
 
 `bt-01` có 25 câu thay vì 28 vì phần **D — Ôn xen kẽ** hỏi về các bài *trước*, mà Bài 1
 không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và bộ nào cũng đủ 28.

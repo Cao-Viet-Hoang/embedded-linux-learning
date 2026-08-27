@@ -117,6 +117,24 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   `wsl -d Ubuntu -- bash -lc '...'` — confirmed 2026-08-16: the same `which cd; echo $?`
   reports `0` inline but `1` when run from a script file. Write the script to a temp file
   with `Write` and run the file instead. Delete the temp file afterwards.
+- **Do not pass that temp file as a path argument** — `wsl -d Ubuntu -- bash /tmp/x.sh`
+  exits **127** with `bash: C:/Users/DELL/AppData/Local/Temp/x.sh: No such file or directory`
+  (confirmed 2026-08-27). Two things go wrong at once: WSL interop translates the argument
+  into a Windows path, and `/tmp` inside the distro was wiped by the previous invocation
+  anyway (see the `/tmp` bullet below). **Feed the script in over stdin instead:**
+
+  ```bash
+  wsl -d Ubuntu -- bash -c 'cat > ~/x.sh; bash ~/x.sh; rm -f ~/x.sh' < /tmp/x.sh
+  ```
+
+  stdin is not path-translated, `~` is inside the distro, and the script is deleted in the
+  same invocation that created it. To carry a *source* file across for several runs, use the
+  same trick without executing: `wsl -d Ubuntu -- bash -c 'cat > ~/baiNN/prog.c' < /tmp/prog.c`.
+- **A large chunk of Vietnamese JS in a `<<'EOF'` heredoc fails intermittently** with
+  ``unexpected EOF while looking for matching `'``, even though a quoted heredoc should not
+  parse quotes at all. Hit again 2026-08-27 on a ~95-line exercise item. Do not fight it:
+  use `Write` for the chunk, then splice it in with `sed -n` + `cat`, then delete the temp
+  file. Short ASCII heredocs are fine.
 - QEMU: `-nographic` conflicts with `-monitor stdio`. Use
   `-display none -serial null -monitor stdio` instead.
 - **`/tmp` does not survive between `wsl.exe` invocations.** When the last process exits the
