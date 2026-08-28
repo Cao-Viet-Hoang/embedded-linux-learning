@@ -183,10 +183,69 @@
   lesson 19 cannot: a call that *does not reach the kernel at all*.
 - **Lesson 37's practice creates and then deletes `~/bai37`** (three small C programs). It
   leaves nothing behind and depends on no earlier lesson's files.
-- **`~/bai32` is gone from the machine as of 2026-08-18.** The note below says module 06
-  depends on those files persisting, and it did while 33–36 were being written — but the
-  directory no longer exists. Re-create it from lesson 32's steps before re-verifying
-  anything in 33–36; do not assume `Image`/`initramfs.cpio.gz` are still there.
+- **`~/bai32` was gone from the machine as of 2026-08-18; it is now *partly* back.** The
+  note below says module 06 depends on those files persisting, and it did while 33–36 were
+  being written — but the directory was deleted. On **2026-08-27** lesson 40's verification
+  re-created **`~/bai32/initramfs.cpio.gz` only** (1 030 528 B, 3871 blocks, md5
+  `f4c51fa4dc08f661e1b3257b1e356867`), together with `busybox.deb`, `busybox-pkg/` and
+  `initramfs/`. **There is still no `~/bai32/Image`** — lesson 33's practice quotes it and
+  will fail until someone rebuilds it. Lesson 40 builds its own `Image` inside
+  `~/bai38/linux-6.18.45/arch/arm64/boot/` and boots *that* against the restored initramfs;
+  it does not restore lesson 32's. Also: **lesson 32's hard-coded BusyBox URL 404s now** —
+  see `docs/environment.md` for the working one and why not to hard-code it.
+
+- **Lesson 40 (`Build kernel ARM64 và boot`, written 2026-08-27) leaves `~/bai38/linux-6.18.45`
+  BUILT — 4.6 GB — and Chặng 08 through Chặng 10 depend on that.** Never `mrproper` it; the
+  lesson itself carries a `danger` callout saying so. What is on disk after it:
+  `.config` with **`CONFIG_LOCALVERSION="-embedded"`**, `arch/arm64/boot/Image` (41 MB),
+  `vmlinux` (157 MB, `with debug_info, not stripped`), `System.map`, **1 423** `.ko`,
+  **1 577** `.dtb`, and `.version` sitting at **4**. Kernel release string is
+  **`6.18.45-embedded`**. Also left behind: `~/bai40/modroot` (325 MB) and
+  `~/bai40/modroot-stripped` (80 MB) — `~/bai40` totals **404 MB**, and Chặng 09 is supposed
+  to install the stripped one into a real rootfs. A fresh unbuilt tree is **1.7 GB**, so the
+  build costs **2.9 GB**. The build logs the lesson quotes (`~/bai40-logs/image.log`,
+  `dtbs.log`, `modules.log`, `incr.log`, `config-cross`, `config-nocross`) were **deleted after
+  verification** — every figure taken from them is already transcribed into the lesson and into
+  `docs/environment.md` (§10), so nothing needs to re-read them. Also still on disk:
+  `~/bai38/linux` (a 2.0 GB git clone from lesson 38) and `~/bai38/linux-6.18.45.tar.xz`
+  (148 MB) — `~/bai38` totals **6.6 GB**.
+- **The `#N` build counter in lesson 40's captured boot is `#2`, and the lesson says out loud
+  that a learner following steps 1–6 in order will see `#1`.** The writing machine relinked
+  once extra during verification. Step 5 opens with `cat .version` for exactly this reason,
+  and step 6's incremental rebuild shows `3 → 4` with the same caveat. Do not "correct" these
+  to a tidy `#1` — they are real captures and the caveat is the honest fix.
+- **Lesson 40 owns, and lessons 41+ / Chặng 11 must not re-teach:** `ARCH=` vs
+  `CROSS_COMPILE=` (including that Kconfig *asks the compiler*, so forgetting `CROSS_COMPILE`
+  on `defconfig` changes `.config` by **19 lines / 15 ARM64 features** with no warning, while
+  *mistyping* it fails loudly at `scripts/Kconfig.include:40`); the
+  `.c` → `.o` → `built-in.a` → `vmlinux.a` → `vmlinux` → `Image` chain; the 3-pass `kallsyms`
+  relink; `objcopy -O binary -S` as the reason `vmlinux` is **3.82×** bigger than `Image`;
+  target selection (bare `make` on ARM64 gives you **no** `Image`); `O=` and `mrproper`;
+  `modules_install` + `INSTALL_MOD_PATH` + `INSTALL_MOD_STRIP=1` (325 MB → 80 MB); and the
+  incremental-rebuild loop.
+- **Numbers lesson 40 has already spent** (do not re-measure them as a fresh discovery):
+  `Image` **1 110.8 s**, parallel ratio **5.83**; `dtbs` **13.802 s**, ratio **5.06**;
+  `modules` **20m37.036 s**, ratio **5.91** (modules cost **more** than the kernel);
+  incremental rebuild after one `touch` **36.390 s** — **30.5×** faster but ratio only
+  **2.00**, because the single-threaded `kallsyms` chain dominates a 28-line rebuild.
+  `defconfig` under `O=` on a clean tree **4.467 s**; `mrproper` on a lightly-dirtied tree
+  **3.163 s** (`CLEAN scripts/basic` + `CLEAN scripts/kconfig`).
+- **Two Kbuild facts lesson 40 discovered the hard way — a later lesson will hit them again:**
+  (1) `.config` is *Kconfig* syntax (`CONFIG_LOCALVERSION="-embedded"`, quoted) but
+  `include/config/auto.conf` is *make* syntax (`CONFIG_LOCALVERSION=-embedded`, **unquoted**),
+  because make `include`s it directly and would treat quotes as literal characters.
+  (2) `kernelrelease` is in `no-sync-config-targets` (`Makefile:299`), so it reads the **stale**
+  `auto.conf` and will happily print `6.18.45` while `.config` already says `-embedded`;
+  `make … syncconfig` fixes it and prints nothing. The `O=`-on-a-dirty-tree refusal comes from
+  the `outputmakefile` guard at `Makefile:695`–`697`.
+- **The `dtbs` log has 1 746 lines but only 1 577 `.dtb` exist on disk** — `1565 DTC` +
+  `181 OVL`, where `OVL` steps produce `.dtbo` overlays and overlay-applied intermediates.
+  Lesson 40 states the split and explicitly defers overlays to Chặng 08. A Chặng 08 lesson
+  should pick that thread up rather than re-deriving the arithmetic.
+- **Lesson 40's next-lesson callout promises Bài 41 four things**: dissecting
+  `console=` / `root=` / `init=` / `loglevel=` (step 5 uses `console=ttyAMA0 rdinit=/init`
+  without explaining it), `dmesg` and the eight log levels, reading the **268-line** boot log
+  it captured, and shrinking the **41 MB** `Image`. Lesson 41 must deliver all four.
 
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory

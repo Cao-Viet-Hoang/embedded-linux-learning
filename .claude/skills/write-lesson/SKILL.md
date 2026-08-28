@@ -49,6 +49,11 @@ confirm — restate the underlying principle.
 | `p` | Paragraph | `x`, `muted` |
 | `list` | Bullet or numbered list | `items`, `ordered` |
 | `code` | Terminal / file block with an environment badge | `where`, `code`, `lang`, `name`, `notes`, `nocopy` |
+
+`notes` on a `code` block **must be an array of strings, never a bare string.** `js/render.js`
+guards with `if (b.notes && b.notes.length)` — a string passes that guard and then dies on
+`.map`, so `tools/check.js` fails with `Render.lesson threw — b.notes.map is not a function`
+(hit while writing lesson 40). One note is still `notes: ['…']`.
 | `cmdx` | Per-flag command dissection table | `cmd`, `title`, `rows: [[token, desc, extra?]]` |
 | `cal` | Callout box | `kind`, `title`, `x` |
 | `table` | Table | `head`, `rows` |
