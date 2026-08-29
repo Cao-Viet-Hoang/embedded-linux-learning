@@ -308,27 +308,36 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00 through 06 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 07 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
-  `Chặng 04 — Cross-compilation` (lessons 25–28) and
-  `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32) and
-  `Chặng 06 — Bootloader U-Boot` (lessons 33–36) are all written and rendering.
-  `Chặng 07 — Linux Kernel` has begun: lessons 37 `Kiến trúc kernel`,
-  38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig` and
-  40 `Build kernel ARM64 và boot` are written.
-- Next lesson to write, when asked: lesson 41,
-  `Kernel cmdline, log và tối ưu kích thước`. Lesson 40's `Bài tiếp theo` callout promises
-  it four things — `console=`/`root=`/`init=`/`loglevel=`, `dmesg` and the eight log levels,
-  reading the 268-line boot log lesson 40 captured, and shrinking the 41 MB `Image`.
-- `node tools/check.js` → `14 modules · 70 lessons · 40 written · 27 bài tập` · `OK`.
+  `Chặng 04 — Cross-compilation` (lessons 25–28),
+  `Chặng 05 — QEMU và luồng khởi động` (lessons 29–32),
+  `Chặng 06 — Bootloader U-Boot` (lessons 33–36) and
+  `Chặng 07 — Linux Kernel` (lessons 37 `Kiến trúc kernel`,
+  38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig`,
+  40 `Build kernel ARM64 và boot`, 41 `Kernel cmdline, log và tối ưu kích thước`)
+  are all written and rendering.
+- Next lesson to write, when asked: lesson 42, `Vì sao Device Tree ra đời`, opening
+  `Chặng 08 — Device Tree`. Lesson 41's `Bài tiếp theo` callout promises it the pre-2011
+  "board file" problem, why hardware description was pulled out of kernel C code, and
+  DT-on-ARM vs ACPI-on-x86. Lesson 41 also left three threads for Chặng 08 to pick up on
+  purpose: `/chosen/bootargs`, `/chosen/stdout-path` (why a board still boots with no
+  `console=`), and how `earlycon` finds MMIO `0x9000000` without being told.
+- `node tools/check.js` → `14 modules · 70 lessons · 41 written · 27 bài tập` · `OK`.
 - **Lesson 40 left a built kernel tree on disk and later modules depend on it.**
   `~/bai38/linux-6.18.45` is now **4.6 GB**, configured `CONFIG_LOCALVERSION="-embedded"`,
   holding `Image` (41 MB), `vmlinux` (157 MB), `System.map`, 1 423 `.ko` and 1 577 `.dtb`;
   `~/bai40/modroot` (325 MB) and `~/bai40/modroot-stripped` (80 MB) are kept for Chặng 09.
   **Never `mrproper` that tree** — Chặng 08 through Chặng 10 build on it. Full inventory and
   the numbers lesson 40 has already spent: `docs/course-notes.md` (§12.1).
+- **Lesson 41 added a second, disposable tree: `~/bai41` (~1,8 GB)** — a clean
+  `linux-6.18.45` source, the out-of-tree build dirs `b-tiny` and `b-min` (`make O=…`),
+  `blank.img` (64 MiB, never formatted on purpose), and the probe
+  `initramfs/` + `initramfs.cpio.gz`. Unlike `~/bai38` and `~/bai40`, **nothing after
+  Chặng 07 depends on `~/bai41`** — it can be deleted. Its measured numbers are in
+  `docs/environment.md` (§10) and must not be re-derived as fresh discoveries.
 - **Exercise sets written: `bt-01` … `bt-27`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,

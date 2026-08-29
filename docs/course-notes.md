@@ -247,6 +247,68 @@
   without explaining it), `dmesg` and the eight log levels, reading the **268-line** boot log
   it captured, and shrinking the **41 MB** `Image`. Lesson 41 must deliver all four.
 
+- **Lesson 41 (`Kernel cmdline, log và tối ưu kích thước`, written 2026-08-29) closes Chặng 07.**
+  It delivered all four of lesson 40's promises. Written against the `Image` lesson 40 built
+  (`6.18.45-embedded #4`), so it needs no kernel build of its own until its last step.
+- **Lesson 41 owns, and no later lesson may re-teach as new:**
+  - the cmdline supply chain **QEMU `-append` → DT `/chosen/bootargs` → `parse_args()` →
+    `/proc/cmdline`**, and U-Boot's `bootargs` as the real-board equivalent;
+  - `__setup()` vs `early_param()` vs `unknown_bootoption()`, and the **three-way split** of
+    unknown tokens: no `=` → init's **argv**, has `=` → init's **envp**, known → a handler.
+    Proved with `-append "… foo=bar hello"`;
+  - `console=ttyAMA0,115200n8` field by field; the **replay** of the pre-console ring buffer;
+    `earlycon` as bootconsole and the **doubled** handover lines;
+  - `rdinit=` → `init=` → the four fallbacks, and their *different* failure semantics
+    (`rdinit=` bad → `-2, ignoring`; `init=` bad → immediate `panic()`);
+  - the three VFS messages as **distinct diagnoses** — `Cannot open root device ""` +
+    `(0,0)` vs `No filesystem could mount root` + `(254,0)` vs `No working init found`;
+  - `panic=N` and why it is wrong during development (each reboot wipes the ring buffer);
+  - printk's **eight levels**, the ring-buffer-vs-console two-layer model, the four numbers in
+    `/proc/sys/kernel/printk`, `loglevel=`/`quiet`/`debug`, `dmesg -n`, and `/dev/kmsg`;
+  - `tinyconfig` as a *floor*, `CC_OPTIMIZE_FOR_SIZE`, the `KALLSYMS` cost, why `DEBUG_INFO`
+    costs `vmlinux` but **not** `Image`, and out-of-tree builds with **`O=`** (first use in
+    the course — Chặng 11 should build on it, not re-introduce it).
+- **Numbers lesson 41 has already spent** (all in `docs/environment.md`; re-deriving any of
+  them as a fresh discovery is repetition, not teaching):
+  **247** console lines vs **257** in the ring buffer and the exactly **10** `KERN_DEBUG`
+  lines between them · console enabled at line **106**, earlycon at lines **7–8**, handover
+  doubled at **108–111** · `7 4 1 7` default and the `1/3/4/10` variants, with
+  `dmesg | wc -l` = **257** in every one of them · **280 / 272 / 1 / 273** log lines for the
+  four `console=` experiments · **15** panics in 90 s with `panic=5` · `Image`
+  **41 089 536 → 1 961 992 → 3 303 432 B**, `=y` **3 286 → 421 → 506**, build
+  **18 m 30,8 s → 2 m 23,7 s → 2 m 34,5 s**, ratios **12,44×** / **92,0 %** / **7,2×** ·
+  `KALLSYMS` **5 743 888 B = 14,0 %** of `Image` · minimal-kernel `dmesg` **80** lines,
+  `ls /proc` **60** entries.
+- **Lesson 41 deliberately does NOT build a working `root=` disk.** It creates a *blank*
+  64 MiB `blank.img` only to show that `No filesystem could mount root` differs from
+  `Cannot open root device`, and says so on the page: formatting it and installing a real
+  rootfs is **Chặng 09 (Bài 46–49)**. A Chặng 09 lesson should pick that thread up.
+  Note the roadmap names Buildroot in **Chặng 11**, not Chặng 09 — an early draft of lesson
+  41 got this wrong and it was corrected before shipping.
+- **The 17 symbols lesson 41 re-enables on top of `tinyconfig`** (via
+  `./scripts/config --file <build>/.config -e …` then `make olddefconfig`):
+  `PRINTK TTY BINFMT_ELF BINFMT_SCRIPT MULTIUSER SERIAL_AMBA_PL011
+  SERIAL_AMBA_PL011_CONSOLE BLK_DEV_INITRD RD_GZIP PROC_FS SYSFS FUTEX EPOLL SIGNALFD
+  TIMERFD EVENTFD AIO`. They pull **+85** options through `select`/`depends on` (421 → 506) —
+  the lesson uses that as concrete evidence for Bài 39's Kconfig mechanism. `DEVTMPFS` and
+  `PRINTK_TIME` are deliberately *left off*, so the minimal boot shows
+  `mount: mounting none on /dev failed: No such device` and has **no timestamps at all**.
+- **Lesson 41 leaves a second kernel source tree and two build dirs on disk**:
+  `~/bai41/linux-6.18.45` (clean, unconfigured, ~1,7 G), `~/bai41/b-tiny`,
+  `~/bai41/b-min`, `~/bai41/blank.img` (64 MiB), `~/bai41/initramfs/` and
+  `~/bai41/initramfs.cpio.gz` (**1 030 594 B**) — about **1,8 G** total. Nothing after
+  Chặng 07 depends on it, unlike `~/bai38/linux-6.18.45` and `~/bai40/modroot*`, which must
+  still never be touched.
+- **The probe initramfs `~/bai41/initramfs/init`** adds three things to lesson 32's `/init`:
+  `mount -t devtmpfs none /dev`, `echo "=== init argv: $0 $* ==="` + `env`, and
+  `cat /proc/cmdline`. The `devtmpfs` line is **not optional** — see the `/dev/kmsg` gotcha
+  in `docs/environment.md`. Lesson 32's own `~/bai32/initramfs` is copied, never modified.
+- **Lesson 41's next-lesson callout promises Bài 42 one thing**: the pre-2011 "board file"
+  problem, why hardware description was split out of kernel C code, and DT-on-ARM vs
+  ACPI-on-x86. It also hands Chặng 08 three unexplained threads lesson 41 raised on purpose:
+  `/chosen/bootargs`, `/chosen/stdout-path` (why a board boots with no `console=`), and how
+  `earlycon` learns the MMIO address `0x9000000` without being told.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover
