@@ -209,6 +209,33 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   the two into one line (`kill %N; wait %N`) as the surest way to leave no gap for anything
   else to intervene.
 
+- **On the Windows side the interpreter is `python`, not `python3`** — confirmed 2026-08-29:
+  `command -v python3` returns nothing, `python` is
+  `/c/Users/DELL/AppData/Local/Programs/Python/Python312/python`. A probe script that types
+  `python3` fails with `command not found`, which reads like the script is broken. Inside the
+  distro it is the other way round. Given the `cp1252` and heredoc problems above, **prefer
+  `node` for anything Windows-side that touches lesson or exercise text** — it is always
+  present (`/c/Program Files/nodejs/node`), speaks UTF-8, and can `require('./js/render.js')`
+  directly to reuse the project's own code.
+- **The `Bash` tool collapses `\\` to `\` inside a heredoc, even a quoted one** — confirmed
+  2026-08-29 writing the `bt-27` verification scripts. A script containing
+  `printf '\\x7f'` or a `sed` expression with `\\.` arrives in the distro with one backslash
+  and does something different from what was written, silently. **Any script carrying
+  backslash escapes must be produced with the `Write` tool** and piped in over stdin
+  (`wsl -d Ubuntu -- bash -c 'cat > ~/x.sh; bash ~/x.sh 2>&1; rm -f ~/x.sh' < tmp-x.sh`).
+  Same family as the JS/Python heredoc bullets above: treat a heredoc as safe only for short
+  ASCII with no backslashes.
+- **`node -e` with a regex *literal* gets mangled by the shell** — `node -e "…/\{ t: 'h2'…/g…"`
+  died with `SyntaxError: Invalid regular expression: missing /` (2026-08-29). The fix that
+  works every time: write a real `.js` file with `Write` and build the pattern with
+  `new RegExp("…", 'g')` from a string literal, run `node file.js`, delete it. This is the
+  standard way to compute a `Render.slug()` for a part-F link:
+
+  ```js
+  global.window = global;
+  require('./js/render.js');
+  console.log(Render.slug('Bốn con số kích thước, và cách đọc chúng'));
+  ```
 ### Cleaning up temporary files
 
 **After verifying a lesson or exercise set, delete all temporary files created during the

@@ -388,6 +388,41 @@
   `/usr/libexec/gcc/x86_64-linux-gnu/15` = **111 MB** · emulation costing **≈5.5×**
   (0.09 s → 0.47–0.55 s). Chặng 04's remaining lessons should not re-derive these.
 
+- **`bt-26` spends the ABI / prefixed-tools / sysroot triple.** Its trục are *ABI, not
+  architecture, decides linkability* · *ELF-shell tools are architecture-agnostic,
+  instruction-decoding tools are not* · *the cross compiler looks for headers and libraries
+  in the target's tree, not `/usr/include`*. Its part D reaches back to Bài 25, 16 and 17.
+  None of these may be spiralled again (`write-exercise` §13.8) — later sets put them in D.
+- **`bt-27` spends three failure modes that later modules will keep meeting.** Record them
+  so Chặng 08–10 do not present them as new:
+  - **The "`Nothing to be done`" cross-architecture trap.** Build natively, then re-run
+    `make CROSS_COMPILE=aarch64-linux-gnu-` without touching a source file: `make` compares
+    **mtimes only**, prints `make: Nothing to be done for 'all'.`, exits **0**, and leaves an
+    **x86-64** artefact behind. This is the only error in the set that exits 0 with a wrong
+    product, and `bt-27` E5 owns it. Verifying it requires building in that order — build
+    cross-first and the trap looks harmless (a mistake made and corrected 2026-08-29).
+  - **`STRIP = strip` in a cross Makefile** → `strip: Unable to recognise the architecture
+    of the input file`, `Error 1`, make exit **2**, product left unstripped. `bt-27` E5's
+    other half; Bài 26's *every tool needs the prefix* is the principle behind it.
+  - **`skipping incompatible …libfoo.a when searching for -lfoo` then `cannot find -lfoo`.**
+    The linker's way of saying "found it, wrong architecture" — distinct from a plain
+    `cannot find -lz`, which means it never found anything. `bt-27` C3 makes the learner
+    separate the two, plus a third cause (name/permission mismatch). Note that **`file` on a
+    `.a` reports only `current ar archive`**, so the architecture is invisible until you look
+    at a member.
+- **`bt-27` also spends these numbers** (verified 2026-08-29, all in `docs/environment.md`):
+  15 952 / 70 448 / 9 008 B and the **61 440 B** page-alignment delta that survives `strip`
+  unchanged · `size` `1373 600 8` vs `1678 640 8` (identical for both ARM64 files) ·
+  stripped **6 168** vs native **14 464** · static **705 256** / **597 920** with text
+  **530 865** · **31** `qemu-*` binfmt handlers plus `WSLInterop`/`python3.14` · exit **126**
+  vs exit **255** · `ldd` → `not a dynamic executable`, exit 1 · **49 vs 858** libraries and
+  the `libc.so.6` 1 781 952 + loader 200 688 = **1 982 640 B** fixed dynamic cost, break-even
+  at **4** programs. A later lesson re-deriving any of these is repeating, not teaching.
+- **`-L` before `-l` is NOT required** — a plausible rule that verification disproved
+  (`docs/environment.md`, 2026-08-29). Do not build a lesson, a quiz or an exercise on it.
+- **Lesson 27's build tree `~/embedded/bai27` is gone.** Unlike `~/bai38/linux-6.18.45` and
+  `~/bai40/modroot*`, nothing depends on it; anything re-verifying Bài 27 rebuilds fresh.
+
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 
 Module numbers are the easiest thing to get wrong, because the topic name and the module
