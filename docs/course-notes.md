@@ -308,6 +308,59 @@
   ACPI-on-x86. It also hands Chặng 08 three unexplained threads lesson 41 raised on purpose:
   `/chosen/bootargs`, `/chosen/stdout-path` (why a board boots with no `console=`), and how
   `earlycon` learns the MMIO address `0x9000000` without being told.
+- **Lesson 41's `ls ~/bai41/initramfs` capture was wrong and was corrected 2026-08-29.**
+  It published `bin  dev  etc  init  proc  root  sys  usr` and called it "tám thư mục";
+  the real listing is **`bin  dev  init  proc  sys`** — lesson 32 creates exactly
+  `initramfs/bin initramfs/dev initramfs/proc initramfs/sys` plus `/init`, and lesson 41
+  only `cp -a`s it. Both the capture and the sentence after it now say **four** directories.
+  Nothing else in lesson 41 depended on the phantom `etc/root/usr`. Treat this as the
+  standing example of why hard rule 2 exists: the block *looked* like a plausible initramfs
+  skeleton, which is exactly why nobody re-ran it.
+
+### Chặng 08 — Device Tree
+
+- **Lesson 42 (`Vì sao Device Tree ra đời`) is history + motivation only, not syntax.**
+  It owns: the pre-2011 `arch/arm/mach-*/board-*.c` model, `platform_device` +
+  `struct resource`, discoverable buses (PCI/USB) vs non-discoverable MMIO,
+  `CONFIG_ARCH_MULTIPLATFORM`, `DT_MACHINE_START` / `.dt_compat`, the Open Firmware descent
+  of the `of_` prefix, and **DT-on-ARM vs ACPI-on-x86**. It deliberately does **not** teach
+  DTS syntax (Bài 43), bindings / `of_match_table` (Bài 44), or a full
+  `/proc/device-tree` walk (Bài 45) — it touches only `model`, `chosen/stdout-path`,
+  the size of `/sys/firmware/fdt` and `/proc/consoles`.
+- **Lesson 42 closed two of the three threads lesson 41 left, and left one on purpose.**
+  Closed: `/chosen/stdout-path` (boot 3 runs with **no** `-append` at all and still gets a
+  console) and how bare `earlycon` finds `0x9000000` (boot 4 — the answer is
+  `stdout-path` → `OF_EARLYCON_DECLARE`). **`/chosen/bootargs` is still unspent** — leave it
+  for Bài 43 or Bài 45.
+- **The ARM-vs-x86 framing lesson 42 commits to: "platform, not CPU architecture."**
+  ARM64 *servers* use ACPI (SBBR), some x86 SoCs carry a DT. A later lesson saying
+  "ARM = DT, x86 = ACPI" as a law contradicts lesson 42's own `cal warn`.
+- **Numbers lesson 42 spends** (all measured 2026-08-29 on `~/bai38/linux-6.18.45`, kernel
+  **6.18.45**; recorded in `docs/environment.md`): `arch/arm/mach-*` = **55** dirs /
+  **20** surviving `board-*.c` / **4 220** lines · the whole pre-DT `mach-*` bulk **474**
+  files / **108 675** lines vs `drivers/of` **22** files / **18 236** lines ·
+  `arch/arm64/mach-*` = **0** / **0** · `board-ams-delta.c` **851** lines / **18**
+  `platform_device` · `board-generic.c` **378** lines / **15** `DT_MACHINE_START` ·
+  **5 322** `.dts`+`.dtsi` under `arch/arm{,64}/boot/dts` (**1 784 680** lines) ·
+  **5 182** binding `.yaml` · **175** dts mentioning `pl011` · **171** powerpc dts ·
+  cpio **1 030 749 B** = `3872 blocks`. Do not re-derive these as fresh discoveries.
+- **The `find arch -name '*.dts'` over-count trap.** Counting without scoping to
+  `arch/arm/boot/dts arch/arm64/boot/dts` gives **5 974** / **1 906 110** because it sweeps
+  every architecture; `grep --include='*.dts'` alone misses `.dtsi` and gives 7 instead of
+  175. Lesson 42's `Lỗi thường gặp` table teaches this; a later lesson must use the scoped
+  form (`docs/environment.md`).
+- **The 2011 LKML history in lesson 42 is NOT machine-verified, and the lesson says so.**
+  `~/bai38/linux` is a **shallow clone (1 commit)** — no `git log` archaeology is possible
+  without a ~5 GB full clone. Lesson 42 puts that admission in a `cal info` rather than
+  passing the story off as measured. Any later lesson quoting 2011 history inherits the
+  same obligation.
+- **`~/bai42` (~5 MB) is disposable** — `initramfs/`, `initramfs.cpio.gz`, four `boot*.log`.
+  Like `~/bai41` and unlike `~/bai38` / `~/bai40`, nothing after it depends on it. It reuses
+  `~/bai38/linux-6.18.45/arch/arm64/boot/Image`, which must keep existing.
+- **The four-boot matrix is lesson 42's punchline: one byte-identical `Image`, four
+  machines.** Boots 1–2 differ only in `-m` / `-smp` (`1024`/`4` vs the default), boot 3 has
+  no `-append`, boot 4 uses `earlycon`. A later lesson re-proving "one kernel, many boards"
+  is repeating lesson 42, not teaching.
 
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory

@@ -319,13 +319,18 @@ cross-references. Guard against a repeat:
   38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig`,
   40 `Build kernel ARM64 và boot`, 41 `Kernel cmdline, log và tối ưu kích thước`)
   are all written and rendering.
-- Next lesson to write, when asked: lesson 42, `Vì sao Device Tree ra đời`, opening
-  `Chặng 08 — Device Tree`. Lesson 41's `Bài tiếp theo` callout promises it the pre-2011
-  "board file" problem, why hardware description was pulled out of kernel C code, and
-  DT-on-ARM vs ACPI-on-x86. Lesson 41 also left three threads for Chặng 08 to pick up on
-  purpose: `/chosen/bootargs`, `/chosen/stdout-path` (why a board still boots with no
-  `console=`), and how `earlycon` finds MMIO `0x9000000` without being told.
-- `node tools/check.js` → `14 modules · 70 lessons · 41 written · 27 bài tập` · `OK`.
+- **`Chặng 08 — Device Tree` is open**: lesson 42 `Vì sao Device Tree ra đời` is written
+  and rendering. It covers the pre-2011 "board file" problem, why hardware description was
+  pulled out of kernel C code, and DT-on-ARM vs ACPI-on-x86, and it closes two of the three
+  threads lesson 41 left: `/chosen/stdout-path` (a board boots with no `console=`) and how
+  bare `earlycon` finds MMIO `0x9000000`. **`/chosen/bootargs` is still unspent** — it is
+  reserved for lesson 43 or 45.
+- Next lesson to write, when asked: lesson 43, `Cú pháp DTS`. Lesson 42's `Bài tiếp theo`
+  callout promises it node/property syntax, why `serial@1010c000` carries its address,
+  `#address-cells`/`#size-cells` governing `reg`, phandles and `&label`, the `.dtsi`
+  include-and-override chain, and hands-on `dtc` in **both** directions (`.dts` → `.dtb`
+  → back) — the things lesson 42 deliberately showed without explaining.
+- `node tools/check.js` → `14 modules · 70 lessons · 42 written · 27 bài tập` · `OK`.
 - **Lesson 40 left a built kernel tree on disk and later modules depend on it.**
   `~/bai38/linux-6.18.45` is now **4.6 GB**, configured `CONFIG_LOCALVERSION="-embedded"`,
   holding `Image` (41 MB), `vmlinux` (157 MB), `System.map`, 1 423 `.ko` and 1 577 `.dtb`;
@@ -338,6 +343,14 @@ cross-references. Guard against a repeat:
   `initramfs/` + `initramfs.cpio.gz`. Unlike `~/bai38` and `~/bai40`, **nothing after
   Chặng 07 depends on `~/bai41`** — it can be deleted. Its measured numbers are in
   `docs/environment.md` (§10) and must not be re-derived as fresh discoveries.
+- **Lesson 42 added `~/bai42` (~5 MB), also disposable** — a probe `initramfs/`,
+  `initramfs.cpio.gz` (**1 030 749 B**) and four `boot*.log`. It reuses
+  `~/bai38/linux-6.18.45/arch/arm64/boot/Image` and reads the kernel source tree, but writes
+  nothing into it. Nothing after Chặng 08 depends on `~/bai42`.
+- **Lesson 41's `ls ~/bai41/initramfs` capture was wrong and was fixed 2026-08-29** — it
+  claimed eight entries (`bin dev etc init proc root sys usr`); the tree has five
+  (`bin dev init proc sys`), because lesson 32 creates only four directories. Both the
+  capture and the sentence reading it now say four. Details: `docs/course-notes.md` (§12.1).
 - **Exercise sets written: `bt-01` … `bt-27`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,

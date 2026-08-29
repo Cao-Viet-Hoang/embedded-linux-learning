@@ -1042,10 +1042,10 @@ Lesson.register({
             'ls ~/bai41/initramfs' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            'bin  dev  etc  init  proc  root  sys  usr' },
+            'bin  dev  init  proc  sys' },
 
           { t: 'p', x:
-            'Tám thư mục và một file <code>init</code> — đúng bộ khung Bài 32 đã dựng. Giờ ghi ' +
+            'Bốn thư mục và một file <code>init</code> — đúng bộ khung Bài 32 đã dựng. Giờ ghi ' +
             'đè <code>init</code> bằng bản thăm dò. So với bản cũ, nó thêm <b>hai</b> thứ: ' +
             'dòng <code>mount devtmpfs</code>, và bốn lệnh in ra ba thứ bạn cần nhìn.' },
 
