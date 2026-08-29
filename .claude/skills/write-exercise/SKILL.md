@@ -221,6 +221,26 @@ practising), `q`, optional `blocks` (rendered under `q`), optional `truc` (index
 | `match` | left[i] → right[a[i]] | `left`, `right`, `a`, `why` | — |
 | `free` | **self-scored only** | `crit`, `sol` or `solBlocks` | `hint`, `rows`, `ph` |
 
+**`sol`, `why` and `crit` are raw HTML, and nothing preserves whitespace in them.**
+`js/render-ex.js:120` does `var solInner = item.sol || ''` and injects it unescaped into
+`.exf__panel`, which sets no `white-space` (`css/exercise.css:318`). Consequences, all of
+them found the hard way on 2026-08-28 in `bt-23`/`bt-24`, where 32 solutions rendered as
+one unbroken wall of text:
+
+- A `\n\n` paragraph break **collapses to a single space**. Write `<p>…</p>` — line 334
+  styles `.exf__panel p` specifically for this. A `\n` used to line up a transcript
+  collapses too.
+- A literal `<` is swallowed as a tag: `ls /proc/<pid>/fd` renders as `ls /proc//fd`, and
+  `<stdint.h>` vanishes entirely. Write `&lt;`. `tools/check.js` does **not** catch this —
+  it checks the `cmdx` token column only.
+- Anything that is not a paragraph — a captured transcript, a bullet list, a code sketch —
+  does not belong in `sol` at all. Use **`solBlocks`**: it goes through `Render.blocks()`,
+  so it gets the same `code` / `list` / `cal` blocks (and the same environment badges and
+  auto-escaping) as a lesson. `solBlocks` is appended **after** all of `sol`, so a solution
+  that alternates prose and transcript must put *everything* in `solBlocks` and drop `sol`.
+- Vietnamese prose must never be parked in a `code` block just to keep its line breaks —
+  that is hard rule 12 (`CLAUDE.md` §2). It is a `list` or several `p` blocks.
+
 Rules the validator enforces, each for a reason learned the hard way:
 
 - **`match` may not use an identity mapping.** `a: [0,1,2,…]` is solvable by picking A, B,
@@ -280,3 +300,5 @@ time a set is written.
 | `bt-21` | Handler có thể **chen ngang giữa hai lệnh bất kỳ** của luồng chính — nên "bắn vài nghìn lần không sao" không chứng minh được gì, lỗi này **không test ra được** · **chặn là hoãn, bỏ qua là vứt**: `sigprocmask` giữ tín hiệu lại trong bảng đang treo, `SIG_IGN` loại bỏ nó vĩnh viễn · tín hiệu chuẩn **không xếp hàng** — bảng đang treo là một tập bit, gửi 10 lần cho handler chạy 1 lần, và mất mát ấy hoàn toàn im lặng |
 | `bt-22` | Chạy thấy đúng **không phải** bằng chứng: `counter++` là ba lệnh máy, và mức tối ưu quyết định lỗi *hiện ra thế nào* chứ không quyết định lỗi *có hay không* — chỉ mã máy mới là bằng chứng · con số "mutex chậm 12×" là **tỷ lệ giữa chi phí đồng bộ và công việc hữu ích**, không phải thuộc tính của mutex; đòn bẩy nằm ở *số lần vào vùng tới hạn* · deadlock là một **chu trình chờ nằm sẵn trong mã**, sinh ra từ hai thứ tự lấy khoá ngược nhau — phòng được bằng quy tắc, không phải bằng may mắn |
 | `bt-23` | Tốc độ IPC là con số **đếm** được, không phải con số **đo** được: MB/s và µs là cùng một phép đo bằng đồng hồ (pipe trải 518–3 969 MB/s), còn 2 001 syscall so với 1 thì suy ra từ mã nguồn · **nhân rút lui thì bảo đảm đồng bộ rút lui theo** — MMU vẫn canh gác nhưng chỉ với vùng *chưa* ánh xạ; tốc độ của bộ nhớ chia sẻ và nghĩa vụ tự đồng bộ là hai mặt của cùng một sự thật · đối tượng IPC POSIX **kiên trì** — vòng đời gắn với cái *tên* trong `/dev/shm`, `/dev/mqueue`, `/run`, nên `SIGKILL` vô hiệu hoá mọi dọn dẹp đặt trong tay xử lý `SIGTERM` |
+| `bt-24` | Thứ tự byte là chuyện của **người đọc**, và đọc sai **không sinh ra lỗi nào**: quên `htons()` thì `bind()` và `listen()` vẫn trả 0, chỉ con số cổng là sai — và sai một cách *cố định*, tính được bằng tay · **ranh giới thông điệp thuộc về tầng vận chuyển**, không thuộc về `write()` của bạn: TCP là dòng byte nên ba `write()` 11 byte có thể về thành một `read()` 33 byte, UDP giữ ranh giới nhưng bộ đệm nhỏ hơn gói thì cắt cụt *và vẫn báo thành công* · chi phí của cơ chế chờ nằm ở **chỗ đặt danh sách theo dõi** — `select`/`poll` giữ danh sách trong tiến trình nên phải nộp lại toàn bộ mỗi lần gọi, `epoll` đặt nó trong nhân nên giá không còn tỉ lệ với số kênh *theo dõi* |
+| `bt-25` | Một file thực thi thuộc về **đúng một kiến trúc** (`e_machine`: 62 = x86-64, 183 = AArch64) — nhưng **"chạy được hay không" là thuộc tính của hệ thống nạp nó**, không phải của file: nhân tra `binfmt_misc` trước khi kết luận, nên cùng một file bị từ chối ở máy này và chạy được ở máy kia · cái chặn bạn build trên bo là **tài nguyên**, và khoản lớn nhất là **kích thước của chính bộ công cụ** (riêng `cc1` 35,7 MB, thư mục nội bộ gcc 111 MB, so với rootfs 8–64 MB) — không phải "cứ để nó build qua đêm là xong" · `target` là thuộc tính của một **công cụ**, không phải của một **sản phẩm**: chỉ chương trình nào *sinh mã* mới có `target`, và bộ ba build/host/target mô tả cái công cụ chứ không mô tả cái nó vừa tạo ra |

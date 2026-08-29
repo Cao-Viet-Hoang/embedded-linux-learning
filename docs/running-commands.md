@@ -117,6 +117,15 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   `wsl -d Ubuntu -- bash -lc '...'` — confirmed 2026-08-16: the same `which cd; echo $?`
   reports `0` inline but `1` when run from a script file. Write the script to a temp file
   with `Write` and run the file instead. Delete the temp file afterwards.
+  **A shell variable is emptied silently, not reported** — confirmed 2026-08-28 while
+  verifying `bt-25`: `wsl -d Ubuntu -- bash -lc 'cat > /tmp/dm.sh <<'EOF' … for c in gcc …;
+  do "$c" -dumpmachine; done … EOF'` wrote a file containing `for c in gcc …; do "" ‑dumpmachine`
+  — every `$c` gone, even though the heredoc delimiter was quoted. The script then ran
+  happily and printed `(absent)` three times for three compilers that all exist. Nothing
+  errored. **Escape every `$` as `\$` when the text has to survive into the distro**
+  (`"\$c"` produced the correct script and the correct output), or write the file with
+  `Write` and pipe it in over stdin as described below. The same cause silently killed a
+  `for p in $(pgrep -x nc); do ls /proc/$p/fd; done` probe in the same session.
 - **Do not pass that temp file as a path argument** — `wsl -d Ubuntu -- bash /tmp/x.sh`
   exits **127** with `bash: C:/Users/DELL/AppData/Local/Temp/x.sh: No such file or directory`
   (confirmed 2026-08-27). Two things go wrong at once: WSL interop translates the argument
@@ -135,6 +144,19 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   parse quotes at all. Hit again 2026-08-27 on a ~95-line exercise item. Do not fight it:
   use `Write` for the chunk, then splice it in with `sed -n` + `cat`, then delete the temp
   file. Short ASCII heredocs are fine.
+- **A `python - <<'PY'` heredoc is not reliable either, and it fails *silently wrong*
+  rather than erroring** — confirmed 2026-08-28 while repairing `bt-24`. Two runs of a
+  search for a multi-line pattern containing `\n` escapes reported `False` for a string that
+  provably existed: `ascii(s[i-30:i+90])` printed the exact bytes being searched for. The
+  escapes are re-interpreted somewhere between Git Bash and the Python parser. **Write the
+  script to a real `.py` file with `Write`, run `python file.py`, delete it** — the identical
+  logic matched first try. Same rule as the JS-heredoc bullet above; treat any heredoc
+  carrying backslash escapes or non-ASCII as unusable.
+- **Never `print()` Vietnamese from a Windows-side Python one-liner.** stdout is `cp1252`
+  here, so `print('Đúng')` dies with `UnicodeEncodeError` *after* the useful work has already
+  run, which reads like the script failed when it did not. Print `ascii(s)` for diagnostics,
+  or write the text to a file with `io.open(..., encoding='utf-8')`. Node has no such problem
+  and is the better tool for anything that has to touch lesson/exercise text.
 - QEMU: `-nographic` conflicts with `-monitor stdio`. Use
   `-display none -serial null -monitor stdio` instead.
 - **`/tmp` does not survive between `wsl.exe` invocations.** When the last process exits the

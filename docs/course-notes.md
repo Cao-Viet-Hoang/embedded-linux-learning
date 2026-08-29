@@ -358,6 +358,36 @@
   killed with `kill -9`. It also spends the `ftruncate` ≠ allocated-pages point (`df` reads
   `0` until you `memset` the mapping). Do not reintroduce either as new material.
 
+- **DEFECT, found 2026-08-28 while writing `bt-25`: Bài 25's headline transcript no longer
+  reproduces on this machine.** Lesson 25 (`lessons/bai-25.js` ~line 682) prints
+  `./hello-arm64: cannot execute binary file: Exec format error` / `exit=126`, and the whole
+  lesson — `goals`, the `ENOEXEC` glossary row, the *"126 vs 127"* callout, the `recap`, and
+  quiz question 3 — is built on it. Today the same command prints the program's output and
+  **exits 0**, because `qemu-user-binfmt` is installed and `/proc/sys/fs/binfmt_misc/` has
+  `qemu-arm`, `qemu-aarch64` and `qemu-armeb` registered; the kernel hands the binary to
+  `/usr/bin/qemu-aarch64` instead of refusing it. Those handlers almost certainly arrived
+  with the **Chặng 05** QEMU work (lessons 29–32), which was written *after* Bài 25 — so the
+  lesson was correct when captured and the environment moved underneath it. Ironically Bài 25
+  already names the mechanism (its own §1 ends *"...muốn có lớp dịch, bạn phải cài thêm một
+  chương trình làm việc đó — và tự nói cho nhân biết, qua `binfmt_misc`"*) without knowing it
+  would soon be true locally. **The lesson has not been edited** — that is the user's call.
+  `bt-25` handles it head-on instead: its E1 has the learner predict the failure, meet the
+  success, find the handler, and only then reach the principle, which is a stronger exercise
+  than the original. Anything later in the course that re-runs a foreign binary on the host
+  must expect **exit 0**, not 126.
+- **`bt-25` E-part owns the sudo-free `ENOEXEC` trick**: patch `e_machine` (2-byte LE at
+  offset `0x12`) to `250` with `dd`, and the kernel refuses with the textbook
+  `Exec format error` / **126** because no `binfmt_misc` handler claims that value. Required
+  because the handlers cannot be turned off without root and `sudo` here needs a password
+  (`docs/environment.md`, 2026-08-28). Do not reintroduce it as new material later.
+- **`bt-25` also spends these numbers** (all re-measured 2026-08-28, `docs/environment.md`):
+  `e_machine` 62 vs 183 · the three `-dumpmachine` triplets vs `uname -m` ·
+  `__SIZEOF_LONG__` 8/8/**4** and the armhf `_Static_assert` failure · one 11 711-byte
+  compile costing **33 MB** peak RSS natively and **43 MB** cross · the `ulimit -v` floor
+  between **32 MB (fails)** and **64 MB (succeeds)** · `cc1` = **37 475 472 B** and
+  `/usr/libexec/gcc/x86_64-linux-gnu/15` = **111 MB** · emulation costing **≈5.5×**
+  (0.09 s → 0.47–0.55 s). Chặng 04's remaining lessons should not re-derive these.
+
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 
 Module numbers are the easiest thing to get wrong, because the topic name and the module

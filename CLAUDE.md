@@ -322,14 +322,14 @@ cross-references. Guard against a repeat:
   `Kernel cmdline, log và tối ưu kích thước`. Lesson 40's `Bài tiếp theo` callout promises
   it four things — `console=`/`root=`/`init=`/`loglevel=`, `dmesg` and the eight log levels,
   reading the 268-line boot log lesson 40 captured, and shrinking the 41 MB `Image`.
-- `node tools/check.js` → `14 modules · 70 lessons · 40 written · 23 bài tập` · `OK`.
+- `node tools/check.js` → `14 modules · 70 lessons · 40 written · 25 bài tập` · `OK`.
 - **Lesson 40 left a built kernel tree on disk and later modules depend on it.**
   `~/bai38/linux-6.18.45` is now **4.6 GB**, configured `CONFIG_LOCALVERSION="-embedded"`,
   holding `Image` (41 MB), `vmlinux` (157 MB), `System.map`, 1 423 `.ko` and 1 577 `.dtb`;
   `~/bai40/modroot` (325 MB) and `~/bai40/modroot-stripped` (80 MB) are kept for Chặng 09.
   **Never `mrproper` that tree** — Chặng 08 through Chặng 10 build on it. Full inventory and
   the numbers lesson 40 has already spent: `docs/course-notes.md` (§12.1).
-- **Exercise sets written: `bt-01` … `bt-23`.** `bt-01` has **25 items, not 28**, because
+- **Exercise sets written: `bt-01` … `bt-25`.** `bt-01` has **25 items, not 28**, because
   part D (`Ôn xen kẽ`) asks about *earlier* lessons and lesson 1 has none; `DEmpty` says so
   on the page. From `bt-02` on, every set is 28. The system itself (`js/exercises.js`,
   `js/render-ex.js`, `css/exercise.css`, the `#/bt-NN` + `#/bai-tap` routes, the sidebar chip
