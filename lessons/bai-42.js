@@ -363,7 +363,7 @@ Lesson.register({
         ['DT Source Include', '.dtsi', 'Phần dùng chung được nhiều <code>.dts</code> <code>#include</code> — thường mô tả cả một dòng SoC, để hai mươi bo mạch cùng chip không phải chép lại nhau.'],
         ['Device Tree Blob', '.dtb', 'Bản nhị phân do <code>dtc</code> sinh ra từ <code>.dts</code>. Đây là thứ thật sự được nạp vào RAM lúc boot.'],
         ['Flattened Device Tree', 'FDT', 'Tên gọi khác của đúng cái <code>.dtb</code> đó, dùng nhiều trong mã U-Boot và kernel (<code>libfdt</code>, <code>fdt_blob</code>, <code>/sys/firmware/fdt</code>). Gặp chữ nào cũng là một thứ.'],
-        ['Device Tree Compiler', 'dtc', 'Trình dịch <code>.dts</code> → <code>.dtb</code>. Đã có sẵn trên máy bạn qua gói <code>device-tree-compiler</code>; Bài 45 sẽ dùng nó theo cả hai chiều.'],
+        ['Device Tree Compiler', 'dtc', 'Trình dịch <code>.dts</code> → <code>.dtb</code>. Đã có sẵn trên máy bạn qua gói <code>device-tree-compiler</code>; Bài 43 sẽ dùng nó theo cả hai chiều.'],
         ['Binding', '—', 'Tài liệu quy ước: với một loại thiết bị, được phép và bắt buộc khai những thuộc tính nào. Sống trong <code>Documentation/devicetree/bindings/</code> — <b>6 009</b> file trong cây 6.18.45. Nội dung Bài 44.'],
         ['Open Firmware', 'OF', 'Chuẩn IEEE 1275 mà Device Tree kế thừa. Là lý do mọi API trong kernel mang tiền tố <code>of_</code>.']
       ] },
@@ -768,32 +768,35 @@ Lesson.register({
             'file mô tả bo mạch trong cây đang dùng lại chính nó, và ai ở phía kernel nhận nó:' },
 
           { t: 'code', where: 'wsl', code:
-            'grep -rl \'arm,pl011\' arch/arm/boot/dts arch/arm64/boot/dts | wc -l\n' +
+            'grep -rl \'arm,pl011\' --include=\'*.dts\' --include=\'*.dtsi\' \\\n  arch/arm/boot/dts arch/arm64/boot/dts | wc -l\n' +
             'grep -n \'OF_EARLYCON_DECLARE\' drivers/tty/serial/amba-pl011.c' },
 
           { t: 'code', where: 'out', nocopy: true, code:
-            '175\n' +
+            '58\n' +
             '2733:OF_EARLYCON_DECLARE(pl011, "arm,pl011", pl011_early_console_setup);\n' +
             '2735:OF_EARLYCON_DECLARE(pl011, "arm,sbsa-uart", pl011_early_console_setup);' },
 
-          { t: 'cmdx', cmd: 'grep -rl \'arm,pl011\' arch/arm/boot/dts arch/arm64/boot/dts | wc -l',
+          { t: 'cmdx', cmd: 'grep -rl \'arm,pl011\' --include=\'*.dts\' --include=\'*.dtsi\' arch/arm/boot/dts arch/arm64/boot/dts | wc -l',
             title: 'Vì sao <code>-l</code> chứ không phải <code>-c</code>',
             rows: [
               ['<code>-r</code>', 'Đi đệ quy xuống mọi thư mục con — cây dts có hàng chục tầng theo hãng.'],
               ['<code>-l</code>',
                'In <b>tên file</b> có ít nhất một dòng khớp, mỗi file một dòng, rồi bỏ qua phần còn lại của file.',
                'Nếu dùng <code>-c</code> thì đếm số <i>dòng</i> khớp; một file khai báo bốn UART sẽ bị tính bốn lần. Ở đây câu hỏi là "bao nhiêu bo mạch", nên phải đếm file.'],
+              ['<code>--include=\'*.dts\' --include=\'*.dtsi\'</code>',
+               'Chỉ quét file <b>nguồn</b>. Bắt buộc phải có, vì cây kernel của bạn <i>đã build</i> ở Bài 40.',
+               'Bỏ hai tuỳ chọn này đi, con số nhảy từ 58 lên 175 — nhưng 117 file thêm vào là <code>.dtb</code> và <code>.dtb.tmp</code> do chính bản build đó sinh ra, tức là cùng những mô tả ấy ở dạng đã biên dịch. Đếm chúng là đếm trùng.'],
               ['hai đường dẫn cuối',
                'Giới hạn trong dts của ARM và ARM64. Nếu quét cả <code>arch/</code> bạn sẽ nhặt thêm RISC-V và một vài kiến trúc khác, con số sẽ khác.']
             ] },
 
-          { t: 'cal', kind: 'why', title: '175 bo mạch, một chuỗi, một driver',
-            x: '<b>175</b> file mô tả phần cứng nhắc tới <code>arm,pl011</code>. Không file ' +
+          { t: 'cal', kind: 'why', title: '58 file mô tả, một chuỗi, một driver',
+            x: '<b>58</b> file mô tả phần cứng nhắc tới <code>arm,pl011</code>. Không file ' +
                'nào trong số đó chứa mã. Ở đầu bên kia, ' +
                '<code>drivers/tty/serial/amba-pl011.c</code> khai báo <b>một lần</b> rằng nó ' +
                'nhận chuỗi đó. Ghép hai đầu lại là toàn bộ mô hình Device Tree: ' +
                '<b>dữ liệu nhân bản theo số bo mạch, mã thì không nhân bản</b>. Trong mô hình ' +
-               'board file, mỗi bo mạch trong 175 bo đó cần một đoạn C riêng để dựng cùng một ' +
+               'board file, mỗi bo mạch dùng con UART này cần một đoạn C riêng để dựng cùng một ' +
                'con UART.<br><br>' +
                'Dòng <code>OF_EARLYCON_DECLARE</code> còn đáng chú ý hơn: <code>OF</code> là ' +
                '<i>Open Firmware</i>, tổ tiên của Device Tree, và ' +
@@ -1233,7 +1236,7 @@ Lesson.register({
       'Device Tree tách mô tả ra thành <b>dữ liệu</b>: <code>.dts</code> do <code>dtc</code> dịch thành <code>.dtb</code>, bootloader nạp vào RAM rồi trao địa chỉ cho kernel qua thanh ghi <code>x0</code> — đúng thanh ghi bạn đã nghịch ở Bài 33.',
       'Ranh giới rất rõ: <b>"có cái gì, ở đâu" là dữ liệu; "làm thế nào" là mã</b>. Board file hôm nay chỉ còn <code>DT_MACHINE_START</code> với một danh sách <code>compatible</code> và vài con trỏ hàm.',
       'Số đo trên cây 6.18.45: <b>55</b> thư mục <code>mach-*</code> nhưng chỉ còn <b>20</b> board file / <b>4 220</b> dòng (dưới <b>4%</b> mã nền tảng ARM); <code>arm64</code> có <b>0</b> board file vì nó sinh ra sau cuộc chuyển đổi.',
-      'Cán cân mới: <b>5 322</b> file <code>.dts</code>/<code>.dtsi</code> và <b>5 182</b> binding, đứng cạnh chỉ <b>22</b> file mã trong <code>drivers/of</code>. <b>175</b> bo mạch dùng chung một chuỗi <code>arm,pl011</code> và một driver duy nhất.',
+      'Cán cân mới: <b>5 322</b> file <code>.dts</code>/<code>.dtsi</code> và <b>5 182</b> binding, đứng cạnh chỉ <b>22</b> file mã trong <code>drivers/of</code>. <b>58</b> file <code>.dts</code>/<code>.dtsi</code> dùng chung một chuỗi <code>arm,pl011</code> và một driver duy nhất.',
       'Bạn đã boot <b>cùng một <code>Image</code></b> bốn lần và nhận về hai cỗ máy khác nhau (2 nhân / 474 MB và 4 nhân / 988 MB) — bằng chứng trực tiếp rằng mô tả phần cứng nằm ngoài kernel.',
       'Không cần <code>console=</code> kernel vẫn nói được, nhờ <code>/chosen/stdout-path</code>; và chỉ với chữ <code>earlycon</code> trơ trọi nó đã tự tìm ra <code>0x0000000009000000</code> từ <code>compatible</code> khớp với <code>OF_EARLYCON_DECLARE</code>.',
       '<b>ARM dùng Device Tree, x86 dùng ACPI</b> — nhưng đó là quy tắc theo <i>nền tảng</i> chứ không theo kiến trúc CPU: máy chủ ARM64 vẫn dùng ACPI. Khác biệt cốt lõi: DT là dữ liệu thuần, ACPI chứa cả mã AML mà kernel phải thông dịch.'

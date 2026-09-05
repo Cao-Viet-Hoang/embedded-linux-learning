@@ -421,9 +421,10 @@ Cài thêm khi tới chặng tương ứng:
 | 40 | Build kernel ARM64 và boot | ✅ Đã có |
 | 41 | Kernel cmdline, log và tối ưu kích thước | ✅ Đã có |
 | 42 | Vì sao Device Tree ra đời | ✅ Đã có |
-| 43 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 43 | Cú pháp DTS | ✅ Đã có |
+| 44 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 7 đã hoàn tất, Chặng 8 đã mở đầu (42 / 70 bài).** Bài kế tiếp sẽ viết: Bài 43 — *Cú pháp DTS*.
+**Chặng 0 đến Chặng 7 đã hoàn tất, Chặng 8 đang viết dở (43 / 70 bài).** Bài kế tiếp sẽ viết: Bài 44 — *Binding và cơ chế khớp driver*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

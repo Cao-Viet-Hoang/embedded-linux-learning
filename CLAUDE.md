@@ -319,18 +319,20 @@ cross-references. Guard against a repeat:
   38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig`,
   40 `Build kernel ARM64 và boot`, 41 `Kernel cmdline, log và tối ưu kích thước`)
   are all written and rendering.
-- **`Chặng 08 — Device Tree` is open**: lesson 42 `Vì sao Device Tree ra đời` is written
-  and rendering. It covers the pre-2011 "board file" problem, why hardware description was
-  pulled out of kernel C code, and DT-on-ARM vs ACPI-on-x86, and it closes two of the three
-  threads lesson 41 left: `/chosen/stdout-path` (a board boots with no `console=`) and how
-  bare `earlycon` finds MMIO `0x9000000`. **`/chosen/bootargs` is still unspent** — it is
-  reserved for lesson 43 or 45.
-- Next lesson to write, when asked: lesson 43, `Cú pháp DTS`. Lesson 42's `Bài tiếp theo`
-  callout promises it node/property syntax, why `serial@1010c000` carries its address,
-  `#address-cells`/`#size-cells` governing `reg`, phandles and `&label`, the `.dtsi`
-  include-and-override chain, and hands-on `dtc` in **both** directions (`.dts` → `.dtb`
-  → back) — the things lesson 42 deliberately showed without explaining.
-- `node tools/check.js` → `14 modules · 70 lessons · 42 written · 27 bài tập` · `OK`.
+- **`Chặng 08 — Device Tree` is open**: lessons 42 `Vì sao Device Tree ra đời` and 43
+  `Cú pháp DTS` are written and rendering. Lesson 42 covers the pre-2011 "board file"
+  problem, why hardware description was pulled out of kernel C code, and DT-on-ARM vs
+  ACPI-on-x86, and it closes two of the three threads lesson 41 left: `/chosen/stdout-path`
+  (a board boots with no `console=`) and how bare `earlycon` finds MMIO `0x9000000`.
+  Lesson 43 owns DTS **syntax** — node anatomy, the four property types, `compatible`/`reg`/
+  `status`, `#address-cells`/`#size-cells`, `ranges`, label vs phandle, `/include/` and
+  override, `/delete-node/`, and overlays (`fragment@N`, `__symbols__`, `__fixups__`) — with
+  `dtc`, `fdtget` and `fdtoverlay` run in both directions. **It never boots QEMU**, on
+  purpose: that is Bài 45's job. **`/chosen/bootargs` is still unspent** after 43 — it now
+  belongs to lesson 45.
+- Next lesson to write, when asked: lesson 44, `Binding và cơ chế khớp driver` — promised by
+  lesson 43's `Bài tiếp theo` callout.
+- `node tools/check.js` → `14 modules · 70 lessons · 43 written · 27 bài tập` · `OK`.
 - **Lesson 40 left a built kernel tree on disk and later modules depend on it.**
   `~/bai38/linux-6.18.45` is now **4.6 GB**, configured `CONFIG_LOCALVERSION="-embedded"`,
   holding `Image` (41 MB), `vmlinux` (157 MB), `System.map`, 1 423 `.ko` and 1 577 `.dtb`;
@@ -347,6 +349,16 @@ cross-references. Guard against a repeat:
   `initramfs.cpio.gz` (**1 030 749 B**) and four `boot*.log`. It reuses
   `~/bai38/linux-6.18.45/arch/arm64/boot/Image` and reads the kernel source tree, but writes
   nothing into it. Nothing after Chặng 08 depends on `~/bai42`.
+- **Lesson 43 added `~/bai43` (**1.2M**) and `~/bai43x`, both disposable** — hand-written
+  DTS samples, an include chain, an overlay set and the rpi3 `cpp`/`dtc` output. Over half
+  of the 1.2M is `virt.dtb`'s 1 MiB of QEMU `dumpdtb` padding. Lesson 43 reads
+  `~/bai38/linux-6.18.45` but writes nothing into it; nothing after Chặng 08 depends on either.
+- **Lesson 42's `175` was a published defect, fixed 2026-09-05.** Its `grep -rl 'arm,pl011'`
+  ran unfiltered over a **built** tree, so 117 of the 175 hits were `.dtb`/`.dtb.tmp`
+  artefacts from lesson 40; the prose also called the files "175 bo mạch" (boards), which a
+  `.dtsi` is not. The command now carries `--include='*.dts' --include='*.dtsi'`, the number
+  is **58**, the `cmdx` has a row explaining why the filter is mandatory, and lesson 43's
+  include callout cites the same 58. Full breakdown: `docs/course-notes.md` (§12.1).
 - **Lesson 41's `ls ~/bai41/initramfs` capture was wrong and was fixed 2026-08-29** — it
   claimed eight entries (`bin dev etc init proc root sys usr`); the tree has five
   (`bin dev init proc sys`), because lesson 32 creates only four directories. Both the

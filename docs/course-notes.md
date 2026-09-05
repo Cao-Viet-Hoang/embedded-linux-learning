@@ -342,13 +342,25 @@
   `arch/arm64/mach-*` = **0** / **0** · `board-ams-delta.c` **851** lines / **18**
   `platform_device` · `board-generic.c` **378** lines / **15** `DT_MACHINE_START` ·
   **5 322** `.dts`+`.dtsi` under `arch/arm{,64}/boot/dts` (**1 784 680** lines) ·
-  **5 182** binding `.yaml` · **175** dts mentioning `pl011` · **171** powerpc dts ·
+  **5 182** binding `.yaml` · **58** dts/dtsi mentioning `pl011` (see the artefact trap
+  below — the published **175** was wrong and was corrected 2026-09-05) · **171** powerpc dts ·
   cpio **1 030 749 B** = `3872 blocks`. Do not re-derive these as fresh discoveries.
 - **The `find arch -name '*.dts'` over-count trap.** Counting without scoping to
   `arch/arm/boot/dts arch/arm64/boot/dts` gives **5 974** / **1 906 110** because it sweeps
   every architecture; `grep --include='*.dts'` alone misses `.dtsi` and gives 7 instead of
-  175. Lesson 42's `Lỗi thường gặp` table teaches this; a later lesson must use the scoped
+  58. Lesson 42's `Lỗi thường gặp` table teaches this; a later lesson must use the scoped
   form (`docs/environment.md`).
+- **The built-tree artefact trap — this one shipped as a defect and was fixed 2026-09-05.**
+  `~/bai38/linux-6.18.45` is a **built** tree, so an unfiltered `grep -rl` under
+  `arch/arm{,64}/boot/dts` matches compiled output as well as source. For `arm,pl011` the
+  unfiltered count is **175** = 7 `.dts` + 51 `.dtsi` + **63 `.dtb`** + **54 `.dtb.tmp`**;
+  **117 of the 175 are artefacts** — the same descriptions counted a second time, compiled.
+  The real answer is **58** source files. Lesson 42 originally published 175 *and* called
+  them `175 bo mạch` ("175 boards") — wrong twice over, since a `.dtsi` is not a board.
+  Both the number and the wording are corrected now, and lesson 42's `cmdx` has a row on
+  why `--include` is mandatory on a built tree. Lesson 43's include callout cites the same
+  **58** and points back at Bài 42. **Any future count over a kernel tree must filter by
+  extension**, and must never describe a file count as a board count.
 - **The 2011 LKML history in lesson 42 is NOT machine-verified, and the lesson says so.**
   `~/bai38/linux` is a **shallow clone (1 commit)** — no `git log` archaeology is possible
   without a ~5 GB full clone. Lesson 42 puts that admission in a `cal info` rather than
@@ -361,6 +373,50 @@
   machines.** Boots 1–2 differ only in `-m` / `-smp` (`1024`/`4` vs the default), boot 3 has
   no `-append`, boot 4 uses `earlycon`. A later lesson re-proving "one kernel, many boards"
   is repeating lesson 42, not teaching.
+- **Lesson 43 (`Cú pháp DTS`, written 2026-09-05) owns DTS *syntax* and nothing else.**
+  It teaches: node anatomy `label: name@unit-address`, the four property types (string,
+  string list, cell array `<>`, byte array `[]`, boolean = zero-length), `compatible` /
+  `reg` / `status`, `#address-cells` + `#size-cells` (**the parent decides how a child's
+  `reg` is read** — `#size-cells = <0>` for CPUs, I2C, SPI), `ranges` in its three states
+  (with a value = translate, empty = identity, absent = untranslatable), **label vs
+  phandle** (a label is compile-time only; `&label` inside `<>` becomes a phandle cell,
+  outside `<>` becomes a path string), `#clock-cells`/`#gpio-cells` as "how many parameter
+  cells must follow a phandle to me", the `/include/` + override chain, and overlays
+  (`fragment@N`, `target`, `__overlay__`, `__fixups__`, `__symbols__`). A later lesson must
+  not re-teach these from scratch.
+- **Lesson 43 deliberately never boots QEMU.** Every step is `dtc`/`fdtget`/`fdtoverlay` on
+  the host — the reasoning is that syntax is verifiable without a boot, and mixing a boot in
+  would blur the 43/45 boundary. **Bài 45 is where a modified DT is actually booted**, and
+  `/chosen/bootargs` (left unspent by lessons 41 and 42) is still unspent after 43 — it now
+  belongs to Bài 45.
+- **DTB type erasure is lesson 43's key insight and must not be contradicted.** A `.dtb`
+  stores only a property's *name* and *byte length*, never its type. So `dtc -I dtb -O dts`
+  **guesses**: 4 bytes → `<0x…>`, printable-and-NUL-terminated → a string, anything else →
+  `[..]`. A round-tripped `.dts` is therefore not guaranteed to look like the original.
+- **The rpi3 two-line-wrapper trap.** `arch/arm64/boot/dts/broadcom/bcm2837-rpi-3-b.dts` is
+  **2 lines** — an SPDX line plus `#include "arm/broadcom/bcm2837-rpi-3-b.dts"`. The real
+  source (**154** lines) lives under `arch/arm`. Reading the arm64 path and reporting "2
+  lines" is wrong; the `cpp` expansion is **1 212** lines from **19** real files (2 `.dts`,
+  10 `.dtsi`, 7 `dt-bindings` `.h`). The `# N "file"` linemarker count is **21** because
+  `<built-in>` and `<command-line>` are included and **sort last**, not first.
+- **Numbers lesson 43 spends** (measured 2026-09-05, recorded in `docs/environment.md`):
+  `virt.dtb` **1 048 576 B** (QEMU always pads `dumpdtb` to 1 MiB) decompiling to **407**
+  lines at `-smp 2` with `-append` · `board.dts` 800 B → `board.dtb` **867 B** · `types.dts`
+  250 B → **323 B** · include chain `soc-common.dtsi` **626 B**, board-a 137→**730**, board-b
+  240→**756**, board-c 192→**558** · overlay: base-plain **730 B**, `led.dtbo` **504 B**,
+  `fdtoverlay` without `-@` → `FDT_ERR_BADOFFSET` **exit 1**; with `-@` base **941 B**
+  (+211) and merged **1 047 B** exit 0 · rpi3 `dtc` **15 607 B** vs `dtc -@` **21 605 B**
+  (+5 998 = **28 %**), sha256 `c2d92e31…` byte-identical to the kernel's own `.dtb`.
+- **`~/bai43` (~1.2 MB) is disposable** — `~/bai43x` too. Nothing after Chặng 08 depends on
+  either. Note **over half of that 1.2 MB is `virt.dtb`'s 1 MiB of QEMU padding**, not real
+  content. Lesson 43 reads `~/bai38/linux-6.18.45` but writes nothing into it.
+- **`fdtget` takes node/property *pairs*.** An odd argument count produces its whole usage
+  block followed by `Error: must have an even number of arguments` — captured verbatim in
+  lesson 43's `Lỗi thường gặp` table, along with `FDT_ERR_NOTFOUND` (target label absent
+  from `__symbols__`) vs `FDT_ERR_BADOFFSET` (base compiled without `-@`, so no
+  `__symbols__` at all). A later overlay lesson should reuse this distinction, not re-derive it.
+- **`CONFIG_OF_OVERLAY=y` is what makes the kernel Makefile pass `-@` to `dtc`** — verified
+  on `~/bai38/linux-6.18.45`. Chặng 10 or a Yocto lesson touching overlays inherits this.
 
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
