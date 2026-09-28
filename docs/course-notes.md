@@ -507,6 +507,76 @@
 - **`~/bai45` is disposable.** Lesson 45 writes nothing into `~/bai38` or `~/bai32`; it uses
   `~/bai44/venv` only in an optional sub-step.
 
+### Chặng 09 — Root filesystem
+
+- **Lesson 46 (`Rootfs gồm những gì`, written 2026-09-28, machine B) boots from an ext4 disk
+  image, not an initramfs** — `-drive file=rootfs.img,format=raw,if=virtio` + `root=/dev/vda`, no
+  `-initrd`. Images are built with **`mkfs.ext4 -q -d DIR IMG 64M`** (e2fsprogs ≥ 1.43; no `sudo`,
+  no `debugfs`), which supersedes lesson 35's `debugfs -w -R write` trick for whole trees. The
+  lesson ships two helper scripts, `~/bai46/run.sh` (QEMU line, `$*` appended to `-append`) and
+  `~/bai46/mkimg.sh` (`rm -f` then `mkfs.ext4`). A later lesson may reuse the pattern.
+- **Lesson 46 owns, and lessons 47–49 must not re-teach as new:** the four points where the kernel
+  touches rootfs (console from the built-in 512 B cpio → mount root `ro` → devtmpfs → init);
+  the built-in `usr/initramfs_data.cpio` (`dev`, `dev/console` 5,1, `root`) and why a shell has
+  a console on a disk with no `/dev`; "kernel needs vs program needs" (only a runnable init is
+  mandatory, `/dev` is a mount point, `/proc /sys /tmp /etc` are program requirements); FHS as
+  convention; device nodes = type + major/minor (name is a label); devtmpfs, `CONFIG_DEVTMPFS_MOUNT`,
+  why it is **not** auto-mounted in initramfs (`devtmpfs_mount()` sits at the end of
+  `prepare_namespace()`), and `devtmpfs.mount=0`; root mounted `ro` by default
+  (`root_mountflags = MS_RDONLY`) and the `rw` parameter; hand-mounting `proc`/`sysfs`/`tmpfs`;
+  the dynamic loader as the first thing a dynamic binary needs on a rootfs (`INTERP`, `cp -L`
+  from `/usr/aarch64-linux-gnu/lib`); and `try_to_run_init_process()` staying **silent on
+  `-ENOENT`**, so a dynamic init missing its loader looks exactly like no init at all.
+- **Lesson 46 deliberately does NOT**: cross-compile BusyBox or use `busybox --install` /
+  `make install` (Bài 47 — lesson 46 makes 11 symlinks with a `for` loop and says Bài 47 replaces
+  it); write `inittab`/`fstab`/`rcS` (Bài 47 — `/etc/passwd` and `/etc/group` are one line each
+  and their field format is explicitly deferred to Bài 47); compare initramfs vs initrd or
+  SquashFS/UBIFS/overlayfs (Bài 48 — only named as where read-only rootfs goes next); explain
+  why PID 1 must never exit (Bài 49 — `Attempted to kill init!` is shown and pointed there).
+- **Two findings a later lesson could trip over:** (1) `cp` onto an existing file **keeps the
+  destination's mode**, so `chmod -x init` followed by `cp /bin/true init` still gives `-13`,
+  not `-8` — the lesson's step 6 has an explicit `chmod +x` for this reason. (2) The kernel
+  checks permission before format: an x86-64 dynamic binary gives `-8`, never reaching its
+  missing loader.
+- **`~/bai46` (19M) is disposable** — `rootfs/`, `rootfs.img`, `broken/`, `broken.img`,
+  `hello`, `hello.c`, `run.sh`, `mkimg.sh`. Lesson 46 only *copies* `~/bai32/initramfs/bin/busybox`
+  and reads `~/bai38/linux-6.18.45`; it writes into neither. **Caveat since lesson 47:** step 4 of
+  lesson 47 does `cp ~/bai46/run.sh ~/bai46/mkimg.sh .` (with a note saying to retype them from
+  Bài 46 if deleted), so "disposable" now means "disposable once you have copied those two scripts".
+
+- **Lesson 47 (`BusyBox — dựng rootfs bằng tay`, written 2026-09-28, machine B) owns, and lessons
+  48–49 must not re-teach as new:** the multi-call binary and `argv[0]` dispatch
+  (`libbb/appletlib.c:924`, the `//applet:` declaration line, `busybox.links`, `mytool: applet not
+  found`); BusyBox's Kconfig as the kernel's (`defconfig`, `.config`, no `scripts/config` → `sed`);
+  **no `ARCH=` needed** (userspace, toolchain decides; `Makefile:181` derives it from the prefix);
+  `CONFIG_STATIC` and the glibc `--gc-sections` warning; `make install` → `_install` (1 file + 408
+  relative symlinks, `CONFIG_PREFIX`, the setuid banner, `linuxrc`); `cp -a` to keep symlinks;
+  BusyBox init's **default table** (`init/init.c:681–695`: `sysinit` rcS, `askfirst` on console +
+  tty2–4, `ctrlaltdel`, two `shutdown`, `restart`); the **inittab format** (`tty` = `/dev/` name,
+  runlevel ignored, the eight actions, `-` = login shell) and that a present inittab replaces the
+  default table **entirely**; the **fstab** six columns and why `/` and `/dev` are absent; **rcS**
+  (`mount -a`, `remount,rw`, `hostname -F`); `respawn` making `exit` give a new PID; `/etc/passwd`
+  and `/etc/group` field layout (the thing lesson 46 deferred).
+- **Lesson 47 deliberately does NOT**: explain *why* PID 1 must never exit, init's signal set
+  (`HUP`/`QUIT`/`USR1`…), SysV runlevels or systemd (Bài 49 — lesson 47 only points there);
+  compare initramfs vs initrd or cover SquashFS/UBIFS/overlayfs (Bài 48 — `linuxrc` is named as the
+  initrd relic and pointed there); use musl/uClibc-ng (Chặng 11); install `libncurses-dev` (machine B
+  lacks it, so `menuconfig` fails with `curses.h` and the lesson shows that failure on purpose);
+  write mdev/hotplug, getty/login, or a daemon under `respawn` (Bài 49).
+- **Lesson 47's `Bài tiếp theo` promises Bài 48 three things**: pack `~/bai47/rootfs` into a cpio
+  initramfs and boot it without a disk; measure it against the ext4 image (boot time, RAM) and show
+  again why initramfs must mount devtmpfs itself; and initrd vs initramfs (with `linuxrc`) plus
+  SquashFS/UBIFS/overlayfs. **So `~/bai47/rootfs` must be kept** — the lesson's last note says so.
+- **Findings a later lesson could trip over:** (1) with a wrong `tty` field (`ttyS0` on `virt`) the
+  boot goes **completely silent** after `rcS` — `/dev/ttyS0` exists (4,64) but writes give `EIO`,
+  the shell respawns once a second, and init's own complaint goes to that same dead tty
+  (`message()` → stderr). (2) `#!/bin/bash` and a CRLF shebang both give exactly
+  `can't run '/etc/init.d/rcS': No such file or directory`, indistinguishable from a missing file.
+  (3) A misspelt action gives `Bad inittab entry at line N` and that line is dropped, so no shell.
+  (4) BusyBox `ps` with an *empty* `/proc` prints only the header, no error — unlike lesson 46's
+  `can't open '/proc'` when the directory is absent.
+- **`~/bai47` is 72M** (61M is the built BusyBox tree). Keep it for Bài 48.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover

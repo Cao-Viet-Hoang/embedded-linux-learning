@@ -346,10 +346,23 @@ cross-references. Guard against a repeat:
   deliberate **silent boot**: QEMU 4.2.1 pads a raw 1 MiB `dumpdtb` file past the 2 MiB arm64
   FDT limit. Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`.
   **`~/bai45` (1.1M) is disposable.**
-- Next lesson to write, when asked: lesson 46, `Rootfs gồm những gì` — opens `Chặng 09 — Root
-  filesystem`; lesson 45's `Bài tiếp theo` callout promises the minimal directory tree,
-  `devtmpfs`, and `No working init found`.
-- `node tools/check.js` → `14 modules · 70 lessons · 45 written · 27 bài tập` · `OK`.
+- **Lesson 46 `Rootfs gồm những gì` (written 2026-09-28, machine B) opens `Chặng 09 — Root
+  filesystem`.** It boots an ext4 rootfs built with `mkfs.ext4 -d` (no `sudo`) via
+  `root=/dev/vda`, adding one thing per boot: empty → panic; static BusyBox → shell; `/dev` →
+  devtmpfs 141 nodes; `/proc /sys /tmp /etc` → hand mounts, root `ro`; dynamic `hello` → loader +
+  libc; four init deaths (`-2` silent, `-13`, `-8`, exit). Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai46` (19M) is disposable.**
+- **Lesson 47 `BusyBox — dựng rootfs bằng tay` (written 2026-09-28, machine B)** delivered all of
+  lesson 46's promises: BusyBox **1.38.0** from source (sha256-checked), `defconfig` + `sed` to
+  `CONFIG_STATIC=y` (no `libncurses-dev` on machine B, so `menuconfig` fails on purpose), build with
+  `CROSS_COMPILE` only (**no `ARCH`**), `make install` → 1 file + 408 symlinks, then three boots: no
+  `/etc` (BusyBox init's default table) → `fstab` + `rcS` → `inittab` with `respawn`. Continuity
+  facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai47` (72M) must be kept** —
+  Bài 48 packs `~/bai47/rootfs` into an initramfs.
+- Next lesson to write, when asked: lesson 48, `initramfs và các loại rootfs`; lesson 47's
+  `Bài tiếp theo` callout promises packing `~/bai47/rootfs` as a cpio initramfs, measuring it against
+  the ext4 image, initrd vs initramfs (`linuxrc`), and SquashFS/UBIFS/overlayfs.
+- `node tools/check.js` → `14 modules · 70 lessons · 47 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

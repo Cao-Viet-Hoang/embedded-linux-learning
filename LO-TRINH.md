@@ -424,9 +424,11 @@ Cài thêm khi tới chặng tương ứng:
 | 43 | Cú pháp DTS | ✅ Đã có |
 | 44 | Binding và cơ chế khớp driver | ✅ Đã có |
 | 45 | Thực hành Device Tree với QEMU virt | ✅ Đã có |
-| 46 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 46 | Rootfs gồm những gì | ✅ Đã có |
+| 47 | BusyBox — dựng rootfs bằng tay | ✅ Đã có |
+| 48 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 8 đã hoàn tất (45 / 70 bài).** Bài kế tiếp sẽ viết: Bài 46 — *Rootfs gồm những gì* (mở đầu Chặng 9).
+**Chặng 0 đến Chặng 8 đã hoàn tất, Chặng 9 đã có hai bài đầu (47 / 70 bài).** Bài kế tiếp sẽ viết: Bài 48 — *initramfs và các loại rootfs*.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
