@@ -236,6 +236,17 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   require('./js/render.js');
   console.log(Render.slug('Bốn con số kích thước, và cách đọc chúng'));
   ```
+- **Backticks inside a double-quoted `node -e \"…\"` are command substitutions** — confirmed
+  2026-09-28 writing lesson 45: an anchor string ``'| `~/.conan` deleted on'`` inside
+  `node -e "…"` made bash try to *execute* `` `~/.conan` `` (`No such file or directory`), the
+  anchor became something else, `indexOf` returned `-1`, and the insert landed at the **top** of
+  `docs/environment.md` with `ok` printed. Markdown is full of backticks: **never put doc text in
+  `node -e`** — write a `.js` file with `Write` and run it.
+- **The docs do not share one line ending.** `docs/course-notes.md` is **CRLF**; `CLAUDE.md`,
+  `docs/environment.md` and the lessons are LF. A Node `s.includes("…\n")` match against the CRLF
+  file fails even when the text is visibly there. Check with `file <path>` first, or use the
+  `Edit` tool, which copes with either.
+
 ### Cleaning up temporary files
 
 **After verifying a lesson or exercise set, delete all temporary files created during the

@@ -417,6 +417,95 @@
   `__symbols__` at all). A later overlay lesson should reuse this distinction, not re-derive it.
 - **`CONFIG_OF_OVERLAY=y` is what makes the kernel Makefile pass `-@` to `dtc`** — verified
   on `~/bai38/linux-6.18.45`. Chặng 10 or a Yocto lesson touching overlays inherits this.
+- **Lesson 44 (`Binding và cơ chế khớp driver`, written 2026-09-28) was the first lesson
+  verified on machine B (`cah8hc@OSD`).** Every captured output in it — paths
+  (`/home/cah8hc/embedded-course/bai38/...`), timings, the `dtschema` version — is machine B's,
+  not machine A's. Do not "harmonise" it with lessons 38–43 or vice versa.
+- **Lesson 44 owns bindings and matching; a later lesson must not re-teach these.** It teaches:
+  binding YAML (`properties:` / `required:` / `const:`·`enum:` / `additionalProperties:`),
+  installing `dtschema` in a venv, `make dt_binding_check DT_SCHEMA_FILES=…`,
+  `dt-validate -m -s processed-schema.json`, `CHECK_DTBS=y`, `of_match_table`,
+  `MODULE_DEVICE_TABLE` → `modules.alias` → `MODALIAS`, the scoring formula
+  `INT_MAX/2 − (index << 2)` in `__of_device_is_compatible` (best score wins, not first match),
+  the five-step path DTB → `of_platform_populate` → `platform_match` → `really_probe` →
+  `probe()`, `-ENODEV` = "match rejected", `initcall_debug`, and sysfs `bind`/`unbind`.
+  **It writes no driver** — Bài 50 (first module) and Bài 54 (platform driver + DT) own that,
+  and Bài 54 inherits the `-EPROBE_DEFER` / deferred-probe thread lesson 44 only named.
+- **The pipeline steps are called `giai đoạn 1–5`, never `chặng`.** `Chặng NN` means a module
+  in this course; lesson 44 first wrote "chặng 2" for a pipeline step and it was renamed before
+  shipping. Any later lesson referring back to those steps must say `giai đoạn`.
+- **The walk-through device is `virtio,mmio`, not PL011** (PL011 was spent by Bài 38). Facts
+  lesson 44 established and later lessons must not contradict:
+  - QEMU `virt` declares **32** virtio-mmio slots; `probe()` is called on all 32 and returns
+    **19** (`-ENODEV`, sign-flipped by `really_probe`, `dd.c:733`) on **31** empty ones
+    (`DEVICE_ID == 0`). With one `-device virtio-rng-device` the populated slot is
+    **`a003e00`** (the highest); a second device lands in **`a003c00`**.
+  - `/sys/bus/platform/devices` holds **42** entries: **40** from the tree (8 + 32 virtio) plus
+    **`alarmtimer.0.auto`** and **`serial8250`**, which C code creates by name. The tell is the
+    `of_node` symlink. Nodes skipped by population: `memory@…`, `cpus`, `chosen` (no
+    `compatible`), `intc@8000000` and `apb-pclk` (`OF_POPULATED` set by `IRQCHIP_DECLARE` /
+    `CLK_OF_DECLARE`), and the three `arm,primecell` nodes, which go to **bus `amba`**.
+  - **PL011 does not match by `compatible` at probe time.** `uart-pl011` is an `amba_driver`
+    with `id_table` `{ .id = 0x00041011, .mask = 0x000fffff }`; the device's periphid reads
+    `00141011`. `"arm,pl011"` itself is only consumed by `OF_EARLYCON_DECLARE` (`amba-pl011.c:2733`).
+    Bài 38's "the kernel looks for the driver declaring `arm,pl011`" is true for earlycon only;
+    lesson 44 says so explicitly, and a later lesson must not reassert the simpler version.
+  - PSCI node is `"arm,psci-0.2", "arm,psci"`; the driver table lists `"arm,psci"` **first**,
+    yet `psci: Using standard PSCI v0.2 function IDs` is printed — the scoring proof.
+  - `platform@c000000` (`"qemu,platform", "simple-bus"`) gets `probe … returned 19` from
+    `simple-pm-bus`, which refuses when `simple-bus` is not the first compatible.
+  - `dt-validate` returns **0** even when it prints violations; `make … CHECK_DTBS=y` is silent
+    on a second run because nothing is rebuilt. Both are in lesson 44's `Lỗi thường gặp`.
+  - `initcall_debug` probe lines are `KERN_DEBUG` (not on console) and need
+    **`log_buf_len=4M`**: the default 128 KiB buffer (`CONFIG_LOG_BUF_SHIFT=17`) loses the
+    early ones.
+- **Numbers lesson 44 spends** (machine B, 2026-09-28; details in `docs/environment.md`):
+  5 182 yaml / 814 txt bindings · 928 vendor prefixes · `modules.alias` **6 174** `alias of:`
+  lines, `rtc_pcf2127` 4 compatibles → 8 aliases, `virtio_mmio` 0 (built-in) ·
+  `processed-schema.json` **25 017 437 B** · `dt_binding_check` 64–71 s · rpi3 `CHECK_DTBS`
+  3 violations (`simple-bus.yaml`: `firmware`, `power`, `gpu` need `ranges`), 4 `dtc` warnings
+  hidden by `scripts/Makefile.dtbs:96–101`, sha256 `c2d92e31…` unchanged · full arm64
+  `dtbs_check` **1 402 s**, **1 396** dtbs checked, **2 558** violations in **498** dtbs (36 %) ·
+  `~/bai44` **19M**.
+- **`~/bai44` is disposable, but its `venv/` is worth keeping** for Bài 45 if the learner wants
+  to validate the tree they modify there. `processed-schema.json` and the rebuilt `.dtb` files
+  live inside `~/bai38/linux-6.18.45` and are normal build products — do not delete them as
+  "lesson 44 residue".
+- **Lesson 45 (`Thực hành Device Tree với QEMU virt`, written 2026-09-28, machine B) closes
+  Chặng 08.** It owns: the dumpdtb → `dtc -I dtb` → edit → `dtc -I dts` → `-dtb` loop, writing
+  **`/chosen/bootargs`** into the tree (the thread lessons 41–43 left is now **spent**), the
+  bootargs priority (bootloader overwrites the property; `CONFIG_CMDLINE` only fills a blank),
+  re-adding a label (`gpio0:`) to a decompiled node that only has a numeric phandle, the
+  **three-tier check** (`/proc/device-tree` → `/sys/bus/platform/devices` → `driver` link), a
+  `gpio-leds` node driving `/sys/class/leds` + `debugfs` `gpio`, `fdtput`, and QEMU-as-bootloader
+  patching `/memory` (`-m 512`) and `/chosen/bootargs` (`-append`). A later lesson must not
+  re-teach these. It writes **no driver** — `learn,temp-sensor` at `0xb000000` is deliberately
+  left unbound so **Bài 54** can write the platform driver for exactly that node.
+- **The silent `-dtb virt.dtb` boot is lesson 45's centrepiece — do not "fix" it into a clean
+  path.** QEMU 4.2.1 inflates a `-dtb` blob to `(size + 10000) × 2`; the 1 MiB dump becomes
+  2 117 152 B > `MAX_FDT_SIZE` (2 MiB) and the kernel spins with no console. The lesson proves
+  it with GDB (`x/2wx $x0`), the source constant, and a `dtc -S` bisection. **The formula is
+  inferred from measurement, not from QEMU source**, and the lesson says a newer QEMU may pad
+  differently. If the course is re-verified on machine A (QEMU 10.2.1), this step must be
+  re-measured before anyone quotes it.
+- **It refines lesson 42's `/sys/firmware/fdt` = 1 MiB reading.** Without `-dtb` it is always
+  1 048 576 (lesson 42 stays correct for what it ran); with `-dtb` it is QEMU's inflated size
+  (35 806 for the 7 903 B `board.dtb`). Lesson 45 says this explicitly and does not call
+  lesson 42 wrong.
+- **GPIO pin ownership on `virt`:** PL061 has 8 pins; QEMU's `gpio-keys/poweroff` owns **pin 3**.
+  Lesson 45 puts its LED on **pin 0** and uses pin 3 on purpose to show `-EBUSY` (`gpio-keys`
+  loses, `/sys/class/input` goes empty). Lesson 58 (GPIO) inherits this map.
+- **`-EPROBE_DEFER` was only shown, not explained**: an out-of-range pin (`<&gpio0 8 0>`) gives
+  `deferred probe pending: leds-gpio: Failed to get GPIO` — in the Lỗi thường gặp table only,
+  pointing at Bài 54. Bài 54 still owns deferred probe.
+- **Numbers lesson 45 spends** (machine B, 2026-09-28; details in `docs/environment.md`): 383
+  dts lines (381 without `-kernel/-initrd`) · dump 1 048 576 B, recompile 7 481 B, `board.dtb`
+  7 903 B (+422) · `x0 = 0x48200000` · 2 117 152 / 34 962 / 35 806 · threshold between
+  1 015 808 and 1 040 384 · 7 dtc warnings on recompile · 44 platform devices, 56 vs 53 root
+  entries · `dt-validate` 14 vs 16 lines (on stderr) · `MemTotal 476148 kB` at `-m 512` ·
+  `~/bai45` 1.1M.
+- **`~/bai45` is disposable.** Lesson 45 writes nothing into `~/bai38` or `~/bai32`; it uses
+  `~/bai44/venv` only in an optional sub-step.
 
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory

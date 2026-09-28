@@ -422,9 +422,11 @@ Cài thêm khi tới chặng tương ứng:
 | 41 | Kernel cmdline, log và tối ưu kích thước | ✅ Đã có |
 | 42 | Vì sao Device Tree ra đời | ✅ Đã có |
 | 43 | Cú pháp DTS | ✅ Đã có |
-| 44 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 44 | Binding và cơ chế khớp driver | ✅ Đã có |
+| 45 | Thực hành Device Tree với QEMU virt | ✅ Đã có |
+| 46 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 7 đã hoàn tất, Chặng 8 đang viết dở (43 / 70 bài).** Bài kế tiếp sẽ viết: Bài 44 — *Binding và cơ chế khớp driver*.
+**Chặng 0 đến Chặng 8 đã hoàn tất (45 / 70 bài).** Bài kế tiếp sẽ viết: Bài 46 — *Rootfs gồm những gì* (mở đầu Chặng 9).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

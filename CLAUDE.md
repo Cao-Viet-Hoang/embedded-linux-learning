@@ -8,6 +8,9 @@ Those are data, not prose: do not translate them, and do not translate them in t
 either. Every one is glossed in English on the spot.
 
 ---
+# Working environment
+The wsl user cah8hc is company computer, not a personal machine.
+---
 
 ## 0. Where the conventions live
 
@@ -319,8 +322,9 @@ cross-references. Guard against a repeat:
   38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig`,
   40 `Build kernel ARM64 và boot`, 41 `Kernel cmdline, log và tối ưu kích thước`)
   are all written and rendering.
-- **`Chặng 08 — Device Tree` is open**: lessons 42 `Vì sao Device Tree ra đời` and 43
-  `Cú pháp DTS` are written and rendering. Lesson 42 covers the pre-2011 "board file"
+- **`Chặng 08 — Device Tree` is complete**: lessons 42 `Vì sao Device Tree ra đời`, 43
+  `Cú pháp DTS`, 44 `Binding và cơ chế khớp driver` and 45 `Thực hành Device Tree với QEMU
+  virt` are written and rendering. Lesson 42 covers the pre-2011 "board file"
   problem, why hardware description was pulled out of kernel C code, and DT-on-ARM vs
   ACPI-on-x86, and it closes two of the three threads lesson 41 left: `/chosen/stdout-path`
   (a board boots with no `console=`) and how bare `earlycon` finds MMIO `0x9000000`.
@@ -330,9 +334,26 @@ cross-references. Guard against a repeat:
   `dtc`, `fdtget` and `fdtoverlay` run in both directions. **It never boots QEMU**, on
   purpose: that is Bài 45's job. **`/chosen/bootargs` is still unspent** after 43 — it now
   belongs to lesson 45.
-- Next lesson to write, when asked: lesson 44, `Binding và cơ chế khớp driver` — promised by
-  lesson 43's `Bài tiếp theo` callout.
-- `node tools/check.js` → `14 modules · 70 lessons · 43 written · 27 bài tập` · `OK`.
+  Lesson 44 owns **bindings and matching** — binding YAML, `dtschema` (`dt_binding_check`,
+  `dt-validate`, `CHECK_DTBS=y`), `of_match_table`, `MODULE_DEVICE_TABLE`/modalias, the
+  compatible scoring rule, DT → `platform_device` → `probe()`, `initcall_debug`, sysfs
+  `bind`/`unbind` — using `virtio,mmio` as its walk-through device. It boots QEMU but never
+  modifies the DTB (Bài 45) and writes no driver (Bài 50/54). **It is the first lesson verified
+  on machine B**; its captures are `cah8hc@OSD`'s. Continuity facts: `docs/course-notes.md`.
+- **Lesson 45 (written 2026-09-28, machine B) spent `/chosen/bootargs`** and closed Chặng 08:
+  dump → decompile → add a label, `bootargs`, two unbound `learn,temp-sensor` nodes (one
+  `disabled`) and a `gpio-leds` node → boot with `-dtb` → three-tier check. Its centrepiece is a
+  deliberate **silent boot**: QEMU 4.2.1 pads a raw 1 MiB `dumpdtb` file past the 2 MiB arm64
+  FDT limit. Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`.
+  **`~/bai45` (1.1M) is disposable.**
+- Next lesson to write, when asked: lesson 46, `Rootfs gồm những gì` — opens `Chặng 09 — Root
+  filesystem`; lesson 45's `Bài tiếp theo` callout promises the minimal directory tree,
+  `devtmpfs`, and `No working init found`.
+- `node tools/check.js` → `14 modules · 70 lessons · 45 written · 27 bài tập` · `OK`.
+- **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
+  2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
+  `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as
+  residue. `.config` was not touched.
 - **Lesson 40 left a built kernel tree on disk and later modules depend on it.**
   `~/bai38/linux-6.18.45` is now **4.6 GB**, configured `CONFIG_LOCALVERSION="-embedded"`,
   holding `Image` (41 MB), `vmlinux` (157 MB), `System.map`, 1 423 `.ko` and 1 577 `.dtb`;
@@ -380,6 +401,86 @@ cross-references. Guard against a repeat:
   console — which is the pinned-`v` design working as intended. `progress/shinarus` is still
   **v1 on disk**; `ensureShape()` rewrites it on first connect, no migration script needed.
   Re-test procedure: §14.6b.
+- **Scope tag `[cah8hc@OSD only]`.** Every bullet below that carries this tag describes a fault,
+  fix or workaround measured **only** as user **`cah8hc`** in WSL distro **`OSD`** (machine B,
+  a Bosch corporate laptop). It says nothing about any other user or distro. Before acting on
+  one, run `whoami` and `echo $WSL_DISTRO_NAME` inside WSL; if they are not `cah8hc` / `OSD`,
+  **ignore the bullet** and probe that machine from scratch — its DNS, proxy and apt sources
+  may be perfectly normal. Machine A (`shinarus` / `Ubuntu`) has none of these problems.
+- **2026-09-28 — the project moved to a second machine, and Chặng 08 is blocked on it.**
+  Lessons 1–43 were written on **machine A** (Ubuntu 26.04, user `shinarus`, GCC 15.2, uutils,
+  6 CPUs). The machine in front of this session is **machine B**: Ubuntu **20.04.6** in a distro
+  named **`OSD`**, user **`cah8hc`**, GCC **9.4**, GNU coreutils, 16 CPUs, 929 G free (after `~/.conan` was deleted 2026-09-28). **None of
+  the build trees exist there** — `~/bai38`, `~/bai40`, `~/bai41`, `~/bai42`, `~/bai43`,
+  `~/bai43x` and `~/x-tools` are all absent, so lesson 44 cannot be verified until at least the
+  lesson-38/40 kernel tree is rebuilt. **Update 2026-09-28: rebuilt and boot-tested** — see the
+  `[cah8hc@OSD only]` bullet "Course trees rebuilt" below. The full A-vs-B table, and what it costs hard rule 2, is
+  at the top of `docs/environment.md` (§10). **Check which machine you are on before running
+  anything**: `wsl -l -v` says `Ubuntu` on A and `OSD` on B.
+- **[`cah8hc@OSD` only]** **WSL had no network; it was fixed on 2026-09-28, inside WSL only.** The fault was
+  DNS alone — `/etc/resolv.conf` pointed at the `wsl-vpnkit` gateway `192.168.67.1` while vpnkit
+  was not running, so lookups timed out even though TCP worked (WSL is in mirrored/VirtioProxy
+  mode and `eth0` carries the Windows IP). Fixed by writing the corporate resolvers
+  `10.53.53.53` / `10.188.53.53` into `/etc/resolv.conf` (backup `/etc/resolv.conf.bak-precmd`)
+  and pointing apt and the shell at **`rb-proxy-apac.bosch.com:8080`**
+  (`/etc/apt/apt.conf.d/99proxy`, `/etc/profile.d/proxy.sh`). **The Windows side was not
+  modified.** `apt-get update` now fetches **27.3 MB in 7 s** and every package needed for
+  Chặng 07–10 is visible.
+- **[`cah8hc@OSD` only]** **One proxy since 2026-09-28: Windows `px` on `localhost:3128`.**
+  Windows runs `px` (`C:Program Filespx`) on `0.0.0.0:3128` and the Machine env points
+  every Windows tool at it. WSL is in **mirrored** mode, so WSL's own `cntlm` — also on 3128 —
+  used to capture Windows traffic whenever the distro was up: **Claude Code disconnected while
+  WSL ran and worked when it was shut down**. Fix, WSL-side only: `cntlm` stopped and disabled
+  (sysv `K01cntlm`), and the two `sudo service cntlm start` lines in `~/.profile` turned into
+  no-ops (backup `~/.profile.bak-20260928`). `~/.profile` still exports `localhost:3128`, which
+  now reaches `px`. Measured from inside WSL, 3 rounds: kernel.org (`cdn`, `git`), github,
+  `archive.ubuntu.com` over HTTP **and** HTTPS — **15/15 complete**; 20 MiB of the kernel
+  tarball in **4.1 s**. apt still uses the direct proxy (`99proxy`) and works. **No per-host
+  proxy override is needed any more.** Undo: `systemctl enable --now cntlm` + restore the backup
+  — but that brings the Claude Code disconnects back.
+- **[`cah8hc@OSD` only]** **(Historical — `cntlm` is disabled since 2026-09-28.)** **`cntlm` truncated some downloads — still verify tarballs by checksum, never by size.** A 264 892 B
+  `InRelease` came back as 130 244 / 239 954 / 254 076 B on three tries and an 86 272 B `.deb`
+  as 5 840 B once, yet the same `cntlm` fetched kernel.org's 251 367 B `sha256sums.asc`
+  complete. **The connection is never closed**, so the client blocks to its own timeout while
+  reporting `code=200` — a partial body looks exactly like success. `apt-get update` through it
+  dies after **8 minutes** and `Acquire::Queue-Mode=access` does not help. **Consequence for
+  Chặng 08–10: always `sha256sum` a downloaded kernel/U-Boot tarball**, or a silent truncation
+  will surface as an inexplicable build failure. `cntlm` also carries this Claude Code session
+  (`CONNECT api.anthropic.com:443` in its log), so restarting it is disruptive.
+- **[`cah8hc@OSD` only]** **The distro's apt mirror `mirror-osd.apac.bosch.com` is dead** — it does not resolve from
+  Windows either, so no DNS change fixes it. Packages have to come from public
+  `archive.ubuntu.com`. Since 2026-09-28 they do, via a **separate** file
+  `/etc/apt/sources.list.d/ubuntu-public.list` (focal, focal-updates, focal-security — all
+  **http**, because HTTPS to that host gets 407 from the direct proxy). `/etc/apt/sources.list`
+  was left untouched, so every `apt-get update` still prints five `504 Gateway Timeout`
+  warnings for the internal mirror and exits 0 — that is expected, not a fault. First real run:
+  **36.6 MB in 7 s**, every package Chặng 07–10 needs has a candidate. Undo = delete the file. Details and
+  measurements: `docs/environment.md` (§10), section "Machine B networking".
+- **[`cah8hc@OSD` only]** **The corporate proxy drops out intermittently.** The first real `apt-get install`
+  failed on nearly every `.deb` with `113: No route to host` / `Unable to connect` / `504`, all
+  against `10.187.197.9:8080`; minutes later, unchanged, the same 80.5 MB downloaded in 26 s.
+  Not a config fault — retry. For big installs, pre-fetch as root with
+  `apt-get install --download-only -o Acquire::Retries=5 …` first.
+- **[`cah8hc@OSD` only]** **Embedded toolchain installed 2026-09-28** (`sudo` here asks for a password, so the
+  user ran it): `qemu-system-arm` 1:4.2-3ubuntu6.30 (QEMU **4.2.1**), `gcc-aarch64-linux-gnu`
+  (GCC **9.4.0**), `bison` 3.5.1, `flex` 2.6.4, `bc` 1.07.1, `cpio` 2.13, `libssl-dev` 1.1.1f,
+  `libelf-dev` 0.176, `gdb-multiarch` 9.2 — 0 broken packages. These versions are far older
+  than machine A's; output captured here will not match published lessons verbatim.
+  **No distro upgrade is needed to build kernel 6.18.45 here** — every minimum in its
+  `changes.rst` is met except **Python 3.9** (have 3.8.10; required for arm64 defconfig) and
+  **pahole** (only for BTF). Fix: install `python3.9` + `dwarves` side by side and build with
+  `make PYTHON3=python3.9 …`; never repoint `/usr/bin/python3`. Details: `docs/environment.md`.
+- **[`cah8hc@OSD` only]** **Course trees rebuilt 2026-09-28 under `~/embedded-course/`**, with
+  relative symlinks `~/bai32`, `~/bai38`, `~/bai40` so lesson commands work verbatim.
+  `~/bai38/linux-6.18.45` is **built** (sha256 + GPG verified; `defconfig` +
+  `LOCALVERSION="-embedded"`; `Image`, `vmlinux`, 1 577 `.dtb`, 1 423 `.ko`, `.version` 1),
+  `~/bai40/modroot` + `modroot-stripped` installed, `~/bai32/initramfs` rebuilt, and
+  **QEMU 4.2.1 boots it to a BusyBox shell**. Always build with
+  `make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- PYTHON3=python3.9 …`. **Every size, md5,
+  timing and GCC string differs from lessons 38–43** (GCC 9.4 vs 15.2): a lesson verified here
+  must quote this machine's output and must not "correct" earlier lessons to match. `~/bai41`,
+  `~/bai42`, `~/bai43`, `~/bai43x`, `~/x-tools` were **not** rebuilt. Numbers:
+  `docs/environment.md` (§10).
 - Per-module content decisions that a new lesson must not contradict — who owns which topic,
   which numbers are already spent, which programs must not be reintroduced — are in
   `docs/course-notes.md` (§12.1). Read it before writing a lesson; the `trục` already spent
