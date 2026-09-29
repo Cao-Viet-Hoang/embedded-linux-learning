@@ -577,6 +577,173 @@
   `can't open '/proc'` when the directory is absent.
 - **`~/bai47` is 72M** (61M is the built BusyBox tree). Keep it for Bài 48.
 
+- **Lesson 48 (`initramfs và các loại rootfs`, written 2026-09-29, machine B) delivered all three of
+  lesson 47's promises** and only *copies* from `~/bai47` (`rootfs/`, `rootfs.img`, `bin/busybox`);
+  it writes nothing there. Six steps: pack `~/bai47/rootfs` → it panics (no `/init`) → with
+  `rdinit=/sbin/init` it loops `can't open /dev/ttyAMA0` every second (no devtmpfs) → fix = a
+  `devtmpfs` line in `fstab` + `ln -s sbin/init init`; measure raw/gzip/xz vs ext4; `rootfs.img` via
+  `-initrd` → `invalid magic`; SquashFS root; stage-1 initramfs + overlayfs + `switch_root`; UBIFS on
+  the `virt` NOR flash (`mtd0`) surviving `reboot`.
+- **Lesson 48 owns, and later lessons must not re-teach as new:** rootfs-the-tmpfs as the thing
+  initramfs unpacks into and the `/init` fork (`init/main.c:1559–1564`), the two differences between a
+  disk rootfs and an initramfs rootfs (`/init`, devtmpfs); `pack.sh` (cpio + `gzip -9` +
+  `xz --check=crc32 --lzma2=dict=1MiB`); magic bytes (`070701`, `1f 8b`, `fd 37 7a 58 5a`); the
+  initrd/initramfs table, `linuxrc`, `CONFIG_BLK_DEV_RAM` off, `do_mounts_initrd.c:92` "deprecated";
+  block device vs MTD, FTL, erase blocks, wear levelling; the ext4/SquashFS/EROFS/UBIFS/JFFS2/tmpfs/
+  overlayfs table; SquashFS `-comp`/`-all-root`/`-noappend` and the compressor-vs-`CONFIG_SQUASHFS_*`
+  contract; overlayfs lower/upper/work, **copy-up**, **whiteout** (char dev `0,0`); `switch_root`
+  (must be PID 1 → `exec`, deletes rootfs, `mount --move /dev`); UBI PEB/LEB, reserved PEBs, `ubimkvol`,
+  UBIFS self-format + journal; the written-by-hand `erase_mtd.c` (`MEMGETINFO`/`MEMERASE`).
+- **Lesson 48 deliberately does NOT**: explain why PID 1 must not die, signals to init, SysV or systemd
+  (Bài 49 — its `Bài tiếp theo` promises PID 1 receiving signals / reaping orphans, BusyBox init vs
+  SysV vs systemd, and `temp_daemon` kept alive by `respawn` **and** a systemd unit); teach modules,
+  `modprobe`, `modules.dep` (Chặng 10 — lesson 48 uses bare `insmod` only and says so; note Bài 50's
+  roadmap line lists `insmod lsmod rmmod modinfo`, **not** `modprobe`); build a kernel (it lives with
+  `defconfig`: SquashFS zlib only, overlay/UBI/UBIFS as `=m`); `mkfs.ubifs`/`ubinize` (named only,
+  Chặng 11); OTA/A-B (Bài 69, pointed to once).
+- **Findings a later lesson could trip over:** (1) `fs/ubifs/compress.c:309`'s `pr_err` has **no
+  `\n`**, so `UBIFS error … cannot initialize compressor zstd` stays in the printk continuation buffer
+  and `dmesg | tail` shows nothing new until another message flushes it (`echo mark > /dev/kmsg`).
+  (2) BusyBox `insmod` maps **every** `ENOENT` to `unknown symbol in module or invalid parameter`
+  (`modutils/modutils.c:270–271`) and `EINVAL` to `invalid parameter`. (3) `ubifs.ko` depends on `ubi`
+  per `modinfo`, but actually also needs `zstd` **and** `deflate` crypto modules (`request_module`
+  cannot help without a working `modprobe`). (4) QEMU's NOR flash starts all `0x00`, which UBI rejects
+  (`layout volume was not found`, -22); it must be erased to `0xFF` first. (5) BusyBox `df` skips any
+  mount named `rootfs` (`FEATURE_SKIP_ROOTFS`), so `df /` fails inside an initramfs. (6) `-pflash`
+  with a user image at `index=0` hung silently (0 lines; cause not investigated) — lesson 48
+  uses QEMU's built-in RAM-backed flash instead, which survives `reboot` but not a new QEMU process.
+- **`~/bai48` (18M) is disposable** — `initramfs/`, `sqroot/`, `stage1/`, three `rootfs.cpio*`,
+  `rootfs.sqfs`, `stage1.cpio.gz`, `erase_mtd{,.c}`, `pack.sh`, `run-initramfs.sh`, `run-sqfs.sh`,
+  `run-overlay.sh`. **Keep `~/bai47`** until Bài 49 is written: Bài 49 is likely to reuse its rootfs.
+
+- **Lesson 49 (`init: từ /init đến systemd`, written 2026-09-29, machine B) closes Chặng 09.** It copies
+  `~/bai47/rootfs`, `run.sh`, `mkimg.sh` into `~/bai49` and writes nothing into `~/bai47`. Six steps:
+  (1) `temp_daemon.c` from Bài 24, unchanged, built `-static` for ARM64 and stripped into
+  `rootfs/usr/bin`; (2) three kernel rules watched on BusyBox init; (3) `noreap_init.c` booted with
+  `init=`; (4) `::respawn:/usr/bin/temp_daemon`; (5) SysV `rcS`/`rcK` + `S10network` + `S50temp_daemon`
+  with `start-stop-daemon`; (6) a **`systemctl --user`** unit on the WSL host — deliberately not systemd
+  inside the rootfs (needs dynamic glibc + dozens of libs; that is Chặng 11's Buildroot/Yocto job, and
+  the lesson says so).
+- **Lesson 49 owns, and later lessons must not re-teach as new:** the three PID-1 kernel rules with
+  source lines (`kernel/exit.c:935–937` panic; `kernel/fork.c:2385–2387` sets `SIGNAL_UNKILLABLE`;
+  `kernel/signal.c:84` `sig_task_ignored()` lines 90–96, and `sig_ignored()` line 113 exempting
+  *blocked* signals; `kernel/exit.c:642` `find_new_reaper()`); the two duties of init (reap, accept
+  shutdown signals); BusyBox init's signal table (`USR2` poweroff, `TERM` reboot, `USR1` halt, `INT`
+  ctrlaltdel, `HUP` reread inittab, `QUIT` restart) and that it **blocks + `sigtimedwait()`s** rather
+  than installing handlers; `poweroff` = `kill(1, SIGUSR2)` (`init/halt.c:172`); the 1-second
+  SIGTERM→SIGKILL gap (`init/init.c:768–774`); `respawn` resurrecting even a clean `exit 0`; `SIGHUP`
+  not killing a removed entry (`CONFIG_FEATURE_KILL_REMOVED` off, BusyBox `.config:519`); SysV
+  `rcN.d`/`S??`/`K??`, runlevels, `start-stop-daemon -S -b -m -p -x` / `-K`, pidfile staleness; systemd
+  unit/target/`WantedBy`/`enable`-is-a-symlink/cgroup/journal, `Restart=always` vs `on-failure`,
+  `NRestarts`, `StartLimitBurst=5`/`10s`, `daemon-reload`, `reset-failed`, `--user` instance; and the
+  init-choice table.
+- **Relationship to Bài 20/21 — do not contradict:** orphans, zombies, subreaper and the `pid_max`
+  "three and a half days" arithmetic are **Bài 20's**; the `while (waitpid(-1, …, WNOHANG) > 0)` rule
+  and `signalfd` are **Bài 21's**; `bad_reaper` is **`bt-21`'s**. Lesson 49 points back to each and
+  only applies them to PID 1.
+- **Findings a later lesson could trip over:** (1) `/proc/1/status` shows `SigBlk: 0` for BusyBox init
+  even though it blocks 8 signals — it is asleep in `sigtimedwait()`, which moves the mask to
+  `real_blocked` (`kernel/signal.c:3785–3786`) and `/proc` prints only `blocked`. `SigCgt` is
+  `0x80000` = SIGTSTP only (`init.c:1173`). (2) The rootfs has **no loopback up** until
+  `ifconfig lo 127.0.0.1 up`: `bind(0.0.0.0)` still succeeds but `nc 127.0.0.1` returns 1. Any later
+  lesson running a network daemon in this rootfs needs that line. (3) `start-stop-daemon -b` sends the
+  daemon's stdout to `/dev/null` — SysV loses the log lines `respawn` and systemd both show. (4)
+  `systemctl … show -p MainPID --value` reads **0** once a unit is `failed`, and `kill -9 0` kills the
+  caller's process group — the lesson guards with `[ "$P" -gt 0 ]` and says why. (5) BusyBox `nc` needs
+  no `-q1`; Ubuntu's OpenBSD `nc` does. (6) Two managers for one daemon (respawn + a manual/SysV start)
+  gives `bind: Address already in use` once a second, forever.
+- **The M7 milestone (`LO-TRINH.md` §5) is met by step 4**: BusyBox rootfs, `rcS: done at 0.76 s`,
+  `temp_daemon` listening and respawning. Chặng 10 may cite that figure as "where Chặng 09 left you".
+- **`~/bai49` (11M) is disposable** — `rootfs/`, `rootfs.img`, `run.sh`, `mkimg.sh`, `temp_daemon{,.c}`,
+  `temp_daemon_x86`, `noreap_init.c`. The lesson's cleanup removes its unit and the learner may
+  `rmdir ~/.config/systemd{/user,}`. **`~/bai47` is no longer needed by anything after Chặng 09.**
+
+- **Lesson 50 (`Module đầu tiên`, written 2026-09-29, machine B) opens Chặng 10.** Working dir
+  `~/bai50`: `hello/` (`hello.c` 28 lines, `fail_init.c`, `prop.c` generated by `sed`, an 11-line
+  `Makefile` with `obj-m := hello.o fail_init.o prop.o` after step 3), `initramfs/` = a copy of
+  `~/bai32/initramfs` plus `hello.ko`, `fail_init.ko`, `prop.ko`, `bad-vermagic.ko` at `/`, and
+  `initramfs.cpio.gz`. Boot line = lesson 32's with `-initrd initramfs.cpio.gz`. **It boots from
+  initramfs, not an ext4 rootfs**, and writes nothing into `~/bai38` (build is out-of-tree, `M=`).
+  The lesson tells the learner to **keep `~/bai50`** (≈4.7 MB) as the template for Chặng 10.
+- **Lesson 50 owns, and later lessons must not re-teach as new:** module vs program table; `module_init`
+  as `alias` → `init_module` (read in `include/linux/module.h:130–144`, `__inittest` type check,
+  the `=y` branch at line 89 → `__initcall`); `__init`/`__exit` sections (`init.h:45`, `:79`) and
+  `initsize` = 0 / `hello_init` gone from `/proc/kallsyms`; `pr_fmt` + `KBUILD_MODNAME` (from the
+  filename — `prop.c` prints `prop:`); `MODULE_LICENSE`/`AUTHOR`/`DESCRIPTION`, `.modinfo`; out-of-tree
+  build `make -C KDIR M=$(CURDIR) ARCH CROSS_COMPILE modules`, `obj-m`, the Makefile read twice, `?=`,
+  the 95 Kbuild flags (`-nostdinc -D__KERNEL__ -DMODULE -DKBUILD_MODNAME -mgeneral-regs-only
+  -include`); `/lib/modules/$(uname -r)/build` is WSL's, not QEMU's; `modpost` + `*.mod.c` +
+  `Module.symvers` (20 745 exports, `_printk` `EXPORT_SYMBOL` from `vmlinux`); `file`/`modinfo`/`size`/
+  `nm`/`strip --strip-debug` on a `.ko`; the load lifecycle figure (ELF → vermagic → license → EEXIST
+  → alloc+reloc → init; `load_module()` :3358 → `do_init_module()` :3516); `insmod`/`lsmod`/
+  `/proc/modules` fields/`/sys/module/NAME`/`rmmod`; the four failures (EEXIST rc 17, init `-ENODEV`
+  rc 19, vermagic `ENOEXEC` rc 8, `missing MODULE_LICENSE()` at build); taint bitmask (0 → 4096 `O`
+  → 4097 `P`, permanent until reboot, `Documentation/admin-guide/tainted-kernels.rst`), lockdep
+  disabled by `P`, 12 425 `EXPORT_SYMBOL_GPL` vs 8 320 `EXPORT_SYMBOL`.
+- **Lesson 50 deliberately does NOT teach** (scope line in `LO-TRINH.md` lists only `insmod lsmod rmmod
+  modinfo dmesg`): `modprobe`/`depmod`/`modules.dep` (named once as "the sixth tool"), `module_param`,
+  `EXPORT_SYMBOL` in *your own* module, printk levels/`console_loglevel`/`pr_debug` (Bài 51 — the
+  lesson says the line shows on console because 6 < 7 and points to Bài 41), `kmalloc`, `copy_*_user`,
+  float/stack (Bài 51), oops (Bài 51's `Bài tiếp theo` promise), char devices (Bài 52), `devm_*`
+  (Bài 54, named once). The `[permanent]` / no-`module_exit` case is in `Lỗi thường gặp` only, not
+  a practice step.
+- **Findings a later lesson could trip over:** (1) BusyBox `insmod` tries `finit_module()` then falls
+  back to `init_module()` on **any** failure (`modutils/modutils.c:216` / `:242`), so a failing module's
+  `init` runs **twice** and every rejection line (vermagic) appears twice in `dmesg`. A lesson showing
+  `insmod` of a bad module in this initramfs must expect doubled lines. (2) BusyBox `lsmod` only knows
+  the `P`/`F`/`S` taint letters (`modutils/lsmod.c`), so it prints `Tainted: G` for an `O`-only taint;
+  `/proc/modules` shows `(O)`. (3) BusyBox `insmod` exit code **is** the errno (17, 19, 8); `rmmod` exits
+  1. (4) `ls /sys/module/hello/sections` printed **nothing** (as root, in QEMU), yet
+  `cat /sys/module/hello/sections/.exit.text` returned `0xffff80007afd0000` and `.text` gave `No such
+  file`. Cause **not investigated** (the entries are `bin_attrs` since 6.x — `kernel/module/sysfs.c:65`);
+  do not build a step on listing that directory without re-checking.
+  (5) `modinfo` on the host (kmod 27) reads an ARM64 `.ko` fine. (6) the `~/bai32/initramfs` BusyBox
+  (Debian `busybox-static` 1.38.0) has `CONFIG_MODPROBE_SMALL`-style applets: `depmod` in it writes
+  `modules.dep`, `modules.alias`, `modules.symbols`, and its `modinfo NAME` needs
+  `/lib/modules/$(uname -r)/modules.dep` (`modinfo /hello.ko` → `can't open …/modules.dep`) — verified,
+  not used in the lesson.
+
+- **Lesson 51 (`Luật chơi trong kernel space`, written 2026-09-29, machine B) is a TEMPORARY DRAFT.**
+  The session was interrupted twice for reasons never identified; the user asked to ship it as a draft
+  and redo it later. Working dir `~/bai51/rules` (Makefile copied from `~/bai50/hello`, single modules
+  built with `make obj-m=NAME.o`), initramfs = `~/bai32/initramfs` + 7 `.ko`, boot line = lesson 50's.
+- **Lesson 51 owns, and later lessons must not re-teach as new:** the six-rule table; no libc
+  (`-nostdinc` → `stdio.h` missing; hand-declared `printf` → `modpost: "puts" [nolibc2.ko] undefined!` —
+  GCC rewrites `printf("…\n")` to `puts`); looking functions up with `grep -w … Module.symvers`, and that
+  `kmalloc`/`strscpy`/`copy_from_user` are inline/macros absent from it (`nm -u` shows
+  `__kmalloc_noprof`, `__kmalloc_large_noprof`, `__arch_copy_from_user`); no float (`v0`–`v31`, 512 B,
+  not saved on kernel entry; `-mgeneral-regs-only` error printed **4×** at `printk.h:512`; constant-only
+  float folds to `mov w1, #0x4a` = 74, zero FP instructions); `kernel_neon_begin/end` named once;
+  fixed-point / hwmon milli-degrees; `THREAD_SIZE` = `1 << 14` = 16 KiB (`memory.h:115–131`, KASAN
+  doubles it), 512× smaller than `ulimit -s` 8192; `CONFIG_FRAME_WARN=2048`, 4 KiB array → frame
+  **4 112** B, `sub sp` **4 144** B (stack protector), 25 %; `VMAP_STACK=y` → overflow = panic (prose
+  only); `pr_*` level table from the writer's side; `dmesg -r` `<0>`–`<6>`; bare `printk` → `<4>`
+  (`MESSAGE_LOGLEVEL_DEFAULT=4`); taint line is `<4>` and printed once per boot; `pr_debug` absent from
+  the `.ko` without `-DDEBUG` (`strings … | grep -c` = 0; `DYNAMIC_DEBUG` off), `CFLAGS_x.o := -DDEBUG`;
+  `%p` → `(____ptrval____)`, `%px`, `%pS` → `do_one_initcall+0x70/0x1b8`; `kmalloc` + `GFP_KERNEL` vs
+  `GFP_ATOMIC` (named for Bài 55); `ksize` 1→8, 13→16, 100→128, 1000→1024, 3000→4096, 5000→8192;
+  `kmalloc(8 MiB)` NULL (`ARCH_FORCE_MAX_ORDER=10` → 4 MiB), `vmalloc(8 MiB)` ok; leak: `SUnreclaim`
+  5 696 → 22 084 kB, unchanged after `rmmod` (38 476 after a second load in a separate run);
+  `copy_from_user` returns bytes NOT copied — argv of `insmod` 0, `NULL` 8/8, kernel address 8/8, no
+  crash; `__user` + `sparse` named; PAN described in prose.
+- **Lesson 51 does NOT yet deliver** (still owed to lesson 50's `Bài tiếp theo`): a hands-on
+  bad-pointer **oops** step, and any hands-on `copy_to_user`. The theory part has a prose `cal` on what
+  an oops contains (`Unable to handle kernel NULL pointer dereference`, `pc : fn+off [mod]`,
+  `Call trace`, `Tainted:`, taint `D` bit 7, `panic_on_oops`) and says the hands-on part will be added.
+  Whoever redoes lesson 51 should re-verify from scratch on the machine in use, and ask the user in
+  Vietnamese how they want the crash demonstration handled before running it.
+- **Findings a later lesson could trip over:** (1) `ls` output captured through a pipe is one entry per
+  line; the lesson says so in a `notes`. (2) Scratch modules named `oops.c` fail to build —
+  `oops_exit` collides with `extern void oops_exit(void)` in `include/linux/panic.h:19`
+  (`static declaration … follows non-static declaration`). Do not name a module `oops`. (3)
+  `faddr2line` rejects `func+0x28/0x1000` for a module (`size mismatch (0x1000 != 0x40)` — the `/0x1000`
+  is the module's page-rounded size); passing `func+0x28` alone works. (4) `KASLR` on this kernel is
+  `disabled due to lack of seed` under `-cpu cortex-a57` but `enabled` under `-cpu max` (which also has
+  a RNG), so addresses differ between those two CPU models. (5) `-cpu cortex-a57` has **no PAN**
+  (`pstate … -PAN`), so an unguarded user-pointer read does not fault there — do not use a direct read to
+  "prove" PAN on this setup. (6) A `python - <<'PY'` heredoc edit of a C file silently failed again
+  (backslash escapes) — same rule as `docs/running-commands.md`.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover

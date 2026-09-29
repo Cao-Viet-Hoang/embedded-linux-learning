@@ -12,11 +12,12 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
 
 - [`LO-TRINH.md`](LO-TRINH.md) — lộ trình đầy đủ **70 bài / 14 chặng**, mốc năng lực M1–M11,
   thời lượng dự kiến 8–11 tháng.
-- Bài đã viết: **47 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
+- Bài đã viết: **51 / 70** — trọn vẹn **Chặng 0 · Nhập môn**, **Chặng 1 · Linux căn bản**,
   **Chặng 2 · C và công cụ build**, **Chặng 3 · Lập trình hệ thống Linux**,
   **Chặng 4 · Biên dịch chéo**, **Chặng 5 · QEMU và luồng khởi động**,
-  **Chặng 6 · Bootloader U-Boot**, **Chặng 7 · Linux Kernel** và
-  **Chặng 8 · Device Tree**, và hai bài đầu của **Chặng 9 · Root filesystem**:
+  **Chặng 6 · Bootloader U-Boot**, **Chặng 7 · Linux Kernel**,
+  **Chặng 8 · Device Tree** và **Chặng 9 · Root filesystem**, cùng hai bài đầu tiên của
+  **Chặng 10 · Kernel module và Driver** (Bài 51 là bản tạm, sẽ hoàn thiện sau):
   1. Embedded Linux là gì và tại sao nó ở khắp mọi nơi
   2. Toàn cảnh luồng khởi động
   3. Môi trường học: WSL2 và QEMU
@@ -64,6 +65,10 @@ Nhấp đúp vào `index.html`. Không cần cài đặt, không cần máy ch�
   45. Thực hành Device Tree với QEMU virt
   46. Rootfs gồm những gì
   47. BusyBox — dựng rootfs bằng tay
+  48. initramfs và các loại rootfs
+  49. init: từ /init đến systemd
+  50. Module đầu tiên
+  51. Luật chơi trong kernel space *(bản tạm)*
 - Bộ bài tập đã viết: **27 / 70** — `bt-01` … `bt-27` đi kèm Bài 1 → 27. Xem ở mục **Bài tập** trên sidebar.
 - [`CLAUDE.md`](CLAUDE.md) — quy ước làm việc và chuẩn thiết kế bài học (tiếng Anh, dành cho phiên làm việc sau). Mục §0 chỉ ra phần còn lại nằm ở đâu: [`docs/`](docs/) và [`.claude/skills/`](.claude/skills/).
 

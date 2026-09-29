@@ -426,9 +426,13 @@ Cài thêm khi tới chặng tương ứng:
 | 45 | Thực hành Device Tree với QEMU virt | ✅ Đã có |
 | 46 | Rootfs gồm những gì | ✅ Đã có |
 | 47 | BusyBox — dựng rootfs bằng tay | ✅ Đã có |
-| 48 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 48 | initramfs và các loại rootfs | ✅ Đã có |
+| 49 | init: từ `/init` đến systemd | ✅ Đã có |
+| 50 | Module đầu tiên | ✅ Đã có |
+| 51 | Luật chơi trong kernel space | 🟡 Bản tạm — phần thực hành về con trỏ sai (oops) chưa có, sẽ làm lại |
+| 52 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 8 đã hoàn tất, Chặng 9 đã có hai bài đầu (47 / 70 bài).** Bài kế tiếp sẽ viết: Bài 48 — *initramfs và các loại rootfs*.
+**Chặng 0 đến Chặng 9 đã hoàn tất, Chặng 10 đã mở (51 / 70 bài).** Bài kế tiếp sẽ viết: Bài 52 — *Character device driver*. Bài 51 cần được hoàn thiện lại (xem §10).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -484,3 +488,5 @@ không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và b�
 - **Thêm 2 bài vào chặng Driver:** đọc datasheet + GPIO chardev/libgpiod (bài 57), và driver bus I2C/SPI (bài 58). Kèm cách thực hành khi QEMU `virt` không có các bus này.
 - **Sửa lỗi đếm.** Bản 1 ghi "52 bài" trong khi đánh số chạy tới 60 — con số sót lại từ bản nháp. Đồng thời đồng bộ lại đánh số giữa file này và `js/registry.js`.
 - **Không thêm bài Git** theo yêu cầu — giả định người học đã biết. Các thao tác patch (`git am`, `patch -p1`) và `git bisect` vẫn xuất hiện tại chỗ cần dùng: bài 34, 61, 64.
+
+**2026-09-29 — Bài 51 là bản tạm.** Phiên viết Bài 51 bị gián đoạn hai lần vì lý do không rõ. Bài được đăng ở dạng tạm: phần lý thuyết đầy đủ, sáu bước thực hành đều đã kiểm chứng trên máy B, nhưng phần "hậu quả của một con trỏ sai" chỉ có giải thích bằng lời (chưa có bước thực hành gây oops), và `copy_to_user` chỉ có lý thuyết. Phạm vi của dòng Bài 51 trong §4 không đổi; bài sẽ được làm lại cho đủ.

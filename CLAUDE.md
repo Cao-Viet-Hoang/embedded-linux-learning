@@ -322,6 +322,7 @@ cross-references. Guard against a repeat:
   38 `Source kernel và cách định hướng`, 39 `Kconfig và menuconfig`,
   40 `Build kernel ARM64 và boot`, 41 `Kernel cmdline, log và tối ưu kích thước`)
   are all written and rendering.
+- **`Chặng 09 — Root filesystem` is complete** (lessons 46–49, detailed below).
 - **`Chặng 08 — Device Tree` is complete**: lessons 42 `Vì sao Device Tree ra đời`, 43
   `Cú pháp DTS`, 44 `Binding và cơ chế khớp driver` and 45 `Thực hành Device Tree với QEMU
   virt` are written and rendering. Lesson 42 covers the pre-2011 "board file"
@@ -359,10 +360,51 @@ cross-references. Guard against a repeat:
   `/etc` (BusyBox init's default table) → `fstab` + `rcS` → `inittab` with `respawn`. Continuity
   facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai47` (72M) must be kept** —
   Bài 48 packs `~/bai47/rootfs` into an initramfs.
-- Next lesson to write, when asked: lesson 48, `initramfs và các loại rootfs`; lesson 47's
-  `Bài tiếp theo` callout promises packing `~/bai47/rootfs` as a cpio initramfs, measuring it against
-  the ext4 image, initrd vs initramfs (`linuxrc`), and SquashFS/UBIFS/overlayfs.
-- `node tools/check.js` → `14 modules · 70 lessons · 47 written · 27 bài tập` · `OK`.
+- **Lesson 48 `initramfs và các loại rootfs` (written 2026-09-29, machine B)** delivered lesson 47's
+  promises: `~/bai47/rootfs` packed as cpio panics (no `/init`), then loops `can't open /dev/ttyAMA0`
+  (no devtmpfs), fixed with two lines; raw/gzip/xz vs ext4 measured (`Shmem 2076 kB` for every cpio
+  variant); `rootfs.img` via `-initrd` → `invalid magic` (`BLK_DEV_RAM` off); SquashFS root; stage-1
+  initramfs + overlayfs + `exec switch_root`; UBIFS on the `virt` NOR flash surviving `reboot`, using a
+  hand-written `erase_mtd.c`. `squashfs-tools` is **not installed** on machine B (verified from the
+  unpacked `.deb`); the lesson tells the learner to `sudo apt-get install` it. Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai48` (18M) is disposable; keep
+  `~/bai47`.**
+- **Lesson 49 `init: từ /init đến systemd` (written 2026-09-29, machine B) closes `Chặng 09`.** It
+  delivered all of lesson 48's promises: the three kernel rules for PID 1 read in source (panic on exit,
+  `SIGNAL_UNKILLABLE`, `find_new_reaper()`) and shown in QEMU (`kill -9 1` → rc 0, no effect; orphan
+  gets `PPID 1` and is reaped); a deliberately lazy `noreap_init` (6 zombies, `kill -TERM/-INT/-USR2 1`
+  ignored); then `temp_daemon` kept alive three ways — `::respawn:`, SysV `/etc/init.d/S??*` +
+  `start-stop-daemon` (dies for good on `kill -9`), and a **`systemctl --user`** unit on WSL itself
+  (`Restart=always`, journal, start-limit). Continuity facts: `docs/course-notes.md`; numbers:
+  `docs/environment.md`. **`~/bai49` (11M) is disposable**; the lesson leaves no unit behind in
+  `~/.config/systemd`. `~/bai47` may now be deleted too — nothing after Chặng 09 reads it.
+- **Lesson 50 `Module đầu tiên` (written 2026-09-29, machine B) opens `Chặng 10`.** It delivered
+  lesson 49's promises: a 28-line `hello.c` (`module_init`/`module_exit`, `__init`/`__exit`, `pr_fmt`,
+  `MODULE_LICENSE`) built out-of-tree with an 11-line Makefile (`make -C ~/bai38/linux-6.18.45 M=…`,
+  **1.49 s**), dissected with `file`/`modinfo`/`size`/`nm` (104 728 B → 5 544 B stripped → 1 580 B
+  loadable → 12 288 B in the kernel), loaded into QEMU from an initramfs copied from `~/bai32/initramfs`,
+  seen in `dmesg`/`lsmod`/`/proc/modules`/`/sys/module`/`/proc/kallsyms`, removed with `rmmod`; then
+  four failures (EEXIST, init `-ENODEV`, 1-byte vermagic edit, missing `MODULE_LICENSE`) and the taint
+  bitmask 0 → 4096 → 4097. **No `modprobe`** (not in the roadmap line). Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **Keep `~/bai50` (4.7M)** — the lesson tells
+  the learner it is the Chặng 10 template.
+- **Lesson 51 `Luật chơi trong kernel space` (written 2026-09-29, machine B) is a TEMPORARY DRAFT.**
+  The writing session was **interrupted twice for reasons that were never identified**, and the user
+  asked for it to ship as a draft and be redone later. What is in it and verified: six rules, each
+  shown by a real build or QEMU run — no libc (`stdio.h` missing; hand-declared `printf` →
+  `modpost: "puts" undefined`), no float (`-mgeneral-regs-only` error; constant-only float folds to
+  `mov w1, #74`), 16 KiB stack (`THREAD_SIZE`, `-Wframe-larger-than=2048` on a 4 KiB array), printk
+  levels from the module side (`dmesg -r`, `-DDEBUG`, `%p/%px/%pS`), `kmalloc` size classes + 4 MiB
+  limit + a 16 MiB leak seen in `SUnreclaim`, `copy_from_user` with one good and two bad pointers.
+  **Missing, still owed to lesson 50's promise:** a hands-on bad-pointer **oops** step (only a prose
+  `cal` in the theory part says what an oops contains) and any hands-on `copy_to_user`. The file header
+  comment and `LO-TRINH.md` §9/§10 say the same. Details: `docs/course-notes.md` (§12.1).
+  **`~/bai51` is verification scratch** (`rules/`, `initramfs/`, `t/`, `s*.log`) — safe to delete.
+- Next lesson to write, when asked: lesson 52, `Character device driver`. Lesson 51's `Bài tiếp theo`
+  promises a `/dev` node, major/minor, `file_operations`, `read`/`write` on a small ram-disk using
+  `kmalloc`/`kfree` and `copy_to_user`/`copy_from_user`, and a user program that sees `-EFAULT`.
+  Redoing lesson 51 (the oops step) is also pending — ask the user which comes first.
+- `node tools/check.js` → `14 modules · 70 lessons · 51 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as
