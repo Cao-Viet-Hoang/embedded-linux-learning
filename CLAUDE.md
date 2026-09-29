@@ -400,11 +400,27 @@ cross-references. Guard against a repeat:
   `cal` in the theory part says what an oops contains) and any hands-on `copy_to_user`. The file header
   comment and `LO-TRINH.md` §9/§10 say the same. Details: `docs/course-notes.md` (§12.1).
   **`~/bai51` is verification scratch** (`rules/`, `initramfs/`, `t/`, `s*.log`) — safe to delete.
-- Next lesson to write, when asked: lesson 52, `Character device driver`. Lesson 51's `Bài tiếp theo`
-  promises a `/dev` node, major/minor, `file_operations`, `read`/`write` on a small ram-disk using
-  `kmalloc`/`kfree` and `copy_to_user`/`copy_from_user`, and a user program that sees `-EFAULT`.
-  Redoing lesson 51 (the oops step) is also pending — ask the user which comes first.
-- `node tools/check.js` → `14 modules · 70 lessons · 51 written · 27 bài tập` · `OK`.
+- **Lesson 52 `Character device driver` (written 2026-09-29, machine B)** delivered lesson 51's
+  promises: a 201-line two-minor ram-disk (`alloc_chrdev_region` → **major 510**, because 234–254 and 511
+  are all taken on this kernel; `cdev_add`; `class_create` + `device_create`; `open`/`release`/`read`/
+  `write`/`llseek`, `mutex`, `O_APPEND`/`O_TRUNC`), node made by `mknod` (a wrong minor → ENXIO) and by
+  devtmpfs (must be mounted by hand in lesson 32's initramfs), `pr_debug` traces of `echo`/`cat`, a static
+  `rdtest` that receives **errno 14** and **errno 28**, `dd` 5 KiB → `4+0 records out`, `.owner` → `rmmod`
+  EAGAIN, and a driver missing `*ppos += count` (endless `cat`). Continuity facts: `docs/course-notes.md`;
+  numbers: `docs/environment.md`. **Keep `~/bai52/ramdisk`** — Bài 53 extends that driver; the rest of
+  `~/bai52` is disposable.
+- **Lesson 53 `Giao tiếp user ↔ kernel` (written 2026-09-29, machine B)** delivered lesson 52's promises on a
+  copy of the driver in `~/bai53/ramdisk` (`~/bai52` untouched): shared `ramdisk_ioctl.h` with magic `'x'`
+  (`0x80087801`/`0x00007802`/`0x40047803`), `rdctl` receiving errno 22/14/9/25 (incl. an old-size code and
+  `stty`'s `TCGETS2`), sysfs `used` (RO) + `readonly` (RW) via `device_create_with_groups`, `/proc/ramdisk`
+  via `proc_create_single`, debugfs counters + raw `data` blob, and an `ioctl` vs sysfs benchmark that is
+  wrong with `-DDEBUG` (121 µs) and right without (2.4 µs, 17–29× faster). Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **Keep `~/bai53` (7.3M)** — Bài 54 converts it to a
+  platform driver. `~/bai52` may now be deleted.
+- Next lesson to write, when asked: lesson 54, `Platform driver và Device Tree` — bind to lesson 45's
+  `learn,temp-sensor` node at `0xb000000`, `of_*`, `devm_*`, deferred probe. Redoing lesson 51 (the oops step)
+  is still pending — ask the user which comes first.
+- `node tools/check.js` → `14 modules · 70 lessons · 53 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

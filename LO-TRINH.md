@@ -430,9 +430,11 @@ Cài thêm khi tới chặng tương ứng:
 | 49 | init: từ `/init` đến systemd | ✅ Đã có |
 | 50 | Module đầu tiên | ✅ Đã có |
 | 51 | Luật chơi trong kernel space | 🟡 Bản tạm — phần thực hành về con trỏ sai (oops) chưa có, sẽ làm lại |
-| 52 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 52 | Character device driver | ✅ Đã có |
+| 53 | Giao tiếp user ↔ kernel | ✅ Đã có |
+| 54 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 9 đã hoàn tất, Chặng 10 đã mở (51 / 70 bài).** Bài kế tiếp sẽ viết: Bài 52 — *Character device driver*. Bài 51 cần được hoàn thiện lại (xem §10).
+**Chặng 0 đến Chặng 9 đã hoàn tất, Chặng 10 đã mở (53 / 70 bài).** Bài kế tiếp sẽ viết: Bài 54 — *Platform driver và Device Tree*. Bài 51 cần được hoàn thiện lại (xem §10).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

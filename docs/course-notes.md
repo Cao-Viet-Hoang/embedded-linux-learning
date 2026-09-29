@@ -744,6 +744,74 @@
   "prove" PAN on this setup. (6) A `python - <<'PY'` heredoc edit of a C file silently failed again
   (backslash escapes) — same rule as `docs/running-commands.md`.
 
+- **Lesson 52 (`Character device driver`, written 2026-09-29, machine B).** Working dir `~/bai52`:
+  `ramdisk/` (`ramdisk.c` 201 lines, Makefile = lesson 50's with `obj-m := ramdisk.o` +
+  `CFLAGS_ramdisk.o := -DDEBUG`), `app/rdtest.c` (static, 50 lines), `bug/` (same driver minus
+  `*ppos += count;`), `initramfs/` = `~/bai32/initramfs` + `ramdisk.ko` + `rdtest` (+ `ramdisk_bug.ko`
+  in step 6). Boot line = lessons 50/51. **The lesson tells the learner to keep `~/bai52/ramdisk`** —
+  its `Bài tiếp theo` promises that Bài 53 adds `ioctl` (`_IOR`/`_IOW`), a sysfs attribute under
+  `/sys/class/ramdisk/ramdisk0/`, a procfs and a debugfs file **to this same driver**.
+- **Lesson 52 owns, and later lessons must not re-teach as new:** open() path inode → `dev_t` →
+  `chrdev_open()` (`fs/char_dev.c:373`, ENXIO at :388) → `cdev` → `file_operations`; `dev_t` 12/20 bits
+  (`MINORBITS 20`); `register_chrdev_region` vs `alloc_chrdev_region`; `find_dynamic_major()` 254→234
+  then 511→384, and **major 510** on this kernel (21/21 of 234–254 taken, 511 = `rpmb`); `cdev_init`/
+  `cdev_add` and "device is live once `cdev_add` returns"; `container_of` from `i_cdev` +
+  `filp->private_data`; the fops table (`open`/`release` = last close/`read`/`write`/`llseek` via
+  `fixed_size_llseek`/`.owner`); the read/write contract (0 = EOF, `*ppos` is the driver's job, short
+  write, `-EFAULT`, `-ENOSPC`); per-device `mutex` (spinlock vs mutex deferred to Bài 56);
+  `O_APPEND`/`O_TRUNC` being the driver's job for a char device, `O_ACCMODE`, and the always-set
+  `O_LARGEFILE` 0x20000; `mknod` vs `class_create` + `device_create` + devtmpfs (and devtmpfs not mounted
+  in lesson 32's initramfs — `mount -t devtmpfs none /dev`), `/sys/class/…/uevent`; `crw-------` vs
+  `crw-r--r--`; mount-over hiding the `mknod` nodes; `class_create` signature change in 6.4; GPL-only
+  `class_*`/`device_*`; `.owner` → `try_module_get` → `Used by 1` → `rmmod` EAGAIN; failed
+  `copy_from_user` zero-fills (`uaccess.h:183`); the forgotten-`*ppos` bug (endless `cat`); the
+  build-up/tear-down order figure.
+- **Lesson 52 deliberately does NOT teach:** `ioctl`, sysfs attributes, procfs, debugfs (Bài 53);
+  `poll`/blocking reads/wait queues; `misc_register` (not in the roadmap line — never mentioned);
+  `udev`/`mdev` rules beyond one sentence; `platform_driver` and `devm_*` (Bài 54); spinlocks (Bài 56).
+  It **does not touch the lesson 51 oops debt** — lesson 51 is still a draft.
+- **Findings a later lesson could trip over:** (1) the BusyBox shell in lesson 32's initramfs never
+  mounts devtmpfs, so every lesson that uses that initramfs and expects `/dev/<node>` must mount it
+  first. (2) Renaming a `.ko` does not rename the module (`ramdisk_bug.ko` is still `ramdisk` →
+  `File exists`, rc 17). (3) A node made with `mknod` before `insmod` starts working once the driver
+  registers the same major — but only because major 510 is deterministic for this `.config`. (4) Driving
+  QEMU with commands piped over stdin: a command containing `"$1"` inside double quotes gets mangled by
+  the probe's own shell; write the command list to a file with the `Write` tool and feed it line by line
+  (`while IFS= read -r c`), as lesson 52's verification did.
+
+- **Lesson 53 (`Giao tiếp user ↔ kernel`, written 2026-09-29, machine B).** Working dir `~/bai53`:
+  `ramdisk/` = a copy of `~/bai52/ramdisk` (`make clean` first) with `ramdisk.c` 373 lines and the shared
+  `ramdisk_ioctl.h`; `nodebug/` = same sources, Makefile without `-DDEBUG`; `app/rdctl.c` (68 lines),
+  `app/rdbench.c` (54 lines), both static, plus `rdctl-host` (x86 build, only for `rdctl codes`);
+  `initramfs/` = `~/bai32/initramfs` + `ramdisk.ko`, `rdctl`, `rdbench`, `nodebug/ramdisk.ko`. Boot line =
+  lessons 50–52. **`~/bai52` is not modified.** The lesson tells the learner to **keep `~/bai53`** for Bài 54.
+- **Lesson 53 owns, and later lessons must not re-teach as new:** the four-channel table (who / format /
+  ABI) and the decision tree; `ioctl` path `SYSCALL_DEFINE3(ioctl)` → `do_vfs_ioctl` → `vfs_ioctl` →
+  `unlocked_ioctl` (`fs/ioctl.c:583/492/44`), `ENOTTY`/`-ENOIOCTLCMD`, "unlocked" = no BKL; the 32-bit code
+  layout dir 2 · size 14 · type 8 · nr 8 and `_IO/_IOR/_IOW/_IOWR`, direction from the user's view;
+  `ioctl-number.rst` and magic `'x'`; the shared uapi-style header (`__u32`, `Linux-syscall-note`); size in
+  the code → an old binary gets errno 25 instead of memory corruption; `compat_ioctl` = `compat_ptr_ioctl`;
+  `ioctl` ignores the open mode → driver checks `FMODE_WRITE` (`-EBADF`); `TCGETS2` from `stty`/`isatty`.
+  sysfs: `DEVICE_ATTR_RO/RW`, `ATTRIBUTE_GROUPS`, `sysfs_emit`, `kstrtobool`, `dev_get_drvdata`,
+  `device_create_with_groups` (attrs before uevent, `core.c:3710/3730/3737`), the one-value rule, root denied on
+  0444 (`KERNFS_ROOT_EXTRA_OPEN_PERM_CHECK`), `VERIFY_OCTAL_PERMISSIONS` rejecting 0666. procfs:
+  `proc_create_single` + `seq_file`, `remove_proc_entry`, write → `EIO`. debugfs: mount point, "no rules",
+  `debugfs_create_dir/u32/blob`, `debugfs_remove`, never check its return values, u32 0444 write → `EACCES`.
+  The `ioctl` vs sysfs benchmark and the `-DDEBUG` trap (121 µs → 2.4 µs), log ring wrapping.
+- **Lesson 53 deliberately does NOT teach:** `misc_register`; `poll`/wait queues; `mmap`; netlink,
+  configfs, uevent emission from a driver (`kobject_uevent_env`); `debugfs_create_file` with custom fops;
+  `DEVICE_ATTR_WO`; `_IOWR` hands-on (named in a table only); `sparse`/`__user` beyond Bài 51. Ftrace is
+  pointed at Bài 65. It **does not touch the lesson 51 oops debt** — lesson 51 is still a draft.
+- **Findings a later lesson could trip over:** (1) The benchmark must use a module built **without**
+  `-DDEBUG` — a single `pr_debug` in `unlocked_ioctl` makes `ioctl` look slower than sysfs. Any later timing
+  demo inherits this. (2) BusyBox `sh` reports `open` failures as `can't create X: …` and `write` failures as
+  `write error: …` — the wording tells which syscall failed. (3) `ioctl` codes are compile-time constants and
+  identical on x86-64 and arm64 (only alpha/mips/powerpc/sparc override `_IOC_SIZEBITS`), so a host build can
+  print them. (4) A second probe build that deletes the `FMODE_WRITE` lines was verified but not kept.
+  (5) `readonly` blocks writers at `open`, so a blocked `echo`/`rdctl clear` never reaches `rd_write`/`rd_ioctl`
+  and never bumps the counters. (6) Bài 54's node facts: lesson 45 left `sensor@b000000` okay and
+  `sensor@b001000` disabled — the teaser says `probe()` runs for the first and not the second.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover
