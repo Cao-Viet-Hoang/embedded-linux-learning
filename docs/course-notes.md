@@ -812,6 +812,259 @@
   and never bumps the counters. (6) Bài 54's node facts: lesson 45 left `sensor@b000000` okay and
   `sensor@b001000` disabled — the teaser says `probe()` runs for the first and not the second.
 
+- **Lesson 54 (`Platform driver và Device Tree`, written 2026-09-30, machine B).** Working dir `~/bai54`:
+  `virt.dtb`/`virt.dts` (fresh `dumpdtb`, **no `-smp`**, with `-append` → **376** lines, PL061 at line 273),
+  `nodes.dts` (35 lines), `board.dts` = `virt.dts` with `gpio0:` on line 273 + `nodes.dts` before the last `};`,
+  `board.dtb` (**8 100 B**), `short.dtb` (`fdtput`: `b002000` gets `learn,offset-mdeg 40000` and a 1-cell
+  `learn,trip-mdeg`), `tsensor/` (`tsensor.c` 245 lines, Makefile = lesson 53's with `ramdisk`→`tsensor`),
+  `leaky/` (`leaky.c` 42 lines, `tidy.c` made by `sed`), `initramfs/` = `~/bai32/initramfs` + `tsensor.ko` +
+  `gpio-aggregator.ko` (from `~/bai40/modroot-stripped`) + in step 5 `leaky.ko`/`tidy.ko`. Boot line = lessons
+  50–53 **plus `-dtb board.dtb`**. It does **not** reuse lesson 45's `board.dts` (lesson 45 allowed deleting
+  `~/bai45`) and says why. `~/bai53` is only read (Makefile). **The lesson tells the learner to keep
+  `~/bai54` (5.5M)** — `tsensor/` + `board.dt[sb]` — and that `~/bai53` may now be deleted.
+- **Node map lesson 54 fixed (a later lesson must not contradict):** `gpio_delay: gpio-delay`
+  (`compatible = "gpio-delay"`, `#gpio-cells = <3>`, `gpios = <&gpio0 1 0>`, phandle **1**) — the supplier, driven
+  by `gpio-aggregator.ko` (`CONFIG_GPIO_AGGREGATOR=m`, the only GPIO provider built as a module on this
+  `.config`; `GPIO_SIM`/`GPIO_MOCKUP` are **not set**). `sensor@b000000` label `board`, offset 42500, trip
+  60000/85000; `sensor@b001000` disabled; `sensor@b002000` label `broken`, no offset; `sensor@b003000` label
+  `gated`, offset 38000, poll 250, `enable-gpios = <&gpio_delay 0 0 0>`. **PL061 pin 1 is now spent** by
+  `gpio-delay` (pin 0 = lesson 45's LED, pin 3 = `gpio-keys`). Lesson 57/58 (GPIO) inherits this map.
+- **Lesson 54 owns, and later lessons must not re-teach as new:** platform bus as the bus for undiscoverable
+  devices; `struct platform_driver` (`platform_device.h:231`, `remove` returns **void** on 6.18 — old `int`
+  form → `-Werror=incompatible-pointer-types`); `of_match_table` + `MODULE_DEVICE_TABLE(of)` → `alias:
+  of:N*T*C…`; `.dev_groups`; `module_platform_driver` (named, used in `leaky.c`); "module = once, device =
+  each time"; `platform_get_resource` + `devm_request_mem_region` (`/proc/iomem` entry appears/disappears — no
+  `ioremap`, that is Bài 56); `of_device_alloc` turning `reg` into resources; `of_property_read_u32/_string/
+  _u32_array`, the `-EINVAL`/`-ENODATA`/`-EOVERFLOW` table (`property.c:130–148`), and the three patterns
+  required / optional-preset-default / optional-but-well-formed; `dev_info`/`dev_dbg`/`dev_err_probe` +
+  `%pR`/`%pe`; devres as a per-device stack (`release_nodes` `devres.c:496`, reverse order), `devm_kzalloc`,
+  `devm_gpiod_get_optional`, `devm_add_action_or_reset` for `ida`/`cdev`/`device_create`, the two devres
+  limits (module-wide resources, mixing with manual frees in `remove`); `DEFINE_IDA`/`ida_alloc_max`;
+  `simple_read_from_buffer`; `-EPROBE_DEFER`, `deferred_probe_pending_list`, retry on every successful bind,
+  `/sys/kernel/debug/devices_deferred`, the reason format `DRIVER: msg` (`dd.c:235`), fw_devlink
+  (`supplier:platform:…` symlink, `platform: supplier X not ready` from `core.c:1162`),
+  `driver_deferred_probe_timeout = 10` (`dd.c:261`) and `deferred_probe_timeout=`; sysfs `bind`/`unbind` as a
+  test tool; `/proc/slabinfo` columns and the leak measurement; `drvdata` cleared on unbind (`dd.c:614`).
+- **Lesson 54 deliberately does NOT teach:** `ioremap`/`readl`/`devm_ioremap_resource` (Bài 56 — named in a
+  table only; `ts_read_mdeg` returns the DT offset); IRQs/`devm_request_irq` (Bài 55, named); hwmon/thermal
+  frameworks (named once as the standard home for temperature sensors); `platform_device_register` from C;
+  ACPI; `devres_open_group`; `of_property_count_*` (in Lỗi thường gặp only); `kmemleak` (named, off in
+  `.config`); `modprobe` auto-loading (alias shown, not exercised — no udev in the initramfs). It **does not
+  touch the lesson 51 oops debt**.
+- **Findings a later lesson could trip over:** (1) **The 10-second mark matters.** Before
+  `deferred_probe_timeout` (10 s after late_initcall) fires, fw_devlink blocks a consumer whose DT supplier has
+  no driver *before* `probe()` runs (`platform: supplier gpio-delay not ready`, no `probe` line). After it,
+  `fw_devlink_drivers_done()` relaxes the link and `probe()` itself gets `-EPROBE_DEFER` from `gpiod_get`
+  (`tsensor: enable gpio`). Any lesson showing deferral must say which regime it is in; the lesson uses
+  `deferred_probe_timeout=600` to pin the first. (2) Each successful bind retriggers the pending list, so the
+  deferred device prints extra `probe` lines (2–3 per `insmod` observed; count varies run to run). (3) Lines from
+  the deferred-probe worker interleave with the BusyBox prompt (`~ # [ 50.9…] … probe`) — cosmetic. (4)
+  `/proc/slabinfo` `kmalloc-2k` did not move for the first 3 probes (per-CPU slab counted as active) — only a
+  large repeated leak is visible there. (5) `diff virt.dts board.dts` reports `374a375,409`, not after the
+  `chosen` close, because the last new node also ends with `\t};` — the lesson explains it. (6) `fdtget` with
+  several property names in one call fails (`FDT_ERR_BADPATH`): it takes one property per call.
+
+- **Lesson 55 (`Ngắt và xử lý trễ`, written 2026-09-30, machine B).** Working dir `~/bai55`: `alarm.dts` (17 lines,
+  `/include/ "../bai54/board.dts"` — so it **reads `~/bai54/board.dts`**), `alarm.dtb` (**8 069 B**), `talarm/`
+  (`talarm.c` 145 lines, Makefile = lesson 54's with `tsensor`→`talarm`), `v/{stack,sleep,null,oneshot}/` (variants
+  built with `KCFLAGS=-DSHOW_STACK` / `-DSLEEP_IN_TASKLET` or `sed`), `initramfs/` = `~/bai32/initramfs` + five `.ko`.
+  Boot line = lessons 50–54 with `-dtb alarm.dtb`. Step 1 boots `~/bai32/initramfs.cpio.gz` + `~/bai54/board.dtb`
+  unchanged. The lesson says `~/bai55` is disposable and lesson 56 reads nothing from it.
+- **Node map lesson 55 fixed (a later lesson must not contradict):** PL061 (`gpio0`, phandle `0x8003`) becomes an
+  interrupt controller with `#interrupt-cells = <2>`; `gpio-keys` is **deleted** so pin 3 is free; `alarm@b004000`
+  (`compatible = "learn,temp-alarm"`, `interrupt-parent = <&gpio0>`, `interrupts = <3 1>` = rising edge). Pin map so far:
+  pin 0 = lesson 45's LED, pin 1 = lesson 54's `gpio-delay`, **pin 3 = the `virt` power button → lesson 55's alarm**.
+  Lesson 57/58 inherits this. **The only guest-triggerable interrupt source on QEMU 4.2.1 `virt` is the power button**
+  (`system_powerdown` at the monitor → one pulse on pin 3); nothing else in `virt` can be fired by hand.
+- **Lesson 55 owns, and later lessons must not re-teach as new:** polling vs interrupt; `CONFIG_HZ=250` +
+  `NO_HZ_IDLE` measured through `arch_timer` (33 / 4 s idle, 1 005 / 4 s busy); the GIC → PL061 cascade (`chained`,
+  `pl061_irq_handler`, `generic_handle_domain_irq`); the three numbers (DT cell / `hwirq` / Linux IRQ), SPI + 32 and
+  PPI + 16 (`irq-gic.c:1098/1101`), IRQ domain, `/proc/interrupts` columns, `/sys/kernel/irq/N/{hwirq,type,actions}`,
+  chained IRQs hidden from `/proc/interrupts` (`kernel/irq/proc.c:481`); edge rising / both / level and the DT flag
+  values 1/3/4; `request_threaded_irq` as the one real API (`request_irq` = thread_fn NULL + `IRQF_COND_ONESHOT`,
+  `interrupt.h:169/209/215`); `IRQ_NONE`/`IRQ_HANDLED`/`IRQ_WAKE_THREAD` and the 99 900/100 000 `nobody cared` rule
+  (`spurious.c:360–364`); `devm_request_threaded_irq` and its own `dev_err_probe` (`devres.c:40`); top half / bottom half
+  and the receptionist analogy; the four-context table; `preempt_count` layout (`preempt.h:33–52`, `in_atomic` :186),
+  idle task's extra 1 (`asm/preempt.h:25`); softirq's 10 vectors (`softirq.c:64–66`), `MAX_SOFTIRQ_TIME`/`RESTART`
+  (:543–544), `ksoftirqd`, `/proc/softirqs`; tasklet API + `from_tasklet` and its **deprecation** (`interrupt.h:667`),
+  `system_bh_wq` named; workqueue `INIT_WORK`/`schedule_work` (`queue_work_on`, `system_percpu_wq` in `nm -u`);
+  threaded IRQ thread `irq/N-name` (`manage.c:1402`), `SCHED_FIFO` 50 (`sched_set_fifo`, :1252; `/proc/PID/stat` fields
+  18/41 = `-51`/`1`); the "may it sleep" table; `might_sleep` + `CONFIG_DEBUG_ATOMIC_SLEEP` (**not set**) named;
+  devres ordering: request the IRQ **last** so `free_irq` runs **first**; `IRQF_ONESHOT` and the `handler=NULL` rejection
+  (`manage.c:1667`); `BUG: scheduling while atomic` format (`core.c:5875`, check at :5914) → `bad: scheduling from the
+  idle thread!` (`idle.c:510`) → `Attempted to kill the idle task!` (`exit.c:1041`); "find the first `BUG:`".
+- **Lesson 55 deliberately does NOT teach:** spinlocks / `spin_lock_irqsave` / `atomic_t` (Bài 56 — named in the "may it
+  sleep" table and the teaser only); `ioremap`/`readl` (Bài 56); `IRQF_SHARED` hands-on (named); `enable_irq`/
+  `disable_irq`/`disable_irq_nosync`; IRQ affinity (`smp_affinity` listed in an `ls`, not explained); NMI beyond one
+  table row; `ftrace`/`irqsoff` tracer (not in `.config`); wait queues / `poll`; `hrtimer`; `gpiod_to_irq` (the node uses
+  `interrupts` directly — Bài 57 owns GPIO consumer APIs); `request_any_context_irq`. It **does not touch the lesson 51
+  oops debt**, though step 5 shows a real oops as a *consequence* of sleeping in atomic context — a redo of lesson 51
+  must still add its own bad-pointer oops step and must not claim lesson 55 already did it.
+- **Findings a later lesson could trip over:** (1) **The PL061 pin already owned by `gpio-keys` cannot be requested
+  with another trigger type**: with `gpio-keys` left in the tree, `platform_get_irq` fails with `irq: type mismatch,
+  failed to map hwirq-3 for pl061@9030000!` + `error -ENXIO: IRQ index 0 not found` (`irqdomain.c:933`). Without
+  `interrupt-controller;` on PL061 the same `-ENXIO` appears alone and `dtc` (no `-q`) warns `Missing
+  interrupt-controller or interrupt-map property`. (2) `gpio-keys` requests both edges, so one `system_powerdown`
+  bumps its counter by **2**; a rising-edge node gets **1**. (3) In lesson 32's initramfs shell there is **no job control**:
+  `kill %1` returns 0 and kills nothing (the busy loop kept `arch_timer` at ~250/s); use `kill $!`. A background `&`
+  also needs devtmpfs mounted first (`/bin/sh: can't open /dev/null: no such file`). (4) Firing `system_powerdown` from a verification
+  script and filtering the monitor's escape codes: `docs/running-commands.md`. (5) Sleeping in a
+  tasklet gives **different final crashes** depending on who was interrupted: idle → `execute from non-executable
+  memory` + `Attempted to kill the idle task!` (3/3 runs); busy `sh` → `write to read-only memory` in `run_timer_base` +
+  `Fatal exception in interrupt` (1 run). The first `BUG:` line is identical. (6) `talarm.c` without `#include
+  <linux/of.h>` fails with `array type has incomplete element type ‘struct of_device_id’`. (7) Latency numbers are TCG
+  numbers and swing 5–10× between runs; only order and context are stable.
+
+- **Lesson 56 (`Truy cập phần cứng: MMIO và đồng bộ`, written 2026-09-30, machine B).** Working dir `~/bai56`:
+  `race/` (`race.c` 92 lines, Makefile = lesson 55's with `race`), `virt.dtb`/`virt.dts` (fresh `dumpdtb` **with `-smp 2`**
+  and `-append` → **384** lines, PL061 at line 273), `vgpio.dts` (9 lines: `/include/ "virt.dts"` + `/delete-node/ gpio-keys`
+  + `pl061@9030000 { compatible = "learn,vgpio"; }`), `vgpio.dtb` (**7 331 B**), `clash.dts`/`clash.dtb` (7 634 B — keeps
+  the PL061 node and adds `vgpio@9030000` on the same range), `vgpio/` (`vgpio.c` **270** lines, `vgpio_ioctl.h` 18,
+  Makefile), `app/` (`vgctl.c` 53 lines, static `vgctl`, `vgctl-host`), `v/noirqsave/`, `v/noclear/` (built with
+  `KCFLAGS=-DNO_IRQSAVE` / `-DNO_CLEAR`), `initramfs/` = `~/bai32/initramfs` + `race.ko`, `vgpio.ko`, `vgctl`,
+  `vgpio_noirqsave.ko`, `vgpio_noclear.ko`. Boot line = lessons 50–55 **plus `-smp 2`** (the first lesson that adds it).
+  **Reads nothing from `~/bai54` or `~/bai55`**; the lesson says both may now be deleted, and tells the learner to keep
+  `~/bai56/vgpio`, `app/`, `virt.dts`, `vgpio.dts` because Bài 57 maps the PL061 datasheet onto `vgpio.c`.
+- **Node map lesson 56 fixed (a later lesson must not contradict):** in `vgpio.dts` PL061 is **no longer a GPIO controller
+  driven by the kernel** — it is a platform device `9030000.pl061` bound by `vgpio`; `gpio-keys` is deleted. Pin map in
+  this tree: pins 0–2 = three LEDs (`LED_MASK 0x07`), pin 3 = the `virt` power button (rising edge, `GPIOIBE` 0, `GPIOIEV`
+  bit 3). IRQ is the PL061's own SPI 7 → `hwirq` 39 → Linux IRQ **20**, **level** (`GIC-0  39 Level`), not lesson 55's
+  chained IRQ 21. The lesson-54/55 pins (1 = `gpio-delay`, 0 = lesson 45's LED) do **not** exist in this tree. Bài 57/58
+  choosing a GPIO setup must pick one of the two trees explicitly and say so.
+- **Lesson 56 owns, and later lessons must not re-teach as new:** MMIO as the "service counter" analogy; the PL061 register
+  table (`GPIODATA` 0x000–0x3FC with the address-mask trick, `GPIODIR` 0x400, `IS/IBE/IEV/IE` 0x404–0x410, `MIS` 0x418,
+  `IC` 0x41C, `PeriphID0..3` 0xFE0 → `0x041061`, PrimeCellID `0x0D 0xF0 0x05 0xB1`); why `ioremap` (Device memory, no
+  cache); the four-row table `ioremap` / `devm_ioremap` / `devm_ioremap_resource` / `devm_platform_ioremap_resource`;
+  never dereference `__iomem`; `readb/w/l/q`; `readl` = `ldr` + `dmb oshld`, `writel` = `dmb oshst` + `str`, `_relaxed`,
+  `mb/rmb/wmb` = `dsb`; BusyBox `devmem` (read, write, width), `Bus error` rc 135, `STRICT_DEVMEM`; race condition in
+  kernel with the four interrupter table (other CPU / preemption / hardirq / softirq); `kthread_create` + `kthread_bind`
+  + `completion`; `module_param` + `MODULE_PARM_DESC` + `/sys/module/NAME/parameters` + `modinfo -F parm` (**first lesson to
+  use `module_param`**); `READ_ONCE`/`WRITE_ONCE` are not atomicity; `atomic_t` (`stadd` LSE vs `ldxr`/`stxr` fallback,
+  `.altinstructions`, `alt_cb_patch_nops`); spinlock vs mutex vs atomic table and decision figure with measured cost;
+  `spin_lock_irqsave` rule; `misc_register` (major 10, `MISC_DYNAMIC_MINOR` → 258, `/proc/misc`, `private_data` set by
+  misc core — **the first lesson to use it**, lessons 52–54 never mentioned it); level-IRQ clearing (`GPIOIC`) and the
+  interrupt storm; `/proc/irq/N/effective_affinity_list`; `taskset`; reading a hung guest with QEMU monitor
+  `info registers` + `cpu 1` and resolving PC via `System.map`; the RCU stall report format (`0-...0`, `detected by 1`,
+  `t=5252 jiffies`, `CONFIG_RCU_CPU_STALL_TIMEOUT=21`).
+- **Lesson 56 deliberately does NOT teach:** `gpiochip`/`gpio_chip` registration, `/dev/gpiochipN`, `libgpiod`, reading the
+  PL061 datasheet itself (Bài 57 — the register table is presented as "copied from `gpio-pl061.c`"); `rwlock`, seqlock,
+  RCU as an API (RCU appears only as the stall detector); `lockdep`/`PROVE_LOCKING` (named, not set); `spin_lock_bh`;
+  `local_irq_save`; `wait_event`/wait queues; `completion` beyond `race.ko`; DMA mapping API (DMA only as the reason for
+  barriers); `ioremap_wc`; `iowrite32`; `regmap`. It **does not touch the lesson 51 oops debt**; the `Bus error` in step 1
+  is a userspace SIGBUS, not a kernel oops.
+- **Findings a later lesson could trip over:** (1) **The missing-`irqsave` deadlock is only reproducible if the `echo` runs
+  on the CPU that receives the IRQ.** IRQ 20 and IRQ 13 (UART) both have `effective_affinity_list` = `0` on this setup, so
+  the lesson pins the writer with `taskset 1`. With the writer on CPU1 the other CPU simply spins until release. (2) The
+  RCU stall message after that deadlock appears in only **5 of 13** runs (always at ≈29.3 s uptime when it does, second
+  one at ≈92.3 s); the other runs are completely silent. `info registers` always gives CPU0 PC
+  `ffff800081162c90` (`queued_spin_lock_slowpath+8`) and CPU1 `ffff800081157b58` (`cpu_do_idle`); with `-smp 1` CPU0 PC is
+  `ffff800081162cf8`. Cause of the 5/13 not investigated further. (3) In the deadlocked guest, a background
+  `taskset 2 sh -c 'sleep 15; …; echo helper done on cpu1' &` still prints — CPU1 is alive; only input is dead. (4)
+  `/include/` paths in a `.dts` are relative to **the including file's directory**, not the cwd (`FATAL ERROR: Couldn't
+  open "../bai54/virt.dts"` when the `.dts` sat in `v/`). (5) BusyBox `time` splits `user`/`sys` unreliably while IRQs are
+  off: the same 3 s `mdelay` read `user 0.00 / sys 3.00` and `user 0.76 / sys 2.24` in two runs. (6) `READ_ONCE`/
+  `WRITE_ONCE` are needed in `race.ko` mode 0 or GCC may fold the loop. (7) Timings (`atomic_t` 94–126 ms, spinlock 257–320,
+  mutex 380–395) are TCG numbers and drift per boot; the order is stable. (8) The `for` loop over `$f`/`$s` inside
+  `wsl -d OSD -- bash -c '…'` is emptied by the outer shell again — loop on the Git Bash side (`docs/running-commands.md`).
+  (9) `grep -c 'dmb\toshst'` (basic regex) counts **0**; use `grep -cP`.
+
+- **Lesson 57 (`Đọc datasheet và GPIO hiện đại`, written 2026-09-30, machine B).** Working dir `~/bai57`: `doc/`
+  (`DDI0190.pdf` **379 704 B**, sha256 `6cebbefa…c9c6d`, and `DDI0190.txt` from `pdftotext -layout`, **2 542** lines),
+  `libgpiod-2.2.5.tar.xz` (511 516 B, `sha256sum -c` against kernel.org `sha256sums.asc` OK) + source tree + `build-gpiod/`
+  (static ARM64 tools, `lib/.libs/libgpiod.a` 282 992 B), `config.orig` (the `.config` before `GPIO_SIM`), `initramfs/` =
+  `~/bai32/initramfs` + six stripped libgpiod tools + `button` + `lib/modules/{gpio-sim,dev-sync-probe,vgchip,vgchip_onewrite}.ko`
+  + empty `/config`, `app/button.c` (63 lines), `vgchip/` (`vgchip.c` **143** lines, Makefile = `~/bai56/vgpio/Makefile` with
+  `vgpio`→`vgchip`), `v/onewrite/` (`KCFLAGS=-DVALUE_BEFORE_DIR_ONLY`), `vgchip.dts` (`/include/ "../bai56/virt.dts"` +
+  `/delete-node/ gpio-keys` + `compatible = "learn,vgchip"`), `vgchip.dtb` **7 335 B**. ~27 MB. Reads `~/bai56/vgpio.dtb`,
+  `virt.dts`, `vgpio/Makefile`; the lesson says `~/bai56` may now be deleted.
+- **Lesson 57 changed the shared kernel tree:** `~/bai38/linux-6.18.45/.config` now has `CONFIG_GPIO_SIM=m`, `CONFIG_IRQ_SIM=y`
+  (built-in, so `Image` was rebuilt), `CONFIG_DEV_SYNC_PROBE=m`. `Image` size unchanged (49 342 976 B); `.version` went 1 → 4
+  during verification. `drivers/gpio/gpio-sim.ko` (262 128 B) depends on `dev_sync_probe`. Every later lesson boots this `Image`.
+- **Lesson 57 owns, and later lessons must not re-teach as new:** datasheet vs TRM; the five-chapter TRM layout and which
+  chapters a driver writer reads; "base address is not fixed, offset is" (DDI 0190B §3.1) → base from DT `reg`; register-map
+  columns (offset / type / width / reset value), `Read`/`Write`/`Read/write`, W1C, reserved; bit-field extraction
+  `(v >> lo) & mask` on `PeriphID` → part/designer/revision/config; the Table 3-3 typo ("Bits cleared, pins output") settled by
+  hardware; GPIODATA address mask (0xFB @ +0x098 → 0x22, read @ +0x0C4 → 0x31); "only affects the pins that are configured as
+  outputs" and the `direction_output` double write (`gpio-pl061.c` comment); the line-by-line map `vgpio.c` → DDI 0190B;
+  reading §2.3.2 "Recommendations" for intent; provider vs consumer, `struct gpio_chip` fields and five ops,
+  `devm_gpiochip_add_data` (`EXPORT_SYMBOL_GPL`), `gpiochip_get_data`, `base = -1` → `GPIO_DYNAMIC_BASE` 512; GPIO chardev
+  (major **254** `gpiochip`), `GPIO_CDEV`/`GPIO_CDEV_V1`, why sysfs GPIO is obsolete (table of six problems; `GPIO_SYSFS` is
+  `if EXPERT` and absent from `defconfig`); libgpiod v1 vs v2, the six tools and their v2 syntax (`-c`, `-t 0`, `-a`, names),
+  ownership (`EBUSY`, `consumer=`, release on fd close), libgpiod v2 object model (`chip` / `line_settings` / `line_config` /
+  `request_config` / `line_request` / `edge_event_buffer`); configfs as "userspace mkdir asks the kernel to create";
+  gpio-sim lifecycle (`mkdir` → attrs → `live`, `sim_gpioN/pull`/`value`, `EPERM` on re-`live`, `rmdir` leaf-first).
+- **Lesson 57 deliberately does NOT teach:** `gpio_irq_chip` / `gc.irq` (named as the reason `gpiomon` gets `ENXIO` on
+  `vgchip`; suggested as an exercise); `regmap`; pinctrl / pinmux (`GPIOAFSEL` explained only as "hardware control mode");
+  `gpiod_*` consumer API beyond naming (Bài 54 used it); GPIO hogs; `gpio-line-names` in DT; `gpionotify`; libgpiod bindings
+  (C++/Python/Rust); debounce; `gpio-mockup`/`gpio-virtuser` beyond one mention; HTE timestamps. **Does not touch the lesson 51
+  oops debt.**
+- **Findings a later lesson could trip over:** (1) ARM's doc portal serves every PDF under an opaque
+  `documentation-service.arm.com/static/<24-hex>` id; a wrong id returned the SP804 TRM (DDI 0271D) with the same look — always
+  check `pdfinfo` Title. The id for DDI0190.pdf came from the JSON at `…/documentation/ddi0190/b/?lang=en`
+  (`_links.resources[].name == "DDI0190.pdf"`). (2) Ubuntu 20.04's `gpiod` is 1.4.1 (v1 CLI); libgpiod ≥ 2.3 needs `meson`
+  (absent) — 2.2.5 is the last autotools release. It bundles `lib/uapi/gpio.h`, needed because the arm64 cross headers
+  (`linux-libc-dev-arm64-cross` 5.4) have 0 `GPIO_V2_*`. `LDFLAGS=-all-static` is required for fully static tools (libtool).
+  (3) **gpiolib does not restore direction when a line is released**: after `gpioset -t 0`, PL061 keeps `GPIODIR`/`GPIODATA`;
+  gpio-sim drops `value` back to its pull. (4) `gpioget` **without `-a` switches the line to input** — on `vgchip` it took
+  `GPIODIR` 0x05 → 0x00. Any later lesson reading an output line must use `-a`. (5) The one-write bug reproduces only when the
+  line is input at the moment of the write; a second `gpioset` succeeds. Seen in 4 boots. (6) `rmmod vgchip` does **not** reset
+  `GPIODIR` (no `free`/teardown writes) — the register survives into the next `insmod` within one boot. (7) Background
+  `gpiomon`/`button` output interleaves with the `~ #` prompt, as in lesson 54. (8) A second kernel build after toggling
+  `GPIO_SIM` shows no `CC … irq_sim.o` lines (objects cached); the lesson quotes the first build (32.4 s) and says so in a callout.
+
+- **Lesson 58 (`Driver cho bus I2C và SPI`, written 2026-09-30, machine B) closes Chặng 10.** Working dir `~/bai58`:
+  `virt.dts`/`virt.dtb` (fresh `dumpdtb` with `-smp 2` + `-append`, **384** lines, 0 lines matching `i2c|spi`),
+  `config.orig` (the `.config` before `I2C_STUB`), `ltemp/` (`ltemp.c` **125** lines, Makefile = `~/bai57/vgchip/Makefile`
+  with `vgchip`→`ltemp`), `i2csim/` (`i2csim.c` **127**), `spiloop/` (`spiloop.c` **63**), `lspi/` (`lspi.c` **64**),
+  `v/oldprobe/`, `v/noswap/`, `v/spidev1.dts`, `v/spidev2.dts`, `buses.dts` (43 lines, `/include/ "virt.dts"` + `i2c-sim` +
+  `spi-loop`), `bad.dts` (I2C only, child without `reg`), `spidev_test` (static, built from `tools/spi/`), `initramfs/` =
+  `~/bai32/initramfs` + modules in `lib/modules/`. The lesson says `~/bai58` is disposable (keep `ltemp/` as a portfolio
+  sample if wanted) and that `~/bai57` may now be deleted. **Next lesson (59) opens Chặng 11 and reads nothing from here.**
+- **Lesson 58 changed the shared kernel tree:** `~/bai38/linux-6.18.45/.config` now has `CONFIG_I2C_STUB=m` (one-line diff,
+  line 4002, no `select`); `Image` rebuilt (size unchanged 49 342 976 B, `.version` 4 → 5), `drivers/i2c/i2c-stub.ko`
+  163 856 B. `I2C=y`, `I2C_CHARDEV=y`, `SPI=y`, `SPI_SPIDEV=m`, `SENSORS_TMP102=m`, `SENSORS_LM75=m`, `I2C_GPIO=m`,
+  `I2C_BCM2835=m`, `REGMAP_I2C=y` were already in `defconfig`; `SPI_LOOPBACK_TEST` and `SPI_GPIO` are **not set**.
+- **Departure from the roadmap line (recorded in `LO-TRINH.md` §10):** "machine `raspi3b`" was not used. QEMU 4.2.1 has no
+  `raspi3b` (it is `raspi3`), and `raspi3`'s `bcm2835-i2c0/1/2` at `0x3f205000`/`0x3f804000`/`0x3f805000` are
+  `prio -1000` unimplemented placeholders — `-device tmp105` → `No 'i2c-bus' bus found`, same as `virt`. The lesson replaces
+  it with self-written simulated bus drivers (`i2csim`, `spiloop`). "SPI loopback" in the roadmap line = `spiloop`, not the
+  kernel's `SPI_LOOPBACK_TEST` (which tests a real controller with MOSI wired to MISO).
+- **Lesson 58 owns, and later lessons must not re-teach as new:** the three roles adapter/controller – client/device – client
+  driver, and "the client driver never touches adapter registers"; I2C vs SPI table (wires, addressing, duplex, ACK); START/
+  STOP/repeated START, address byte = addr<<1 | R/W (0x48 → 0x90/0x91), open-drain + pull-up, NACK → `-ENXIO`; SMBus
+  transaction types and the `i2c_smbus_*` table; SMBus low-byte-first vs TMP102 MSB-first and `i2c_smbus_read_word_swapped`
+  (static inline, `i2c.h:162`); I2C fault codes (`Documentation/i2c/fault-codes.rst`, 135 lines) and `dd.c:649–650` silence
+  for `-ENODEV`/`-ENXIO`; `struct i2c_driver` on 6.18 (probe one arg, remove void), `struct i2c_client` fields, sysfs name
+  `BUS-ADDR` (`i2c-core-base.c:893`), three ways to instantiate a client (DT child / `new_device` / `i2c_new_client_device`);
+  `new_device`/`delete_device`; `/dev/i2c-N` major 89; BusyBox `i2cdetect/i2cget/i2cset/i2cdump` (`-y`, `w`/`b`, `-f`),
+  `--`/number/`UU`, `EBUSY` from `i2c-dev.c:414–415`; `i2c-stub` (`chip_addr`, `depends on m`, `u16 words[256]`, byte read =
+  low byte, returns `-ENODEV` for an empty address); DT children of a bus (`#address-cells = <1>`, `#size-cells = <0>`,
+  `reg` = 7-bit address or CS, `spi-max-frequency`), "i2c-core, not the platform bus, creates the child", `of_i2c: invalid
+  reg`; `struct i2c_adapter` + `i2c_algorithm` (`smbus_xfer`, `functionality`), `adap.dev.of_node`, `devm_i2c_add_adapter`;
+  removing an adapter removes its clients but not the client drivers; SPI full duplex / `spi_transfer` / `spi_message` /
+  `spi_sync` / `spi_sync_transfer` / `spi_write_then_read` / `spi_w8r8`, SPI modes CPOL/CPHA and `spi-cpha`/`spi-cpol`;
+  `struct spi_controller` + `transfer_one`, `devm_spi_alloc_host`, `devm_spi_register_controller`; `spi_match_device` order
+  (`spi.c:370`) and `has no spi_device_id` warning (`spi.c:511`), SPI `modalias` = `spi:<name>`; `spidev` major 153,
+  `/dev/spidevB.C`, the "never `compatible = "spidev"`" rule (`spidev_of_check`, `spidev.c:711`), `spidev_test` (`-D -s -H -p -v`);
+  `tmp102` as a real hwmon driver (config check R1:R0, extended mode → 50 000 on a dumb model).
+- **Lesson 58 deliberately does NOT teach:** `regmap` (named only via `tmp102` using it); 10-bit addresses; I2C mux; SMBus
+  alert / PEC / Host Notify; I2C slave mode; `i2c_transfer` hands-on (table row only); `spi_async`; SPI DMA; QSPI/dual/quad
+  (`SPI_TX_OCTAL` only as a build error); IIO subsystem; hwmon API for your own driver (`ltemp` exports a private sysfs file);
+  `i2c-gpio` hands-on (warn callout only). **Does not touch the lesson 51 oops debt.**
+- **Findings a later lesson could trip over:** (1) `i2c-gpio` on `gpio-sim` lines builds a real bit-banged bus (`using lines 520
+  (SDA) and 521 (SCL)`, `Slow GPIO pins might wreak havoc` because gpio-sim sets `can_sleep`) but nothing ACKs: `i2cdetect` over
+  16 addresses took **13.3 s** and showed only `--`; with SDA pull-down `i2c_algo_bit.bit_test=1` prints `bus seems to be busy
+  (scl=1, sda=0)`. A slave emulator would be needed. (2) `i2c-stub` stores words; `i2cset … w 0x0019` makes the "chip" send
+  0x19 0x00, which is what a TMP102 at 25 °C sends. (3) `tmp102` writes EM + TM into the config register in `probe`
+  (`0xa060` → `0xb062` as SMBus words) and then reads 13-bit format, so a model that does not reformat reads **50 000** for a
+  25 °C 12-bit value — on both `i2c-stub` and `i2csim`. (4) `dtc` 1.5.0 warns `unit_address_vs_reg` for a top-level
+  `i2c@c000000` without `reg`; the lesson's nodes are named `i2c-sim`/`spi-loop` to avoid it. (5) `spidev_test.c` needs
+  `-I ~/bai38/linux-6.18.45/include/uapi` (else `SPI_TX_OCTAL` undeclared — cross headers are 5.4) and then prints one
+  `#warning "Attempt to use kernel headers from user space"`. (6) `compatible = "spidev"` alone → `modalias spi:spidev`, no
+  probe, no log, no node; with a real chip first → `spidev listed directly in DT is not supported` + `error -22`. (7) The
+  verification driver `bin/run.sh` (feed a command file into `qemu … -nographic` with 0.7 s per line) left `\e[6n` after
+  each prompt; strip with `sed 's/\x1b\[6n//g'`.
+
 - Module 06 splits ownership the same way module 05 does — keep it that way:
   lesson 33 is **the bootloader's job, proved on QEMU's own stub** (the four mandatory
   duties, SPL/TPL, the ARM64 boot protocol, the 64-byte `Image` header, the handover
@@ -987,6 +1240,44 @@
   (`docs/environment.md`, 2026-08-29). Do not build a lesson, a quiz or an exercise on it.
 - **Lesson 27's build tree `~/embedded/bai27` is gone.** Unlike `~/bai38/linux-6.18.45` and
   `~/bai40/modroot*`, nothing depends on it; anything re-verifying Bài 27 rebuilds fresh.
+
+### Chặng 11 — Build system
+
+- **Lesson 59 (`Vì sao cần build system`, written 2026-09-30, machine B) opens Chặng 11.** Working dir `~/bai59`: `dl/`
+  (BusyBox 1.38.0 tarball + `.sha256`, **copied from `~/bai47`** because `busybox.net` answered **401** through the machine-B
+  proxy all evening), `pristine.config`, `one/`, `two/` (two full BusyBox trees), `pack/` (`a`, `b`), `mini/` (the 47-line
+  Makefile project), `other/` (a copy of `mini`). **~190 MB, disposable** — Bài 60 reads nothing from it. The lesson tells
+  the learner they may keep `~/bai59/mini` after `make clean` (2.7 MB) as a reference. **It writes nothing into
+  `~/bai38`**: step 1 runs `defconfig` with `KCONFIG_CONFIG=$HOME/bai59/pristine.config`, and `.config` md5 stays
+  `1ebe385ae54674dd43034ea6006ad670` (verified with a `find -newer` marker: nothing in the tree changed).
+- **Lesson 59 owns, and Bài 60–62 must not re-teach as new:** the three problems (reproducibility, dependency, long-term
+  maintenance) and the "cooking from memory vs written recipe" analogy; the five leak sources table (clock, TZ/locale,
+  filesystem, machine identity, toolchain); `KBUILD_BUILD_USER/HOST/VERSION/TIMESTAMP` (named, grep shown at
+  `scripts/mkcompile_h:8–16`, `init/Makefile:32–33`; **not** exercised — no kernel rebuild) and why `Image` holds two
+  `Linux version` strings (`version.c` with `utsversion-tmp.h` vs `version-timestamp.c`, `init/Makefile:44–62`);
+  `KCONFIG_CONFIG=` + `scripts/diffconfig` (5 lines vs defconfig: `GPIO_SIM`, `I2C_STUB`, `LOCALVERSION`, `+DEV_SYNC_PROBE`,
+  `+IRQ_SIM`); `SOURCE_DATE_EPOCH` (BusyBox `scripts/kconfig/confdata.c:384`, `AUTOCONF_TIMESTAMP` →
+  `libbb/messages.c:11`); the `TZ` leak; `cmp -l`, `grep -abo`, `readelf -n` Build ID arithmetic; cpio `newc` header fields
+  read by hand; `touch -h -d @EPOCH`, `LC_ALL=C sort`, `cpio --reproducible --owner=0:0`, `gzip -n`; the four-column ablation;
+  stamps (`.stamp_extracted`, `.stamp_rootfs` — named after Buildroot's); `build/` vs `out/` (≈ Buildroot `output/build` /
+  `output/images`); "rebuild rootfs from scratch, never patch it"; check → delete → stamp-last ordering; the **undeclared
+  dependency** lesson (edit `EPOCH` in the Makefile → `Nothing to be done`, rc 0, stale product; fix = add `Makefile` as a
+  prerequisite of `build/.stamp_extracted` — verified, shown only in a callout).
+- **Lesson 59 deliberately does NOT:** build the kernel reproducibly (named only; would replace the shared `Image`);
+  use `-ffile-prefix-map`, `diffoscope` or `strip-nondeterminism` (neither installed on machine B); fetch Buildroot or show
+  its source (github raw and gitlab both returned 401 through the proxy) — every Buildroot/Yocto claim is in a comparison
+  table or a forward pointer to Bài 60–62. **Bài 60 should confirm on disk** that Buildroot really names its stamps
+  `.stamp_extracted` etc. and really creates `output/build`, `output/images`, `target/` — lesson 59 promises it will.
+- **Lesson 59's `Bài tiếp theo` promises Bài 60:** Buildroot builds its own ARM64 toolchain (the fifth leak), then kernel +
+  BusyBox + rootfs from one `defconfig` and one `make`; the learner finds the same stamp names in `output/build/`; measure
+  first-build time and disk usage; boot the Buildroot image in QEMU and compare with lesson 59's **1 156 KiB** rootfs.
+- **Findings a later lesson could trip over:** (1) **BusyBox Kconfig leaks `TZ` even with `SOURCE_DATE_EPOCH` set**:
+  `confdata.c:387` calls `gmtime()`, then `:404` calls `ctime()`, which overwrites the shared static `struct tm`, so
+  `AUTOCONF_TIMESTAMP` is written in local time. Same epoch: `+07` → sha256 `da878811…`, `TZ=UTC` → `b9613970…`.
+  (2) Exporting `SOURCE_DATE_EPOCH` and re-running `make` in an already-built BusyBox tree changes nothing — the timestamp
+  is baked in at config time; needs `distclean` + `defconfig`. (3) Without `sort`, two copies on the same ext4 packed
+  identically; a copy on tmpfs (`/dev/shm`) did not — the order leak only shows when the filesystem changes. Two command-running gotchas from this session
+  (a `bash -lc` hang, `grep` swallowing binary output) are in `docs/running-commands.md`.
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 

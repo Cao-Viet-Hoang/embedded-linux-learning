@@ -432,9 +432,15 @@ Cài thêm khi tới chặng tương ứng:
 | 51 | Luật chơi trong kernel space | 🟡 Bản tạm — phần thực hành về con trỏ sai (oops) chưa có, sẽ làm lại |
 | 52 | Character device driver | ✅ Đã có |
 | 53 | Giao tiếp user ↔ kernel | ✅ Đã có |
-| 54 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 54 | Platform driver và Device Tree | ✅ Đã có |
+| 55 | Ngắt và xử lý trễ | ✅ Đã có |
+| 56 | Truy cập phần cứng: MMIO và đồng bộ | ✅ Đã có |
+| 57 | Đọc datasheet và GPIO hiện đại | ✅ Đã có |
+| 58 | Driver cho bus I2C và SPI | ✅ Đã có |
+| 59 | Vì sao cần build system | ✅ Đã có |
+| 60 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 9 đã hoàn tất, Chặng 10 đã mở (53 / 70 bài).** Bài kế tiếp sẽ viết: Bài 54 — *Platform driver và Device Tree*. Bài 51 cần được hoàn thiện lại (xem §10).
+**Chặng 0 đến Chặng 10 đã hoàn tất, Chặng 11 đã có bài đầu (59 / 70 bài).** Bài kế tiếp sẽ viết: Bài 60 — *Buildroot từ đầu đến cuối*. Bài 51 cần được hoàn thiện lại (xem §10).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -492,3 +498,5 @@ không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và b�
 - **Không thêm bài Git** theo yêu cầu — giả định người học đã biết. Các thao tác patch (`git am`, `patch -p1`) và `git bisect` vẫn xuất hiện tại chỗ cần dùng: bài 34, 61, 64.
 
 **2026-09-29 — Bài 51 là bản tạm.** Phiên viết Bài 51 bị gián đoạn hai lần vì lý do không rõ. Bài được đăng ở dạng tạm: phần lý thuyết đầy đủ, sáu bước thực hành đều đã kiểm chứng trên máy B, nhưng phần "hậu quả của một con trỏ sai" chỉ có giải thích bằng lời (chưa có bước thực hành gây oops), và `copy_to_user` chỉ có lý thuyết. Phạm vi của dòng Bài 51 trong §4 không đổi; bài sẽ được làm lại cho đủ.
+
+**2026-09-30 — Bài 58: đổi cách thực hành, phạm vi giữ nguyên.** Dòng Bài 58 ở §4 hẹn thực hành bằng "machine `raspi3b`". Khi kiểm chứng trên QEMU 4.2.1 (bản của Ubuntu 20.04): tên `raspi3b` không tồn tại (bản này gọi là `raspi3`), và khối I2C của `raspi3` chỉ là vùng MMIO giữ chỗ — `-device tmp105` báo `No 'i2c-bus' bus found` y như `virt`. Bài 58 vì thế thay machine Raspberry Pi bằng hai driver bus giả tự viết (`i2csim` — adapter I2C khai trong Device Tree, và `spiloop` — controller SPI nối MOSI với MISO), bên cạnh `i2c-stub` của kernel. Nội dung cốt lõi của dòng §4 không đổi; bài giải thích thay đổi này ở mục "Thực hành khi máy ảo không có bus".

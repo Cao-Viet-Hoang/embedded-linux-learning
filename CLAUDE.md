@@ -311,7 +311,7 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00 through 07 are complete**: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 10 are complete** (08, 09 and 10 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
@@ -417,10 +417,72 @@ cross-references. Guard against a repeat:
   wrong with `-DDEBUG` (121 µs) and right without (2.4 µs, 17–29× faster). Continuity facts:
   `docs/course-notes.md`; numbers: `docs/environment.md`. **Keep `~/bai53` (7.3M)** — Bài 54 converts it to a
   platform driver. `~/bai52` may now be deleted.
-- Next lesson to write, when asked: lesson 54, `Platform driver và Device Tree` — bind to lesson 45's
-  `learn,temp-sensor` node at `0xb000000`, `of_*`, `devm_*`, deferred probe. Redoing lesson 51 (the oops step)
-  is still pending — ask the user which comes first.
-- `node tools/check.js` → `14 modules · 70 lessons · 53 written · 27 bài tập` · `OK`.
+- **Lesson 54 `Platform driver và Device Tree` (written 2026-09-30, machine B)** delivered lesson 53's promise:
+  a 245-line `tsensor` platform driver for `learn,temp-sensor`, on a fresh `board.dts` (= QEMU dump + `gpio0:`
+  label + `nodes.dts`: a `gpio-delay` supplier, `sensor@b000000` okay, `b001000` disabled, `b002000` missing the
+  required property, `b003000` needing `enable-gpios` from the supplier). One `insmod` → three `probe()` calls
+  (accept / `-EINVAL` / defer); `of_property_read_*` required/optional/malformed (`-EOVERFLOW` via a `fdtput`-made
+  `short.dtb`); devres stack seen in `dev_dbg` on `unbind` and `rmmod`; `-EPROBE_DEFER` shown **two ways** —
+  `tsensor: enable gpio` (after the 10 s `deferred_probe_timeout`) and `platform: supplier gpio-delay not ready`
+  (fw_devlink, before it / with `deferred_probe_timeout=600`) — cleared by `insmod gpio-aggregator.ko`; a
+  `leaky.ko` vs `tidy.ko` leak measured over 1 000 `unbind`/`bind` (`kmalloc-2k` 80 → 1 080, `SUnreclaim`
+  +2 048 kB, unchanged by `rmmod`; `tidy` +0). Continuity facts: `docs/course-notes.md`; numbers:
+  `docs/environment.md`. **Keep `~/bai54` (5.5M)**; `~/bai53` may now be deleted.
+- **Lesson 55 `Ngắt và xử lý trễ` (written 2026-09-30, machine B)** delivered lesson 54's promise: a 145-line
+  `talarm` platform driver for `learn,temp-alarm` on `alarm.dts` (= `/include/ "../bai54/board.dts"` + PL061 made an
+  `interrupt-controller` with 2 cells + `/delete-node/ gpio-keys` + `alarm@b004000` with `interrupts = <3 1>`). The
+  interrupt is fired from the QEMU monitor with **`system_powerdown`** (the `virt` power button sits on PL061 pin 3).
+  One `devm_request_threaded_irq` → top half + tasklet + workqueue + IRQ thread, each printing `preempt_count`/
+  `in_hardirq`/`in_serving_softirq`/`in_task`; IRQ **21** (`hwirq` 3), PL061's own chained IRQ **14** (`hwirq` 39,
+  hidden from `/proc/interrupts`); `dump_stack` call trace GIC → PL061 → `handle_edge_irq` → `ta_top`; `msleep` in a
+  tasklet → `BUG: scheduling while atomic` → panic; `handler=NULL` without/with `IRQF_ONESHOT`. Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai55` (6.3M) is disposable** — lesson 56 reads nothing
+  from it; `~/bai54` is still read by it and must be kept until lesson 55 is done.
+- **Lesson 56 `Truy cập phần cứng: MMIO và đồng bộ` (written 2026-09-30, machine B)** delivered lesson 55's promise and
+  is the M8 milestone driver. Every QEMU run uses **`-smp 2`** (first lesson to do so). Step 1 reads PL061 registers with
+  BusyBox **`devmem`** (PeriphID `0x041061`, `Bus error` rc 135 at `0x0b000000`, `mmap: Operation not permitted` on RAM —
+  `STRICT_DEVMEM=y`). Step 2 is a 92-line `race.ko` (two kthreads bound to two CPUs, `module_param mode`): plain counter
+  loses **761 681–955 138** of 2 000 000 with `-smp 2`, **0** with `-smp 1`; `atomic_t` / spinlock / mutex **121 / 257 /
+  393 ms** vs 21 ms. Steps 3–6 are a 270-line **`vgpio`** driver that takes over the real PL061 by overriding its
+  `compatible` to `learn,vgpio` (+ `/delete-node/ gpio-keys`) in a fresh `-smp 2` dump: `devm_platform_ioremap_resource`,
+  `readl`/`writel` (12 `dmb oshst` + 6 `dmb oshld` in `objdump`), sysfs `leds`/`pins`/`presses`, `misc_register` →
+  `/dev/vgpio` **10, 258**, ioctl `0x800c7810`/`0x40047811`, IRQ **20** = GIC 39 level; then three breakages — missing
+  `irqsave` (CPU0 stuck in `queued_spin_lock_slowpath`, RCU stall in 5/13 runs), missing `GPIOIC` clear (interrupt storm,
+  2 347 067 after one press), and `-EBUSY` from a second node on the same range. Continuity facts: `docs/course-notes.md`;
+  numbers: `docs/environment.md`. **Keep `~/bai56/vgpio`, `app/`, `virt.dts`, `vgpio.dts`** — the lesson tells the learner
+  Bài 57 maps the PL061 datasheet onto `vgpio.c`. `~/bai54` and `~/bai55` may now be deleted.
+- **Lesson 57 `Đọc datasheet và GPIO hiện đại` (written 2026-09-30, machine B)** delivered lesson 56's promise: the real PL061
+  TRM (**ARM DDI 0190B**, 68 pages) fetched, checked with `pdfinfo`, turned into 2 542 lines with `pdftotext -layout` and
+  `grep`ped; register map / reset value / bit fields mapped line by line onto `vgpio.c`; six datasheet claims confirmed with
+  `devmem` on an undriven PL061 (`vgpio.dtb`, no module) — including the **Table 3-3 typo** and the address-mask examples
+  (0x22, 0x31). Then `gpio_chip`, GPIO chardev (major 254) vs obsolete sysfs (`GPIO_SYSFS` absent), **libgpiod 2.2.5** built
+  static for ARM64, **`CONFIG_GPIO_SIM=m` enabled in `~/bai38`** (Image rebuilt, 32 s), a configfs `gpio-sim` board, a
+  63-line libgpiod v2 `button.c`, and a 143-line `vgchip` gpio_chip driver whose `-DVALUE_BEFORE_DIR_ONLY` variant loses the
+  first write ("only affects the pins that are configured as outputs"). Continuity facts: `docs/course-notes.md`; numbers:
+  `docs/environment.md`. **`~/bai57` (~27M) is disposable**; `~/bai56` may now be deleted.
+- **Lesson 58 `Driver cho bus I2C và SPI` (written 2026-09-30, machine B) closes `Chặng 10`.** QEMU 4.2.1 has no usable
+  I2C bus on `virt` **or** `raspi3` (`raspi3b` does not exist; `bcm2835-i2c*` are unimplemented placeholders), so the
+  roadmap's "machine `raspi3b`" was replaced by two self-written simulated bus drivers — `i2csim` (127-line I2C adapter declared
+  in DT) and `spiloop` (63-line SPI controller, MOSI→MISO) — next to the kernel's `i2c-stub`; logged in `LO-TRINH.md` §10.
+  Steps: prove no bus → `CONFIG_I2C_STUB=m` (**enabled in `~/bai38`**, Image rebuilt 29.5 s) + BusyBox i2c-tools → 125-line
+  `ltemp` I2C client via `new_device` (25 000 mdeg, `UU`, `EBUSY`) → four failures (old two-arg `probe`, no swap → **62**,
+  duplicate `-16`, empty address) + real `tmp102` (50 000 on a dumb model) → DT children on `i2csim` (`-ENXIO`, missing `reg`)
+  → `spiloop` + 64-line `lspi` (full duplex `9f 01 02 03` vs write_then_read `ff ff ff`) + `spidev`/`spidev_test` and the
+  `compatible = "spidev"` trap. Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai58` (8.8M)
+  is disposable**; `~/bai57` may now be deleted.
+- **Lesson 59 `Vì sao cần build system` (written 2026-09-30, machine B) opens `Chặng 11`.** No kernel build and nothing
+  written into `~/bai38` (`defconfig` goes to `KCONFIG_CONFIG=~/bai59/pristine.config`; `.config` md5 unchanged
+  `1ebe385a…`). Steps: inventory (`Linux version` string of `Image`, `scripts/diffconfig` → 5 lines) → BusyBox built twice
+  differs in **22** bytes (20 Build ID + 2 seconds digits) → `SOURCE_DATE_EPOCH` fixes it but **`TZ` still leaks** through
+  `ctime()` in BusyBox Kconfig → cpio/gzip leaks (1 245 bytes; four-flag ablation incl. a tmpfs copy) → a **47-line
+  Makefile** with two stamps producing `out/rootfs.cpio.gz` sha256 `0f346fda…` → overlay/config edits, other dir + other
+  `TZ` (same hash), truncated tarball (rc 2), and the **undeclared-dependency** trap (edit `EPOCH` → `Nothing to be done`)
+  → QEMU boot. `busybox.net` returned 401 through the proxy, so the tarball came from `~/bai47`. Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai59` (~190M) is disposable.**
+- Next lesson to write, when asked: lesson 60, `Buildroot từ đầu đến cuối`. It needs network access to
+  `buildroot.org` / its mirrors and several GB of disk — pre-flight both. Redoing lesson 51 (the oops step) is still
+  pending — ask the user which comes first.
+- `node tools/check.js` → `14 modules · 70 lessons · 59 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

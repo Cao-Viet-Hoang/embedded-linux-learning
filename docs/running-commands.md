@@ -242,10 +242,33 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   anchor became something else, `indexOf` returned `-1`, and the insert landed at the **top** of
   `docs/environment.md` with `ok` printed. Markdown is full of backticks: **never put doc text in
   `node -e`** — write a `.js` file with `Write` and run it.
-- **The docs do not share one line ending.** `docs/course-notes.md` is **CRLF**; `CLAUDE.md`,
-  `docs/environment.md` and the lessons are LF. A Node `s.includes("…\n")` match against the CRLF
-  file fails even when the text is visibly there. Check with `file <path>` first, or use the
-  `Edit` tool, which copes with either.
+- **Typing into the QEMU monitor from a script (lesson 55, 2026-09-30).** A guest command list piped into
+  `qemu-system-aarch64 -nographic` can also reach the `(qemu)` monitor: emit `printf '\001c'` (Ctrl-A C), wait
+  ~0.5 s, print the monitor command, wait, emit `\001c` again. Lesson 55 used a small feeder (`bin/feed.sh`: lines
+  `@sleep N` pause, `@mon CMD` wrap in Ctrl-A C, anything else goes to the guest shell with a 0.6 s gap) to fire
+  `system_powerdown`. The monitor redraws the line after **every** typed character with ANSI escapes, so the raw log
+  contains `(qemu) s\e[K\e[Dsy\e[K…`; strip with `sed 's/\x1b\[[0-9;]*[A-Za-z]//g'` and say in the lesson's `notes`
+  that the capture was filtered. A guest that panics keeps QEMU alive — wrap the run in `timeout` (rc 124 is expected
+  then). Inside `wsl -d OSD -- bash -c '… for f in …; do … $f …'` the `$f` is emptied by the outer shell (same gotcha
+  as above) — loop on the Git Bash side instead.
+- **The docs do not share one line ending, and which file is CRLF depends on the checkout.** On
+  machine A `docs/course-notes.md` was CRLF. On machine B (`core.autocrlf=true`, checked
+  2026-09-30 for lesson 57) `course-notes.md`, `CLAUDE.md`, `docs/environment.md` and the lessons
+  are LF and **`docs/running-commands.md` itself is CRLF**. A Node `s.includes("…\n")` match against
+  a CRLF file fails even when the text is visibly there. **Do not trust `grep -c $'\r'` from Git
+  Bash** — it reported a CR on every line of pure-LF files. Count with Node
+  (`(s.match(/\r\n/g)||[]).length`), detect the ending in the script (`s.includes('\r\n')`), or use
+  the `Edit` tool, which copes with either.
+
+- **`wsl -d OSD -- bash -lc` + a network call can hang past the tool timeout (lesson 59, 2026-09-30).** A probe that ran
+  `curl` against hosts the proxy was answering with 401 hung twice for >120 s under `bash -lc` and had to be stopped;
+  the same work under `bash -c`, with `timeout N` in front of `wsl`, returned normally. Use `bash -c` unless you need
+  `~/.profile` (the proxy variables are already in the environment), and always put `timeout` in front of anything that
+  touches the network.
+- **A binary byte in a probe's output makes a trailing `grep -v` print only `Binary file (standard input) matches`** —
+  the whole capture is lost, not just that line (lesson 59: a `dd` of raw bytes). Use `grep -a`, or pipe the binary part
+  through `tr -c '[:print:]' .` first. Redirecting the probe to a log in the distro and `cat -v`-ing it afterwards is the
+  most robust shape.
 
 ### Cleaning up temporary files
 
