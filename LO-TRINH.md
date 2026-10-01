@@ -438,9 +438,10 @@ Cài thêm khi tới chặng tương ứng:
 | 57 | Đọc datasheet và GPIO hiện đại | ✅ Đã có |
 | 58 | Driver cho bus I2C và SPI | ✅ Đã có |
 | 59 | Vì sao cần build system | ✅ Đã có |
-| 60 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 60 | Buildroot từ đầu đến cuối | ✅ Đã có |
+| 61 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 10 đã hoàn tất, Chặng 11 đã có bài đầu (59 / 70 bài).** Bài kế tiếp sẽ viết: Bài 60 — *Buildroot từ đầu đến cuối*. Bài 51 cần được hoàn thiện lại (xem §10).
+**Chặng 0 đến Chặng 10 đã hoàn tất, Chặng 11 đã có hai bài (60 / 70 bài).** Bài kế tiếp sẽ viết: Bài 61 — *Buildroot nâng cao*. Bài 51 cần được hoàn thiện lại (xem §10).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 

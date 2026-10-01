@@ -1278,6 +1278,45 @@
   is baked in at config time; needs `distclean` + `defconfig`. (3) Without `sort`, two copies on the same ext4 packed
   identically; a copy on tmpfs (`/dev/shm`) did not — the order leak only shows when the filesystem changes. Two command-running gotchas from this session
   (a `bash -lc` hang, `grep` swallowing binary output) are in `docs/running-commands.md`.
+- **Lesson 60 (`Buildroot từ đầu đến cuối`, written 2026-10-01, machine B).** Working dir `~/bai60`:
+  `buildroot-2026.02.3.tar.xz` + `.sign`, `arnout.asc`, `.gnupg/` (lesson-only keyring), `buildroot-2026.02.3/`
+  (with `dl/` 1.2 GB and `output/` 15 GB), `logs/`, `.cap/` (a python3 venv holding `pyte`, used only to capture
+  `menuconfig` screens — delete it). **~16 GB. KEEP `~/bai60/buildroot-2026.02.3`** — the lesson tells the learner
+  Bài 61 builds its own package/overlay on this very tree, and that `dl/` + the built toolchain make rebuilds minutes,
+  not 25 min. Nothing from earlier lessons is read (`~/bai38`, `~/bai47` untouched).
+- **Lesson 60 owns, and Bài 61–62 must not re-teach as new:** Buildroot = Makefiles + Kconfig; the top-level tree table
+  (`package/ board/ configs/ support/ boot/ toolchain/ linux/ fs/ system/ docs/ utils/`) with file counts; reading
+  `package/busybox/busybox.mk` lines 1–12 (`_VERSION/_SITE/_SOURCE/_LICENSE`); the LTS idea (`YYYY.02`); `.sign` +
+  `gpg --verify` (clearsign → `not a detached signature` warning) + `grep '^SHA256:' … | cut -d' ' -f2- | sha256sum -c`;
+  the 19-line `qemu_aarch64_virt_defconfig` read line by line; defconfig vs `.config` (5 270 lines, 323 `=y`);
+  menuconfig tour of Target options / Toolchain / System configuration / Kernel / Filesystem images (pty captures,
+  box art stripped, said in `notes`); the WSL **`PATH` contains spaces** failure and the clean-`PATH` fix; `make source`
+  then `make`; `>>>` progress lines; the five `output/` dirs; the stamp chain (`pkg-generic.mk:839–851`) seen on
+  `busybox`, `host-gcc-final`, `linux`; `THIS_IS_NOT_YOUR_ROOT_FILESYSTEM`; `fakeroot` + `busybox.mk:153` (`4755`);
+  `start-qemu.sh` (`--serial-only`, `--use-system-qemu`); `build-time.log` grouping; `.NOTPARALLEL` (Makefile:251);
+  `utils/config` / `utils/diffconfig`; the four rebuild cases (no-op, hostname, enable `dtc`, disable `dtc` → files
+  remain, proven with `debugfs`); `make clean all` keeps `dl/`; `<pkg>-rebuild/-reconfigure/-dirclean` (named only).
+- **Lesson 60 deliberately does NOT:** write a package `.mk`, use an overlay, a post-build script, `patches/`,
+  `savedefconfig`, `BR2_EXTERNAL`, `linux-menuconfig` or `busybox-menuconfig` (all Bài 61); enable `BR2_REPRODUCIBLE`
+  (named in a table only); use an external toolchain (named only — Bài 61 or 67 could); build an initramfs/cpio image
+  (pointed at the menu line only). Bài 61's `Bài tiếp theo` promise from lesson 60: a `.mk` for `temp_daemon`
+  (Bài 24) built with the 14.3.0 toolchain, an overlay, a post-build script, a `patches/` dir, `make savedefconfig`.
+- **Lesson 60 numbers already spent** (machine B, do not re-derive as fresh): tarball **6 059 504 B**, sha256
+  `5a59e750…6fc7fb`; key fingerprint `18C7 DF28 19C1 733D 822D 599E A500 D6EE 9CB0 E540`; tree 89M / 14 911 files /
+  2 786 `Config.in` / 308 defconfigs; `dl/` 48 packages 1.2G; first `make` **24m41.051s** real / 244m47s user;
+  `make clean all` **25m26.218s**; 390 (first) / 402 (rebuild) `>>>` lines; 62 packages, 49 `host-`; output/build 13G,
+  host 1.2G, target 4.4M, images 21M; `Image` 13 236 736 B; `rootfs.ext2` 62 914 560 B nominal / 8.6M on disk;
+  BusyBox 1.37.0 dynamic 817 608 B; `libc.so.6` 1 613 984 B; ld 202 464 B; target kernel `.config` 4 200 lines,
+  1 127 `=y`, 4 `=m`; login prompt **~1.4 s** (QEMU 10.2.0) / **~2.8 s** (`--use-system-qemu`, 4.2.1); guest `used`
+  12 128–12 176 KiB; `df /` 51.1M / 4.1M; group times toolchain 683 s (47 %), host-qemu-only 474 s (32 %), kernel
+  239 s (16 %), BusyBox 10 s; `host-cmake` 239 s (because Ubuntu 20.04 cmake 3.16.3 < 3.18 needed by `host-ninja`).
+- **Findings a later lesson could trip over:** (1) the target kernel has `# CONFIG_PRINTK_TIME is not set`, so the
+  Buildroot boot log has **no `[ x.xxx]` timestamps** — Bài 66 (boot time) must enable it or measure differently.
+  (2) The guest has no `/etc/localtime`, so `ls -l` in the guest shows UTC (05:20) for files WSL shows at 12:20 (+07).
+  (3) `make` with nothing changed still re-runs the 7 finalize/image steps (~6 s); it never prints `Nothing to be done`.
+  (4) The ext4 UUID and kernel build time change on every rebuild; lesson 60 quotes the **rebuild** (`6360fb16…`,
+  `12:19:55`), captures of step 1–3 come from the first build. (5) `dtc` needed no download in step 6 because
+  `host-dtc` (pulled by host-qemu) shares `dl/dtc/dtc-1.7.2.tar.xz`.
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 

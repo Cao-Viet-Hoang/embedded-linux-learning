@@ -311,7 +311,7 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00 through 10 are complete** (08, 09 and 10 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 10 are complete; Chặng 11 has lessons 59–60** (08, 09 and 10 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
@@ -479,10 +479,19 @@ cross-references. Guard against a repeat:
   `TZ` (same hash), truncated tarball (rc 2), and the **undeclared-dependency** trap (edit `EPOCH` → `Nothing to be done`)
   → QEMU boot. `busybox.net` returned 401 through the proxy, so the tarball came from `~/bai47`. Continuity facts:
   `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai59` (~190M) is disposable.**
-- Next lesson to write, when asked: lesson 60, `Buildroot từ đầu đến cuối`. It needs network access to
-  `buildroot.org` / its mirrors and several GB of disk — pre-flight both. Redoing lesson 51 (the oops step) is still
-  pending — ask the user which comes first.
-- `node tools/check.js` → `14 modules · 70 lessons · 59 written · 27 bài tập` · `OK`.
+- **Lesson 60 `Buildroot từ đầu đến cuối` (written 2026-10-01, machine B)** delivered lesson 59's promises with
+  **Buildroot 2026.02.3** (LTS): tarball + `.sign` checked with `gpg --verify` and `sha256sum -c`; tree read (89M,
+  2 786 packages, 308 defconfigs); `qemu_aarch64_virt_defconfig` (19 lines → 5 270-line `.config`) and a menuconfig tour;
+  the WSL **`PATH`-with-spaces** failure fixed with a clean `PATH`; `make source` (needed 56 retries through the proxy) then
+  `make` **24m41s** — own toolchain gcc **14.3.0** + glibc, kernel 6.18.7, BusyBox 1.37.0 (dynamic), host QEMU 10.2.0;
+  `output/` read (stamps `.stamp_extracted` etc. confirmed on disk, as lesson 59 promised); boot via `start-qemu.sh` to
+  `buildroot login:` in ~1.4 s (and with system QEMU 4.2.1); four rebuild cases — disabling `dtc` leaves its files in the
+  image (`debugfs`) → `make clean all` 25m26s. `rsync` and `libncurses-dev` were installed by the user for this lesson.
+  Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **Keep `~/bai60/buildroot-2026.02.3`
+  (~16 GB)** — Bài 61 builds on it; `~/bai60/.cap` (pyte venv) and `~/bai60/logs` are scratch.
+- Next lesson to write, when asked: lesson 61, `Buildroot nâng cao`, on the `~/bai60` tree. Redoing lesson 51 (the oops
+  step) is still pending — ask the user which comes first.
+- `node tools/check.js` → `14 modules · 70 lessons · 60 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

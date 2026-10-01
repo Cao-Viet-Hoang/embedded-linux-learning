@@ -269,6 +269,13 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   the whole capture is lost, not just that line (lesson 59: a `dd` of raw bytes). Use `grep -a`, or pipe the binary part
   through `tr -c '[:print:]' .` first. Redirecting the probe to a log in the distro and `cat -v`-ing it afterwards is the
   most robust shape.
+- **Long Buildroot builds: run in the background with a clean `PATH` and `timeout` above the expected time (lesson 60).**
+  A first `make` took ~25 min on 16 CPUs; run it with `run_in_background` and poll the log for the last `>>>` line
+  (`grep -a '>>>' build.log | tail -n 1`). Do the download separately first (`until make source; do sleep 10; done`)
+  so a flaky proxy cannot kill a half-hour build. Every script must `export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`
+  — the WSL login `PATH` contains `/mnt/c/Program Files/…` and Buildroot refuses to start. A rebuild (`make clean all`)
+  wipes `output/`, so capture every `output/` listing **after** the last build you intend to quote, or timestamps and
+  the ext4 UUID in the lesson will not match each other.
 
 ### Cleaning up temporary files
 
