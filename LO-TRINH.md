@@ -439,9 +439,12 @@ Cài thêm khi tới chặng tương ứng:
 | 58 | Driver cho bus I2C và SPI | ✅ Đã có |
 | 59 | Vì sao cần build system | ✅ Đã có |
 | 60 | Buildroot từ đầu đến cuối | ✅ Đã có |
-| 61 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 61 | Buildroot nâng cao | ✅ Đã có |
+| 62 | Yocto — khái niệm và so sánh | ✅ Đã có |
+| 63 | Debug kernel bằng GDB | ✅ Đã có |
+| 64 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 10 đã hoàn tất, Chặng 11 đã có hai bài (60 / 70 bài).** Bài kế tiếp sẽ viết: Bài 61 — *Buildroot nâng cao*. Bài 51 cần được hoàn thiện lại (xem §10).
+**Chặng 0 đến Chặng 11 đã hoàn tất, Chặng 12 đã có Bài 63 (63 / 70 bài).** Bài kế tiếp sẽ viết: Bài 64 — *Đọc kernel panic và oops*. Bài 51 cần được hoàn thiện lại (xem §10).
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -501,3 +504,5 @@ không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và b�
 **2026-09-29 — Bài 51 là bản tạm.** Phiên viết Bài 51 bị gián đoạn hai lần vì lý do không rõ. Bài được đăng ở dạng tạm: phần lý thuyết đầy đủ, sáu bước thực hành đều đã kiểm chứng trên máy B, nhưng phần "hậu quả của một con trỏ sai" chỉ có giải thích bằng lời (chưa có bước thực hành gây oops), và `copy_to_user` chỉ có lý thuyết. Phạm vi của dòng Bài 51 trong §4 không đổi; bài sẽ được làm lại cho đủ.
 
 **2026-09-30 — Bài 58: đổi cách thực hành, phạm vi giữ nguyên.** Dòng Bài 58 ở §4 hẹn thực hành bằng "machine `raspi3b`". Khi kiểm chứng trên QEMU 4.2.1 (bản của Ubuntu 20.04): tên `raspi3b` không tồn tại (bản này gọi là `raspi3`), và khối I2C của `raspi3` chỉ là vùng MMIO giữ chỗ — `-device tmp105` báo `No 'i2c-bus' bus found` y như `virt`. Bài 58 vì thế thay machine Raspberry Pi bằng hai driver bus giả tự viết (`i2csim` — adapter I2C khai trong Device Tree, và `spiloop` — controller SPI nối MOSI với MISO), bên cạnh `i2c-stub` của kernel. Nội dung cốt lõi của dòng §4 không đổi; bài giải thích thay đổi này ở mục "Thực hành khi máy ảo không có bus".
+
+**2026-10-31 — Bài 63: thêm hai bước cấu hình kernel, phạm vi giữ nguyên.** `defconfig` của arm64 bật `CONFIG_DEBUG_INFO_REDUCED=y`; với nó GDB đọc được số dòng nhưng không có `struct platform_device`, nên không thể `print *pdev` trong `probe()` như dòng Bài 63 ở §4 hẹn. Bài 63 vì thế tắt `DEBUG_INFO_REDUCED`, bật `GDB_SCRIPTS` (để có `lx-symbols` nạp symbol module) và build lại `Image` trong `~/bai38` — lần đổi `.config` đầu tiên từ Bài 58. `Image` không đổi kích thước; `vmlinux` tăng từ 225 MB lên 666 MB. Mọi lần boot trong bài thêm `nokaslr`.

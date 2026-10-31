@@ -1288,7 +1288,7 @@
   (`package/ board/ configs/ support/ boot/ toolchain/ linux/ fs/ system/ docs/ utils/`) with file counts; reading
   `package/busybox/busybox.mk` lines 1–12 (`_VERSION/_SITE/_SOURCE/_LICENSE`); the LTS idea (`YYYY.02`); `.sign` +
   `gpg --verify` (clearsign → `not a detached signature` warning) + `grep '^SHA256:' … | cut -d' ' -f2- | sha256sum -c`;
-  the 19-line `qemu_aarch64_virt_defconfig` read line by line; defconfig vs `.config` (5 270 lines, 323 `=y`);
+  the 18-line `qemu_aarch64_virt_defconfig` (published as "19" until 2026-10-31, fixed in lesson 61's session) read line by line; defconfig vs `.config` (5 270 lines, 323 `=y`);
   menuconfig tour of Target options / Toolchain / System configuration / Kernel / Filesystem images (pty captures,
   box art stripped, said in `notes`); the WSL **`PATH` contains spaces** failure and the clean-`PATH` fix; `make source`
   then `make`; `>>>` progress lines; the five `output/` dirs; the stamp chain (`pkg-generic.mk:839–851`) seen on
@@ -1317,6 +1317,103 @@
   (4) The ext4 UUID and kernel build time change on every rebuild; lesson 60 quotes the **rebuild** (`6360fb16…`,
   `12:19:55`), captures of step 1–3 come from the first build. (5) `dtc` needed no download in step 6 because
   `host-dtc` (pulled by host-qemu) shares `dl/dtc/dtc-1.7.2.tar.xz`.
+- **Lesson 60 defect fixed 2026-10-31:** it called `qemu_aarch64_virt_defconfig` "19 dòng" in nine places; the
+  file has **18** lines (`wc -l`, `awk 'END{print NR}'`, and the pristine copy inside the tarball all agree; the
+  lesson's own code block shows 18). All nine fixed while writing lesson 61, plus `CLAUDE.md` §12.
+- **Lesson 61 (`Buildroot nâng cao`, written 2026-10-31, machine B)** builds on `~/bai60/buildroot-2026.02.3` and
+  leaves it **modified**: `.config` now carries `BR2_EXTERNAL` (remembered in `output/.br2-external.mk`),
+  `BR2_PACKAGE_TEMP_DAEMON=y`, hostname `learn`, overlay, post-build, an extra `BR2_GLOBAL_PATCH_DIR` entry and
+  `BR2_DEFCONFIG="$(BR2_EXTERNAL_LEARN_PATH)/configs/learn_qemu_defconfig"`; `output/images` holds the lesson-61
+  image. `configs/qemu_aarch64_virt_defconfig` was overwritten once on purpose and **restored** (cmp-verified).
+  Working dir `~/bai61`: `upstream/` (`temp-daemon-1.0/` + tarball), `br-ext/` (the br2-external tree LEARN),
+  `work/` (git scratch for the patch), `out/` (the `O=` fresh build, ~15 GB), `logs/`. **Keep `~/bai61/br-ext`
+  and `~/bai61/upstream`** — Bài 62 compares Yocto layers/recipes against them; `~/bai61/out` and `work/` are
+  disposable. `~/bai60` must stay too (`dl/`, toolchain).
+- **Lesson 61 owns, and Bài 62+ must not re-teach as new:** where a change belongs (output/target vs in-tree vs
+  br2-external) + the shared-kitchen analogy; `external.desc`/`Config.in`/`external.mk`, name charset
+  `[A-Za-z0-9_]`, `BR2_EXTERNAL_<NAME>_PATH`, `output/.br2-external.mk`; package anatomy (Config.in with
+  `depends on BR2_TOOLCHAIN_HAS_THREADS` + `comment`, 26-line `generic-package` `.mk` with `_SITE_METHOD = file`,
+  `_BUILD_CMDS`, `_INSTALL_TARGET_CMDS`, `_INSTALL_INIT_SYSV`, `$(@D)`, `$(TARGET_CONFIGURE_OPTS)`, `$(TARGET_DIR)`,
+  `_PKGDIR`), `.hash` with `# Locally computed`; an upstream Makefile honouring `CC/CFLAGS/LDFLAGS/DESTDIR`
+  (16 lines) and a reproducible tarball; `packages-file-list.txt`; strip happens in target-finalize (18 752 →
+  14 120 B); `git format-patch` → `BR2_GLOBAL_PATCH_DIR/<pkg>/`, `apply-patches.sh:119` (`patch -F0 -g0 -p1`),
+  `.applied_patches_list`; reinstall/rebuild/reconfigure/dirclean table; overlay → post-build → image →
+  post-image order; `EXTRA_ENV`; `S60temp_daemon` reading `/etc/default/temp_daemon`; `savedefconfig` +
+  `BR2_DEFCONFIG`; `list-defconfigs`; `make O=… BR2_EXTERNAL=… learn_qemu_defconfig` + `make O=…` (M10).
+- **Lesson 61 deliberately does NOT:** use `autotools-/cmake-package` (named only), `<pkg>_OVERRIDE_SRCDIR` /
+  `local.mk`, `linux-menuconfig`, `busybox-menuconfig`, config fragments, `BR2_REPRODUCIBLE`, users/device tables,
+  `legal-info`, `check-package` (ran clean, not shown), external toolchain, systemd. The `temp_daemon.c` source is
+  Bài 24's 152-line file, unchanged except the lesson's own patch (`argv[1]` port, default 9006).
+- **Lesson 61 numbers already spent** (machine B): tarball sha256 `cdc7160c…22a31ef` (`--mtime=@1700000000
+  --owner=0 --group=0 --sort=name`, reproduced twice), Makefile 306 B, `temp_daemon.c` 5 829 B; `make temp-daemon`
+  **16.0 s**; full `make` with overlay+post-build **16.0 s**, after dirclean 11.9 s; `.config` line of
+  `TEMP_DAEMON` 5282; savedefconfig **22** lines vs 18; daemon PID 107, `temperature=42.8 samples=29` on 9100;
+  post-build without `x` → `Makefile:788: target-finalize] Error 126`. The fresh `O=` build time is in
+  `docs/environment.md`.
+- **Findings a later lesson could trip over:** (1) a missing `.hash` file is only `WARNING: no hash file` even with
+  `BR2_DOWNLOAD_FORCE_CHECK_HASHES=y` (`support/download/check-hash` exits 0 when no hash file exists; the option
+  only drops the `BR_NO_CHECK_HASH_FOR` exemption, `package/pkg-download.mk:119`). (2) A wrong hash makes Buildroot
+  re-fetch from `_SITE`, then try `sources.buildroot.net/<pkg>/` and `sources.buildroot.net/` (both 404), then rc 2.
+  (3) A new patch is **not** applied by `make`, `-rebuild` or `-reconfigure` — only `-dirclean`. (4) Bare
+  `make savedefconfig` after `make qemu_aarch64_virt_defconfig` silently overwrites Buildroot's own defconfig.
+  (5) Buildroot's BusyBox config has **no `nc`** (`# CONFIG_NC is not set`) but has `telnet`/`wget`, and brings `lo`
+  up via `/etc/network/interfaces` — unlike Chặng 09's hand-built rootfs. (6) A defconfig with any name other than
+  one listed in `board/qemu/*/readme.txt` gets **no `start-qemu.sh`**: `board/qemu/post-image.sh` greps the readme for
+  `# <defconfig name>` and `exit 0`s silently. Lesson 61 boots `~/bai61/out` with readme line 3's QEMU command
+  instead. Bài 62+ (or a later Buildroot lesson) wanting `start-qemu.sh` needs its own post-image script.
+- **M10 fresh build (lesson 61 step 6):** `make O=~/bai61/out` from `learn_qemu_defconfig` → `rc=0`, **34m15.297s**
+  real / 314m20s user / 26m32s sys, 409 `>>>` lines, `~/bai61/out` 15G; booted with QEMU 10.2.0 from `out/host`,
+  PID 106, `temperature=44.2 samples=43`, `BUILD_DATE=2026-10-31T05:19:00Z`. Slower than lesson 60's 24m41s partly
+  because steps 4–6 ran concurrently on `output/` — the lesson says so. The br2-external tree ends with **12** files.
+
+- **Lesson 62 (`Yocto — khái niệm và so sánh`, written 2026-10-31, machine B) closes Chặng 11.** Reading level, as the roadmap
+  line demands: **no image is built and nothing boots**. Working dir `~/bai62` (~1 GB, **disposable** — nothing later reads it):
+  `bitbake/`, `openembedded-core/`, `meta-yocto/` (tag `yocto-6.0.4`), `buildtools/` (6.0.3), `debs/` + `hosttools/` (gawk, diffstat
+  extracted with `dpkg-deb -x`), `env.sh`, `build/`, `meta-learn/`. It reads `~/bai61/upstream/temp-daemon-1.0.tar.gz` and
+  `~/bai61/br-ext/patches/temp-daemon/0001-…patch` but writes nothing outside `~/bai62`. After it, `~/bai60` and `~/bai61` may be
+  deleted (the lesson's cleanup callout says so).
+- **Lesson 62 owns, and later lessons must not re-teach as new:** Yocto Project / BitBake / OE-Core / Poky / layer / codename, and
+  the three-repo layout; LTS 6.0 "wrynose" (05/2026 → 04/2030) and 5.0 "scarthgap"; recipe / bbappend / bbclass / conf; the
+  assignment operators `=`, `?=`, `??=`, `+=`, `.=`, `:append`, `:prepend`, `:=`; buildtools + HOSTTOOLS; `oe-init-build-env`,
+  `local.conf` (258 lines, `MACHINE ??=` on line 29), `bblayers.conf`; `bitbake-layers create-layer/add-layer/show-layers/
+  show-recipes/show-appends`; `layer.conf` line by line, `LAYERSERIES_COMPAT` failure; `temp-daemon_1.0.bb` (25 lines: `SRC_URI`
+  with `file://` tarball + patch + init script, `S = ${UNPACKDIR}/…`, `inherit update-rc.d`, `oe_runmake`, `DESTDIR=${D}`);
+  `base-files_%.bbappend` (`FILESEXTRAPATHS:prepend :=`, `hostname`); `learn-image.bb` (12 lines, `require core-image-minimal`,
+  `IMAGE_INSTALL:append`, `ROOTFS_POSTPROCESS_COMMAND`); `bitbake-getvar` history; `-c listtasks` (27 tasks), `-g`, `-n`, `-c unpack`,
+  `tmp/work/<arch>/<pn>/<pv>/`, `temp/log.task_order`; task signatures, `-S none`, `bitbake-diffsigs`, sstate + sstate mirror; the
+  16-row Buildroot ↔ Yocto map and the "when to choose" table.
+- **Lesson 62 deliberately does NOT:** build or boot anything (`bitbake learn-image`, `runqemu` named only); use `devtool`,
+  `recipetool`, `kas`/`repo`, `bitbake -c menuconfig`, `PACKAGECONFIG`, `DISTRO_FEATURES`, multiconfig, SDK/eSDK, `meta-openembedded`,
+  any BSP layer (`meta-imx` named once); install anything with `sudo`. `meta-yocto` is cloned but never added to `bblayers.conf`
+  (DISTRO stays `nodistro`). Bài 63+ may assume the learner can *read* a recipe, not that they have a working Yocto build.
+- **Findings a later lesson could trip over:** (1) `SRC_URI[sha256sum]` is **never checked for `file://`** — a deliberately wrong
+  value still gives `bitbake -c fetch -f` rc 0 (`recommends_checksum` returns `False`, `bitbake/lib/bb/fetch2/__init__.py`); the
+  file checksum goes into the `do_fetch` signature instead. (2) A versioned bbappend (`base-files_3.0.13.bbappend`) is silently
+  fine for `bitbake-layers show-layers` (rc 0) but `bitbake -p` stops with `ERROR: No recipes in default available for:` (rc 1).
+  (3) `bash oe-init-build-env` prints `Error: This script needs to be sourced`, but `./oe-init-build-env` run from inside
+  `openembedded-core/` printed the normal setup banner and left an `openembedded-core/build/` directory behind (deleted during
+  verification) — investigated only that far; the lesson's error table cites the `bash` form. (4) The recipe-QA task
+  `do_recipe_qa` runs *before* `do_fetch`, so a patch change re-signs every task but that one (18 of 19).
+
+### Chặng 12 — Debug, đo đạc, tối ưu
+
+- **Lesson 63 `Debug kernel bằng GDB` (2026-10-31, machine B)** owns: QEMU `-s -S` + `gdb-multiarch vmlinux` on a real kernel;
+  why `DEBUG_INFO_REDUCED` must be off (and turns it off in `~/bai38`, with `GDB_SCRIPTS`); DWARF sections table; `~/.gdbinit`
+  (3 lines: `add-auto-load-safe-path ~/bai38/linux-6.18.45`, `set confirm off`, `set pagination off`); `break`/`next`/`step`/`until`/
+  `finish`/`bt`/`print`/`ptype`/`info args|locals`/`set var`/`rwatch -l`; `lx-dmesg`, `lx-ps`, `lx-lsmod`, `lx-cmdline`, `lx-symbols`,
+  `$lx_current()`; KASLR (`RNDR` on `-cpu max`, `nokaslr`), the "software breakpoint works before MMU on QEMU, use `hbreak` on JTAG"
+  point; `lx-symbols` + pending breakpoint **before** `insmod`; stepping through `ts_probe` of the lesson-54 `tsensor` (copied to
+  `~/bai63/tsensor`, `~/bai54` untouched); `<optimized out>` and three workarounds; `set var` → `cat` prints `99000`; `rwatch` finds
+  `temp_show`. Every QEMU line uses `-cpu cortex-a57` + `nokaslr` except step 4 (`-cpu max`, no `nokaslr`, on purpose).
+- **Lesson 63 deliberately does NOT:** cause an oops or panic (`break panic` is only a safety net) — that is **Bài 64**, which may
+  reuse the full-debug-info `vmlinux` and `~/.gdbinit`; use KGDB/`kgdboc`, JTAG/OpenOCD (named only), `addr2line`/`objdump`/
+  `decode_stacktrace.sh` (Bài 64), ftrace/dynamic debug (Bài 65), `add-symbol-file -o` for KASLR (named only), `CONFIG_DEBUG_INFO_BTF`,
+  `-smp` > 1 (`thread`/`info threads` not taught), `modprobe`. `hbreak` is explained but never run.
+- **State left behind:** `~/bai38/linux-6.18.45/.config` now has `DEBUG_INFO_REDUCED` off, `GDB_SCRIPTS` on, `.version` 6, `vmlinux`
+  666 MB. The `.ko` files under `~/bai38` were **not** rebuilt and still carry reduced debug info; a lesson that needs a full-debug
+  in-tree module must `make modules` first. `~/bai63` is disposable (the lesson says so).
+- **Bài 51 is still owed** a hands-on oops step (see Chặng 10 notes); Bài 64 now covers the same ground in depth, so ask the user
+  whether the Bài 51 redo is still wanted before doing it.
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 

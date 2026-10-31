@@ -311,7 +311,7 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00 through 10 are complete; Chặng 11 has lessons 59–60** (08, 09 and 10 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 11 are complete** (08, 09, 10 and 11 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
@@ -481,7 +481,7 @@ cross-references. Guard against a repeat:
   `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai59` (~190M) is disposable.**
 - **Lesson 60 `Buildroot từ đầu đến cuối` (written 2026-10-01, machine B)** delivered lesson 59's promises with
   **Buildroot 2026.02.3** (LTS): tarball + `.sign` checked with `gpg --verify` and `sha256sum -c`; tree read (89M,
-  2 786 packages, 308 defconfigs); `qemu_aarch64_virt_defconfig` (19 lines → 5 270-line `.config`) and a menuconfig tour;
+  2 786 packages, 308 defconfigs); `qemu_aarch64_virt_defconfig` (18 lines → 5 270-line `.config`) and a menuconfig tour;
   the WSL **`PATH`-with-spaces** failure fixed with a clean `PATH`; `make source` (needed 56 retries through the proxy) then
   `make` **24m41s** — own toolchain gcc **14.3.0** + glibc, kernel 6.18.7, BusyBox 1.37.0 (dynamic), host QEMU 10.2.0;
   `output/` read (stamps `.stamp_extracted` etc. confirmed on disk, as lesson 59 promised); boot via `start-qemu.sh` to
@@ -489,9 +489,38 @@ cross-references. Guard against a repeat:
   image (`debugfs`) → `make clean all` 25m26s. `rsync` and `libncurses-dev` were installed by the user for this lesson.
   Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **Keep `~/bai60/buildroot-2026.02.3`
   (~16 GB)** — Bài 61 builds on it; `~/bai60/.cap` (pyte venv) and `~/bai60/logs` are scratch.
-- Next lesson to write, when asked: lesson 61, `Buildroot nâng cao`, on the `~/bai60` tree. Redoing lesson 51 (the oops
-  step) is still pending — ask the user which comes first.
-- `node tools/check.js` → `14 modules · 70 lessons · 60 written · 27 bài tập` · `OK`.
+- **Lesson 61 `Buildroot nâng cao` (written 2026-10-31, machine B)** delivered lesson 60's promises on the same
+  `~/bai60/buildroot-2026.02.3` tree (rebuilds 12–16 s): a reproducible `temp-daemon-1.0.tar.gz` "upstream" (Bài 24's
+  `temp_daemon.c` + a 16-line Makefile honouring `CC`/`CFLAGS`/`DESTDIR`), a br2-external tree `LEARN` in
+  `~/bai61/br-ext` with a 26-line `generic-package` `.mk`, `Config.in`, `.hash` (missing → only a WARNING; wrong → rc 2
+  after trying `sources.buildroot.net`), `S60temp_daemon`; a `git format-patch` patch in `BR2_GLOBAL_PATCH_DIR`
+  (`make`/`-rebuild`/`-reconfigure` do **not** apply it, only `-dirclean`); overlay + post-build + hostname; QEMU boot with
+  the daemon on port 9100; `savedefconfig` (22 lines; bare `savedefconfig` overwrites Buildroot's own defconfig — shown and
+  restored); and the M10 milestone: `make O=~/bai61/out BR2_EXTERNAL=… learn_qemu_defconfig` + one `make`. It also fixed
+  lesson 60's "19 dòng" (the defconfig has 18). Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`.
+  **Keep `~/bai61/br-ext` and `~/bai61/upstream`** (Bài 62 compares against them) and `~/bai60`; `~/bai61/out` (~15 GB)
+  and `~/bai61/work` are disposable.
+- **Lesson 62 `Yocto — khái niệm và so sánh` (written 2026-10-31, machine B) closes `Chặng 11`.** Reading level: **no image is
+  built, nothing boots** (Yocto 6.0 docs: 32 GB RAM / 140 GB minimum; machine B has 15.4 GiB and Ubuntu 20.04 is unsupported).
+  Yocto **6.0.4 "wrynose"** from three repos (`poky` has no wrynose branch); BitBake 2.18 needs Python 3.9 → **buildtools 6.0.3**
+  (Python 3.14.6, GCC 15.3.0, no sudo) + `gawk`/`diffstat` extracted from `.deb`; layer `meta-learn` with `temp-daemon_1.0.bb`
+  (lesson 61's tarball + patch), `base-files_%.bbappend`, `learn-image.bb`; measured with `bitbake -g` (316 recipes), `-n` (5 150
+  tasks), `-c unpack` (the only real task run) and `-S none` + `bitbake-diffsigs` (0 / 11 / 18 new signatures). Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai60`, `~/bai61`, `~/bai62` were deleted on 2026-10-31**
+  (~32 GB freed, disk use 65 G → 35 G) at the user's request, before lesson 63.
+- **Lesson 63 `Debug kernel bằng GDB` (written 2026-10-31, machine B) opens `Chặng 12`.** It **reconfigured `~/bai38`**:
+  `DEBUG_INFO_REDUCED` off + `GDB_SCRIPTS` on (`scripts/diffconfig` 3 lines), `make Image scripts_gdb` 6m17s, `.version` 6,
+  `vmlinux` 225 → **666 MB**, `Image` unchanged — every `vmlinux` size in lessons 40–62 no longer matches the tree (do not
+  "correct" those lessons). Steps: measure `No struct type named platform_device` → rebuild → `~/.gdbinit` (3 lines) → `break
+  start_kernel` (software bp works on QEMU before MMU on), `next`, `init_task`, `do_one_initcall`, `run_init_process`,
+  `$lx_current()`, `lx-dmesg`/`lx-ps` → `-cpu max` without `nokaslr` = `KASLR enabled`, breakpoint silently missed → `lx-symbols`
+  + pending bp, `insmod` → step through `ts_probe` of a copy of lesson 54's `tsensor` → `<optimized out>`, `set var` (99000),
+  `rwatch -l` finds `temp_show`. Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai63` (~6M) is
+  disposable**; the `.ko` files inside `~/bai38` were not rebuilt. During verification a `~/.gdbinit` was created and removed
+  again — the machine has **no** `~/.gdbinit`; the lesson tells the learner to create one.
+- Next lesson to write, when asked: lesson 64, `Đọc kernel panic và oops`. Redoing lesson 51 (the oops step) is still pending
+  and now overlaps lesson 64 — ask the user which comes first, and whether the redo is still wanted.
+- `node tools/check.js` → `14 modules · 70 lessons · 63 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

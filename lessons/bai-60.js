@@ -7,7 +7,7 @@
    - Bước 1: kiểm tra công cụ (thiếu rsync; cài thêm libncurses-dev), tải tarball 6 059 504 B + .sign,
      gpg --verify (Good signature, Arnout Vandecappelle, 18C7 DF28 … 9CB0 E540) + sha256sum -c; cây nguồn
      89M, 14 911 file, 2 786 package, 308 defconfig; readme.txt của board/qemu/aarch64-virt.
-   - Bước 2: make qemu_aarch64_virt_defconfig (19 dòng → .config 5 270 dòng, 323 =y); vòng menuconfig
+   - Bước 2: make qemu_aarch64_virt_defconfig (18 dòng → .config 5 270 dòng, 323 =y); vòng menuconfig
      (màn hình chụp qua pty, đã bỏ khung ncurses).
    - Bước 3: lỗi "Your PATH contains spaces" (26 thư mục Windows) → PATH sạch; make source (48 package,
      1,2 GB, 56 lần chạy lại vì proxy 401); make 24m41s real / 244m47s user, 390 dòng >>>, 62 package.
@@ -200,7 +200,7 @@ Lesson.register({
       '<code>.config</code> là cấu hình <b>đầy đủ</b> — mọi symbol, kể cả những symbol nhận giá trị mặc định; ' +
       '<code>defconfig</code> là cấu hình <b>tối thiểu</b> — chỉ những dòng khác mặc định. Chỉ có tiền tố đổi: ' +
       'kernel viết <code>CONFIG_…</code>, Buildroot viết <code>BR2_…</code>. Một defconfig có thể ngắn đến kinh ' +
-      'ngạc. Đây là toàn bộ <code>configs/qemu_aarch64_virt_defconfig</code> — <b>19</b> dòng mô tả một hệ thống ' +
+      'ngạc. Đây là toàn bộ <code>configs/qemu_aarch64_virt_defconfig</code> — <b>18</b> dòng mô tả một hệ thống ' +
       'Linux ARM64 hoàn chỉnh:' },
 
     { t: 'code', where: 'out', nocopy: true, name: 'configs/qemu_aarch64_virt_defconfig', code:
@@ -239,7 +239,7 @@ Lesson.register({
       ] },
 
     { t: 'p', x:
-      'Những gì <b>không</b> có trong 19 dòng cũng quan trọng không kém: không có dòng nào nói về toolchain, ' +
+      'Những gì <b>không</b> có trong 18 dòng cũng quan trọng không kém: không có dòng nào nói về toolchain, ' +
       'BusyBox, thư viện C hay init. Tất cả nhận giá trị mặc định. Sau <code>make qemu_aarch64_virt_defconfig</code>, ' +
       'file <code>.config</code> được bung ra thành <b>5 270</b> dòng với <b>323</b> symbol <code>=y</code>, và trong ' +
       'đó có những quyết định mặc định sau:' },
@@ -273,7 +273,7 @@ Lesson.register({
 
     { t: 'cal', kind: 'why', title: 'Vì sao defconfig, không phải .config, mới là thứ đưa vào Git',
       x: 'Bài 39 đã chứng minh: <code>defconfig</code> cộng với <code>olddefconfig</code> dựng lại đúng ' +
-         '<code>.config</code> từng byte. File 19 dòng thì đọc được, review được, <code>git diff</code> được; file ' +
+         '<code>.config</code> từng byte. File 18 dòng thì đọc được, review được, <code>git diff</code> được; file ' +
          '5 270 dòng thì không. Và khi bạn nâng lên một bản Buildroot mới, những symbol mặc định mới xuất hiện tự ' +
          'nhiên, thay vì bị một <code>.config</code> cũ chặn lại. Bài 61 dùng <code>make savedefconfig</code> để ' +
          'lưu cấu hình của chính bạn theo cách này.' },
@@ -566,7 +566,7 @@ Lesson.register({
             'Bạn vừa đếm đúng những con số phần lý thuyết đã nêu: <b>89 MB</b>, <b>14 911</b> file, <b>2 786</b> package ' +
             'có menu riêng (số thư mục trong <code>package/</code> nhiều hơn một chút vì có thư mục chỉ chứa hạ tầng ' +
             'dùng chung), <b>308</b> defconfig. Ba defconfig cuối là ba cách dùng QEMU cho ARM64; <code>virt</code> là ' +
-            'máy bạn đã dùng từ Bài 30, nên bài chọn nó. Đọc nó trước khi dùng — bạn đã thấy toàn văn 19 dòng ở phần lý ' +
+            'máy bạn đã dùng từ Bài 30, nên bài chọn nó. Đọc nó trước khi dùng — bạn đã thấy toàn văn 18 dòng ở phần lý ' +
             'thuyết; ở đây xem file hướng dẫn đi kèm trong <code>board/</code>:' },
 
           { t: 'code', where: 'wsl', code:
@@ -591,7 +591,7 @@ Lesson.register({
       { title: 'Bước 2 — Nạp defconfig và đi một vòng menuconfig',
         blocks: [
           { t: 'p', x:
-            'Nạp defconfig. Lệnh này biên dịch công cụ Kconfig của Buildroot (lần đầu) rồi bung 19 dòng thành ' +
+            'Nạp defconfig. Lệnh này biên dịch công cụ Kconfig của Buildroot (lần đầu) rồi bung 18 dòng thành ' +
             '<code>.config</code> đầy đủ:' },
 
           { t: 'code', where: 'wsl', code:
@@ -609,7 +609,7 @@ Lesson.register({
             'build' },
 
           { t: 'p', x:
-            '<b>5 270</b> dòng, <b>323</b> symbol bật — từ 19 dòng đầu vào. Thư mục <code>output/</code> đã xuất hiện ' +
+            '<b>5 270</b> dòng, <b>323</b> symbol bật — từ 18 dòng đầu vào. Thư mục <code>output/</code> đã xuất hiện ' +
             'nhưng mới chỉ có <code>build/buildroot-config</code>, nơi chứa chương trình <code>conf</code> vừa được ' +
             'biên dịch. Mọi thứ khác sẽ đến ở bước 3.' },
 
@@ -1501,7 +1501,7 @@ Lesson.register({
     { t: 'recap', items: [
       '<b>Buildroot</b> là một bộ Makefile cộng Kconfig: mỗi package một file <code>.mk</code> + <code>Config.in</code> + <code>.hash</code>, mọi lựa chọn là một symbol <code>BR2_…</code>. Bản <b>2026.02.3</b> (LTS) nặng <b>6 059 504 B</b>, giải nén ra <b>89 MB</b>, <b>2 786</b> package, <b>308</b> defconfig.',
       'Kiểm tra bản tải về bằng hai bước: <code>gpg --verify</code> chứng minh dòng checksum là thật, <code>sha256sum -c</code> chứng minh tarball khớp với nó. Mỗi package tải về sau đó cũng được kiểm <code>sha256</code> tự động.',
-      '<code>qemu_aarch64_virt_defconfig</code> chỉ <b>19</b> dòng, bung ra <code>.config</code> <b>5 270</b> dòng. Thứ tự menu — Target → Toolchain → System → Kernel → Packages → Images — cũng là thứ tự phụ thuộc. Commit <b>defconfig</b>, không commit <code>.config</code>.',
+      '<code>qemu_aarch64_virt_defconfig</code> chỉ <b>18</b> dòng, bung ra <code>.config</code> <b>5 270</b> dòng. Thứ tự menu — Target → Toolchain → System → Kernel → Packages → Images — cũng là thứ tự phụ thuộc. Commit <b>defconfig</b>, không commit <code>.config</code>.',
       'Một lệnh <code>make</code>: <b>24 phút 41 giây</b> trên 16 CPU, <b>62</b> package (<b>49</b> là <code>host-</code>). Toolchain chiếm <b>47 %</b> thời gian, host-qemu <b>32 %</b>, kernel <b>16 %</b>, BusyBox <b>10 s</b>. gcc là <b>14.3.0</b> tự build — lỗ rò thứ năm của Bài 59 đã được bịt.',
       '<code>output/</code>: <code>build</code> (<b>13 GB</b>, mã nguồn + stamp), <code>host</code> (<b>1,2 GB</b>, toolchain + QEMU), <code>staging</code> (symlink vào sysroot), <code>target</code> (<b>4,4 MB</b>, chưa có quyền đúng), <code>images</code> (<b>21 MB</b>). Mỗi package đi qua <code>.stamp_downloaded</code> → <code>extracted</code> → <code>patched</code> → <code>configured</code> → <code>built</code> → <code>*_installed</code>.',
       'Ảnh boot tới <code>buildroot login:</code> trong <b>1,4 s</b> (QEMU 10.2.0) hoặc <b>2,8 s</b> (QEMU 4.2.1 của máy): BusyBox init + 8 script SysV, DHCP, khoảng <b>12 MB</b> RAM, rootfs dùng <b>4,1 MB</b>, file thuộc <code>root</code> nhờ <code>fakeroot</code>.',
@@ -1537,7 +1537,7 @@ Lesson.register({
         'Toolchain được khai trong <code>board/qemu/aarch64-virt/linux.config</code>'
       ],
       a: 1,
-      why: 'Đây là quy tắc defconfig/<code>.config</code> của Bài 39 áp dụng cho Buildroot: 19 dòng đầu vào bung ra 5 270 dòng vì Kconfig điền mặc định cho mọi symbol không được nhắc tới. <code>BR2_TOOLCHAIN_BUILDROOT=y</code>, <code>BR2_GCC_VERSION="14.3.0"</code> đều là mặc định. Một <code>BR2_aarch64=y</code> vẫn có thể đi với toolchain ngoài; còn <code>linux.config</code> là cấu hình kernel, không liên quan tới toolchain.' },
+      why: 'Đây là quy tắc defconfig/<code>.config</code> của Bài 39 áp dụng cho Buildroot: 18 dòng đầu vào bung ra 5 270 dòng vì Kconfig điền mặc định cho mọi symbol không được nhắc tới. <code>BR2_TOOLCHAIN_BUILDROOT=y</code>, <code>BR2_GCC_VERSION="14.3.0"</code> đều là mặc định. Một <code>BR2_aarch64=y</code> vẫn có thể đi với toolchain ngoài; còn <code>linux.config</code> là cấu hình kernel, không liên quan tới toolchain.' },
 
     { q: 'Trong <code>output/target/bin</code>, <code>busybox</code> thuộc user của bạn (<code>cah8hc:cah8hc</code>). Sau khi boot ảnh trong QEMU, <code>ls -l /bin/busybox</code> lại in <code>root root</code>. Điều gì đã xảy ra?',
       opts: [

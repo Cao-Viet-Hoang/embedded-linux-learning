@@ -269,6 +269,14 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   the whole capture is lost, not just that line (lesson 59: a `dd` of raw bytes). Use `grep -a`, or pipe the binary part
   through `tr -c '[:print:]' .` first. Redirecting the probe to a log in the distro and `cat -v`-ing it afterwards is the
   most robust shape.
+- **BitBake through `wsl … bash -c`: one script file, everything logged to a file in the distro (lesson 62).** BitBake starts a
+  background server on the first call and every later command prints `NOTE: Reconnecting to bitbake server...` /
+  `Retrying server connection` — filter those, plus machine B's `~/.netrc access too permissive` warning, before quoting. Source
+  order matters and lives in `~/bai62/env.sh` (clean `PATH` → buildtools `environment-setup-…` → append hosttools → `. oe-init-build-env
+  build > /dev/null`). `bitbake -n` on a full image takes ~2 min; run it as `bitbake -n IMAGE > dryrun.log 2>&1` and grep. To count
+  which signatures changed, diff **sorted file lists** of `tmp/stamps/…/<pn>/` before and after (`comm -13`) — `ls -tr | tail -n N`
+  gave a wrong task list once because the new files share mtimes with old ones. `install-buildtools` downloads with `wget` and hung
+  once until the outer `timeout` killed it (the `SIGHUP` left a `wget-log`); wrap it in `timeout` and redirect stdin from `/dev/null`.
 - **Long Buildroot builds: run in the background with a clean `PATH` and `timeout` above the expected time (lesson 60).**
   A first `make` took ~25 min on 16 CPUs; run it with `run_in_background` and poll the log for the last `>>>` line
   (`grep -a '>>>' build.log | tail -n 1`). Do the download separately first (`until make source; do sleep 10; done`)
@@ -276,6 +284,17 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   — the WSL login `PATH` contains `/mnt/c/Program Files/…` and Buildroot refuses to start. A rebuild (`make clean all`)
   wipes `output/`, so capture every `output/` listing **after** the last build you intend to quote, or timestamps and
   the ext4 UUID in the lesson will not match each other.
+
+- **Driving QEMU + GDB together: one `pexpect` script, two spawned children (lesson 63).** `python3-pexpect` 4.8 is on
+  machine B. Spawn QEMU (`-nographic -s -S`) and `gdb-multiarch` as two `pexpect.spawn` objects with `logfile_read` going to
+  per-child logs, wait on `(gdb) ` after every GDB command and on `~ # ` after every guest command. Three traps, all hit:
+  (1) GDB prompts `Delete all breakpoints? (y or n)` and `Make breakpoint pending…? (y or [n])` and stalls the script — pass
+  `-iex 'set confirm off' -iex 'set pagination off'`; but `confirm off` answers the *default*, so pending stays **off** until
+  `set breakpoint pending on`. (2) A breakpoint/watchpoint hit while the script is waiting for the guest prompt makes the two
+  streams interleave — guest commands queued behind a stopped kernel run later in the wrong order. Make every guest action that
+  may hit a breakpoint wait for `(gdb) ` first, and send Ctrl-C to GDB only after the guest prompt has returned. (3) A
+  read-watchpoint set while stopped inside the function that reads the value fires immediately on `continue`. Strip ANSI with
+  `sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' | tr -d '\r'` before quoting. End with GDB `kill` (QEMU prints `Terminated via GDBstub`).
 
 ### Cleaning up temporary files
 
