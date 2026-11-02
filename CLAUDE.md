@@ -311,7 +311,7 @@ cross-references. Guard against a repeat:
 
 ## 12. Current state
 
-- **Modules 00 through 11 are complete** (08, 09, 10 and 11 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
+- **Modules 00 through 12 are complete** (08–12 are detailed below). Modules 00–07: `Chặng 00 — Nhập môn` ("Introduction",
   lessons 1–3), `Chặng 01 — Linux căn bản` ("Linux basics", lessons 4–13),
   `Chặng 02 — C và công cụ build` ("C and the build toolchain", lessons 14–18),
   `Chặng 03 — Lập trình hệ thống Linux` ("Linux systems programming", lessons 19–24),
@@ -518,9 +518,50 @@ cross-references. Guard against a repeat:
   `rwatch -l` finds `temp_show`. Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai63` (~6M) is
   disposable**; the `.ko` files inside `~/bai38` were not rebuilt. During verification a `~/.gdbinit` was created and removed
   again — the machine has **no** `~/.gdbinit`; the lesson tells the learner to create one.
-- Next lesson to write, when asked: lesson 64, `Đọc kernel panic và oops`. Redoing lesson 51 (the oops step) is still pending
-  and now overlaps lesson 64 — ask the user which comes first, and whether the redo is still wanted.
-- `node tools/check.js` → `14 modules · 70 lessons · 63 written · 27 bài tập` · `OK`.
+- **Lesson 64 `Đọc kernel panic và oops` (written 2026-10-31, machine B)** delivered lesson 63's promise and **owns the
+  hands-on oops that lesson 51 still owed**. An 80-line `buggy.ko` (`/proc/buggy`: `ok`/`null`/`warn`/`bug`) gives a real
+  NULL+0x10 oops (`pc : buggy_write+0xb4/0x1cc`, `ESR 0x96000006`, `rc=139`, taint 4224), read section by section; then
+  `faddr2line` (without `CROSS_COMPILE` it silently prints `mod_plt_sec` as the function name), `nm -S` + `addr2line -f -i`
+  (`0xbc`; `pde_write` inlined in `proc_reg_write`), `objdump -dS` (`ldr x0, [x0, #16]`), `gdb list`/`ptype /o`,
+  `decode_stacktrace.sh` (needs `ARCH=arm64` too, ~9 s); `WARN_ON` (taint 4608, rc 0) vs `BUG_ON` (`brk`, 4736, plus a
+  follow-on `context_tracking` WARNING); `panic_on_oops=1 panic=3` and the PID 1 panic (`exitcode=0x0000000b`); `git bisect
+  run` on a self-built 8-commit repo (3 tests, 27 s). No kernel rebuild, nothing written to `~/bai38`. Continuity facts:
+  `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai64` (~6M) is disposable.**
+- **Lesson 65 `Ftrace và các công cụ theo vết` (written 2026-10-31, machine B) reconfigured `~/bai38` again**: `FTRACE`,
+  `FUNCTION_TRACER`, `FUNCTION_GRAPH_TRACER`, `DYNAMIC_FTRACE`, `FUNCTION_PROFILER`, `DYNAMIC_DEBUG` on (`scripts/diffconfig` 81
+  lines), `make Image` 6m59s **and** `make modules` 8m45s, `.version` 6 → **7**, `Image` 49 → **60.4 MB**, `vmlinux` → 728 MB.
+  **Every `.ko` built for lessons 50–64 no longer loads** (`this_module section size must match`, rc 8) until rebuilt — do not
+  "correct" those lessons. Steps: a 98-line `tdemo.ko` (`/proc/tdemo`, modes `quiet`/`debug`/`info`/`trace`) measures printk —
+  ~50 ns loop, `trace_printk` ~5 000, `pr_info` console-muted ~35 000, to UART ~120 000 ns; the 128 KiB log ring loses lines →
+  dynamic debug (`module`/`file line`/`func`, `+pfl`, `insmod dyndbg=+p`, boot `dyndbg=`) → tracefs by hand (`function`,
+  `function_graph`, `max_graph_depth`, `:mod:`, `function_profile_enabled` + `trace_stat`) → tracer overhead (filter inside vs
+  outside the hot loop) → `trace-cmd` 2.8.3 (Ubuntu focal arm64 `.deb`, run with 3 glibc libs from the toolchain). Continuity
+  facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai65` (~23M) is disposable**; the kernel change is not.
+- **Lesson 66 `Đo và tối ưu thời gian boot` (written 2026-10-31, machine B) closes `Chặng 12`.** It does **not** touch
+  `~/bai38`. Two clocks: a 43-line `stamp.py` (host time per serial line, stops at `~ # `) vs `printk.time`; `earlycon` shows
+  0.27 s before `sched_clock` (0.2 s of it `ftrace: allocating 71822 entries`). `initcall_debug` + `log_buf_len=4M` → dmesg
+  pulled out over **9p** (`-virtfs`, `icd.py`): 1 915 initcalls, 1.115 s, top `trace_eval_sync` 261 ms (waits for ftrace's
+  `eval_map_wq`); `bootgraph.pl` (rc 0 + empty file on bad input); `show_delta` broken under Python 3 → `awk`.
+  `initcall_blacklist=jent_mod_init` (95 ms) saves only ~20 ms. Kernels built out-of-tree from a fresh tarball unpack in
+  `~/bai66/linux-6.18.45` (`make O=` from `~/bai38` is refused: "source tree is not clean"): `b-small` (Bài 65 config minus
+  `FTRACE`/`DYNAMIC_DEBUG`/debug info, 5m22s, `Image` 49 342 976 B, `Run /init` 1.40 → 0.68 s) and `b-tiny` (`tinyconfig` +
+  Bài 41's 17 + `PRINTK_TIME`, 36 s, 3 303 432 B, 0.21 s, no `KALLSYMS`). U-Boot = Ubuntu `u-boot-qemu` 2021.01 (`apt-get
+  download`; v2026.07 needs GCC ≥ 10) from pflash + an unpartitioned ext4 virtio disk with a hand-written `bootcmd`;
+  `bootdelay` 2 → 0 saves 2.0 s. Final chain U-Boot + `b-tiny` + `quiet`: **0.554–0.558 s** (from 4.08–4.19 s). Continuity
+  facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai66` (~2.8 GB) is disposable.**
+- **Lesson 67 `Dự án tổng hợp` (written 2026-10-31, machine B) opens `Chặng 13`.** One br2-external tree `~/bai67/thermo`
+  (25 files, `thermo_defconfig` 35 lines) builds the product "Thermo" with **Buildroot 2026.02.3** in a fresh `O=~/bai67/out`:
+  Bootlin external toolchain (GCC 14.3.0), **U-Boot 2026.01 built from source** (+ `uboot.fragment`, + 1 patch), kernel 6.18.45
+  from `~/bai38/linux-6.18.45.tar.xz` copied into `dl/linux/` (+ own `linux.hash`) with Buildroot's `aarch64-virt` config + a
+  4-line fragment, `thermo.dts` (QEMU dump with `-bios` + virtio disk/net, 350 lines) + `sensor.dtsi`, lesson 54's `tsensor.c`
+  unchanged as a `kernel-module` package (auto-loaded by `S10mdev`), lesson 24's `temp_daemon.c` reading `/dev/tsensor0`, ext4 in
+  a `genimage` MBR `disk.img`, booted by U-Boot via `extlinux.conf`. Fresh build **6m55s**. The first boot failed for real
+  (U-Boot `qemu-arm` env has no `fdt_addr_r` → QEMU tree used) and the lesson teaches that diagnosis. **Nothing in `~/bai38` was
+  touched.** Continuity facts: `docs/course-notes.md`; numbers: `docs/environment.md`. **`~/bai67` (~4.2G) is disposable except
+  `~/bai67/thermo` (176K)**, which lesson 68 may start from.
+- Next lesson to write, when asked: lesson 68, `Bảo mật cơ bản` (registry title `Bảo mật và secure boot`). Redoing lesson 51 is still pending (its
+  oops step now only needs to point at lesson 64) — ask the user whether the redo is still wanted.
+- `node tools/check.js` → `14 modules · 70 lessons · 67 written · 27 bài tập` · `OK`.
 - **Lesson 44 added `~/bai44` (19M) — disposable**, but its `venv/` (Python 3.9 + `dtschema`
   2026.9 + `yamllint`) is reusable for Bài 45. It also wrote normal build products into
   `~/bai38/linux-6.18.45` (`processed-schema.json`, rebuilt `.dtb`s); do not treat those as

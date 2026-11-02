@@ -442,9 +442,13 @@ Cài thêm khi tới chặng tương ứng:
 | 61 | Buildroot nâng cao | ✅ Đã có |
 | 62 | Yocto — khái niệm và so sánh | ✅ Đã có |
 | 63 | Debug kernel bằng GDB | ✅ Đã có |
-| 64 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 64 | Đọc kernel panic và oops | ✅ Đã có |
+| 65 | Ftrace và các công cụ theo vết | ✅ Đã có |
+| 66 | Đo và tối ưu thời gian boot | ✅ Đã có |
+| 67 | Dự án tổng hợp | ✅ Đã có |
+| 68 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 11 đã hoàn tất, Chặng 12 đã có Bài 63 (63 / 70 bài).** Bài kế tiếp sẽ viết: Bài 64 — *Đọc kernel panic và oops*. Bài 51 cần được hoàn thiện lại (xem §10).
+**Chặng 0 đến Chặng 12 đã hoàn tất, Chặng 13 đã bắt đầu (67 / 70 bài).** Bài kế tiếp sẽ viết: Bài 68 — *Bảo mật cơ bản*. Bài 51 cần được hoàn thiện lại (xem §10); phần thực hành oops mà Bài 51 còn thiếu nay đã nằm trong Bài 64.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -505,4 +509,12 @@ không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và b�
 
 **2026-09-30 — Bài 58: đổi cách thực hành, phạm vi giữ nguyên.** Dòng Bài 58 ở §4 hẹn thực hành bằng "machine `raspi3b`". Khi kiểm chứng trên QEMU 4.2.1 (bản của Ubuntu 20.04): tên `raspi3b` không tồn tại (bản này gọi là `raspi3`), và khối I2C của `raspi3` chỉ là vùng MMIO giữ chỗ — `-device tmp105` báo `No 'i2c-bus' bus found` y như `virt`. Bài 58 vì thế thay machine Raspberry Pi bằng hai driver bus giả tự viết (`i2csim` — adapter I2C khai trong Device Tree, và `spiloop` — controller SPI nối MOSI với MISO), bên cạnh `i2c-stub` của kernel. Nội dung cốt lõi của dòng §4 không đổi; bài giải thích thay đổi này ở mục "Thực hành khi máy ảo không có bus".
 
+**2026-10-31 — Bài 66: U-Boot dựng sẵn, kernel nhỏ build riêng, phạm vi giữ nguyên.** U-Boot v2026.07 của Bài 34 không build được bằng GCC 9.4 trên máy đang dùng (`Your GCC is older than 10.0`), nên phần "cắt giảm bootloader" dùng `u-boot.bin` lấy từ gói Ubuntu `u-boot-qemu` 2021.01 bằng `apt-get download` (không cần `sudo`), nạp kernel từ một ổ virtio bằng `bootcmd` viết tay. Hai kernel nhỏ (`b-small`: kernel Bài 65 bỏ ftrace/dynamic debug/debug info; `b-tiny`: `tinyconfig` + 17 tuỳ chọn của Bài 41 + `PRINTK_TIME`) được build out-of-tree từ một bản giải nén mới trong `~/bai66`, vì `~/bai38` đã build tại chỗ nên `make O=` từ chối nó; `~/bai38` không đổi. `scripts/show_delta` hỏng với Python 3 nên bài dùng một dòng `awk` thay thế. Mục tiêu "boot dưới 1 giây" đạt được cho cả chuỗi U-Boot → kernel → shell (0,554–0,558 s trong QEMU).
+
 **2026-10-31 — Bài 63: thêm hai bước cấu hình kernel, phạm vi giữ nguyên.** `defconfig` của arm64 bật `CONFIG_DEBUG_INFO_REDUCED=y`; với nó GDB đọc được số dòng nhưng không có `struct platform_device`, nên không thể `print *pdev` trong `probe()` như dòng Bài 63 ở §4 hẹn. Bài 63 vì thế tắt `DEBUG_INFO_REDUCED`, bật `GDB_SCRIPTS` (để có `lx-symbols` nạp symbol module) và build lại `Image` trong `~/bai38` — lần đổi `.config` đầu tiên từ Bài 58. `Image` không đổi kích thước; `vmlinux` tăng từ 225 MB lên 666 MB. Mọi lần boot trong bài thêm `nokaslr`.
+
+**2026-10-31 — Bài 65: bật ftrace và dynamic debug trong cây kernel, phạm vi giữ nguyên.** `defconfig` không có `FTRACE` lẫn `DYNAMIC_DEBUG`, nên Bài 65 bật `FTRACE`, `FUNCTION_TRACER`, `FUNCTION_GRAPH_TRACER`, `DYNAMIC_FTRACE`, `FUNCTION_PROFILER`, `DYNAMIC_DEBUG` trong `~/bai38` và build lại cả `Image` lẫn `modules` (`.version` 6 → 7, `Image` 49 → 60 MB). Hệ quả: mọi `.ko` build ở Bài 50–64 phải build lại trước khi nạp. `trace-cmd` không được build từ mã nguồn mà lấy gói arm64 2.8.3 của Ubuntu 20.04, chạy trong initramfs nhờ ba thư viện glibc chép từ toolchain; bản này cũ nên in hai dòng lỗi vô hại ở mỗi `report`. Phần "đo thời gian thực thi trong kernel" dùng function profiler (`trace_stat`) và `function_graph`.
+
+**2026-10-31 — Bài 64: nhận phần thực hành oops của Bài 51.** Bài 64 cố ý gây oops (`NULL` pointer, `WARN_ON`, `BUG_ON`), cho thấy oops thành panic qua `panic_on_oops` và khi tác vụ bị giết là PID 1, rồi giải mã bằng `faddr2line`, `addr2line`, `objdump -dS`, `gdb`, `decode_stacktrace.sh`, và dùng `git bisect run` trên một repo nhỏ 8 commit tự dựng (không bisect cây kernel — `~/bai38` là tarball, không có lịch sử Git). Phạm vi dòng Bài 64 ở §4 không đổi. Bước thực hành oops mà Bài 51 còn nợ được coi là đã giao ở đây: khi làm lại Bài 51, chỉ cần một bước ngắn trỏ sang Bài 64, không dựng lại cùng nội dung.
+
+**2026-10-31 — Bài 67: một sản phẩm "Thermo" dựng bằng Buildroot, phạm vi giữ nguyên.** Cả sáu lớp của dòng Bài 67 ở §4 được ghép trong một cây br2-external `~/bai67/thermo` với một defconfig: U-Boot 2026.01 (bản Buildroot 2026.02.3 chọn sẵn, build từ mã nguồn bằng toolchain dựng sẵn Bootlin GCC 14.3.0 — không cần GCC ≥ 10 trên máy), kernel 6.18.45 từ tarball của Bài 38 với cấu hình `aarch64-virt` của Buildroot + một fragment, Device Tree = cây QEMU `virt` + một `.dtsi`, driver `tsensor` của Bài 54 (hạ tầng `kernel-module`, tự nạp qua `mdev`/`modprobe`), daemon của Bài 24 sửa để đọc `/dev/tsensor0`. "Có tài liệu" được hiểu là README trong cây, MANIFEST, `SHA256SUMS` và `make legal-info`. Bài cố ý giữ một lỗi thật gặp khi kiểm chứng: U-Boot `qemu-arm` thiếu `fdt_addr_r` nên bỏ qua dòng `fdt` của `extlinux.conf`; sửa bằng một patch một dòng.

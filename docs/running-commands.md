@@ -296,6 +296,20 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   read-watchpoint set while stopped inside the function that reads the value fires immediately on `continue`. Strip ANSI with
   `sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' | tr -d '\r'` before quoting. End with GDB `kill` (QEMU prints `Terminated via GDBstub`).
 
+- **Measuring wall-clock boot time from the host (lesson 66).** Wrap QEMU in a tiny Python reader that stamps every serial
+  line with `time.monotonic()` since spawn and kills QEMU when `~ # ` appears (`~/bai66/stamp.py`; read with `os.read`, the
+  prompt has no newline). **Never time while a build runs** — a concurrent `make -j16` made every boot ~3× slower and the first
+  three measurements of lesson 66 had to be thrown away. Before `console … enabled` the host timestamps are meaningless (replay);
+  add `earlycon` to time early boot. Run each configuration 3× and quote ranges. To get a full `dmesg` out of the guest, boot
+  with `-virtfs local,path=share,mount_tag=host,security_model=none` and `mount -t 9p -o trans=virtio host /mnt` (needs
+  `NET_9P_VIRTIO`/`9P_FS`, both in `defconfig`). To reach a U-Boot prompt with `bootdelay=0`, send a space every 50 ms from
+  spawn until `=> ` (`~/bai66/ubshell.py`).
+- **A `nohup … &` inside `wsl -d OSD -- bash -c` dies when the `wsl.exe` call returns** (lesson 66: two background jobs left no
+  output file at all). Use the Bash tool's `run_in_background` on the `wsl` command itself instead.
+
+- **Under `wsl -d OSD -- bash -c` (non-login) the proxy env is the *direct* corporate proxy from `/etc/profile.d/proxy.sh`, and `curl https://buildroot.org/...` failed with `Could not resolve host` (lesson 67).** Exporting `https_proxy=http://localhost:3128 http_proxy=http://localhost:3128` (the Windows `px`, what `~/.profile` sets) at the top of the script fixed it, and `make source` then fetched 26 packages first try.
+- **A background-job watcher that greps for `rc=` matches an earlier `defconfig rc=0` line (lesson 67).** Give each long job a unique end marker (e.g. `^real`, or `echo BUILD-DONE`), and never write a piped-stdin script that also does `cat > file` — the first `cat` swallows the rest of stdin (it emptied `thermo_defconfig` once).
+
 ### Cleaning up temporary files
 
 **After verifying a lesson or exercise set, delete all temporary files created during the

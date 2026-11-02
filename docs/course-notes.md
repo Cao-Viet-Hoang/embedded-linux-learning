@@ -1412,8 +1412,133 @@
 - **State left behind:** `~/bai38/linux-6.18.45/.config` now has `DEBUG_INFO_REDUCED` off, `GDB_SCRIPTS` on, `.version` 6, `vmlinux`
   666 MB. The `.ko` files under `~/bai38` were **not** rebuilt and still carry reduced debug info; a lesson that needs a full-debug
   in-tree module must `make modules` first. `~/bai63` is disposable (the lesson says so).
-- **Bài 51 is still owed** a hands-on oops step (see Chặng 10 notes); Bài 64 now covers the same ground in depth, so ask the user
-  whether the Bài 51 redo is still wanted before doing it.
+- **Lesson 64 `Đọc kernel panic và oops` (2026-10-31, machine B)** owns: oops vs panic vs `WARN_ON` vs `BUG_ON` (four-level table +
+  `die()` flow figure); the three panic strings read in source (`traps.c:182` `Internal error`, `:227`/`:229` `Fatal exception [in
+  interrupt]`, `kernel/exit.c:936` `Attempted to kill init!`); the seven parts of an arm64 oops (reason, `ESR`/`EC`/`FSC`/`WnR`,
+  `Internal error … [#1]`, context + `Tainted:`, `pc`/`lr`/regs, `Call trace` with `(P)`, `Code:`); taint bits `D`=128, `W`=512,
+  `O`=4096 and values 4096 → 4224 / 4608 → 4736; `faddr2line`, `addr2line -f -i` (`nm -S` start + offset, `System.map` for
+  vmlinux), `objdump -dS --start/stop-address`, `gdb list *(fn+off)` + `ptype /o`, `decodecode`, `decode_stacktrace.sh vmlinux SRC
+  MODDIR`; `lr` = return address of last `bl`, not "the caller"; `.isra` moving a dereference into the caller; `panic_on_oops`/`panic`
+  via `/proc/sys/kernel` and `oops=panic panic=N` named for the cmdline; `Kernel Offset:` line and KASLR subtraction (prose);
+  `git bisect start BAD GOOD` + `bisect run` exit codes 0 / 1–127 / 125 / ≥128, `refs/bisect/bad`, `git rev-list --max-parents=0`.
+  Working dir `~/bai64`: `buggy/` (80-line `buggy.c`, lesson-50 Makefile), `initramfs/` = `~/bai32/initramfs` + `buggy.ko`,
+  `history.sh` (builds `regress/`, 8 commits, bad = "Select the active sensor with a module parameter"), `test.sh`.
+- **Lesson 64 deliberately does NOT:** bisect the kernel itself (`~/bai38` is an unpacked tarball, no `.git`; real-kernel bisect is
+  described only), use kdump/`crash`/pstore/ramoops, `CONFIG_PANIC_ON_OOPS` in `.config` (runtime sysctl only), oops in interrupt
+  context hands-on (only in the figure/table — lesson 55 already showed `scheduling while atomic` → panic), KASAN/KFENCE,
+  `copy_to_user`, `softlockup`/`hung_task`. Ftrace and dynamic debug are Bài 65.
+- **Lesson 51 redo — decision recorded 2026-10-31:** lesson 64 now owns the hands-on oops (bad pointer → oops → reading it). A
+  future redo of lesson 51 must **not** rebuild that demo; at most a short step showing that a bad pointer oopses and pointing
+  forward to Bài 64 for reading it. `copy_to_user` hands-on is still owed by lesson 51. Ask the user whether the redo is still wanted.
+- **Findings a later lesson could trip over (lesson 64):** (1) `scripts/faddr2line` and `decode_stacktrace.sh` without
+  `CROSS_COMPILE=aarch64-linux-gnu-` use host binutils 2.34 (x86 targets only) — line numbers are right, function names in a `.ko`
+  are **wrong** (`mod_plt_sec`), no warning. (2) `decode_stacktrace.sh` also needs `ARCH=arm64`, else the `Code:` disassembly is
+  `.word …`. (3) GCC 9.4 turned `sensor_value()` into `sensor_value.isra.0` and hoisted `s->reading` into the caller, so the oops
+  points at the caller — keep `noinline` + a struct pointer if you want a callee frame you will not get. (4) In a `.ko`, `.text`
+  starts with a function at `0x8` here, so `objdump`/`addr2line` addresses are offset +8 from the oops offset. (5) A `BUG_ON` oops
+  leaves the task dead with irqs off / `preempt_count 1`, followed by a `WARNING` in `kernel/context_tracking.c:127` from the idle
+  task — expected, not a new bug. (6) Machine B: `git bisect` prints `envsubst: not found` / `gettext: not found` (no
+  `gettext-base`) and `hint: … hook was ignored` (global `core.hooksPath=~/.git-hooks` with non-executable hooks) — harmless,
+  filtered from captures.
+
+- **Lesson 65 `Ftrace và các công cụ theo vết` (2026-10-31, machine B)** owns: the two halves of printk (log ring vs console)
+  and the measured cost table (`quiet` ~14–55 ns, `pr_debug` off ≈ same, `trace_printk` ~1 500–6 000, `pr_info` console muted
+  ~28 000–40 000, `pr_info` to UART ~112 000–121 000 ns per loop iteration); heisenbug; the 128 KiB ring losing lines (6 summary
+  lines → 3, `dmesg | wc -l` 2441) and `log_buf_len=4M`; `trace_printk` and its NOTICE banner; `CONFIG_DYNAMIC_DEBUG` as static
+  keys (`nop` at `td_step+0x4c`), `/proc/dynamic_debug/control` (5 955 lines, 49 `=p` at boot from `#define DEBUG`/`-DDEBUG`
+  files), query grammar `module`/`file`/`line`/`func` + flags `p f l m t _`, `insmod … dyndbg=+p`, boot `dyndbg="file init/main.c
+  -p"` (6 → 0); `-fpatchable-function-entry=4,2` / `__patchable_function_entries` / `ftrace_init_nop` (`mov x9, x30`); tracefs
+  file table; `function`, `function_graph` (DURATION, marks `+ ! # * @ $` from `trace_output.c` `mark[]`), `set_ftrace_filter`
+  (`td_*` also matches kernel USB `td_fill`… → use `:mod:tdemo`), `set_graph_function`, `max_graph_depth`, `tracing_on`;
+  `function_profile_enabled` + `trace_stat/function0`; tracer overhead (filter inside vs outside the hot loop; unfiltered = 29 664
+  events per `write()`); `trace-cmd record -p -g -l -e -F` / `report`, event `kmem:kmalloc` (`call_site=td_store bytes_req=40
+  bytes_alloc=64`). Working dir `~/bai65`: `tdemo/` (98-line `tdemo.c`, lesson-50 Makefile), `dl/` (trace-cmd `.deb` + `pkg/`),
+  `initramfs/` = `~/bai32/initramfs` + `tdemo.ko` + `usr/bin/trace-cmd` + `lib/{ld-linux-aarch64.so.1,libc.so.6,libdl.so.2}`.
+- **Lesson 65 deliberately does NOT:** use `irqsoff`/`preemptoff`/`wakeup`/`hwlat` tracers (not enabled; named only), kprobes /
+  `kprobe_events` (`KPROBES` still off), eBPF/`bpftrace`/`perf` (named only), `trace_marker` from userspace, `set_ftrace_pid`,
+  histogram triggers, `kernelshark`, boot-time tracing (`ftrace=` cmdline — lesson 66 may use it), `initcall_debug`/`bootgraph`
+  (Bài 66), `-smp` > 1 (one CPU, `function0` only), building trace-cmd from source, `modprobe`.
+- **State left behind:** `~/bai38/linux-6.18.45/.config` now has the six options above plus 75 dependent lines, `.version` 7,
+  `Image` 60 430 848 B, `vmlinux` 728 232 616 B, all in-tree `.ko` and `Module.symvers` rebuilt (21 366 lines). Saved old config:
+  `~/bai65/config.before` (md5 `f011bdf4…`, = lesson 63/64 state) — deleting `~/bai65` loses it. Lesson 66 boots the ftrace kernel.
+- **Findings a later lesson could trip over (lesson 65):** (1) After changing `.config`, `make Image` alone leaves a stale
+  `Module.symvers` → out-of-tree `modpost` fails with `"__dynamic_pr_debug" … undefined!`; always `make Image modules`. (2) A
+  `.ko` from the previous config is rejected with `.gnu.linkonce.this_module section size must match the kernel's built struct
+  module size`, BusyBox `insmod` rc 8 — every module of lessons 50–64 needs `make clean && make`. (3) `pr_debug` text inside a
+  printk-heavy run pushes summaries out of the 128 KiB ring; any timing demo should boot with `log_buf_len=4M`. (4) The first
+  `write()` after `insmod` is always slow (7–13 µs per iteration with 10 loops; first `td_step` 30 µs in the graph) — discard it.
+  (5) Wildcard filters match kernel functions too (`td_*` → 5 USB functions). (6) `trace-cmd` 2.8.3 prints `trace-cmd: No such
+  file or directory` / `Error: expected type 4 but read 5` on every `report` (cause not traced; output otherwise complete) and
+  `trace-cmd reset` fails rc 2 looking for `tracing_max_latency`. (7) `MODULE.dyndbg=` on the kernel cmdline does nothing with
+  BusyBox `insmod` (it is read by `modprobe` from `/proc/cmdline`, `dynamic-debug-howto.rst:257/265`). (8) QEMU TCG timings swing
+  2–4× between boots (`trace` 1 521–6 034 ns); quote orders of magnitude.
+
+- **Lesson 66 `Đo và tối ưu thời gian boot` (2026-10-31, machine B)** owns: the four boot segments (firmware/bootloader,
+  kernel before `sched_clock`, initcalls, userspace) and the **two-clock** model (host `stamp.py` vs `printk.time`); console
+  *replay* making host timestamps meaningless before `console [ttyAMA0] enabled` unless `earlycon`; QEMU PL011 has no baud
+  rate → `quiet` is ~0 in QEMU but 16 027 B ÷ 11 520 B/s ≈ 1.39 s on a real 115 200 UART (computed, not measured);
+  `initcall_debug` format (`init/main.c:1164–1181`, `KERN_DEBUG`, `@ 0` for console-level initcalls), initcall levels from
+  `entering initcall level:`, ranking with `awk '{print $(NF-1), $4}' | sort -n -r`, the 17-of-1 915 = 66 % shape; the
+  `jiffies`/`HZ=250` 4 ms quantisation of `usecs` before `Switched to clocksource arch_sys_counter`; `initcall_debug` itself
+  costing ~0.23 s; dmesg out over **9p** (`-virtfs local,path=share,mount_tag=host,security_model=none`, `mount -t 9p -o
+  trans=virtio`); `scripts/bootgraph.pl`; the `awk -F'[][]'` gap finder; `initcall_blacklist=`; elapsed ≠ saved
+  (`jent_mod_init` overlapping async initramfs unpack, `initramfs_async=0`); debug vs product kernel config; `tinyconfig` as the
+  floor; U-Boot `bootdelay` 2 → 0 / `-2` (named, not run), direct `bootcmd`; `systemd-analyze` / `blame` on WSL (one cal,
+  not hands-on in QEMU); Falcon mode, XIP, LZ4, deferred probe, hibernate boot (named only). Working dir `~/bai66`:
+  `stamp.py`, `icd.py`, `ubshell.py` (pexpect, presses space until `=> `; works with `bootdelay=0`), `initramfs/` (copy of
+  `~/bai32/initramfs`), `linux-6.18.45/` (fresh unpack), `b-small/`, `b-tiny/`, `dl/` (u-boot-qemu `.deb`), `boot.img`,
+  `flash0.img`, `flash1.img`, `share/`.
+- **Lesson 66 deliberately does NOT:** modify `~/bai38` (no rebuild, `.version` stays 7); build U-Boot from source (GCC 9.4 <
+  10); use `bootchart`/`systemd-bootchart`, `ftrace=` / boot-time tracing (`BOOTTIME_TRACING` is off), `perf`, `grabserial`;
+  enable `LZ4`/`XIP`/Falcon mode/`deferred_probe` — named only; shrink initramfs or BusyBox; measure on real hardware (UART
+  cost is arithmetic). It boots `b-tiny` only from initramfs; `b-tiny` has no `KALLSYMS`, `DEVTMPFS`, `MODULES`, 9p, block.
+- **Findings a later lesson could trip over (lesson 66):** (1) `make O=` from `~/bai38` is refused (`The source tree is not
+  clean, please run 'make ARCH=arm64 mrproper'`) — **never** follow that advice; unpack the tarball elsewhere. (2)
+  `scripts/show_delta` silently prints lines unchanged under Python 3 (`string.split`/`atof`, bare `except:`); machine B has no
+  Python 2. (3) `bootgraph.pl` exits 0 and writes a 0-byte file when it finds no `calling` lines. (4) `initcall_debug`
+  `usecs` values before ~0.36 s are multiples of 4 000 (jiffies clocksource, `HZ=250`). (5) U-Boot v2026.07 refuses GCC 9.4
+  (`arch/arm/config.mk:76 checkgcc10`); Ubuntu focal `u-boot-qemu` 2021.01 has no `bootflow`/`qfw` boot target, its default
+  `distro_bootcmd` ignores an unpartitioned disk (`** No partition table - virtio 0 **`) and falls back to DHCP/TFTP
+  (`TFTP error: 'Access violation'`); `load virtio 0` (no `:1`) works on a whole-disk ext4. Its `ramdisk_addr_r`
+  0x44000000 is ~2.4 MB above the end of a 60 MB `Image` at 0x40400000 — the lesson loads initramfs at 0x48000000. (6) Any
+  timing taken while a `make -j16` runs is ~3× slow (prompt 6.1–6.5 s instead of 1.8 s). (7) `tinyconfig` + 17 +
+  `PRINTK_TIME` on machine B gives `Image` **3 303 432 B**, byte-identical to lesson 41's machine-A number (GCC 15.2, no
+  `PRINTK_TIME`); `= _edata − _text` (0x326808) checked, cause of the coincidence not investigated.
+- **Chặng 12 is complete.** Lesson 67 opens `Chặng 13` (`Dự án tổng hợp`); a product kernel config in the style of
+  `b-small` is what lesson 66's `Bài tiếp theo` says the project will ship.
+
+### Chặng 13 — Thành phẩm và nghề nghiệp
+
+- **Lesson 67 `Dự án tổng hợp` (2026-10-31, machine B)** owns: the product framing ("Thermo", start from the TCP answer and ask what
+  each layer contributes); one br2-external tree holding a **whole product** (`THERMO`: `configs/`, `board/thermo/`, `package/`,
+  `src/`, `README.md`, `release.sh`); `_SITE_METHOD = local` vs lesson 61's tarball + `.hash`; **external toolchain** (Bootlin
+  `aarch64--glibc--stable-2025.08-1`, `BR2_TOOLCHAIN_EXTERNAL_BOOTLIN_AARCH64_GLIBC_STABLE` — omit it and you get bleeding-edge);
+  `linux.hash` in `BR2_GLOBAL_PATCH_DIR/linux/` for a kernel version Buildroot does not know; reusing a verified tarball by copying it
+  into `dl/<pkg>/`; kernel + U-Boot **config fragments**; `BR2_LINUX_KERNEL_CUSTOM_DTS_PATH` with a `.dts` + `.dtsi`;
+  `BR2_LINUX_KERNEL_INSTALL_TARGET`; `extlinux.conf` (`label/kernel/fdt/append`) + U-Boot bootflow scan; `genimage` `hdimage` MBR
+  `disk.img`; the `kernel-module` infrastructure; **module autoload** chain `MODULE_DEVICE_TABLE` → `depmod`/`modules.alias` →
+  `S10mdev` coldplug `modprobe -abq` (first real use of `modprobe` in the course); `IKCONFIG_PROC`/`/proc/config.gz`; the
+  layer-by-layer diagnosis of a boot that "succeeds"; the `fdt_addr_r` patch; the "change X → rebuild with Y" table;
+  `savedefconfig` round-trip check; `make legal-info` and its warnings; `_LICENSE_FILES`; a release bundle (MANIFEST, `SHA256SUMS`,
+  `run-qemu.sh`) and "checksums detect corruption, not tampering". Working dir `~/bai67`: `buildroot-2026.02.3/` (+ `dl/` 368M),
+  `out/` (4.2G, includes `legal-info/` 370M hard-linked to `dl/`), `thermo/` (176K). Nothing else was read except
+  `~/bai38/linux-6.18.45.tar.xz`, `~/bai54/tsensor/tsensor.c` (md5 `924ffb24…`), `~/bai49/temp_daemon.c`.
+- **Lesson 67 deliberately does NOT:** sign anything (FIT signature, verified boot, `dm-verity`), make the rootfs read-only, set a
+  root password, or harden services — all **Bài 68**, whose `Bài tiếp theo` promise is: signed FIT (lesson 36 touched it), rootfs
+  read-only + overlay, and measuring whether an `Image` modified by one byte still boots. Also not done: A/B partitions or any update
+  mechanism (**Bài 69** — `extlinux.conf` multiple labels are only mentioned), real hardware (Bài 70), boot-time tuning (Bài 66 owns
+  it; prompt 4.66–4.78 s quoted only), systemd, Yocto, `BR2_REPRODUCIBLE`, `linux-menuconfig`, `check-package`.
+- **Findings a later lesson could trip over (lesson 67):** (1) **U-Boot 2026.01 `qemu-arm` env has no `fdt_addr_r`**
+  (`board/emulation/qemu-arm/qemu-arm.env`), so `boot/pxe_utils.c` silently ignores the `fdt` line of `extlinux.conf` and boots with
+  QEMU's tree at `fdt_addr=0x40000000` — `Machine model: linux,dummy-virt`, no error. Fix: patch adding `fdt_addr_r=0x48000000`.
+  (2) `make uboot-rebuild` applied **0** patches; `uboot-dirclean` was needed (confirms lesson 61). (3) Editing a `.dts` then plain
+  `make` → rc 0, new `disk.img` mtime, **old DTB**; `make linux-rebuild all` (9.6 s) fixes it. (4) QEMU `dumpdtb` with `-bios` +
+  virtio-blk + virtio-net = **350** lines, no `pl061`/`gpio-keys`, and contains **no** `rng-seed`/`kaslr-seed` (an empty `-bios`
+  file gives the same tree as a real `u-boot.bin`). (5) Major of `/dev/tsensor0` is **248** on this kernel (510 in lesson 54).
+  (6) Bootlin's compiler prints `Buildroot 2021.11-18033-g83947c7bb6` in its version — that is Bootlin's Buildroot, not yours.
+  (7) `legal-info` still warns `no hash file for LICENSE` (local packages) and `toolchain-external-bootlin … cannot save license`.
+  (8) BusyBox in this config has no `nc` and no `logread`; test the daemon from the host via `hostfwd=tcp::19006-:9006`.
+  (9) `cut -d,` on `manifest.csv` truncates BusyBox's license field (it contains a comma).
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 
@@ -1430,3 +1555,5 @@ number do not resemble each other. Verified against `js/registry.js`:
 | rootfs, BusyBox `CONFIG_STATIC`, size-shrinking an image | `Chặng 09` |
 | kernel modules, drivers, `.ko` | `Chặng 10` |
 | Buildroot, **Yocto**, reproducible builds | `Chặng 11` |
+| debugging (GDB, oops, ftrace), boot time | `Chặng 12` |
+| capstone product, security, OTA, real hardware | `Chặng 13` |
