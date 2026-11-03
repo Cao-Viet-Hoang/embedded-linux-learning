@@ -317,6 +317,13 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
   `boot.py` used for lesson 68 lived in `~/bai68/bin/`.
 - **Never run `mkpasswd` from Git Bash** (lesson 68): Git Bash ships its own `mkpasswd`, which enumerates the Windows domain and
   printed thousands of corporate accounts before it was stopped. Run password hashing inside WSL (`openssl passwd -6`).
+- **A/B experiments: one directory per board state, copied before each run (lesson 69).** Each scenario that damages the disk
+  or the env flash started from `cp -a lab1 <dir>` (u-boot.bin, control.dtb, flash1.img, disk.img), driven by a `pexpect` script
+  with steps `login`/`cmd:`/`send:`/`expect:`/`sleep:`/`kill` (`kill` = SIGKILL QEMU = power cut). A host HTTP server for the guest:
+  `python3 -m http.server 8000 &` inside the same `wsl` call, guest URL `http://10.0.2.2:8000/` — its stdout is block-buffered, so
+  the log stays empty; do not rely on it for captures. Python argparse with `nargs='*'` positionals: put `--timeout N` **before**
+  the positionals, or `-- …` after it is rejected (`unrecognized arguments`). Inspect env copies with a CRC32 check
+  (`zlib.crc32(blk[5:])` vs the first 4 bytes, little endian), not by eye.
 
 ### Cleaning up temporary files
 
