@@ -446,9 +446,10 @@ Cài thêm khi tới chặng tương ứng:
 | 65 | Ftrace và các công cụ theo vết | ✅ Đã có |
 | 66 | Đo và tối ưu thời gian boot | ✅ Đã có |
 | 67 | Dự án tổng hợp | ✅ Đã có |
-| 68 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
+| 68 | Bảo mật cơ bản | ✅ Đã có |
+| 69 → 70 | | ⬜ Sẽ viết dần theo yêu cầu |
 
-**Chặng 0 đến Chặng 12 đã hoàn tất, Chặng 13 đã bắt đầu (67 / 70 bài).** Bài kế tiếp sẽ viết: Bài 68 — *Bảo mật cơ bản*. Bài 51 cần được hoàn thiện lại (xem §10); phần thực hành oops mà Bài 51 còn thiếu nay đã nằm trong Bài 64.
+**Chặng 0 đến Chặng 12 đã hoàn tất, Chặng 13 đã bắt đầu (68 / 70 bài).** Bài kế tiếp sẽ viết: Bài 69 — *Cập nhật OTA*. Bài 51 cần được hoàn thiện lại (xem §10); phần thực hành oops mà Bài 51 còn thiếu nay đã nằm trong Bài 64.
 
 Mỗi bài được viết khi bạn học tới. Cách dùng: học xong bài hiện tại, làm hết phần thực hành, rồi yêu cầu viết bài tiếp theo.
 
@@ -518,3 +519,5 @@ không có bài nào trước nó. Từ `bt-02` phần D luôn có 3 câu và b�
 **2026-10-31 — Bài 64: nhận phần thực hành oops của Bài 51.** Bài 64 cố ý gây oops (`NULL` pointer, `WARN_ON`, `BUG_ON`), cho thấy oops thành panic qua `panic_on_oops` và khi tác vụ bị giết là PID 1, rồi giải mã bằng `faddr2line`, `addr2line`, `objdump -dS`, `gdb`, `decode_stacktrace.sh`, và dùng `git bisect run` trên một repo nhỏ 8 commit tự dựng (không bisect cây kernel — `~/bai38` là tarball, không có lịch sử Git). Phạm vi dòng Bài 64 ở §4 không đổi. Bước thực hành oops mà Bài 51 còn nợ được coi là đã giao ở đây: khi làm lại Bài 51, chỉ cần một bước ngắn trỏ sang Bài 64, không dựng lại cùng nội dung.
 
 **2026-10-31 — Bài 67: một sản phẩm "Thermo" dựng bằng Buildroot, phạm vi giữ nguyên.** Cả sáu lớp của dòng Bài 67 ở §4 được ghép trong một cây br2-external `~/bai67/thermo` với một defconfig: U-Boot 2026.01 (bản Buildroot 2026.02.3 chọn sẵn, build từ mã nguồn bằng toolchain dựng sẵn Bootlin GCC 14.3.0 — không cần GCC ≥ 10 trên máy), kernel 6.18.45 từ tarball của Bài 38 với cấu hình `aarch64-virt` của Buildroot + một fragment, Device Tree = cây QEMU `virt` + một `.dtsi`, driver `tsensor` của Bài 54 (hạ tầng `kernel-module`, tự nạp qua `mdev`/`modprobe`), daemon của Bài 24 sửa để đọc `/dev/tsensor0`. "Có tài liệu" được hiểu là README trong cây, MANIFEST, `SHA256SUMS` và `make legal-info`. Bài cố ý giữ một lỗi thật gặp khi kiểm chứng: U-Boot `qemu-arm` thiếu `fdt_addr_r` nên bỏ qua dòng `fdt` của `extlinux.conf`; sửa bằng một patch một dòng.
+
+**2026-11-03 — Bài 68: secure boot dựng một mắt xích thật, phạm vi giữ nguyên.** Bốn ý của dòng Bài 68 ở §4 đều có phần thực hành trên sản phẩm Thermo của Bài 67 (bản sao `~/bai68/thermo`): chain of trust được dựng thật ở mắt U-Boot → FIT (ký RSA-2048 trên configuration trong post-build, khoá công khai `required = "conf"` trong control FDT, thử bằng bốn ảnh giả) và các mắt còn lại (ROM/OTP, SPL/TF-A ký, `dm-verity`) chỉ được giải thích, vì QEMU `virt` không có ROM kiểm tra và khoá công khai phải đi qua `-dtb`. Rootfs chỉ đọc dùng một phân vùng `/data` + overlayfs cho `/etc`; tối giản bề mặt tấn công gồm fragment U-Boot đóng đường vòng (`booti`, legacy, EFI, env trong flash, dấu nhắc), fragment BusyBox, `# CONFIG_DEVMEM is not set` và user riêng cho daemon; quản lý bí mật = khoá ngoài cây qua `THERMO_KEY_DIR` + mật khẩu root dạng hash. Tiêu đề trong `registry.js` vẫn là *Bảo mật và secure boot*.

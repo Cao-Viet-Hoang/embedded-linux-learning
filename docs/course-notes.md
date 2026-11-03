@@ -1539,6 +1539,30 @@
   (7) `legal-info` still warns `no hash file for LICENSE` (local packages) and `toolchain-external-bootlin … cannot save license`.
   (8) BusyBox in this config has no `nc` and no `logread`; test the daemon from the host via `hostfwd=tcp::19006-:9006`.
   (9) `cut -d,` on `manifest.csv` truncates BusyBox's license field (it contains a comma).
+- **Lesson 68 `Bảo mật và secure boot` (2026-11-03, machine B)** owns: threat model table; hash vs signature; chain of trust
+  ROM/OTP → SPL/TF-A → U-Boot → FIT → kernel → rootfs (only U-Boot → FIT built for real); signing the **configuration** and the
+  mix-and-match argument; FIT signing in a Buildroot **post-build** script with `THERMO_KEY_DIR`; `fdt_add_pubkey -r conf` into a
+  `dumpdtb` control FDT; `fit_check_sign`; reading `+`/`-` after the key name; four fake images (`evil`, `flip`, `forged`, `bypass`);
+  the U-Boot hardening fragment (`BOOTSTD_DEFAULTS`/`CMD_BOOTI`/`LEGACY_IMAGE_FORMAT`/`EFI_LOADER` off, `BOOTDELAY=-2`,
+  `BOOTCOMMAND="bootflow scan -lb; poweroff"`, `ENV_IS_NOWHERE`); rootfs `ro` + `/data` (`nosuid,nodev,noexec`) + overlayfs on
+  `/etc` + factory reset by deleting the upper file; BusyBox fragment, `# CONFIG_DEVMEM`, `users.table` (`makeusers`), `--chuid`,
+  `mdev.conf` group rule; `BR2_TARGET_GENERIC_ROOT_PASSWD` as `$6$…`; `grep -rl "PRIVATE KEY"` before commit/release. Working
+  dir `~/bai68`: `thermo/` (220K, 32 files, defconfig 40 lines), `keys/` (dev key, mode 700/600), `out/`, `step1`…`step6`, `evil/`.
+- **Lesson 68 deliberately does NOT:** build `dm-verity` (explained + named as an extension), sign `u-boot.bin` or use a ROM/TF-A/OTP
+  (QEMU has none — Bài 70), compile the public key into `u-boot.bin` (it goes through QEMU `-dtb`; the lesson says production embeds
+  it), TPM/OP-TEE/RPMB, `BUSYBOX_INDIVIDUAL_BINARIES` (setuid busybox kept, explained), SSH, firewall, A/B or any update (Bài 69).
+- **Findings a later lesson could trip over (lesson 68):** (1) `# CONFIG_CMDLINE is not set` in U-Boot 2026.01 drops `CMD_BOOTM`,
+  extlinux then fails `Boot failed (err=-14)` and U-Boot resets forever. (2) `# CONFIG_CMD_BOOTI is not set` alone is ignored:
+  `BOOTSTD_DEFAULTS` → `BOOT_DEFAULTS_CMDS` `select CMD_BOOTI if ARM64`; turn off `BOOTSTD_DEFAULTS`. Without `booti`,
+  `pxe_utils.c` falls to `bootz` → `zimage: Bad magic!`. (3) Without a key in the control FDT, `required` cannot be enforced: the
+  hardened U-Boot booted without `-dtb` prints `Verifying Hash Integrity ... OK` (no algo) and boots. (4) `busybox-dirclean` leaves
+  old applet symlinks (and `S50crond`) in `target/` — `make clean all` is needed. (5) BusyBox `inittab` runs `hostname -F` before
+  `rcS`, so an overlay on `/etc` must re-run it. (6) `S01seedrng` needs `/etc/default/seedrng` with `--seed-dir=` on a ro rootfs.
+  (7) `users.table` users appear only in the image (`debugfs -R 'cat /etc/passwd' images/rootfs.ext2`), not in `target/etc/passwd`.
+  (8) debugfs 1.45.5 `write SRC /boot/x` does not land in `/boot`; `cd /boot` then `write SRC x` in one `-f` command file.
+  (9) `grep -obUa` finds the kernel banner twice; the second copy is the one printed at boot.
+  (10) U-Boot `qemu-arm` env (2026.01) now **has** `fdt_addr_r=0x48000000` in the Buildroot-built tree because lesson 67's patch
+  is applied; FIT boot takes the dtb from inside the FIT (`kernel` and `fdt` lines point at the same `.itb`).
 
 ## Cross-reference map (grep this before writing `Chặng NN` in prose)
 

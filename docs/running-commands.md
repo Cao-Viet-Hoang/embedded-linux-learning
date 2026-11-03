@@ -310,6 +310,14 @@ The shell is Git Bash on Windows driving `wsl.exe`. These bite every time:
 - **Under `wsl -d OSD -- bash -c` (non-login) the proxy env is the *direct* corporate proxy from `/etc/profile.d/proxy.sh`, and `curl https://buildroot.org/...` failed with `Could not resolve host` (lesson 67).** Exporting `https_proxy=http://localhost:3128 http_proxy=http://localhost:3128` (the Windows `px`, what `~/.profile` sets) at the top of the script fixed it, and `make source` then fetched 26 packages first try.
 - **A background-job watcher that greps for `rc=` matches an earlier `defconfig rc=0` line (lesson 67).** Give each long job a unique end marker (e.g. `^real`, or `echo BUILD-DONE`), and never write a piped-stdin script that also does `cat > file` — the first `cat` swallows the rest of stdin (it emptied `thermo_defconfig` once).
 
+- **Driving U-Boot + Linux boots for captures: one `pexpect` script per boot, `--timeout` well under the outer `timeout` (lesson 68).**
+  A hardened U-Boot that fails to boot **resets forever** (`CONFIG_CMDLINE=n`) or powers off; a waiter that only expects `login: `
+  then hangs until the Bash tool's 120 s limit and the call is moved to the background. Expect every terminal state at once
+  (`login: `, `Kernel panic`, `=> `, `reboot: Power down`, EOF, TIMEOUT) and run multi-boot batches with `run_in_background`.
+  `boot.py` used for lesson 68 lived in `~/bai68/bin/`.
+- **Never run `mkpasswd` from Git Bash** (lesson 68): Git Bash ships its own `mkpasswd`, which enumerates the Windows domain and
+  printed thousands of corporate accounts before it was stopped. Run password hashing inside WSL (`openssl passwd -6`).
+
 ### Cleaning up temporary files
 
 **After verifying a lesson or exercise set, delete all temporary files created during the
